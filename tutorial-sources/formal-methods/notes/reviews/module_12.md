@@ -1,5 +1,45 @@
 # Review of Module 12, Verifying functional programs
 
+## Follow-up content audit, 17 November 2026
+
+Read every definition, computation, proof, exercise solution and quiz, and checked all three figure
+sources. Line numbers refer to the source at the start of this follow-up.
+
+- **L37–79, summary and quiz:** a correctness theorem establishes its specified property under its
+  stated preconditions and trusted assumptions. It does not validate the specification or establish
+  omitted properties. The two specification forms introduced here are not an exhaustive taxonomy.
+- **L131–140, 319–325:** import time and session images vary. Quickcheck's bounded search limits
+  test values as well as list structure, and automatic background checks are configurable.
+- **L640–645:** the search bound counts examined keys; logarithmic height requires balance, which
+  this implementation does not maintain. Used `log₂(n + 1)` to cover empty and singleton trees.
+- **L681–685:** corrected schematic-variable indexing: `?x21.0` is name `x21`, index 0, whereas
+  `?x21` is name `x`, index 21. This now agrees with Module 9.
+- **L813–817, 941–957:** added empty-tree initialisation to the discussion and operation preconditions
+  to the deterministic abstraction-function refinement pattern.
+- **L1059–1065, 1225–1230:** replaced average-case language with amortised bounds in an explicit
+  list-cost model. Linear total cost applies along a single history starting at `qempty` and using
+  each operation's result next; persistent reuse of older queues can repeat reversal work.
+- **L1213–1217, 1280–1291, 1301–1341, summary:** representation invariants hold for finite, defined
+  values built through the proved interface. Constructor hiding does not enforce non-emptiness or
+  ordering laws. Qualified code-generation guarantees by represented HOL inputs, defined results,
+  target adaptations and runtime assumptions; Haskell's partial and infinite values need not represent
+  HOL finite-list values. Natural-number representations must exclude negative target integers.
+
+Primary references: [Queue_Spec](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL-Data_Structures/Queue_Spec.html)
+(eight interface properties), [Queue_2Lists](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL-Data_Structures/Queue_2Lists.html)
+(potential `length rs`, `a_enq`, `a_deq`), [Isar syntax](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Outer_Syntax.html)
+(indexed variables), and [code generation manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Introduction.html)
+with its [foundations](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Foundations.html).
+
+Validation: all 80 Isabelle blocks, 38 captured-output blocks and existing IDs are unchanged.
+English checker: no errors or warnings. English HTML and root MkDocs builds passed. Inspected the
+whole page at 1280 and 390 px with solutions expanded: no page overflow, broken images, KaTeX errors,
+missing local anchors, SVG text outside its view box or browser errors. Isabelle is unavailable on
+this Mac, so the earlier successful prover run was not repeated. Chinese synchronisation remains
+deferred. No figure, widget or shared-tool changes were needed.
+
+## Original review, 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_12.md` and `src/figures/_gen/figs_12.py`. Line numbers are
 those of the page as I found it, before my edits.
 

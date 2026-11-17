@@ -17,13 +17,13 @@ imports: Main
 ## Closing the circle {#circle}
 
 Module 1 began with software that must not fail, and one of its examples was a compiler: CompCert, a C
-compiler with a machine-checked proof of correctness. Compilers deserve that attention. Every program
-you run has been translated by one, and a bug in the translation breaks programs whose source code is
-correct. It breaks proofs too. A proof about a C function speaks about the C code, but the computer runs
+compiler with a machine-checked proof of correctness. Compilers deserve that attention. Much of the
+software you run relies on a compiler, and a translation bug can change the behaviour of correct source code.
+It can invalidate an end-to-end guarantee too. A proof about a C function speaks about the C code, but the computer runs
 whatever the compiler produced. In Exercise 1.6 the compiler appeared on the list of things that a
 verified program still has to trust. A verified compiler takes it off that list, or nearly so (Section
-14.7 says what remains): its correctness theorem says that the code it produces does what the source
-program means, for every source program.
+14.7 says what remains). Its theorem specifies the behaviour preserved when compilation succeeds,
+under the source and target semantics and the assumptions of that theorem.
 
 The idea is almost as old as compilers. In 1967 John McCarthy and James Painter proved on paper that a
 compiler for arithmetic expressions is correct, the first proof of its kind. In 1972 Robin Milner and
@@ -53,16 +53,17 @@ Evaluating an expression and running its compiled code must agree. The theorem `
 Section 14.5 says that they do, for every expression, every state of the variables and every stack.
 :::
 
-The machine is a **stack machine**: it keeps intermediate results on a stack, and its instructions take
-their operands from the top of the stack and put their results back there. This is a realistic design.
+The machine is a **stack machine**: it keeps intermediate results on a stack, and arithmetic instructions
+consume values from the top and push their results there. This is a realistic design.
 The Java Virtual Machine, WebAssembly and the interpreter of Python all run instructions for stack
 machines of this kind, and their compilers produce such code.
 
 ::: keyidea
 A compiler translates, and a correct translation preserves meaning. To prove that it does, you need the
-meaning of both languages as mathematical functions: an evaluation function for the source and an
-execution function for the target. "Preserves meaning" then becomes an equation between the two, which
-you can test on examples and prove by induction.
+meaning of both languages. Here they are mathematical functions: evaluation for the source and
+execution for the target. Other languages may need relations to describe nontermination or
+nondeterminism. Here "preserves meaning" becomes an equation that you can test on examples and prove
+by induction.
 :::
 
 ## Expressions and their meaning {#source}
@@ -72,7 +73,7 @@ you can test on examples and prove by induction.
 Programs are written as text, but a compiler works on their structure. The text `x + (2 + y)` is an
 addition whose left operand is the variable x and whose right operand is another addition, of the number
 2 and the variable y. The program that turns text into structure is the **parser**. Parsing is a subject
-of its own, and this module, like most compiler proofs, starts after it.
+of its own. This module starts from syntax trees and does not verify a parser or a textual input format.
 
 ::: definition Abstract syntax
 The **abstract syntax** of a language describes its programs as trees: each node is an operation and its
@@ -206,8 +207,9 @@ stack is `#`, and taking values off is pattern matching on `#`.
 
 ::: definition Stack machine
 A **stack machine** computes with a **stack**, a list of values that is used only at one end, its
-**top**. Each instruction takes its operands from the top of the stack and leaves its result there. A
-**program** for the machine is a list of instructions, executed from left to right.
+**top**. Arithmetic instructions take values from the top and push a result; instructions such as
+`PUSH` and `LOAD` supply values. A **program** for this straight-line machine is a list of instructions,
+executed from left to right.
 :::
 
 The function `exec1` executes one instruction:
@@ -222,11 +224,11 @@ fun exec1 :: "instr ⇒ state ⇒ stack ⇒ stack" where
 
 The third equation does the work of `ADD`: j is the top of the stack and i the number below it, and the
 sum i + j replaces both. The order of i and j looks irrelevant now, but it will matter when you add
-subtraction in Section 14.8. The fourth equation is there because every HOL function is total (Module
-8): `exec1` must return a stack even when `ADD` finds fewer than two numbers. A real machine would stop
-with an error, a **stack underflow**; this one leaves the stack as it is. The choice does not affect the
-compiler, whose code never meets this case. Exercise 14.7 builds a machine that stops instead, and
-proves that.
+subtraction in Section 14.8. Every HOL function denotes a value for every argument (Module 8); the
+fourth equation makes a deliberate choice for malformed `ADD` instructions instead of leaving a
+missing case unspecified. With fewer than two numbers, it leaves the stack unchanged. Another machine
+might report **stack underflow**, meaning too few operands. Compiled expressions supply both operands
+before `ADD`; Exercise 14.7 verifies this with a machine that reports failure explicitly.
 
 The third and fourth equations overlap: a stack with two or more numbers matches both. `fun` resolves the
 overlap in order, the earlier equation first (Module 8). `thm exec1.simps` shows the equations that
@@ -284,7 +286,7 @@ The program `LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD` run in the state `s0` on 
 `ADD` replaces the two numbers on top by their sum.
 :::
 
-What was on the stack before a program started stays where it is, below the new values:
+This sequence only pushes values, so pre-existing stack contents stay below the new values:
 
 ```isabelle
 value "exec [LOAD ''x'', PUSH 2] s0 [100]"
@@ -295,7 +297,8 @@ value "exec [LOAD ''x'', PUSH 2] s0 [100]"
   :: "int list"
 ```
 
-This property, code that leaves the rest of the stack alone, is what will make the compiler work.
+Arbitrary machine programs can consume pre-existing values: `ADD` above did so. The compiler theorem
+will establish that the code of an expression leaves the original stack intact while pushing its result.
 
 ## The compiler {#compiler}
 
@@ -360,11 +363,12 @@ term comp
 ```
 
 Isabelle would accept a function of your own called `comp`, and the name would then refer to yours. But
-the short name would have two meanings, so from then on Isabelle prints yours with the name of your
-theory in front, as in `T.comp (Num 1)` for a theory `T`, in every goal and message. Before you name a
+the short name would have two meanings, so Isabelle may need to print a qualified name such as
+`T.comp (Num 1)` for a theory `T` to disambiguate it. Before you name a
 function, ask Isabelle whether the name is free. `term` prints the type of a constant that exists; a name
-that is not a constant is printed with type `'a`, because Isabelle reads it as a free variable (Module
-8). `find_consts` (Module 9) searches by type, and with the criterion `name:` also by name.
+that is fresh and undeclared is read as a free variable (Module 8); in an unconstrained `term` command
+it has type `'a`. That output is not evidence that a constant exists. `find_consts` (Module 9) searches
+by type, and with the criterion `name:` also by name.
 :::
 
 ### What correct means {#correct}
@@ -409,11 +413,10 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Quickcheck tried every expression, state and stack up to size 3 and found nothing wrong. The option
-`size = 3` limits the search to small values. Without it, Quickcheck searches up to its default size, and
-on this claim it stops with "Quickcheck ran out of time" when its time limit is reached: the state is a
-function from strings to integers, and there are very many small functions of that kind. On a false
-claim the plain command is fast, because Quickcheck stops at the first counterexample it finds.
+Quickcheck found no counterexample among its bounded test values for expressions, states and stacks.
+`size = 3` limits the generators; it does not enumerate all mathematical functions from strings to
+integers. With the larger default search it may run out of time. A false claim can also need values
+beyond the bounds, though Quickcheck stops as soon as it finds a counterexample.
 
 Quickcheck is at its best on claims that are wrong. Here is a correctness claim that forgets the stack:
 
@@ -479,14 +482,15 @@ Evaluated terms:
   eval e s # stk = [0]
 ```
 
-The smallest counterexample is 0 + 0. The numbers do not matter: the order of the instructions is wrong,
-and Quickcheck, which tries small values first, finds the smallest expression that contains an `ADD`.
+The counterexample is 0 + 0, an expression with one addition. The particular numbers do not matter:
+the order of the instructions is wrong. A single addition is the smallest expression shape on which
+this compiler differs from the correct one.
 
 ::: keyidea
-Test before you prove. `value` checks one example; Quickcheck checks thousands of small ones and reports
-the first failure it finds, which is usually the simplest. Neither proves anything, but both are fast,
-and a counterexample shows you exactly what is wrong. A proof attempt on a false claim only fails, and
-the goal it leaves does not tell you whether the claim or the proof is at fault.
+Test before you prove. `value` evaluates examples; Quickcheck searches bounded test cases and reports
+a counterexample if it finds one. Neither establishes an unrestricted correctness theorem. A genuine
+counterexample refutes the claim, while an unfinished proof attempt alone does not tell you whether
+the claim or the proof strategy is at fault.
 :::
 
 ## The correctness proof {#proof}
@@ -581,8 +585,8 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Prove it by induction on c1. The recursive call of `exec` receives a new stack, `exec1 i s stk`, so the
-stack must be arbitrary, as Module 11's tip says for every argument that changes in a recursive call:
+Prove it by induction on c1. The recursive call of `exec` receives a new stack, `exec1 i s stk`, so
+generalise the stack to give this induction the required hypothesis, following Module 11's strategy:
 
 ```isabelle
 lemma exec_append [simp]: "exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)"
@@ -632,8 +636,8 @@ goal (1 subgoal):
 
 Progress: the code of e1 has run, by `exec_append` and the hypothesis for e1, and left `[eval e1 s]`.
 Now the code of e2 runs on the stack `[eval e1 s]`, but the hypothesis for e2 speaks only about the empty
-stack. This is the second point of the paper proof. The hypothesis is too weak, and the remedy is to
-change the claim, not to add a lemma.
+stack. This is the second point of the paper proof. Strengthen the induction statement so that its
+hypothesis covers the stack passed to the second subexpression.
 
 ```isabelle
   oops
@@ -803,9 +807,10 @@ arbitrary (Module 11).
 
 ## A verified optimisation {#optimise}
 
-Real compilers improve the code they produce: they **optimise** it. Every optimisation is a new chance
-for a bug, because the improved code must do exactly what the original did, in every case. A verified
-compiler proves that for each optimisation.
+Real compilers transform code to improve it: they **optimise** it. Each transformation must preserve
+the behaviour required by its specification, which creates another proof obligation. A verified
+optimisation comes with a theorem stating which behaviour it preserves. Here expressions use total,
+pure integer arithmetic, and preservation means equality of their values in every state.
 
 ### Constant folding {#folding}
 
@@ -814,8 +819,8 @@ every state, and adding 0 changes nothing. A compiler can do that work once, at 
 every time the code runs.
 
 ::: definition Constant folding
-**Constant folding** replaces the parts of a program whose value does not depend on the state by their
-value, and removes operations that have no effect. An optimisation is **correct**, or
+**Constant folding** evaluates constant subexpressions at compile time. The pass below also performs
+an algebraic simplification, removing an addition of 0 on the right. An optimisation is **correct**, or
 **semantics-preserving**, if the optimised program has the same meaning as the original in every state.
 :::
 
@@ -919,8 +924,8 @@ theorem cfold_correct: "eval (cfold e) s = eval e s"
 
 This time no variable is arbitrary. `eval` passes the state unchanged to its recursive calls, so the
 hypotheses for the same s are exactly what the case `Add` needs. Compare `exec`, whose recursive call
-receives a new stack: Module 11's tip asks which arguments change in the recursive calls, and only those
-need generalising.
+receives a new stack: inspecting changed arguments is a useful guide to the generalisation needed by
+these proofs, rather than a universal rule for choosing induction hypotheses.
 
 ### Optimise, then compile {#pipeline}
 
@@ -940,10 +945,11 @@ meaning; the theorems compose into one about the whole chain of passes.
 
 ::: pitfall
 An optimisation is correct with respect to a semantics, here the semantics of mathematical integers.
-For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic, which almost every
-processor uses, adding 0.0 to −0.0 gives +0.0. So replacing `x + 0.0` by `x` changes the result when x
-is −0.0, and compilers that follow the IEEE rules do not make that replacement. A proof about the wrong
-semantics proves nothing about the real program.
+For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic under round-to-nearest,
+adding +0.0 to −0.0 gives +0.0. Replacing `x + 0.0` by `x` can therefore change the sign of zero.
+A compiler required to preserve signed-zero behaviour cannot apply that rewrite unconditionally;
+options that relax floating-point semantics can permit it. Applying the integer proof to floating-point
+code would need a separate argument for the chosen semantics.
 :::
 
 ## From proof to program {#export}
@@ -1015,9 +1021,10 @@ What does the proof guarantee for this program? The theorems are about the HOL f
 generator is designed so that each step of the generated program corresponds to rewriting with
 equations that are theorems, but it is not part of the kernel (Module 8): it belongs to the trusted
 base, together with the Haskell compiler that turns the generated code into machine code, and the
-hardware. The trusted base has not disappeared. It has moved from your compiler to a few general tools
-that many people use and check. CompCert is in the same position: it is written and proved in Rocq and
-turned into OCaml code by Rocq's own code extraction.
+hardware and runtime, plus the agreed representation of logical values and any hand-written target
+adaptations (Module 12). The theorem covers this syntax-tree compiler and the modelled stack machine;
+it does not verify a parser, assembler, or physical machine implementation. CompCert also uses
+Rocq-to-OCaml extraction and has a documented boundary of verified and unverified components.
 
 ## Extending the compiler ★★★ {#extensions}
 
@@ -1077,8 +1084,8 @@ Found termination order: "(λp. length (fst p)) <*mlex*> {}"
 program. The last equation catches what the others leave out, an `ADD2` or `SUB` on a short stack and a
 `JMPZ` on the empty one, and skips the instruction. Jumps only go forwards, so every recursive call is on
 a shorter list, and Isabelle finds the termination order, the length of the program, without help. With
-backward jumps a program could run for ever, and `fun` could not define `exec2` (more on that in
-Section 14.8.4).
+unrestricted backward jumps some programs could run forever, so this unfuelled recursive interpreter
+would no longer pass `fun`'s termination requirement (more on that in Section 14.8.4).
 
 ### The order of operands {#operand-order}
 
@@ -1214,14 +1221,15 @@ without `exec_append`.
 
 ### Further directions {#directions}
 
-- **More operators.** Multiplication needs one constructor, one instruction and one equation in each
-  function; the proofs go through unchanged.
-- **`let`.** An expression `let x = a in b` needs an instruction that stores a value into a variable.
-  The code then changes the state as well as the stack, and the theorem must say which variables it may
+- **More operators.** Multiplication adds a constructor, an instruction and corresponding equations.
+  The correctness proof follows the same pattern with an additional constructor case.
+- **`let`.** One implementation of `let x = a in b` adds an instruction that stores a value into a variable.
+  That code changes the state as well as the stack, and the theorem must say which variables it may
   change: storing the value of a in x itself destroys the x that the surrounding expression may need.
-- **Loops.** With backward jumps a program can run for ever, so execution becomes a relation between
-  configurations of the machine (a program counter, a state and a stack), defined with `inductive` as in
-  Modules 11 and 13, instead of a function.
+- **Loops.** With backward jumps a program can run forever. One model is an inductively defined
+  execution relation on configurations (a program counter, state and stack), as in Modules 11 and 13.
+  Another is a total interpreter with a fuel argument limiting the number of steps. Exhausting fuel
+  reports that the bound was reached; it does not establish divergence.
 - **Other machines.** Exercise 14.7 makes the machine stop on a stack underflow, and Exercise 14.8
   compiles to a machine with registers.
 
@@ -1252,8 +1260,8 @@ the structure of the programs, and lemmas found by reading the goals where the p
 
 Where to go from here:
 
-- ***Concrete Semantics*** by Tobias Nipkow and Gerwin Klein (Springer, 2014; web site
-  concrete-semantics.org) continues where this module ends. Its first part is an Isabelle
+- ***[Concrete Semantics](https://concrete-semantics.org/)*** by Tobias Nipkow and Gerwin Klein (Springer,
+  2014) continues where this module ends. Its first part is an Isabelle
   tutorial; its second part defines a small imperative language, IMP, with assignments and loops, and
   treats its semantics, a compiler for it, type systems, Hoare logic and program analysis, all in
   Isabelle.
@@ -1273,15 +1281,14 @@ result is a theorem about every program it will ever compile.
 
 ## What you learned {#summary}
 
-- A compiler is correct when running its code agrees with the meaning of the source program. To state
-  this you need both semantics as functions: here `eval` for expressions and `exec` for the stack
+- Here compiler correctness is an equation between two semantic functions: `eval` for expressions and `exec` for the stack
   machine. The statement is the equation `exec (compile e) s stk = eval e s # stk`.
 - Abstract syntax is a datatype; a compositional semantics is a recursive function on it. A **state**
   maps variable names to values; `f(a := v)` updates a function.
 - A **stack machine** takes its operands from the top of a stack. The compiler produces code in postfix
   order: the code of the operands, then the operator.
-- Test first. `value` compares evaluation and execution on examples; Quickcheck finds the smallest
-  counterexample to a wrong claim or a wrong compiler. Limit the search with `quickcheck [size = n]` when
+- Test first. `value` compares evaluation and execution on examples; Quickcheck searches bounded cases
+  for counterexamples, without guaranteeing a smallest one or finding every bug. Limit the search with `quickcheck [size = n]` when
   the claim has functions among its variables.
 - The proof needs two ideas from Module 11: the auxiliary lemma `exec_append`, found from the stuck goal,
   and **generalisation over the stack**, with `arbitrary: stk`, because the code of the second operand
@@ -1391,6 +1398,7 @@ qed simp_all
 ```
 
 `qed simp_all` proves the cases `Num` and `Var`, which the Isar text does not mention, by `simp`.
+The result bounds instruction counts, not compilation time, running time or the memory used by integer values.
 :::
 ::::
 
@@ -1515,7 +1523,7 @@ This form needs no lemma about arbitrary splits of programs, which is why it sti
 ::::
 
 :::: exercise A machine that can fail {#ex-14-7} ★★★
-A real stack machine stops with an error on a stack underflow. Model this with an option type (Module
+Model a stack machine that reports stack underflow with an option type (Module
 8): `exec1_opt` returns `None` when `ADD` finds fewer than two numbers, and `exec_opt` stops at the first
 `None`. Define both, check with `value` that `[PUSH 1, ADD]` fails on the empty stack, and prove that
 compiled code never fails:
@@ -1692,10 +1700,10 @@ accumulator and registers, not a stack.
 - [ ] Because `drop` is not defined for long lists
 > Running c1 alone, a jump at its end skips nothing. The repair is to state correctness for the compiled code followed by any continuation c.
 
-? You run the Haskell code that `export_code` generated from `compile`. What must you still trust?
+? Which additional software components are trusted when running the Haskell exported from `compile`?
 - [ ] The proof of `compile_correct`
 - [ ] The simplifier that proved the lemmas
 - [ ] Quickcheck
 - [x] Isabelle's code generator and the Haskell compiler
-> The proofs are checked by Isabelle's kernel. The translation to Haskell and its compilation are outside the kernel, so they are part of the trusted base.
+> Besides the inference kernel and the runtime/hardware assumptions, execution relies on the code generator and Haskell compiler. Their translations are outside the kernel's proof checking.
 ```

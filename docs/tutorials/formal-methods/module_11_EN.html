@@ -63,8 +63,8 @@ for x in xs:
     total = total + x
 return total
 </code></pre>
-<p>A functional program has no loops. It uses a recursive function with an extra argument that carries the
-running total from one call to the next:</p>
+<p>The HOL functions here express repetition by recursion. An extra argument carries the running total
+from one call to the next:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun sumacc :: &quot;nat list ⇒ nat ⇒ nat&quot; where
   &quot;sumacc [] acc = acc&quot;
 | &quot;sumacc (x # xs) acc = sumacc xs (acc + x)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> sumacc :: <span class="isa-inner">&quot;nat list ⇒ nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
@@ -86,7 +86,7 @@ the call returns, so a compiler can run it as a loop, without growing the call s
 <div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>a</mi><mi>c</mi><mi>c</mi></mrow><mtext> </mtext><mo stretchy="false">[</mo><mn>3</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>4</mn><mo stretchy="false">]</mo><mtext> </mtext><mn>0</mn><mo>=</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>a</mi><mi>c</mi><mi>c</mi></mrow><mtext> </mtext><mo stretchy="false">[</mo><mn>1</mn><mo separator="true">,</mo><mn>4</mn><mo stretchy="false">]</mo><mtext> </mtext><mn>3</mn><mo>=</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>a</mi><mi>c</mi><mi>c</mi></mrow><mtext> </mtext><mo stretchy="false">[</mo><mn>4</mn><mo stretchy="false">]</mo><mtext> </mtext><mn>4</mn><mo>=</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>a</mi><mi>c</mi><mi>c</mi></mrow><mtext> </mtext><mo stretchy="false">[</mo><mtext> </mtext><mo stretchy="false">]</mo><mtext> </mtext><mn>8</mn><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">\mathit{sumacc}\ [3,1,4]\ 0 = \mathit{sumacc}\ [1,4]\ 3 = \mathit{sumacc}\ [4]\ 4
 = \mathit{sumacc}\ [\,]\ 8 = 8
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sumacc</span></span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">4</span><span class="mclose">]</span><span class="mspace"> </span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sumacc</span></span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">4</span><span class="mclose">]</span><span class="mspace"> </span><span class="mord">3</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sumacc</span></span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">4</span><span class="mclose">]</span><span class="mspace"> </span><span class="mord">4</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sumacc</span></span><span class="mspace"> </span><span class="mopen">[</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">]</span><span class="mspace"> </span><span class="mord">8</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">8</span></span></span></span></span></div>
-<p>The list gets shorter and the accumulator grows. The library function <code>sum_list</code> adds up a list
+<p>The list gets shorter and the accumulator is updated. The library function <code>sum_list</code> adds up a list
 directly, so the natural claim is that the loop computes the same total: <code>sumacc xs 0 = sum_list xs</code>.</p>
 <div class="box box-example"><div class="box-label">Example 11.1<span class="box-title">The proof attempt on paper</span></div>
 <p>Prove <code>sumacc xs 0 = sum_list xs</code> by induction on <code>xs</code>.</p>
@@ -129,8 +129,8 @@ rewriting turns one into the other. The proof is abandoned:</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
 <p>A stuck goal is information, not only a failure. Compare the IH with the conclusion and ask what differs.
 Here they differ in one argument: the IH fixes the accumulator to <code>0</code>, but the recursive call changes
-it. When a function changes an argument in its recursive call, the claim must speak about every value of
-that argument.</p>
+it. A useful repair is often to generalise the claim so that it covers the values of that argument
+passed by recursive calls.</p>
 </div>
 <span class="section-anchor" id="generalise"></span>
 <div class="section-header"><span class="section-num">2</span><h2>Generalising and strengthening the goal</h2></div>
@@ -162,7 +162,7 @@ Quickcheck found a counterexample:
 Evaluated terms:
   sumacc xs acc = 1
   sum_list xs = 0</code></pre></div>
-<p>The correct generalisation passes the test, so try to prove it:</p>
+<p>Now try to prove the corrected generalisation:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sumacc xs acc = acc + sum_list xs&quot;
   apply (induction xs)
   apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sumacc xs acc = acc + sum_list xs&quot;</span>
@@ -354,8 +354,8 @@ goal (1 subgoal):
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
 <p>Read the stuck goal. The IH is <code>val (counter n) = n</code>, and the conclusion needs
 <code>val (inc (counter n)) = Suc n</code>. The simplifier knows what <code>inc</code> does to <code>[]</code> and to <code>b # bs</code>, but
-<code>counter n</code> is neither, so no equation of <code>inc</code> applies. Generalising does not help: no variable is
-fixed in the wrong way. What is missing is a fact about <code>val</code> and <code>inc</code>.</p>
+<code>counter n</code> is not visibly either constructor form, so no equation of <code>inc</code> applies. Adding
+<code>arbitrary:</code> alone does not supply the missing fact about <code>val</code> and <code>inc</code>.</p>
 <p>Which fact? Look at the subterm the simplifier cannot touch, <code>val (inc (counter n))</code>. The inner
 <code>counter n</code> is an accident of this proof; the fact should hold for every bit list there. Write <code>bs</code> for
 it and compute an example:</p>
@@ -406,10 +406,10 @@ found 1 theorem(s):
   List.rev_append: rev (?xs @ ?ys) = rev ?ys @ rev ?xs</code></pre></div>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
 <p>Do not state the stuck goal itself as the lemma. <code>val (inc (counter n)) = Suc n</code> mentions the specific
-list <code>counter n</code>, and an induction on <code>n</code> only moves the problem: its step needs
-<code>val (inc (inc (counter n)))</code>. The lemma has to be more general than the goal. Sledgehammer (Module 9) does not help here either: it
-searches for a proof from facts that already exist, and it does not do induction, so it cannot invent
-<code>val_inc</code> for you.</p>
+list <code>counter n</code>, and repeating the same induction on <code>n</code> only moves the problem: its step needs
+<code>val (inc (inc (counter n)))</code>. Abstracting from <code>counter n</code> gives a lemma whose own induction can
+follow <code>inc</code>. Sledgehammer (Module 9) searches from available facts; it does not automatically invent
+and prove this auxiliary induction lemma for you.</p>
 </div>
 <span class="section-anchor" id="trees"></span>
 <div class="section-header"><span class="section-num">4</span><h2>Induction on trees</h2></div>
@@ -585,8 +585,10 @@ second list gets smaller, or it stays the same and the first list gets smaller.<
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;merge [1, 4, 6] [2, 3, 7]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;merge [1, 4, 6] [2, 3, 7]&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[1, 2, 3, 4, 6, 7]&quot;
   :: &quot;nat list&quot;</code></pre></div>
-<p>Merging should lose no element: <code>length (merge xs ys) = length xs + length ys</code>. Try structural
-induction on <code>xs</code>, already generalised over <code>ys</code>:</p>
+<p>Merging should preserve the total number of entries: <code>length (merge xs ys) = length xs + length ys</code>.
+This alone does not show that the entries are the right ones: a function could replace them while
+keeping the length. The set lemma below checks which values occur, and Exercise 11.2 checks how often
+each occurs. First try structural induction on <code>xs</code>, already generalised over <code>ys</code>:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;length (merge xs ys) = length xs + length ys&quot;
   apply (induction xs arbitrary: ys)
   apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (merge xs ys) = length xs + length ys&quot;</span>
@@ -645,7 +647,7 @@ goal (3 subgoals):
   done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
   <span class="isa-proof">done</span></code></pre></div>
 <div class="box box-definition"><div class="box-label">Definition 11.3<span class="box-title">Computation induction</span></div>
-<p>For a function <code>f</code> defined with <code>fun</code>, the rule <code>f.induct</code> has one case for each defining equation
+<p>For the single-function definitions used here, the rule <code>f.induct</code> has one case for each defining equation
 (after overlapping equations have been made disjoint) and, in each case, one induction hypothesis for
 each recursive call on the right-hand side, under the conditions that lead to the call. You use it with
 <code>induction x₁ … xₙ rule: f.induct</code>, where <code>x₁ … xₙ</code> are the arguments of <code>f</code> in the goal. The rule is
@@ -708,7 +710,7 @@ balanced.” “Every state is reachable from itself; if <span class="katex"><sp
 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span></span></span></span>⁠, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span></span></span></span> is reachable from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span>⁠.” Grammars, reachability in state machines, type systems and
 the meaning of programs are all defined this way, by <strong>rules</strong>.</p>
 <div class="box box-definition"><div class="box-label">Definition 11.4<span class="box-title">Inductive definition</span></div>
-<p>An <strong>inductive definition</strong> of a predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> is a list of rules of the form</p>
+<p>The <strong>inductive definitions</strong> here specify a predicate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> by finitely branching rules of the form</p>
 <div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>I</mi><mtext> </mtext><msub><mi>a</mi><mn>1</mn></msub><mo>⟹</mo><mo>⋯</mo><mo>⟹</mo><mi>I</mi><mtext> </mtext><msub><mi>a</mi><mi>n</mi></msub><mo>⟹</mo><mi>I</mi><mtext> </mtext><mi>a</mi></mrow><annotation encoding="application/x-tex">I\ a_1 \Imp \dots \Imp I\ a_n \Imp I\ a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mspace"> </span><span class="mord mathnormal">a</span></span></span></span></span></div>
 <p>called <strong>introduction rules</strong> (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> may be 0, and a rule may have further premises that do not mention
 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span>⁠, called side conditions). <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mtext> </mtext><mi>x</mi></mrow><annotation encoding="application/x-tex">I\ x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mspace"> </span><span class="mord mathnormal">x</span></span></span></span> holds exactly when it can be derived by finitely many rule
@@ -949,25 +951,26 @@ qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma<
 <tr>
 <td><code>value</code></td>
 <td>not by default</td>
-<td>yes</td>
+<td>when the definition and its operations are executable</td>
 </tr>
 </tbody>
 </table></div>
-<p>The last row deserves a demonstration. An inductive predicate is not a program, and <code>value</code> cannot run
-it:</p>
+<p>The last row deserves a demonstration. An inductive declaration supplies logical rules, not executable
+code equations by default. Here <code>value</code> cannot run <code>ev</code>:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;ev (Suc (Suc 0))&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">No code equations for ev,
 requested by dependencies
 </span></code></pre></div>
 <p>(Isabelle can turn many inductive predicates into programs with the command <code>code_pred</code>; this series
 does not need it.) Prefer a recursive function when the notion is a computation you want to run. Prefer an
-inductive definition when there is no terminating recursion: reachability in a state machine that has
-cycles, a grammar with concatenation, the evaluation of a program that may loop. Rule induction then
-gives you exactly the cases that matter.</p>
+inductive definition when rules are the more natural description: reachability, grammars with
+concatenation, or evaluation of programs that may loop. A cyclic finite graph still admits a
+terminating reachability algorithm, so these styles are not distinguished by whether an algorithm
+exists. Rule induction follows the defining rules directly.</p>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
-<p>The predicate being defined may appear in the premises of its rules only <em>positively</em>, not under a
-negation. A rule such as “if <code>odd' n</code> does not hold, then <code>odd' (Suc n)</code> holds” does not describe a
-smallest predicate, and Isabelle rejects it. It starts the usual proofs and reports that one of them
+<p>The operator specified by the rules must be <strong>monotone</strong> in the predicate being defined. Direct
+negative dependence is a problem: “if <code>odd' n</code> does not hold, then <code>odd' (Suc n)</code> holds” has no least
+closed predicate, and Isabelle rejects it. It starts the usual proofs and reports that one of them
 failed. That proof runs in parallel with the others, so on your screen the messages may come in a
 different order. The goal it could not prove, <code>mono (…)</code>, says that the rules must be <em>monotone</em>: when
 more facts <code>odd' n</code> hold, the rules may not derive fewer conclusions. A negated premise does exactly
@@ -1048,8 +1051,9 @@ premise <code>steps r ca c</code>. The IH and that premise give <code>steps r b 
   done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (auto intro: step)
   <span class="isa-proof">done</span></code></pre></div>
 <details class="trouble"><summary>If something went wrong</summary><div class="details-body">
-<p><code>induction rule: steps.induct</code> always inducts on the <em>first</em> premise. With the premises the other way
-round, it inducts on the wrong one, and the proof fails:</p>
+<p>With no arguments or chained fact specified here, <code>induction rule: steps.induct</code> selects the first
+matching <code>steps</code> premise. With these two premises reversed, it selects the other reachability fact,
+and the displayed proof fails:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;steps r b c ⟹ steps r a b ⟹ steps r a c&quot;</span>
   <span class="isa-proof">by</span> (induction <span class="isa-minor">rule</span>: steps.induct) (auto intro: step)</code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
@@ -1057,7 +1061,8 @@ goal (1 subgoal):
  1. ⋀aa b c.
        ⟦r aa b; steps r b c; steps r a b ⟹ steps r a c; steps r a aa⟧
        ⟹ steps r a c</span></code></pre></div>
-<p>Put the premise you want to induct on first.</p>
+<p>For this proof, put the premise you want to induct on first; in a structured proof you can also pass
+the intended fact explicitly to the induction method.</p>
 </div></details>
 <h3 id="constants">Constants in the premise</h3>
 <p>Here is a safety property of the workflow: a ticket that is done stays done. The obvious rule induction
@@ -1093,8 +1098,8 @@ goal (2 subgoals):
   done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (auto elim: move.cases)
   <span class="isa-proof">done</span></code></pre></div>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
-<p>Rule induction needs variables in the inductive premise. If an argument is a constant or a compound
-term, generalise it by hand (<code>a = Done</code> as an extra premise), or name the terms after <code>induction</code>.
+<p>For these rule-induction patterns, an unhandled constant or compound argument can lose its intended
+constraint. Generalise it by hand (<code>a = Done</code> as an extra premise), or name the terms after <code>induction</code>.
 Module 13 meets the same situation with a state written as a pair, and avoids it for the initial state
 by building that state into its definition of reachability.</p>
 </div>
@@ -1348,10 +1353,10 @@ bound on <code>fib</code> with <code>less_induct</code> as well.</p>
 <span class="section-anchor" id="summary"></span>
 <div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
 <ul>
-<li>An induction gets stuck when its <strong>induction hypothesis</strong> is too weak. Read the stuck goal and compare
-the IH with the conclusion: the difference tells you what to change.</li>
-<li>If a recursive call changes an argument, as an <strong>accumulator</strong> does, <strong>generalise</strong> the claim to every
-value of that argument and use <code>induction xs arbitrary: acc</code>; the IH is then bound by ⋀.</li>
+<li>A weak <strong>induction hypothesis</strong> is one reason an induction gets stuck; missing lemmas or insufficient
+automation are others. Read the remaining goal before choosing a repair.</li>
+<li>If a recursive call changes an argument, as an <strong>accumulator</strong> does, try <strong>generalising</strong> the claim
+and using <code>induction xs arbitrary: acc</code>; the IH is then bound by ⋀ for every accumulator.</li>
 <li>If the IH is true but too weak, <strong>strengthen</strong> the claim (<code>oddsum n = n * n</code> rather than “a square”).</li>
 <li>If the simplifier cannot rewrite a subterm such as <code>val (inc (counter n))</code>, find an <strong>auxiliary
 lemma</strong>: generalise the subterm, test with <code>value</code> and <code>quickcheck</code>, prove it, add it to the simplifier.</li>
@@ -1360,8 +1365,8 @@ lemma</strong>: generalise the subterm, test with <code>value</code> and <code>q
 recursive call (two in the last case of <code>fib</code>); in Isar the cases are numbered, and <code>&quot;3.IH&quot;</code> needs
 quotes.</li>
 <li>An <strong>inductive definition</strong> (<code>inductive</code>) defines the smallest predicate closed under its rules.
-<strong>Rule induction</strong> (<code>rule: I.induct</code>) proves facts about all its members and works on the first
-premise, whose arguments must be variables; <strong>rule inversion</strong> (<code>cases</code>, <code>inductive_cases</code>) draws
+<strong>Rule induction</strong> (<code>rule: I.induct</code>) proves facts about all its members; select the intended premise
+and preserve constraints on non-variable arguments. <strong>Rule inversion</strong> (<code>cases</code>, <code>inductive_cases</code>) draws
 conclusions from one fact, including negative facts.</li>
 <li><strong>Complete induction</strong> with <code>less_induct</code> lets the step use the claim for any smaller value.</li>
 </ul>
@@ -1490,8 +1495,8 @@ exists.</p>
 </div></details>
 </div>
 <div class="exercise" id="ex-11-4"><div class="ex-label"><span class="ex-num">Exercise 11.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Flattening with an accumulator</span></div>
-<p>The function <code>inorder</code> uses <code>@</code> at every node, which makes it slow on large trees. Define the
-accumulator version</p>
+<p>The function <code>inorder</code> uses <code>@</code> at every node. Repeatedly copying left-subtree traversals can require
+quadratic work on a left-skewed tree. Define the accumulator version</p>
 <pre class="code"><code class="language-text">flat Lf acc = acc
 flat (Nd l x r) acc = flat l (x # flat r acc)
 </code></pre>
@@ -1721,9 +1726,9 @@ auxiliary-lemma situation of Section 11.3, with the lemma already proved.</p>
 <span class="section-anchor" id="quiz"></span>
 <div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
 <div class="quiz" data-n="6">
-<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>An induction on <code>xs</code> gets stuck with the goal <code>⋀a xs. f xs 0 = g xs ⟹ f xs a = a + g xs</code>. What is the most likely fix?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Add <code>f.simps</code> to the simplifier</button></li><li><button type="button" class="quiz-opt" data-i="1">Use <code>less_induct</code> instead of structural induction</button></li><li><button type="button" class="quiz-opt" data-i="2">Generalise: prove the claim for every value of the second argument, with <code>arbitrary:</code></button></li><li><button type="button" class="quiz-opt" data-i="3">Use <code>blast</code> instead of <code>auto</code></button></li></ol><div class="quiz-expl" hidden>The IH fixes the second argument to <code>0</code>, but the conclusion needs it with value <code>a</code>. The claim must speak about every value of that argument, and the induction must not fix it.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>An induction on <code>xs</code> gets stuck with the goal <code>⋀a xs. f xs 0 = g xs ⟹ f xs a = a + g xs</code>. What is the most likely fix?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Add <code>f.simps</code> to the simplifier</button></li><li><button type="button" class="quiz-opt" data-i="1">Use <code>less_induct</code> instead of structural induction</button></li><li><button type="button" class="quiz-opt" data-i="2">Generalise: prove the claim for every value of the second argument, with <code>arbitrary:</code></button></li><li><button type="button" class="quiz-opt" data-i="3">Use <code>blast</code> instead of <code>auto</code></button></li></ol><div class="quiz-expl" hidden>The IH fixes the second argument to <code>0</code>, but the conclusion needs it with value <code>a</code>. A general claim about every accumulator supplies the instances this proof needs.</div></div>
 <div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>What does <code>arbitrary: acc</code> change in an induction?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>acc</code> is bound by ⋀ in the induction hypothesis, so the hypothesis holds for every value of <code>acc</code></button></li><li><button type="button" class="quiz-opt" data-i="1">Isabelle chooses a value for <code>acc</code> that makes the proof work</button></li><li><button type="button" class="quiz-opt" data-i="2">The induction is done on <code>acc</code> instead of the list</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>acc</code> is removed from the goal</button></li></ol><div class="quiz-expl" hidden>The claim is proved for all values of <code>acc</code> at once, so in the step the IH can be used with the value the recursive call passes, such as <code>acc + x</code>.</div></div>
-<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>How many cases and induction hypotheses does <code>f.induct</code> have for a function <code>f</code> defined by <code>fun</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">One case per constructor of the argument type, one IH per case</button></li><li><button type="button" class="quiz-opt" data-i="1">Always two cases, base and step</button></li><li><button type="button" class="quiz-opt" data-i="2">One case per recursive call, no IH</button></li><li><button type="button" class="quiz-opt" data-i="3">One case per defining equation, one IH per recursive call in that equation</button></li></ol><div class="quiz-expl" hidden>Computation induction follows the recursion of the function. An IH can carry a condition, such as <code>x ≤ y</code>, when the call happens only under that condition.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>For the single-function definitions used here, how does <code>f.induct</code> follow the defining equations after pattern preprocessing?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">One case per constructor of the argument type, one IH per case</button></li><li><button type="button" class="quiz-opt" data-i="1">Always two cases, base and step</button></li><li><button type="button" class="quiz-opt" data-i="2">One case per recursive call, no IH</button></li><li><button type="button" class="quiz-opt" data-i="3">One case per defining equation, one IH per recursive call in that equation</button></li></ol><div class="quiz-expl" hidden>Computation induction follows the recursion of the function. An IH can carry a condition, such as <code>x ≤ y</code>, when the call happens only under that condition.</div></div>
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>An inductive definition of <code>ev</code> has rules <code>ev 0</code> and <code>ev n ⟹ ev (Suc (Suc n))</code>. Why is <code>ev 1</code> false?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because <code>value &quot;ev 1&quot;</code> returns <code>False</code></button></li><li><button type="button" class="quiz-opt" data-i="1">Because no derivation ends in <code>ev 1</code>: no rule has a conclusion of that form</button></li><li><button type="button" class="quiz-opt" data-i="2">Because 1 is odd in the library</button></li><li><button type="button" class="quiz-opt" data-i="3">It is not false; nothing excludes it</button></li></ol><div class="quiz-expl" hidden>The predicate holds exactly for what the rules can derive. Rule inversion makes this formal: no rule’s conclusion matches <code>ev (Suc 0)</code>, so the fact is impossible.</div></div>
 <div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">5</span><div>You try <code>apply (induction rule: steps.induct)</code> on <code>steps move Done s ⟹ s = Done</code> and get goals such as <code>c = b ⟹ c = a</code>. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The lemma is false</button></li><li><button type="button" class="quiz-opt" data-i="1">Rule induction only works for <code>nat</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>blast</code> should have been used first</button></li><li><button type="button" class="quiz-opt" data-i="3">The inductive premise has a constant where the rule expects a variable, so the claim lost its meaning</button></li></ol><div class="quiz-expl" hidden>Rule induction is about <code>steps r x y</code> for variables <code>x</code> and <code>y</code>. Generalise: state <code>steps move a s ⟹ a = Done ⟹ s = Done</code>, or write <code>induction Done s rule: steps.induct</code>.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>In a proof by <code>induction n rule: less_induct</code>, what may you assume when you prove the claim for <code>n</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The claim for <code>n - 1</code> only</button></li><li><button type="button" class="quiz-opt" data-i="1">Nothing: <code>less_induct</code> has no induction hypothesis</button></li><li><button type="button" class="quiz-opt" data-i="2">The claim for every <code>y &lt; n</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The claim for every <code>y &gt; n</code></button></li></ol><div class="quiz-expl" hidden>Complete induction lets the step use any smaller value, such as <code>n div 2</code> or <code>n - 3</code>, not only the predecessor.</div></div>

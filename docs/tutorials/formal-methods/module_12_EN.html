@@ -59,8 +59,10 @@ them together and keeps the promise.</p>
 <em>how</em> to compute the result.</p>
 <p>The <strong>specification</strong> is a property that every acceptable result must have. It says <em>what</em> the result
 must be, not how to compute it.</p>
-<p>A <strong>correctness theorem</strong> states that for every input, the result of the implementation has the property
-of the specification. A program is <strong>verified</strong> when its correctness theorem has been proved.</p>
+<p>A <strong>correctness theorem</strong> states that, for every input satisfying its stated preconditions, the result
+of the implementation has the specified property. A program is <strong>verified against that specification</strong>
+when this theorem has been proved. Sorting below has no input precondition beyond its type; the tree
+and queue theorems use representation invariants.</p>
 </div>
 <p>For sorting, the implementation in this module is insertion sort, a function <code>isort</code>. The specification
 is the formula above. The correctness theorem joins them:</p>
@@ -78,17 +80,20 @@ check by reading it that it says the right thing. This is validation (Module 1),
 less the specification says about computation.</li>
 <li><strong>The implementation is for the computer.</strong> It should be fast, use little memory, or fit the data
 structures at hand. Clever implementations are hard to check by reading.</li>
-<li><strong>The proof is the bridge.</strong> Once the theorem is proved, nobody has to read the implementation to trust
-it: it is enough to read the specification and know that Isabelle has checked the proof.</li>
+<li><strong>The proof is the bridge.</strong> A checked correctness theorem lets you rely on the specified behaviour
+without rechecking the algorithm by hand, provided its assumptions and trusted base apply. It does
+not establish properties that the specification leaves out.</li>
 </ul>
 <p>One specification also serves many implementations. Insertion sort, merge sort and quicksort all meet the
-same sorting specification; each needs its own proof, but the statement of the theorem is the same.</p>
-<p>Specifications come in two kinds, and this module uses both. A <strong>property</strong> describes the result
+same sorting specification; each needs its own proof with that implementation substituted into the
+correctness statement.</p>
+<p>This module uses two ways to present a specification. A <strong>property</strong> describes the result
 directly, as <code>sorted</code> and <code>mset</code> do for sorting. A <strong>model</strong> describes a simple version of the data and
 its operations, such as a mathematical set or a plain list, and the theorem says that the clever version
 behaves like the simple one. Sections 12.5 and 12.6 develop the second kind.</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
-<p>A test checks the implementation on one input. A correctness theorem covers every input, but it is
+<p>A test checks the implementation on selected inputs. A correctness theorem covers every input under
+its stated preconditions, but it is
 only as good as its specification: a proof against a specification that says too little proves too
 little. Section 12.4 shows what happens when half of a specification is missing.</p>
 </div>
@@ -137,10 +142,10 @@ that comes with Isabelle but is not part of <code>Main</code>. <code>&quot;HOL-L
 are needed because of the hyphen: without them Isabelle would read three imports, <code>HOL</code>, <code>-</code> and
 <code>Library.Multiset</code>. (Here they do not mark inner syntax, as they do in a <code>lemma</code>.)</p>
 <p>When you open a theory with this import, Isabelle/jEdit first checks <code>Multiset</code> and the library theory
-it builds on, and only then your own text. This can take up to a minute. The <strong>Theories</strong> panel shows
+it builds on, and only then your own text. This can take tens of seconds or longer. The <strong>Theories</strong> panel shows
 the progress; until it has finished, your own text stays unchecked and the Output panel shows nothing
-for it. It happens each time you start Isabelle/jEdit, because HOL-Library is not part of the prebuilt
-HOL image that Isabelle/jEdit loads at the start.</p>
+for it. With the default prebuilt HOL image, these extra theories must be checked in each new prover
+session; a custom session image can include them already.</p>
 <p>Now the two functions:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun ins :: &quot;'a::linorder ⇒ 'a list ⇒ 'a list&quot; where
   &quot;ins x [] = [x]&quot;
@@ -257,9 +262,9 @@ that representation. Section 12.6 comes back to this.</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
 
 Quickcheck found no counterexample.</code></pre></div>
-<p>Quickcheck tried every list up to a small size and found no counterexample. That is encouraging, not
-conclusive: a bug might show only on longer lists. In Isabelle/jEdit you do not even need the command,
-because Auto Quickcheck tries every new <code>lemma</code> statement and marks the line with a blue <strong>i</strong> when it
+<p>Quickcheck found no counterexample within its bounds on lists and test values. A bug may need an
+untested case, including a longer list or different element values. With its default settings,
+Isabelle/jEdit also tries Auto Quickcheck on new goals and marks the line with a blue <strong>i</strong> when it
 finds a counterexample (Module 1). Now prove it.</p>
 <span class="section-anchor" id="isort-proof"></span>
 <div class="section-header"><span class="section-num">3</span><h2>Proving insertion sort correct</h2></div>
@@ -504,8 +509,9 @@ standard example.</p>
 see whether the name comes before or after, and repeat in the half that remains. A binary search tree
 stores keys so that every search can work like that. Each node holds a key; the keys in its left subtree
 are smaller, the keys in its right subtree larger. To look for a key, compare it with the key at the root
-and go left or right. A search follows a single path from the root, so it takes at most as many steps as
-the tree is high. In a well-balanced tree with n keys that is about log₂ n steps, far fewer than n.</p>
+and go left or right. A search follows a single path from the root and examines at most as many keys as
+the tree is high. A well-balanced tree with n keys has height proportional to log₂(n + 1). The trees
+implemented below are not kept balanced, so their height can be n.</p>
 <h3 id="bst-trees">Trees and the set they represent</h3>
 <p>The trees are those of Module 11: a tree is either a leaf <code>Lf</code>, which holds nothing, or a node
 <code>Nd l x r</code> with a left subtree l, a key x and a right subtree r. Your theory for this module needs its
@@ -529,8 +535,9 @@ variable names that Isabelle generated, say the same as those of <code>set_of</c
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  set_btree Lf = {}
   set_btree (Nd ?x21.0 ?x22.0 ?x23.0) =
   set_btree ?x21.0 ∪ {?x22.0} ∪ set_btree ?x23.0</code></pre></div>
-<p><code>?x21.0</code> is the schematic variable <code>?x21</code>: Isabelle adds <code>.0</code> to a name that ends in a digit. This
-module defines its own function, so that the abstraction function is visible in the theory.</p>
+<p><code>?x21.0</code> has the name <code>x21</code> and index 0. The dot separates the index from a name ending in a digit;
+without it, <code>?x21</code> would mean name <code>x</code> with index 21 (Module 9). This module defines its own function,
+so that the abstraction function is visible in the theory.</p>
 </div>
 <h3 id="bst-ops">Search and insertion</h3>
 <p>Searching compares the key with the key of the node and goes left, goes right, or stops:</p>
@@ -631,6 +638,8 @@ of a general pattern:</p>
 <p>The second and third parts say that <code>tinsert</code> and <code>isin</code> do to the tree what <code>insert</code> and <code>∈</code> do to the
 set it represents. The third holds only for trees that satisfy the invariant, as the tree with 6 in the
 wrong place showed.</p>
+<p>The empty tree <code>Lf</code> also needs to satisfy the invariant and represent the empty set. Both follow
+from the definitions; Section 12.6 includes initialisation explicitly in the general pattern.</p>
 <h3 id="bst-wrong">A wrong invariant</h3>
 <p>The invariant must say the right thing, and that is easy to get wrong. A tempting simplification
 compares each node only with its two children: the left child’s key must be smaller, the right child’s
@@ -732,17 +741,18 @@ function. This way of verifying a data structure is called data refinement, and 
 every data structure.</p>
 <h3 id="refine-pattern">The pattern</h3>
 <div class="box box-definition"><div class="box-label">Definition 12.5<span class="box-title">Data refinement</span></div>
-<p>An <strong>abstract model</strong> is a simple mathematical type with operations whose meaning is clear, such as
+<p>This module uses data refinement with deterministic operations and an abstraction function. An
+<strong>abstract model</strong> is a simple mathematical type with operations whose meaning is clear, such as
 sets with <code>{}</code>, <code>insert</code> and <code>∈</code>. A <strong>concrete data structure</strong> implements it with a type and operations
 of its own, chosen for efficiency. They are connected by an <strong>abstraction function</strong> α, which maps each
 concrete value to the abstract value it represents, and an <strong>invariant</strong> I on concrete values. The
 concrete structure <strong>refines</strong> the model if:</p>
 <ol>
 <li>the concrete empty value represents the abstract one and satisfies I;</li>
-<li>every concrete operation preserves I;</li>
-<li>on values that satisfy I, every concrete operation corresponds to its abstract one: applying the
-concrete operation and then α gives the same as applying α and then the abstract operation; and every
-query, such as a search, gives the answer the abstract query gives.</li>
+<li>every concrete operation preserves I when its preconditions hold;</li>
+<li>on values that satisfy I and the operation’s preconditions, every concrete operation corresponds to
+its abstract one: applying the concrete operation and then α gives the same as applying α and then
+the abstract operation; and every query gives the answer its abstract query gives.</li>
 </ol>
 </div>
 <p>Condition 3 is often drawn as a square, as in Figure 12.3: going along the top and then down gives the
@@ -861,10 +871,13 @@ value &quot;deq (Queue [1] [4, 3, 2 :: nat])&quot;">Copy</button></div><pre clas
 &quot;Queue [2, 3, 4] []&quot;
   :: &quot;nat queue&quot;</code></pre></div>
 <p>Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so <code>refill</code> reverses
-the back list into the front: <code>[4, 3, 2]</code> becomes <code>[2, 3, 4]</code>. Every element is moved from the back to
-the front at most once, so on average each operation takes a constant number of steps, although a
-single <code>deq</code> may take longer. (That is a claim about running time, which this module does not prove;
-the theory <code>Queue_2Lists</code>, described at the end of this section, does.)</p>
+the back list into the front: <code>[4, 3, 2]</code> becomes <code>[2, 3, 4]</code>. Along one sequence starting at <code>qempty</code>,
+using each operation’s result as the next queue, each enqueued element is reversed from back to front
+at most once. This gives constant <strong>amortised</strong> list-processing cost per operation: the total cost of
+m operations is proportional to m, although one <code>deq</code> can take linear time. This is not a probability
+or a bound for each call. Reusing an older queue version can repeat the same reversal. The cost model
+and a proof of amortised bounds are separate from the functional proof here; <code>Queue_2Lists</code>, described
+below, develops such bounds.</p>
 <p><code>first</code> returns the head of the front list. That is the right answer only if the front list is
 empty only when the whole queue is: otherwise the first element might be waiting in the back list. The
 operations keep this true, because <code>refill</code> never leaves an empty front list in front of a non-empty
@@ -1033,8 +1046,8 @@ about <code>first</code> on an empty queue, and leaves an implementation free to
 implementation happens to return <code>hd []</code> for the empty queue, so this particular proof would also work
 without the second premise.)</p>
 <p>The lemmas <code>qinv_qempty</code>, <code>qinv_enq</code> and <code>qinv_deq</code> say that every queue built from <code>qempty</code> with <code>enq</code>
-and <code>deq</code> satisfies the invariant, so the premise <code>qinv q</code> of <code>list_of_deq</code> and <code>first_correct</code> always
-holds for the queues a program can build.</p>
+and <code>deq</code> satisfies the invariant, so the premise <code>qinv q</code> of <code>list_of_deq</code> and <code>first_correct</code> holds
+for queues constructed through those operations. Calling <code>first_correct</code> also requires non-emptiness.</p>
 <h3 id="practice">Verified data structures in practice</h3>
 <p>Search trees and queues are textbook examples, but the pattern is the one used for verified software in
 general.</p>
@@ -1043,8 +1056,8 @@ general.</p>
 collection of verified functional data structures (in the folder <code>src/HOL/Data_Structures</code> of your
 Isabelle installation). Its theory <code>Queue_Spec</code> states the queue specification of this section, with
 an emptiness test as well (Exercise 12.6): eight properties, with an abstraction function <code>list</code> and an
-invariant <code>invar</code>. <code>Queue_2Lists</code> proves them for the two-list queue, and proves that on average
-each operation takes a constant number of steps.
+invariant <code>invar</code>. <code>Queue_2Lists</code> proves them for a two-list queue and establishes amortised bounds
+in an explicit operation-cost model.
 <code>Set_Specs</code> states the set specification of Section 12.5, with deletion as well, and theories such as
 <code>Tree_Set</code>, <code>AVL_Set</code> and <code>RBT_Set</code> prove it for unbalanced, AVL and red-black trees.</li>
 <li><strong>The code generator.</strong> When Isabelle generates code for sets, it represents a finite set by a list of
@@ -1092,11 +1105,12 @@ type class <code>Ord</code> that Isabelle generates from its own class <code>ord
 <code>linorder</code> become Haskell classes too (Module 8 compared type classes with Haskell’s). The first lines
 of the module list what it exports: the functions, the class <code>Linorder</code>, and the types <code>Btree</code> and
 <code>Queue</code> without their constructors.</p>
-<p>This is what <code>export_code</code> does by default: it exports the functions in its list and, without their
+<p>For this Haskell export, <code>export_code</code> exposes the functions in its list and, without their
 constructors, the datatypes and classes that these functions use directly. It exports the constructors
-of a datatype only when the list names one of them. This protects the invariants. Other Haskell code
-can build trees only from <code>tempty</code> with <code>tinsert</code>, and queues only from <code>qempty</code> with <code>enq</code> and <code>deq</code>,
-so it cannot build a tree that breaks <code>bst</code> or a queue that breaks <code>qinv</code>. Had the list named the
+of a datatype only when the list names one of them. Hiding constructors protects the representation:
+ordinary clients can construct finite, defined trees through <code>tempty</code> and <code>tinsert</code>, and queues through
+<code>qempty</code>, <code>enq</code> and <code>deq</code>, preserving the proved invariants. This does not enforce operation preconditions
+such as a non-empty queue for <code>first</code>. Had the list named the
 constructor <code>Lf</code> instead of <code>tempty</code>, Isabelle would have exported the type <code>Btree</code> with all its
 constructors, <code>Nd</code> included, and with them the power to build any tree at all.</p>
 <p>One more thing stays inside the module: the classes <code>Ord</code>, <code>Preorder</code> and <code>Order</code> on which <code>Linorder</code>
@@ -1110,11 +1124,15 @@ designing the interface of verified code.</p>
 own functions, the equations of your <code>fun</code> and <code>definition</code> commands (Module 8). The code generator
 translates each equation into an equation of the target language and adds the definitions it needs from
 the library. So when the generated <code>isort</code> returns a list, that list is the value of <code>isort</code> in the
-logic, and the correctness theorem says that it is sorted and a permutation of the input. This
+logic, under the trusted-base assumptions below, and the correctness theorem says that it is sorted
+and a permutation of the input. This
 guarantee, that every result the program produces is a result the logic agrees with, is called
 <strong>partial correctness</strong> (Module 8): it speaks about the results the program returns, not about whether
 it returns at all. The generated <code>first</code>, for example, stops with an error on an empty queue, because
-the library’s <code>hd</code> has no equation for <code>[]</code>. That is no result, so it breaks no promise.</p>
+the library’s <code>hd</code> has no equation for <code>[]</code>. The non-empty precondition excludes that call from
+<code>first_correct</code>; partial correctness alone would not promise a result in any case. The correspondence
+concerns inputs and defined results representing HOL values. Haskell also admits <code>undefined</code> and
+infinite lists, which do not represent values of HOL’s finite-list datatype.</p>
 <p>What the guarantee rests on is the trusted base of Module 1, enlarged by the steps after the proof:</p>
 <ul>
 <li><strong>The code generator.</strong> Its translation of equations into the target language happens outside the
@@ -1127,9 +1145,10 @@ collector and integer arithmetic.</li>
 In the logic <code>isort</code> works on lists of any length; a real computer runs out of memory or stack at some
 length.</li>
 <li><strong>The code around it.</strong> The theorems about <code>isin</code>, <code>deq</code> and <code>first</code> assume the invariants <code>bst</code> and
-<code>qinv</code>. The generated module keeps them safe from other Haskell code, as described above, but not
-from code that edits the generated file or exports the constructors: a tree or queue that breaks its
-invariant voids the promise. In the same way, the theorems about <code>isort</code> and the tree functions
+<code>qinv</code>; <code>first_correct</code> also requires a non-empty queue. Constructor hiding preserves representation
+invariants for finite, defined values built through the interface. Editing the generated code,
+exposing constructors or bypassing the type system can invalidate that reasoning. In the same way,
+the theorems about <code>isort</code> and the tree functions
 assume that <code>≤</code> and <code>&lt;</code> form a linear order. After <code>export_code open</code>, other code compares the
 elements of its own types with operations that it supplies, and nothing checks that they obey the laws
 of <code>linorder</code>.</li>
@@ -1141,13 +1160,15 @@ the users need is still validation.</li>
 trusted base as well. Even the default set-up has a few: the generated code uses Haskell’s own lists,
 Booleans and <code>reverse</code>. Library theories such as <code>HOL-Library.Code_Target_Nat</code>, which Module 8
 mentioned, add more: they make the generated code use the target language’s own integers instead of a
-datatype of natural numbers. That is faster, and it is safe as long as the target’s integers behave like
-mathematical ones, which Haskell’s <code>Integer</code> does; but the kernel does not check it.</p>
+datatype of natural numbers. Haskell’s <code>Integer</code> uses arbitrary precision, subject to resource limits;
+the kernel does not check this implementation. Inputs representing HOL natural numbers must still be
+non-negative: an arbitrary negative <code>Integer</code> supplied by calling code is not a natural-number value.</p>
 </div>
 <span class="section-anchor" id="summary"></span>
 <div class="section-header"><span class="section-num">8</span><h2>What you learned</h2></div>
 <ul>
-<li>To <strong>verify</strong> a program is to prove a <strong>correctness theorem</strong>: for every input, the result of the
+<li>To <strong>verify</strong> a program is to prove a <strong>correctness theorem</strong>: for every input satisfying its
+preconditions, the result of the
 <strong>implementation</strong> (how) has the property of the <strong>specification</strong> (what). The specification is
 written for people to read and validate; the implementation for the computer.</li>
 <li><strong>Insertion sort</strong> meets the sorting specification: <code>sorted (isort xs) ∧ mset (isort xs) = mset xs</code>.
@@ -1167,8 +1188,8 @@ function and an invariant, with the concrete operations corresponding to the abs
 two-list queue refines lists, and needs its invariant for <code>deq</code> and <code>first</code>.</li>
 <li><code>export_code</code> turns verified functions into code, stored as theory exports. The generated code is
 partially correct relative to the proved equations; the code generator, the compiler, the machine and
-the calling code remain in the trusted base. Exporting types without their constructors keeps other
-code from breaking the invariants.</li>
+the calling code remain in the trusted base. Hiding constructors protects representation invariants
+for defined values built through the interface; callers still have to meet operation preconditions.</li>
 </ul>
 <span class="section-anchor" id="exercises"></span>
 <div class="section-header"><span class="section-num">9</span><h2>Exercises</h2></div>
@@ -1540,7 +1561,7 @@ specification is too weak.</p>
 <span class="section-anchor" id="quiz"></span>
 <div class="section-header"><span class="section-num">10</span><h2>Check yourself</h2></div>
 <div class="quiz" data-n="6">
-<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does a correctness theorem for a program state?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the program passes all of its tests</button></li><li><button type="button" class="quiz-opt" data-i="1">That the specification says what the users want</button></li><li><button type="button" class="quiz-opt" data-i="2">That for every input, the program’s result has the property the specification describes</button></li><li><button type="button" class="quiz-opt" data-i="3">That the program terminates quickly on every input</button></li></ol><div class="quiz-expl" hidden>The theorem connects implementation and specification for all inputs. Whether the specification is what the users want is validation.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does a correctness theorem for a program state?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the program passes all of its tests</button></li><li><button type="button" class="quiz-opt" data-i="1">That the specification says what the users want</button></li><li><button type="button" class="quiz-opt" data-i="2">That for every input satisfying the theorem’s preconditions, its result has the specified property</button></li><li><button type="button" class="quiz-opt" data-i="3">That the program terminates quickly on every input</button></li></ol><div class="quiz-expl" hidden>The theorem connects implementation and specification under its stated assumptions and preconditions. Whether the specification is what the users want is validation.</div></div>
 <div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>sort_drop xs = []</code> for every list. Which half of the sorting specification does it meet?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>sorted (sort_drop xs)</code>, but not <code>mset (sort_drop xs) = mset xs</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>mset (sort_drop xs) = mset xs</code>, but not <code>sorted (sort_drop xs)</code></button></li><li><button type="button" class="quiz-opt" data-i="2">Both halves</button></li><li><button type="button" class="quiz-opt" data-i="3">Neither half</button></li></ol><div class="quiz-expl" hidden>The empty list is sorted, but it is not a permutation of a non-empty list. Only the permutation half catches it.</div></div>
 <div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>Why does the sorting specification use <code>mset</code> rather than <code>set</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>set</code> cannot be used in Isabelle proofs</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>mset</code> makes the proofs shorter</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>set</code> would not allow the elements to be reordered</button></li><li><button type="button" class="quiz-opt" data-i="3">With <code>set</code>, a function that drops repeated elements would meet the specification</button></li></ol><div class="quiz-expl" hidden><code>set [2, 1, 2] = set [1, 2]</code>, so sets cannot tell whether an element was lost from a group of equal ones. Multisets count copies.</div></div>
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>Search is correct only for trees that satisfy the invariant <code>bst</code>. Why does <code>bst</code> compare a node’s key with all keys in its subtrees, not only with its children?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Comparing with children only would make <code>bst</code> impossible to compute</button></li><li><button type="button" class="quiz-opt" data-i="1">A tree can have every node in order with its children and still have a key on the wrong side of an ancestor, where search misses it</button></li><li><button type="button" class="quiz-opt" data-i="2">Isabelle cannot express comparisons with children</button></li><li><button type="button" class="quiz-opt" data-i="3">It does not matter; both invariants make search correct</button></li></ol><div class="quiz-expl" hidden>Quickcheck found such a tree for <code>bst_local</code>: a₁ sits in the right subtree of a₂ although it is smaller than a₂, so the search goes left and misses it.</div></div>

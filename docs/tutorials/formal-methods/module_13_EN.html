@@ -48,11 +48,11 @@
 <p>The programs you verified in Module 12 compute a result: they take a list and return it sorted, or take a
 tree and a key and return a new tree. Their specification relates the output to the input. Many systems
 do not work like that. A traffic light controller, a lift, a network protocol, a bank and an operating
-system never finish. They keep a <strong>state</strong>, and they react to <strong>events</strong>: a button is pressed, a timer
-runs out, a message arrives. For such a system the question is not “is the result right?” but “can the
-system ever get into a bad state?”. Two trains on the same piece of track, a lift that moves with its
+system are often intended to run indefinitely. They keep a <strong>state</strong>, and react to <strong>events</strong>: a button is pressed, a timer
+runs out, a message arrives. One central question is: “Can the system ever get into a bad state?”
+Two trains on the same piece of track, a lift that moves with its
 door open, a lock held by two processes at once: these are bad states, and the system must never reach
-one, however its events are ordered and however long it runs.</p>
+one, however its enabled events are chosen and however long it runs.</p>
 <p>This module describes such systems as <strong>state machines</strong> and proves in Isabelle that no reachable state
 is bad. The method is the invariant of Module 5, now on systems with many events, together with the
 inductive definitions and rule induction of Module 11.</p>
@@ -111,8 +111,10 @@ when its <strong>guard</strong> holds in <span class="katex"><span class="katex-
 </div>
 <div class="box box-definition"><div class="box-label">Definition 13.2<span class="box-title">Run, trace and reachable state</span></div>
 <p>A <strong>run</strong> is a sequence of states <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>0</mn></msub><mo>→</mo><msub><mi>s</mi><mn>1</mn></msub><mo>→</mo><msub><mi>s</mi><mn>2</mn></msub><mo>→</mo><mo>…</mo></mrow><annotation encoding="application/x-tex">s_0 \to s_1 \to s_2 \to \dots</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.123em;"></span><span class="minner">…</span></span></span></span>⁠, finite or infinite, that starts in
-an initial state and follows the transition relation. A <strong>trace</strong> describes a run by the list of its
-events; the states follow from them. A state is <strong>reachable</strong> if some run leads to it.</p>
+an initial state and follows the transition relation. An <strong>event trace</strong> records its events: a finite
+list for a finite run, or an infinite sequence for an infinite run. Given an initial state and
+deterministic event effects, the events determine the states; this need not hold for a nondeterministic
+machine. A state is <strong>reachable</strong> if a finite run leads to it.</p>
 </div>
 <p>Here is a run of the lift, from the initial state, with the events written over the arrows:</p>
 <div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>n</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>O</mi><mi>p</mi><mi>e</mi><mi>n</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>c</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>i</mi><mi>n</mi><mi>g</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>s</mi><mi>h</mi><mi>u</mi><mi>t</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>s</mi><mi>t</mi><mi>a</mi><mi>r</mi><mi>t</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mtext>moving</mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(\mathit{Closed}, \text{still}) \xrightarrow{\ \mathit{open}\ } (\mathit{Open}, \text{still})
@@ -188,9 +190,9 @@ reachable. The other two are the dangerous ones:</p>
 </table></div>
 <p>Why can the lift never move with its door open or closing? With six states you can check every state
 and every event by hand. A real controller has many more states, and a model with a counter or a queue
-has infinitely many. A <strong>model checker</strong> explores the reachable states of a finite model one by one
-(Module 1). This module proves the property for all reachable states at once, by induction, which works
-however many states there are.</p>
+can have infinitely many. A finite-state <strong>model checker</strong> analyses reachable states explicitly or in
+symbolic groups (Module 1). Induction applies to finite and infinite state spaces; finding a suitable
+invariant is the work this module teaches.</p>
 <div class="callout note"><div class="callout-label">Good to know</div>
 <p>A model is a decision about what to leave out. The lift model has no floors, no passengers, no motor and
 no time. A proof about the model says nothing about what the model leaves out; as Module 1 put it, a
@@ -231,8 +233,9 @@ with the lift moving. Rule <code>stop_lift</code> has no premise, because stoppi
 | step: <span class="isa-inner">&quot;lreach s ⟹ lstep s t ⟹ lreach t&quot;</span></code></pre></div>
 <p>Rule <code>init</code> makes the initial state reachable. Rule <code>step</code> says that one step from a reachable state
 leads to a reachable state. Nothing else is reachable, because an inductive definition defines the
-smallest predicate closed under its rules (Module 11). A run is a derivation with these rules. Here is
-the run to <code>(Closing, False)</code>, step by step, in Isar (Module 10):</p>
+smallest predicate closed under its rules (Module 11). Each finite run gives a derivation of its final
+state’s reachability. An infinite run has such a derivation for every finite prefix. Here is the run
+to <code>(Closing, False)</code>, step by step, in Isar (Module 10):</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;lreach (Closing, False)&quot;
 proof -
   have &quot;lreach (Closed, False)&quot; by (rule lreach.init)
@@ -498,8 +501,9 @@ fun effect :: &quot;event ⇒ crossing ⇒ crossing&quot; where
 | <span class="isa-inner">&quot;effect EndWalk s = s⦇peds := DontWalk, req := False⦈&quot;</span>
 | <span class="isa-inner">&quot;effect ToGreen s = s⦇cars := Green⦈&quot;</span></code></pre></div>
 <p>The transition relation of the crossing is: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>→</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">s \to t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> = <code>effect e s</code> for some event <code>e</code> whose
-guard holds in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span>⁠. To run the model, apply a list of events in order. An event whose guard is false
-cannot happen, and <code>run</code> skips it:</p>
+guard holds in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span>⁠. The function <code>run</code> takes a list of attempted events. An event whose guard is false
+cannot happen, so <code>run</code> skips that attempt. Removing the skipped attempts gives an actual event trace
+from the chosen starting state:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun run :: &quot;event list ⇒ crossing ⇒ crossing&quot; where
   &quot;run [] s = s&quot;
 | &quot;run (e # es) s = run es (if guard e s then effect e s else s)&quot;
@@ -584,8 +588,9 @@ design is wrong. Section 13.6 shows this case.</li>
 <li>The state is <strong>not reachable</strong>. Then the design may well be safe, but <code>safe</code> is too weak to carry
 the induction: it allows states that never occur, and the induction step fails on one of them.</li>
 </ol>
-<p>Quickcheck cannot answer this question. It tests a statement by running the definitions in it, and an
-inductive definition such as <code>reach</code> is not a function that it can run (Module 11):</p>
+<p>Quickcheck cannot execute this inductive <code>reach</code> predicate as currently defined: it has no code equations
+(Module 11). A separate executable reachability procedure or a search over event lists can help, but
+the direct call fails:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;reach s ⟹ safe s&quot;</span>
   <span class="isa-cmd">quickcheck</span>
   <span class="isa-proof">oops</span></code></pre></div>
@@ -602,8 +607,8 @@ inductive definitions. Let it search the reachable states for an unsafe one:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
 
 Nitpick found no counterexample</code></pre></div>
-<p>Nitpick finds no reachable state that breaks <code>safe</code>. That is not a proof, but it points to the second
-possibility. Find out on paper why the state of the goal cannot be reached. The pedestrians start to
+<p>Nitpick reports no counterexample within its search bounds. That does not establish unreachability.
+Find out on paper why the state of the goal cannot be reached. The pedestrians start to
 walk only through <code>StartWalk</code>, whose guard needs a request. While they walk, the request stays set,
 since only <code>EndWalk</code> clears it, and <code>EndWalk</code> also ends the walk. So in every reachable state: <em>if the pedestrians walk, a
 request is pending</em>. The state in the goal violates exactly this.</p>
@@ -656,10 +661,11 @@ property itself is often too large, because it contains unreachable states from 
 <strong>Strengthening</strong> the invariant shrinks it, by adding facts that hold in every reachable state, until no
 step leads out.</p>
 </div>
-<p>When an invariant proof fails, the goal left over tells you what to add. It describes a state that
-satisfies your invariant but is not reachable (if the design is right). Find a fact about reachable
-states that this state violates, add it to the invariant with ∧, and try again. A larger system may need
-several rounds; each round removes the unreachable states that the last failure showed.</p>
+<p>When a preservation check has a counterexample, it can suggest what to add. If the design is safe, a
+state satisfying the candidate property with an unsafe successor must be unreachable. Find a fact
+about reachable states that excludes it, add that fact with ∧, and try again. A larger system may need
+several rounds. A failed proof method alone does not produce a counterexample; it may instead need
+another lemma or more suitable automation.</p>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
 <ul>
 <li><strong>Adding a fact that is false.</strong> A fact that fails in some reachable state cannot be part of an
@@ -669,7 +675,8 @@ preserved together with the rest makes the induction step fail too; then you nee
 <li><strong>Trying a stronger proof method.</strong> No method can prove the failed induction step for <code>safe</code> from <code>safe s</code>
 and the guard alone: that claim is false, as Quickcheck showed. The induction step also has the premise
 <code>reach s</code>, but using it needs a fact about all reachable states, which is the invariant you are
-looking for. A failed induction step asks for a stronger invariant, not for more automation.</li>
+looking for. A different method or an existing reachability lemma might solve that full goal; what
+no sound method can prove is the false preservation claim with <code>reach s</code> omitted.</li>
 </ul>
 </div>
 <span class="section-anchor" id="traces"></span>
@@ -703,11 +710,11 @@ Nitpick finds a reachable state that is not safe:</p>
 Nitpick found a counterexample:
   Free variable:
     s = ⦇cars = Green, peds = Walk, req = False⦈</code></pre></div>
-<p>The cars have green while the pedestrians walk. The option <code>card = 6</code> fixes the size of the models
-that Nitpick tries: six values for each type whose size it has to choose, such as states and lists of
-events. Six are enough here, and with one fixed size Nitpick reports the same counterexample every time.
-Without the option it tries the sizes 1 to 10, and which counterexample it reports can change from run
-to run.</p>
+<p>The cars have green while the pedestrians walk. The option <code>card = 6</code> selects a single default finite
+scope for types whose scopes Nitpick must approximate or choose. It does not make <code>crossing</code> a
+six-state type: its fields still determine 12 states. Nitpick also respects fixed datatype structure
+and type-specific scope settings. Fixing a scope restricts the search; it does not generally select a
+unique counterexample or guarantee identical output. Without it Nitpick tries a range of scopes.</p>
 <p>Nitpick shows the bad state but not how to get there. To see the run, search for a list of events
 instead. Define <code>run_early</code> as <code>run</code> was defined, with the new effects, and ask whether every run of the
 new design ends in a safe state:</p>
@@ -809,20 +816,20 @@ request until the walk ends, as the design of Section 13.4 does; or add <code>pe
 of <code>ToGreen</code>, so that the controller checks the pedestrian signal itself (Exercise 13.6 asks you to prove
 that this fix works).</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
-<p>When the induction step of an invariant proof fails, the goal describes a state and an event. Find out whether
-the state is reachable. If it is, the property you are proving fails in a reachable state; when that
-property is your safety property, the design is wrong: search for a trace with Nitpick, or with
-Quickcheck on an executable model, and fix the design. If it is not, the design may be right and the
-invariant too weak: strengthen it.</p>
+<p>Given a genuine counterexample to preservation, find out whether its starting state is reachable.
+If it is, its successor is reachable too and violates the candidate property. When that property is
+the safety requirement, the design is wrong: search for a trace and fix it. If the starting state is
+unreachable, strengthen the candidate to exclude it. A failed proof attempt by itself does not settle
+either question.</p>
 </div>
 <div class="callout tip"><div class="callout-label">Tip</div>
 <p>Quickcheck and Nitpick search in different ways. Quickcheck runs the definitions on many small values,
 so it needs functions it can execute, such as <code>guard</code>, <code>effect_early</code> and <code>run_early</code>. Nitpick translates
 the problem into a SAT problem, which also covers inductive definitions such as <code>reach</code>. Quickcheck’s
-exhaustive search tries small values first and stops early (by default at size 5). On
-<code>safe (run_early es start)</code> it finds nothing, because the shortest bad run has five events and its
-search does not get that far. Fix the length of the run, with one variable for each event, and it finds
-the trace at once:</p>
+exhaustive search tries small values first, with a default size bound of 5. This is a generator bound,
+not a promise to test every event list of length 5. In the checked run of
+<code>safe (run_early es start)</code>, the default invocation found no counterexample, although a five-event
+trace exists. Fix the length with one variable for each event, and the smaller search finds it:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;safe (run_early [e1, e2, e3, e4, e5] start)&quot;
   quickcheck
   oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (run_early [e1, e2, e3, e4, e5] start)&quot;</span>
@@ -836,7 +843,8 @@ Quickcheck found a counterexample:
   e3 = ToRed
   e4 = StartWalk
   e5 = ToGreen</code></pre></div>
-<p>Isabelle/jEdit runs Quickcheck on every new lemma by itself, but not Nitpick: call <code>nitpick</code> yourself.</p>
+<p>With default settings, Isabelle/jEdit tries Quickcheck on new goals, but not Nitpick. These background
+checks are configurable; the explicit commands work independently of them.</p>
 </div>
 <span class="section-anchor" id="refinement"></span>
 <div class="section-header"><span class="section-num">7</span><h2>Refinement: from abstract to concrete</h2></div>
@@ -890,10 +898,12 @@ inductive treach :: &quot;timed ⇒ bool&quot; where
 <span class="isa-cmd">inductive</span> treach :: <span class="isa-inner">&quot;timed ⇒ bool&quot;</span> <span class="isa-minor">where</span>
   init: <span class="isa-inner">&quot;treach ⦇lights = start, timer = 0⦈&quot;</span>
 | step: <span class="isa-inner">&quot;treach c ⟹ tstep c c' ⟹ treach c'&quot;</span></code></pre></div>
-<p>Amber lasts 3 ticks, the pedestrians get 6, and green lasts at least 10. A press does not start a phase,
-so the value of <code>delay Press</code> is never used. The event <code>tick</code> is new: it changes the timer and leaves the
-lights alone. The other events of the crossing are still there, with a stronger guard: the timer must
-have run out.</p>
+<p>After <code>ToAmber</code>, at least 3 ticks are needed before another phase change; after <code>StartWalk</code>, at least
+6; after <code>ToGreen</code>, at least 10. The initial green phase has timer 0 and no such minimum. These are
+minimum counts of <code>tick</code> events, not upper bounds on waiting or a connection to physical seconds.
+Presses can interleave and scheduling may postpone progress. A press does not start a phase, so
+<code>delay Press</code> is never used. The new event <code>tick</code> changes only the timer. Phase changes retain the
+abstract guards and additionally require timer 0; <code>Press</code> remains possible at any time.</p>
 <p>The two models describe the same crossing at two levels of detail. The crossing is the <strong>abstract</strong>
 model, the timed controller the <strong>concrete</strong> one. They are related by an <strong>abstraction function</strong>: the
 field selector <code>lights</code> maps a concrete state to the abstract state it represents, by forgetting the
@@ -913,8 +923,9 @@ not change.</li>
 of the timed controller is a stutter step: the timer changes, the lights do not. Figure 13.3 shows a
 run of the timed controller and the run of the crossing that it represents.</p>
 <figure class="fig" id="fig-13-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>The timed controller refines the crossing</title><defs><marker id="fig-13-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-13-3__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="fig-13-3__ah-94A3B8" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#94A3B8"/></marker></defs><text x="24" y="24" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="start">crossing: reach</text><text x="24" y="260" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="start">timed controller: treach</text><rect x="24" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="61.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="61.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><text x="61.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 0</text><rect x="130" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="167.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="167.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="167.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 0</text><rect x="236" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="273.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="273.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="273.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 3</text><rect x="342" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="379.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="379.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="379.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 2</text><rect x="448" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="485.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="485.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="485.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 1</text><rect x="554" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="591.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="591.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="591.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 0</text><rect x="660" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="697.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="697.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="697.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 2</text><line x1="100" y1="199.0" x2="126" y2="199.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="113.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">Press</text><line x1="206" y1="199.0" x2="232" y2="199.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="219.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToAmber</text><line x1="312" y1="199.0" x2="338" y2="199.0" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#fig-13-3__ah-94A3B8)"/><text x="325.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle">tick</text><line x1="418" y1="199.0" x2="444" y2="199.0" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#fig-13-3__ah-94A3B8)"/><text x="431.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle">tick</text><line x1="524" y1="199.0" x2="550" y2="199.0" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#fig-13-3__ah-94A3B8)"/><text x="537.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle">tick</text><line x1="630" y1="199.0" x2="656" y2="199.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="643.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToRed</text><rect x="24" y="54" width="74" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="61.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="61.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="130" y="54" width="74" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="167.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="167.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="236" y="54" width="392" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="432.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="432.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="660" y="54" width="74" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="697.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="697.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><line x1="100" y1="77.0" x2="126" y2="77.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="113.0" y="46" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">Press</text><line x1="206" y1="77.0" x2="232" y2="77.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="219.0" y="46" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToAmber</text><line x1="630" y1="77.0" x2="656" y2="77.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="643.0" y="46" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToRed</text><line x1="61.0" y1="152" x2="61.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="167.0" y1="152" x2="167.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="273.0" y1="152" x2="273.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="379.0" y1="152" x2="379.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="485.0" y1="152" x2="485.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="591.0" y1="152" x2="591.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="697.0" y1="152" x2="697.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><text x="67.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#2563EB" text-anchor="start">lights</text><path d="M273.0 238 V246 H591.0 V238" stroke="#94A3B8" stroke-width="1.6" fill="none"/><text x="432.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">three ticks: stutter steps</text></svg>
-</div><figcaption><span class="fig-num">Figure 13.3</span> <p>A run of the timed controller (below) and its image under <code>lights</code> (above). The three ticks change only
-the timer, so they are stutter steps; every other step is a step of the crossing.</p>
+</div><figcaption><span class="fig-num">Figure 13.3</span> <p>A run of the timed controller (below) and its image under <code>lights</code> (above). All shown states have
+<code>peds = DontWalk</code>, omitted from the boxes. The three ticks change only the timer, so they are stutter
+steps; every other step is a step of the crossing.</p>
 </figcaption></figure>
 <h3 id="refinement-proof">The proof</h3>
 <p>The initial states match: <code>lights ⦇lights = start, timer = 0⦈</code> is <code>start</code>. For the steps, prove that
@@ -985,8 +996,9 @@ And now the safety of the timed controller costs one line:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem timed_safe: &quot;treach c ⟹ safe (lights c)&quot;
   using treach_reach crossing_safe by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> timed_safe: <span class="isa-inner">&quot;treach c ⟹ safe (lights c)&quot;</span>
   <span class="isa-proof">using</span> treach_reach crossing_safe <span class="isa-proof">by</span> blast</code></pre></div>
-<p>No new invariant was needed. The timed controller has more states than the crossing (one for every
-value of the timer), but its proof only had to check that each of its steps is one the crossing allows.</p>
+<p>No new safety invariant was needed. The timed state type is infinite because its timer is a natural
+number, though this controller’s reachable timers are bounded by 10. The proof checks the initial
+state and the step correspondence without enumerating the timer values.</p>
 <div class="box box-fact"><div class="box-label">Fact 13.2<span class="box-title">Refinement preserves invariants</span></div>
 <p>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> refines <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span> with abstraction function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span>⁠, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span> maps every reachable state of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> to
 a reachable state of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠. So for every invariant <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠, the property “<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false">(</mo><mi>α</mi><mtext> </mtext><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">I(\alpha\ c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace"> </span><span class="mord mathnormal">c</span><span class="mclose">)</span></span></span></span>” is an
@@ -996,7 +1008,8 @@ invariant of <span class="katex"><span class="katex-mathml"><math xmlns="http://
 the software of Paris Métro line 14 was developed (Module 1), and in its successor Event-B. You start with
 an abstract model in which the important properties are simple to state and prove. Then you add detail in
 small steps, timers, buttons, messages, data structures, and prove that each step is a refinement. The
-safety properties proved at the top hold all the way down.</p>
+abstract state invariants proved at the top hold through the composed abstraction functions all the
+way down. Properties about newly introduced details need their own proofs.</p>
 <div class="callout note"><div class="callout-label">Good to know</div>
 <p>An abstraction function is a special case. In general, a concrete state may correspond to several
 abstract states. Then a <strong>simulation relation</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span></span></span></span> between concrete and abstract states takes the place
@@ -1019,27 +1032,35 @@ timed controller never changes a light while its timer runs, which the crossing 
 <p>A <strong>liveness property</strong> says that something good eventually happens: a request is eventually served, a
 message is eventually delivered, a program eventually terminates.</p>
 </div>
-<p>No finite run can break a liveness property, because the good thing might still happen later. A
-counterexample is an infinite run in which it never happens, typically a loop that repeats forever. The
+<p>Under the usual infinite-run interpretation, no finite prefix alone refutes a liveness property: the
+good thing might still happen later. Termination and deadlock need a convention; one is to extend a
+stopped run by repeating its final state forever. A counterexample is then an infinite run in which
+the promised event never happens. In a finite-state model such a run can often be displayed as a
+finite prefix followed by a loop. The
 crossing has one: press the button again and again, forever, and nothing else ever happens. Every state
-of this run is reachable and safe, and the pedestrians never walk. To rule out such runs, a model needs a
-<strong>fairness</strong> assumption, such as “an event whose guard stays true is eventually taken”. Proofs of
-liveness then use a measure that decreases until the good thing happens, like the termination measures
-of Module 5. Leslie Lamport introduced the words <em>safety</em> and <em>liveness</em> for these two kinds of
+of this run is reachable and safe, and the pedestrians never walk. A scheduling or <strong>fairness</strong>
+assumption can exclude this starvation, for example “an event whose guard stays true is eventually
+taken” (weak fairness). One proof technique combines a measure that decreases on progress steps with
+an argument that those steps occur, as in termination reasoning (Module 5). Leslie Lamport used the
+words <em>safety</em> and <em>liveness</em> for these two kinds of
 properties in 1977.</p>
-<p>An invariant cannot express a liveness property, because it talks about one state at a time. And
-refinement as defined in Section 13.7 does not preserve liveness: a controller that never changes its
+<p>An ordinary state invariant alone does not establish eventual progress. The
+refinement criterion in Section 13.7 does not preserve liveness: a controller that never changes its
 lights, whatever happens, refines the crossing, since all its steps are presses and stutter steps
-(Exercise 13.9). It is perfectly safe and perfectly useless. Refinement methods add proof obligations
-for liveness. Event-B, for example, can ask you to show that new events such as <code>tick</code> cannot run
-forever, with a measure that each of them decreases, here the timer; that rules out a controller that
-only ticks. A requirement such as R2 still needs a proof of its own.</p>
+(Exercise 13.9). It is perfectly safe and perfectly useless. Some refinement methods add proof obligations
+against divergence. Event-B, for example, can require a new event to be <strong>convergent</strong>: it must strictly
+decrease a suitable variant, such as a natural-number measure. Here the timer rules out an infinite sequence
+consisting only of <code>tick</code> steps. It does not forbid infinitely many ticks interleaved with abstract
+phase changes that reset the timer, and it does not force a phase change to occur. R2 still needs its
+own progress argument and scheduling assumptions.</p>
 <p>Liveness is the home ground of <strong>temporal logic</strong>, which Amir Pnueli proposed for programs in 1977. Its
 operators speak about runs: □ <em>P</em> (“always <em>P</em>”) and ◇ <em>P</em> (“eventually <em>P</em>”). Requirement R2 becomes
 □(<em>req</em> ⟶ ◇ <em>Walk</em>): at every point of a run, if a request is pending, the pedestrians walk then or at
-some later point.
-<strong>Model checkers</strong> check such formulas on finite models automatically, and print a counterexample run
-when they fail: <strong>SPIN</strong> for models in its language Promela, <strong>nuXmv</strong> for models in the SMV language,
+some later point. Here <em>req</em> and <em>Walk</em> are the state predicates <code>req s</code> and <code>peds s = Walk</code>. The Boolean request flag coalesces repeated
+presses; this state-based reading allows a request during an existing walk to be served immediately.
+It does not specify a waiting-time bound or track a separate obligation for each pedestrian.
+<strong>Model checkers</strong> can check such formulas on finite models and return a counterexample run when a
+property is refuted: <strong>SPIN</strong> for models in its language Promela, <strong>nuXmv</strong> for models in the SMV language,
 and <strong>TLC</strong> for specifications in Lamport’s <strong>TLA+</strong>, the language that Amazon’s engineers used
 (Module 1). Isabelle can prove liveness too, but that needs more machinery than this series covers.</p>
 <h3 id="further">Where to go next</h3>
@@ -1055,9 +1076,9 @@ guide was written for Isabelle2025-2.</li>
 them models of protocols, algorithms and systems with their invariants and refinements.</li>
 <li><strong>Event-B</strong> and its tool, the Rodin platform, are built around refinement: abstract machines, events
 with guards and actions, invariants, and refinement proofs, discharged mostly by automatic provers.</li>
-<li><strong>Model checkers</strong> such as TLC, SPIN and nuXmv explore finite models automatically and handle
-liveness. They are the quickest way to find a counterexample trace in a design; a proof covers what a
-finite model cannot.</li>
+<li><strong>Model checkers</strong> such as TLC, SPIN and nuXmv analyse finite models and handle liveness. They can find
+counterexample traces and establish properties of those finite models. Deductive proofs can also
+handle infinite state spaces or whole families of models, when suitable arguments are available.</li>
 </ul>
 <p>Module 14 ends the series with a different kind of system: a compiler, proved correct.</p>
 <span class="section-anchor" id="summary"></span>
@@ -1075,17 +1096,19 @@ as the reflexive–transitive closure <code>r⇧*</code> from the initial state.
 <li>A <strong>safety property</strong> must hold in every reachable state. An <strong>invariant</strong> holds in every reachable
 state; it is <strong>inductive</strong> if it holds initially and every step preserves it. Rule induction over the
 reachable states proves an inductive invariant: a base case and an induction step.</li>
-<li>A safety property is often not inductive. The failed induction step shows a state and an event: a
-<strong>counterexample to induction</strong>. If the state is unreachable, <strong>strengthen</strong> the invariant with a fact
-that holds in every reachable state. If it is reachable, the design is wrong.</li>
+<li>A state safety property may be invariant without being inductive. A genuine preservation
+<strong>counterexample</strong> identifies a state and event. If that state is unreachable, <strong>strengthen</strong> the
+candidate to exclude it; if reachable, its unsafe successor exposes a design error. A failed method
+alone does not establish a counterexample.</li>
 <li>Nitpick finds reachable bad states, also of inductive definitions, and with an executable <code>run</code> it finds
 <strong>counterexample traces</strong>: lists of events that lead to a bad state. <code>value</code> replays them. Fix the
-option <code>card</code> to make Nitpick report the same counterexample every time.</li>
+option <code>card</code> to control search scopes, not to guarantee a unique counterexample.</li>
 <li>A concrete model <strong>refines</strong> an abstract one if an <strong>abstraction function</strong> maps initial states to
 initial states and every concrete step to an abstract step or a <strong>stutter step</strong>. Then every invariant
 of the abstract model holds, through the abstraction function, in the concrete one.</li>
-<li>A <strong>liveness property</strong> says that something good eventually happens. Invariants and refinement do not
-cover it; temporal logic and model checkers such as SPIN, nuXmv and TLC do.</li>
+<li>A <strong>liveness property</strong> says that something good eventually happens. State invariants and this
+refinement criterion alone do not establish it; progress arguments and often scheduling assumptions
+are needed. Temporal logic, model checkers and richer Isabelle developments can express and prove it.</li>
 </ul>
 <span class="section-anchor" id="exercises"></span>
 <div class="section-header"><span class="section-num">10</span><h2>Exercises</h2></div>
@@ -1381,11 +1404,11 @@ refinement may do less than the abstract model, including nothing at all.</p>
 <div class="section-header"><span class="section-num">11</span><h2>Check yourself</h2></div>
 <div class="quiz" data-n="6">
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>In a model of a state machine, what does the guard of an event describe?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">How the event changes the state</button></li><li><button type="button" class="quiz-opt" data-i="1">The states in which the event can happen</button></li><li><button type="button" class="quiz-opt" data-i="2">The initial state</button></li><li><button type="button" class="quiz-opt" data-i="3">The property that every reachable state must have</button></li></ol><div class="quiz-expl" hidden>The guard is a condition on the current state; the effect describes the change.</div></div>
-<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>A property I holds in the initial state and in every reachable state. What else must hold for I to be inductive?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">I must hold in every state, reachable or not</button></li><li><button type="button" class="quiz-opt" data-i="1">Every run must be finite</button></li><li><button type="button" class="quiz-opt" data-i="2">Every step from any state that satisfies I must lead to a state that satisfies I</button></li><li><button type="button" class="quiz-opt" data-i="3">I must be a liveness property</button></li></ol><div class="quiz-expl" hidden>An inductive invariant is preserved by every step from every state that satisfies it, including unreachable ones. That is what the induction step of the rule induction checks.</div></div>
-<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>The induction step of an invariant proof fails, and the goal describes a state s and an event e. What should you find out first?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whether a stronger proof method such as auto or force proves the goal</button></li><li><button type="button" class="quiz-opt" data-i="1">Whether e is the last event of the datatype</button></li><li><button type="button" class="quiz-opt" data-i="2">Whether the initial state satisfies the invariant</button></li><li><button type="button" class="quiz-opt" data-i="3">Whether s is reachable</button></li></ol><div class="quiz-expl" hidden>If s is reachable, the property fails in a reachable state, and a trace shows how; for a safety property, the design is wrong. If it is not, the invariant is too weak and must be strengthened.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>A property I holds in the initial state and in every reachable state. What else must hold for I to be inductive?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">I must hold in every state, reachable or not</button></li><li><button type="button" class="quiz-opt" data-i="1">Every run must be finite</button></li><li><button type="button" class="quiz-opt" data-i="2">Every step from any state that satisfies I must lead to a state that satisfies I</button></li><li><button type="button" class="quiz-opt" data-i="3">I must be a liveness property</button></li></ol><div class="quiz-expl" hidden>Inductiveness demands preservation from every state satisfying I, including unreachable ones. The generated rule-induction goal also offers a reachability premise; Exercise 13.7 shows how a previously proved invariant can use it.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>A genuine counterexample to preservation gives a state s satisfying I and an enabled event e whose successor violates I. What should you find out next?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whether a stronger proof method such as auto or force proves the goal</button></li><li><button type="button" class="quiz-opt" data-i="1">Whether e is the last event of the datatype</button></li><li><button type="button" class="quiz-opt" data-i="2">Whether the initial state satisfies the invariant</button></li><li><button type="button" class="quiz-opt" data-i="3">Whether s is reachable</button></li></ol><div class="quiz-expl" hidden>If s is reachable, its successor is reachable and violates I; a safety violation then needs a design fix. If s is unreachable, exclude it with a stronger candidate. A failed proof method alone would not establish this counterexample.</div></div>
 <div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>Why can Quickcheck test <code>safe (run es start)</code> but not <code>reach s ⟹ safe s</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Quickcheck executes definitions, and an inductive predicate such as reach is not executable by default</button></li><li><button type="button" class="quiz-opt" data-i="1">Quickcheck cannot handle records</button></li><li><button type="button" class="quiz-opt" data-i="2">reach has too many states for Quickcheck</button></li><li><button type="button" class="quiz-opt" data-i="3">Quickcheck only works on lists</button></li></ol><div class="quiz-expl" hidden>Quickcheck evaluates the statement on test values, so it needs executable functions such as run. Nitpick also handles inductive definitions.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>In a refinement proof, a concrete step changes only the timer, and the abstraction function forgets the timer. What is this step in the abstract model?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">An error: every concrete step must be an abstract step</button></li><li><button type="button" class="quiz-opt" data-i="1">A new abstract event that must be added to the abstract model</button></li><li><button type="button" class="quiz-opt" data-i="2">A stutter step: the abstract state does not change</button></li><li><button type="button" class="quiz-opt" data-i="3">A liveness violation</button></li></ol><div class="quiz-expl" hidden>Refinement allows stutter steps, which is why a concrete model can take more steps than the abstract one.</div></div>
-<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Which requirement is a liveness property?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The cars never have green while pedestrians walk</button></li><li><button type="button" class="quiz-opt" data-i="1">The lift never moves with its door open</button></li><li><button type="button" class="quiz-opt" data-i="2">The balance of an account never becomes negative</button></li><li><button type="button" class="quiz-opt" data-i="3">After a press, the pedestrians eventually get to walk</button></li></ol><div class="quiz-expl" hidden>“Eventually” makes it a liveness property: no finite run can break it, and invariants and refinement do not cover it.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Which requirement is a liveness property?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The cars never have green while pedestrians walk</button></li><li><button type="button" class="quiz-opt" data-i="1">The lift never moves with its door open</button></li><li><button type="button" class="quiz-opt" data-i="2">The balance of an account never becomes negative</button></li><li><button type="button" class="quiz-opt" data-i="3">After a press, the pedestrians eventually get to walk</button></li></ol><div class="quiz-expl" hidden>Under the infinite-run interpretation, failure means a request remains unserved forever. A finite prefix alone does not show that; state invariants and the refinement criterion here do not guarantee progress.</div></div>
 <div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
 
 </div>

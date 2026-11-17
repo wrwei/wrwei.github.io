@@ -1,5 +1,45 @@
 # Review of Module 11, Induction in depth
 
+## Follow-up content audit, 17 November 2026
+
+Read every definition, worked proof, exercise solution and quiz, and checked the three figure
+sources against their examples. Line numbers refer to the source at the start of this follow-up.
+
+- **L40–43, 78:** scoped the description of recursion to these HOL functions; accumulator updates
+  need not strictly increase the value.
+- **L148–151, 444–447, 517–526, summary and quiz:** generalising changed arguments is a useful
+  induction strategy, not a universal necessity. A failed method may need a lemma or better
+  automation. Explained why `arbitrary:` alone does not supply `val_inc`, without claiming that
+  all alternative proofs or Sledgehammer uses are impossible.
+- **L717–723:** length preservation does not establish element preservation. Distinguished the
+  length theorem, the following set theorem and Exercise 11.2's occurrence-count theorem.
+- **L811–822, 863–874:** scoped computation induction to the single-function forms shown and
+  finite-derivation claims to the finitely branching inductive rules introduced here.
+- **L1141–1175:** a logical function need not have executable code; an inductive declaration does
+  not supply code equations by default. Cyclic finite graphs still have terminating reachability
+  algorithms. Monotonicity is the actual requirement for an inductive definition; the displayed
+  direct negative dependency fails it, rather than every occurrence beneath a negation being banned.
+- **L1268–1287, 1342–1346:** scoped premise selection to the displayed induction invocation and
+  explained explicitly passing the intended fact. Constants and compound terms need their constraints
+  preserved in these induction patterns; they are not universally forbidden.
+- **L1724–1727:** the naive flattening function can take quadratic list-processing time on left-skewed
+  trees because append copies its left operand; tree size alone does not imply quadratic behaviour.
+
+Primary references: [Isar reference, HOL-specific tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/HOL_Specific.html)
+(inductive definitions and induction), [functions manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Functions/Functions.html)
+(induction rules and pattern preprocessing), and [code generation foundations](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Foundations.html)
+(code equations). The negative rule has no least closed predicate: the odd and even naturals each
+satisfy it, while their empty intersection does not.
+
+Validation: all 99 Isabelle blocks, 47 captured-output blocks, the proof tree, two raw-text blocks
+and existing IDs are unchanged. English checker: no errors or warnings. English HTML and root
+MkDocs builds passed. Inspected the whole page at 1280 and 390 px with solutions expanded: no page
+overflow, broken images, KaTeX errors, missing local anchors, SVG text outside its view box or browser
+errors. Isabelle is unavailable on this Mac, so the earlier successful prover run was not repeated.
+Chinese synchronisation remains deferred. No figure, widget or shared-tool changes were needed.
+
+## Original review, 16 November 2026
+
 Reviewed 16 November 2026 against Isabelle2026. Line numbers are those of `src/en/module_11.md` before
 the review's edits. Claims about Isabelle were checked in the sources, the manuals (`isar-ref`) or
 scratch builds (`out/scratch/rev1011`).

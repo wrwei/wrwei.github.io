@@ -19,11 +19,11 @@ imports: Main
 The programs you verified in Module 12 compute a result: they take a list and return it sorted, or take a
 tree and a key and return a new tree. Their specification relates the output to the input. Many systems
 do not work like that. A traffic light controller, a lift, a network protocol, a bank and an operating
-system never finish. They keep a **state**, and they react to **events**: a button is pressed, a timer
-runs out, a message arrives. For such a system the question is not "is the result right?" but "can the
-system ever get into a bad state?". Two trains on the same piece of track, a lift that moves with its
+system are often intended to run indefinitely. They keep a **state**, and react to **events**: a button is pressed, a timer
+runs out, a message arrives. One central question is: "Can the system ever get into a bad state?"
+Two trains on the same piece of track, a lift that moves with its
 door open, a lock held by two processes at once: these are bad states, and the system must never reach
-one, however its events are ordered and however long it runs.
+one, however its enabled events are chosen and however long it runs.
 
 This module describes such systems as **state machines** and proves in Isabelle that no reachable state
 is bad. The method is the invariant of Module 5, now on systems with many events, together with the
@@ -61,8 +61,10 @@ when its **guard** holds in $s$, and it leads to the state given by its **effect
 
 ::: definition Run, trace and reachable state
 A **run** is a sequence of states $s_0 \to s_1 \to s_2 \to \dots$, finite or infinite, that starts in
-an initial state and follows the transition relation. A **trace** describes a run by the list of its
-events; the states follow from them. A state is **reachable** if some run leads to it.
+an initial state and follows the transition relation. An **event trace** records its events: a finite
+list for a finite run, or an infinite sequence for an infinite run. Given an initial state and
+deterministic event effects, the events determine the states; this need not hold for a nondeterministic
+machine. A state is **reachable** if a finite run leads to it.
 :::
 
 Here is a run of the lift, from the initial state, with the events written over the arrows:
@@ -87,9 +89,9 @@ reachable. The other two are the dangerous ones:
 
 Why can the lift never move with its door open or closing? With six states you can check every state
 and every event by hand. A real controller has many more states, and a model with a counter or a queue
-has infinitely many. A **model checker** explores the reachable states of a finite model one by one
-(Module 1). This module proves the property for all reachable states at once, by induction, which works
-however many states there are.
+can have infinitely many. A finite-state **model checker** analyses reachable states explicitly or in
+symbolic groups (Module 1). Induction applies to finite and infinite state spaces; finding a suitable
+invariant is the work this module teaches.
 
 ::: note
 A model is a decision about what to leave out. The lift model has no floors, no passengers, no motor and
@@ -132,8 +134,9 @@ inductive lreach :: "door × bool ⇒ bool" where
 
 Rule `init` makes the initial state reachable. Rule `step` says that one step from a reachable state
 leads to a reachable state. Nothing else is reachable, because an inductive definition defines the
-smallest predicate closed under its rules (Module 11). A run is a derivation with these rules. Here is
-the run to `(Closing, False)`, step by step, in Isar (Module 10):
+smallest predicate closed under its rules (Module 11). Each finite run gives a derivation of its final
+state's reachability. An infinite run has such a derivation for every finite prefix. Here is the run
+to `(Closing, False)`, step by step, in Isar (Module 10):
 
 ```isabelle
 lemma "lreach (Closing, False)"
@@ -397,8 +400,9 @@ fun effect :: "event ⇒ crossing ⇒ crossing" where
 ```
 
 The transition relation of the crossing is: $s \to t$ when $t$ = `effect e s` for some event `e` whose
-guard holds in $s$. To run the model, apply a list of events in order. An event whose guard is false
-cannot happen, and `run` skips it:
+guard holds in $s$. The function `run` takes a list of attempted events. An event whose guard is false
+cannot happen, so `run` skips that attempt. Removing the skipped attempts gives an actual event trace
+from the chosen starting state:
 
 ```isabelle
 fun run :: "event list ⇒ crossing ⇒ crossing" where
@@ -516,8 +520,9 @@ actions:
 2. The state is **not reachable**. Then the design may well be safe, but `safe` is too weak to carry
    the induction: it allows states that never occur, and the induction step fails on one of them.
 
-Quickcheck cannot answer this question. It tests a statement by running the definitions in it, and an
-inductive definition such as `reach` is not a function that it can run (Module 11):
+Quickcheck cannot execute this inductive `reach` predicate as currently defined: it has no code equations
+(Module 11). A separate executable reachability procedure or a search over event lists can help, but
+the direct call fails:
 
 ```isabelle fails
 lemma "reach s ⟹ safe s"
@@ -546,8 +551,8 @@ Nitpicking formula...
 Nitpick found no counterexample
 ```
 
-Nitpick finds no reachable state that breaks `safe`. That is not a proof, but it points to the second
-possibility. Find out on paper why the state of the goal cannot be reached. The pedestrians start to
+Nitpick reports no counterexample within its search bounds. That does not establish unreachability.
+Find out on paper why the state of the goal cannot be reached. The pedestrians start to
 walk only through `StartWalk`, whose guard needs a request. While they walk, the request stays set,
 since only `EndWalk` clears it, and `EndWalk` also ends the walk. So in every reachable state: *if the pedestrians walk, a
 request is pending*. The state in the goal violates exactly this.
@@ -602,10 +607,11 @@ property itself is often too large, because it contains unreachable states from 
 step leads out.
 :::
 
-When an invariant proof fails, the goal left over tells you what to add. It describes a state that
-satisfies your invariant but is not reachable (if the design is right). Find a fact about reachable
-states that this state violates, add it to the invariant with ∧, and try again. A larger system may need
-several rounds; each round removes the unreachable states that the last failure showed.
+When a preservation check has a counterexample, it can suggest what to add. If the design is safe, a
+state satisfying the candidate property with an unsafe successor must be unreachable. Find a fact
+about reachable states that excludes it, add that fact with ∧, and try again. A larger system may need
+several rounds. A failed proof method alone does not produce a counterexample; it may instead need
+another lemma or more suitable automation.
 
 ::: pitfall
 - **Adding a fact that is false.** A fact that fails in some reachable state cannot be part of an
@@ -615,7 +621,8 @@ several rounds; each round removes the unreachable states that the last failure 
 - **Trying a stronger proof method.** No method can prove the failed induction step for `safe` from `safe s`
   and the guard alone: that claim is false, as Quickcheck showed. The induction step also has the premise
   `reach s`, but using it needs a fact about all reachable states, which is the invariant you are
-  looking for. A failed induction step asks for a stronger invariant, not for more automation.
+  looking for. A different method or an existing reachability lemma might solve that full goal; what
+  no sound method can prove is the false preservation claim with `reach s` omitted.
 :::
 
 ## Counterexample traces {#traces}
@@ -658,11 +665,11 @@ Nitpick found a counterexample:
     s = ⦇cars = Green, peds = Walk, req = False⦈
 ```
 
-The cars have green while the pedestrians walk. The option `card = 6` fixes the size of the models
-that Nitpick tries: six values for each type whose size it has to choose, such as states and lists of
-events. Six are enough here, and with one fixed size Nitpick reports the same counterexample every time.
-Without the option it tries the sizes 1 to 10, and which counterexample it reports can change from run
-to run.
+The cars have green while the pedestrians walk. The option `card = 6` selects a single default finite
+scope for types whose scopes Nitpick must approximate or choose. It does not make `crossing` a
+six-state type: its fields still determine 12 states. Nitpick also respects fixed datatype structure
+and type-specific scope settings. Fixing a scope restricts the search; it does not generally select a
+unique counterexample or guarantee identical output. Without it Nitpick tries a range of scopes.
 
 Nitpick shows the bad state but not how to get there. To see the run, search for a list of events
 instead. Define `run_early` as `run` was defined, with the new effects, and ask whether every run of the
@@ -727,21 +734,21 @@ of `ToGreen`, so that the controller checks the pedestrian signal itself (Exerci
 that this fix works).
 
 ::: keyidea
-When the induction step of an invariant proof fails, the goal describes a state and an event. Find out whether
-the state is reachable. If it is, the property you are proving fails in a reachable state; when that
-property is your safety property, the design is wrong: search for a trace with Nitpick, or with
-Quickcheck on an executable model, and fix the design. If it is not, the design may be right and the
-invariant too weak: strengthen it.
+Given a genuine counterexample to preservation, find out whether its starting state is reachable.
+If it is, its successor is reachable too and violates the candidate property. When that property is
+the safety requirement, the design is wrong: search for a trace and fix it. If the starting state is
+unreachable, strengthen the candidate to exclude it. A failed proof attempt by itself does not settle
+either question.
 :::
 
 ::: tip
 Quickcheck and Nitpick search in different ways. Quickcheck runs the definitions on many small values,
 so it needs functions it can execute, such as `guard`, `effect_early` and `run_early`. Nitpick translates
 the problem into a SAT problem, which also covers inductive definitions such as `reach`. Quickcheck's
-exhaustive search tries small values first and stops early (by default at size 5). On
-`safe (run_early es start)` it finds nothing, because the shortest bad run has five events and its
-search does not get that far. Fix the length of the run, with one variable for each event, and it finds
-the trace at once:
+exhaustive search tries small values first, with a default size bound of 5. This is a generator bound,
+not a promise to test every event list of length 5. In the checked run of
+`safe (run_early es start)`, the default invocation found no counterexample, although a five-event
+trace exists. Fix the length with one variable for each event, and the smaller search finds it:
 
 ```isabelle
 lemma "safe (run_early [e1, e2, e3, e4, e5] start)"
@@ -760,7 +767,8 @@ Quickcheck found a counterexample:
   e5 = ToGreen
 ```
 
-Isabelle/jEdit runs Quickcheck on every new lemma by itself, but not Nitpick: call `nitpick` yourself.
+With default settings, Isabelle/jEdit tries Quickcheck on new goals, but not Nitpick. These background
+checks are configurable; the explicit commands work independently of them.
 :::
 
 ## Refinement: from abstract to concrete {#refinement}
@@ -801,10 +809,12 @@ inductive treach :: "timed ⇒ bool" where
 | step: "treach c ⟹ tstep c c' ⟹ treach c'"
 ```
 
-Amber lasts 3 ticks, the pedestrians get 6, and green lasts at least 10. A press does not start a phase,
-so the value of `delay Press` is never used. The event `tick` is new: it changes the timer and leaves the
-lights alone. The other events of the crossing are still there, with a stronger guard: the timer must
-have run out.
+After `ToAmber`, at least 3 ticks are needed before another phase change; after `StartWalk`, at least
+6; after `ToGreen`, at least 10. The initial green phase has timer 0 and no such minimum. These are
+minimum counts of `tick` events, not upper bounds on waiting or a connection to physical seconds.
+Presses can interleave and scheduling may postpone progress. A press does not start a phase, so
+`delay Press` is never used. The new event `tick` changes only the timer. Phase changes retain the
+abstract guards and additionally require timer 0; `Press` remains possible at any time.
 
 The two models describe the same crossing at two levels of detail. The crossing is the **abstract**
 model, the timed controller the **concrete** one. They are related by an **abstraction function**: the
@@ -827,8 +837,9 @@ of the timed controller is a stutter step: the timer changes, the lights do not.
 run of the timed controller and the run of the crossing that it represents.
 
 ::: figure id=fig-13-3
-A run of the timed controller (below) and its image under `lights` (above). The three ticks change only
-the timer, so they are stutter steps; every other step is a step of the crossing.
+A run of the timed controller (below) and its image under `lights` (above). All shown states have
+`peds = DontWalk`, omitted from the boxes. The three ticks change only the timer, so they are stutter
+steps; every other step is a step of the crossing.
 :::
 
 ### The proof {#refinement-proof}
@@ -888,8 +899,9 @@ theorem timed_safe: "treach c ⟹ safe (lights c)"
   using treach_reach crossing_safe by blast
 ```
 
-No new invariant was needed. The timed controller has more states than the crossing (one for every
-value of the timer), but its proof only had to check that each of its steps is one the crossing allows.
+No new safety invariant was needed. The timed state type is infinite because its timer is a natural
+number, though this controller's reachable timers are bounded by 10. The proof checks the initial
+state and the step correspondence without enumerating the timer values.
 
 ::: fact Refinement preserves invariants
 If $C$ refines $A$ with abstraction function $\alpha$, then $\alpha$ maps every reachable state of $C$ to
@@ -901,7 +913,8 @@ This is the idea behind **refinement-based development**, used for example in th
 the software of Paris Métro line 14 was developed (Module 1), and in its successor Event-B. You start with
 an abstract model in which the important properties are simple to state and prove. Then you add detail in
 small steps, timers, buttons, messages, data structures, and prove that each step is a refinement. The
-safety properties proved at the top hold all the way down.
+abstract state invariants proved at the top hold through the composed abstraction functions all the
+way down. Properties about newly introduced details need their own proofs.
 
 ::: note
 An abstraction function is a special case. In general, a concrete state may correspond to several
@@ -930,29 +943,37 @@ A **liveness property** says that something good eventually happens: a request i
 message is eventually delivered, a program eventually terminates.
 :::
 
-No finite run can break a liveness property, because the good thing might still happen later. A
-counterexample is an infinite run in which it never happens, typically a loop that repeats forever. The
+Under the usual infinite-run interpretation, no finite prefix alone refutes a liveness property: the
+good thing might still happen later. Termination and deadlock need a convention; one is to extend a
+stopped run by repeating its final state forever. A counterexample is then an infinite run in which
+the promised event never happens. In a finite-state model such a run can often be displayed as a
+finite prefix followed by a loop. The
 crossing has one: press the button again and again, forever, and nothing else ever happens. Every state
-of this run is reachable and safe, and the pedestrians never walk. To rule out such runs, a model needs a
-**fairness** assumption, such as "an event whose guard stays true is eventually taken". Proofs of
-liveness then use a measure that decreases until the good thing happens, like the termination measures
-of Module 5. Leslie Lamport introduced the words *safety* and *liveness* for these two kinds of
+of this run is reachable and safe, and the pedestrians never walk. A scheduling or **fairness**
+assumption can exclude this starvation, for example "an event whose guard stays true is eventually
+taken" (weak fairness). One proof technique combines a measure that decreases on progress steps with
+an argument that those steps occur, as in termination reasoning (Module 5). Leslie Lamport used the
+words *safety* and *liveness* for these two kinds of
 properties in 1977.
 
-An invariant cannot express a liveness property, because it talks about one state at a time. And
-refinement as defined in Section 13.7 does not preserve liveness: a controller that never changes its
+An ordinary state invariant alone does not establish eventual progress. The
+refinement criterion in Section 13.7 does not preserve liveness: a controller that never changes its
 lights, whatever happens, refines the crossing, since all its steps are presses and stutter steps
-(Exercise 13.9). It is perfectly safe and perfectly useless. Refinement methods add proof obligations
-for liveness. Event-B, for example, can ask you to show that new events such as `tick` cannot run
-forever, with a measure that each of them decreases, here the timer; that rules out a controller that
-only ticks. A requirement such as R2 still needs a proof of its own.
+(Exercise 13.9). It is perfectly safe and perfectly useless. Some refinement methods add proof obligations
+against divergence. Event-B, for example, can require a new event to be **convergent**: it must strictly
+decrease a suitable variant, such as a natural-number measure. Here the timer rules out an infinite sequence
+consisting only of `tick` steps. It does not forbid infinitely many ticks interleaved with abstract
+phase changes that reset the timer, and it does not force a phase change to occur. R2 still needs its
+own progress argument and scheduling assumptions.
 
 Liveness is the home ground of **temporal logic**, which Amir Pnueli proposed for programs in 1977. Its
 operators speak about runs: □ *P* ("always *P*") and ◇ *P* ("eventually *P*"). Requirement R2 becomes
 □(*req* ⟶ ◇ *Walk*): at every point of a run, if a request is pending, the pedestrians walk then or at
-some later point.
-**Model checkers** check such formulas on finite models automatically, and print a counterexample run
-when they fail: **SPIN** for models in its language Promela, **nuXmv** for models in the SMV language,
+some later point. Here *req* and *Walk* are the state predicates `req s` and `peds s = Walk`. The Boolean request flag coalesces repeated
+presses; this state-based reading allows a request during an existing walk to be served immediately.
+It does not specify a waiting-time bound or track a separate obligation for each pedestrian.
+**Model checkers** can check such formulas on finite models and return a counterexample run when a
+property is refuted: **SPIN** for models in its language Promela, **nuXmv** for models in the SMV language,
 and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's engineers used
 (Module 1). Isabelle can prove liveness too, but that needs more machinery than this series covers.
 
@@ -969,9 +990,9 @@ and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's
   them models of protocols, algorithms and systems with their invariants and refinements.
 - **Event-B** and its tool, the Rodin platform, are built around refinement: abstract machines, events
   with guards and actions, invariants, and refinement proofs, discharged mostly by automatic provers.
-- **Model checkers** such as TLC, SPIN and nuXmv explore finite models automatically and handle
-  liveness. They are the quickest way to find a counterexample trace in a design; a proof covers what a
-  finite model cannot.
+- **Model checkers** such as TLC, SPIN and nuXmv analyse finite models and handle liveness. They can find
+  counterexample traces and establish properties of those finite models. Deductive proofs can also
+  handle infinite state spaces or whole families of models, when suitable arguments are available.
 
 Module 14 ends the series with a different kind of system: a compiler, proved correct.
 
@@ -989,17 +1010,19 @@ Module 14 ends the series with a different kind of system: a compiler, proved co
 - A **safety property** must hold in every reachable state. An **invariant** holds in every reachable
   state; it is **inductive** if it holds initially and every step preserves it. Rule induction over the
   reachable states proves an inductive invariant: a base case and an induction step.
-- A safety property is often not inductive. The failed induction step shows a state and an event: a
-  **counterexample to induction**. If the state is unreachable, **strengthen** the invariant with a fact
-  that holds in every reachable state. If it is reachable, the design is wrong.
+- A state safety property may be invariant without being inductive. A genuine preservation
+  **counterexample** identifies a state and event. If that state is unreachable, **strengthen** the
+  candidate to exclude it; if reachable, its unsafe successor exposes a design error. A failed method
+  alone does not establish a counterexample.
 - Nitpick finds reachable bad states, also of inductive definitions, and with an executable `run` it finds
   **counterexample traces**: lists of events that lead to a bad state. `value` replays them. Fix the
-  option `card` to make Nitpick report the same counterexample every time.
+  option `card` to control search scopes, not to guarantee a unique counterexample.
 - A concrete model **refines** an abstract one if an **abstraction function** maps initial states to
   initial states and every concrete step to an abstract step or a **stutter step**. Then every invariant
   of the abstract model holds, through the abstraction function, in the concrete one.
-- A **liveness property** says that something good eventually happens. Invariants and refinement do not
-  cover it; temporal logic and model checkers such as SPIN, nuXmv and TLC do.
+- A **liveness property** says that something good eventually happens. State invariants and this
+  refinement criterion alone do not establish it; progress arguments and often scheduling assumptions
+  are needed. Temporal logic, model checkers and richer Isabelle developments can express and prove it.
 
 ## Exercises {#exercises}
 
@@ -1301,14 +1324,14 @@ inductive lazy :: "crossing ⇒ bool" where
 - [ ] Every run must be finite
 - [x] Every step from any state that satisfies I must lead to a state that satisfies I
 - [ ] I must be a liveness property
-> An inductive invariant is preserved by every step from every state that satisfies it, including unreachable ones. That is what the induction step of the rule induction checks.
+> Inductiveness demands preservation from every state satisfying I, including unreachable ones. The generated rule-induction goal also offers a reachability premise; Exercise 13.7 shows how a previously proved invariant can use it.
 
-? The induction step of an invariant proof fails, and the goal describes a state s and an event e. What should you find out first?
+? A genuine counterexample to preservation gives a state s satisfying I and an enabled event e whose successor violates I. What should you find out next?
 - [ ] Whether a stronger proof method such as auto or force proves the goal
 - [ ] Whether e is the last event of the datatype
 - [ ] Whether the initial state satisfies the invariant
 - [x] Whether s is reachable
-> If s is reachable, the property fails in a reachable state, and a trace shows how; for a safety property, the design is wrong. If it is not, the invariant is too weak and must be strengthened.
+> If s is reachable, its successor is reachable and violates I; a safety violation then needs a design fix. If s is unreachable, exclude it with a stronger candidate. A failed proof method alone would not establish this counterexample.
 
 ? Why can Quickcheck test `safe (run es start)` but not `reach s ⟹ safe s`?
 - [x] Quickcheck executes definitions, and an inductive predicate such as reach is not executable by default
@@ -1329,5 +1352,5 @@ inductive lazy :: "crossing ⇒ bool" where
 - [ ] The lift never moves with its door open
 - [ ] The balance of an account never becomes negative
 - [x] After a press, the pedestrians eventually get to walk
-> "Eventually" makes it a liveness property: no finite run can break it, and invariants and refinement do not cover it.
+> Under the infinite-run interpretation, failure means a request remains unserved forever. A finite prefix alone does not show that; state invariants and the refinement criterion here do not guarantee progress.
 ```

@@ -37,8 +37,10 @@ The **implementation** is the program that does the work: here, a function defin
 The **specification** is a property that every acceptable result must have. It says *what* the result
 must be, not how to compute it.
 
-A **correctness theorem** states that for every input, the result of the implementation has the property
-of the specification. A program is **verified** when its correctness theorem has been proved.
+A **correctness theorem** states that, for every input satisfying its stated preconditions, the result
+of the implementation has the specified property. A program is **verified against that specification**
+when this theorem has been proved. Sorting below has no input precondition beyond its type; the tree
+and queue theorems use representation invariants.
 :::
 
 For sorting, the implementation in this module is insertion sort, a function `isort`. The specification
@@ -61,19 +63,22 @@ Why write two descriptions of the same thing? Because they serve different reade
   less the specification says about computation.
 - **The implementation is for the computer.** It should be fast, use little memory, or fit the data
   structures at hand. Clever implementations are hard to check by reading.
-- **The proof is the bridge.** Once the theorem is proved, nobody has to read the implementation to trust
-  it: it is enough to read the specification and know that Isabelle has checked the proof.
+- **The proof is the bridge.** A checked correctness theorem lets you rely on the specified behaviour
+  without rechecking the algorithm by hand, provided its assumptions and trusted base apply. It does
+  not establish properties that the specification leaves out.
 
 One specification also serves many implementations. Insertion sort, merge sort and quicksort all meet the
-same sorting specification; each needs its own proof, but the statement of the theorem is the same.
+same sorting specification; each needs its own proof with that implementation substituted into the
+correctness statement.
 
-Specifications come in two kinds, and this module uses both. A **property** describes the result
+This module uses two ways to present a specification. A **property** describes the result
 directly, as `sorted` and `mset` do for sorting. A **model** describes a simple version of the data and
 its operations, such as a mathematical set or a plain list, and the theorem says that the clever version
 behaves like the simple one. Sections 12.5 and 12.6 develop the second kind.
 
 ::: keyidea
-A test checks the implementation on one input. A correctness theorem covers every input, but it is
+A test checks the implementation on selected inputs. A correctness theorem covers every input under
+its stated preconditions, but it is
 only as good as its specification: a proof against a specification that says too little proves too
 little. Section 12.4 shows what happens when half of a specification is missing.
 :::
@@ -131,10 +136,10 @@ are needed because of the hyphen: without them Isabelle would read three imports
 `Library.Multiset`. (Here they do not mark inner syntax, as they do in a `lemma`.)
 
 When you open a theory with this import, Isabelle/jEdit first checks `Multiset` and the library theory
-it builds on, and only then your own text. This can take up to a minute. The **Theories** panel shows
+it builds on, and only then your own text. This can take tens of seconds or longer. The **Theories** panel shows
 the progress; until it has finished, your own text stays unchecked and the Output panel shows nothing
-for it. It happens each time you start Isabelle/jEdit, because HOL-Library is not part of the prebuilt
-HOL image that Isabelle/jEdit loads at the start.
+for it. With the default prebuilt HOL image, these extra theories must be checked in each new prover
+session; a custom session image can include them already.
 
 Now the two functions:
 
@@ -319,9 +324,9 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Quickcheck tried every list up to a small size and found no counterexample. That is encouraging, not
-conclusive: a bug might show only on longer lists. In Isabelle/jEdit you do not even need the command,
-because Auto Quickcheck tries every new `lemma` statement and marks the line with a blue **i** when it
+Quickcheck found no counterexample within its bounds on lists and test values. A bug may need an
+untested case, including a longer list or different element values. With its default settings,
+Isabelle/jEdit also tries Auto Quickcheck on new goals and marks the line with a blue **i** when it
 finds a counterexample (Module 1). Now prove it.
 
 ## Proving insertion sort correct {#isort-proof}
@@ -640,8 +645,9 @@ To find a name in a sorted phone book you do not read it from the first page: yo
 see whether the name comes before or after, and repeat in the half that remains. A binary search tree
 stores keys so that every search can work like that. Each node holds a key; the keys in its left subtree
 are smaller, the keys in its right subtree larger. To look for a key, compare it with the key at the root
-and go left or right. A search follows a single path from the root, so it takes at most as many steps as
-the tree is high. In a well-balanced tree with n keys that is about log₂ n steps, far fewer than n.
+and go left or right. A search follows a single path from the root and examines at most as many keys as
+the tree is high. A well-balanced tree with n keys has height proportional to log₂(n + 1). The trees
+implemented below are not kept balanced, so their height can be n.
 
 ### Trees and the set they represent {#bst-trees}
 
@@ -681,8 +687,9 @@ thm btree.set
   set_btree ?x21.0 ∪ {?x22.0} ∪ set_btree ?x23.0
 ```
 
-`?x21.0` is the schematic variable `?x21`: Isabelle adds `.0` to a name that ends in a digit. This
-module defines its own function, so that the abstraction function is visible in the theory.
+`?x21.0` has the name `x21` and index 0. The dot separates the index from a name ending in a digit;
+without it, `?x21` would mean name `x` with index 21 (Module 9). This module defines its own function,
+so that the abstraction function is visible in the theory.
 :::
 
 ### Search and insertion {#bst-ops}
@@ -813,6 +820,9 @@ The second and third parts say that `tinsert` and `isin` do to the tree what `in
 set it represents. The third holds only for trees that satisfy the invariant, as the tree with 6 in the
 wrong place showed.
 
+The empty tree `Lf` also needs to satisfy the invariant and represent the empty set. Both follow
+from the definitions; Section 12.6 includes initialisation explicitly in the general pattern.
+
 ### A wrong invariant {#bst-wrong}
 
 The invariant must say the right thing, and that is easy to get wrong. A tempting simplification
@@ -941,17 +951,18 @@ every data structure.
 ### The pattern {#refine-pattern}
 
 ::: definition Data refinement
-An **abstract model** is a simple mathematical type with operations whose meaning is clear, such as
+This module uses data refinement with deterministic operations and an abstraction function. An
+**abstract model** is a simple mathematical type with operations whose meaning is clear, such as
 sets with `{}`, `insert` and `∈`. A **concrete data structure** implements it with a type and operations
 of its own, chosen for efficiency. They are connected by an **abstraction function** α, which maps each
 concrete value to the abstract value it represents, and an **invariant** I on concrete values. The
 concrete structure **refines** the model if:
 
 1. the concrete empty value represents the abstract one and satisfies I;
-2. every concrete operation preserves I;
-3. on values that satisfy I, every concrete operation corresponds to its abstract one: applying the
-   concrete operation and then α gives the same as applying α and then the abstract operation; and every
-   query, such as a search, gives the answer the abstract query gives.
+2. every concrete operation preserves I when its preconditions hold;
+3. on values that satisfy I and the operation's preconditions, every concrete operation corresponds to
+   its abstract one: applying the concrete operation and then α gives the same as applying α and then
+   the abstract operation; and every query gives the answer its abstract query gives.
 :::
 
 Condition 3 is often drawn as a square, as in Figure 12.3: going along the top and then down gives the
@@ -1059,10 +1070,13 @@ value "deq (Queue [1] [4, 3, 2 :: nat])"
 ```
 
 Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so `refill` reverses
-the back list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to
-the front at most once, so on average each operation takes a constant number of steps, although a
-single `deq` may take longer. (That is a claim about running time, which this module does not prove;
-the theory `Queue_2Lists`, described at the end of this section, does.)
+the back list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Along one sequence starting at `qempty`,
+using each operation's result as the next queue, each enqueued element is reversed from back to front
+at most once. This gives constant **amortised** list-processing cost per operation: the total cost of
+m operations is proportional to m, although one `deq` can take linear time. This is not a probability
+or a bound for each call. Reusing an older queue version can repeat the same reversal. The cost model
+and a proof of amortised bounds are separate from the functional proof here; `Queue_2Lists`, described
+below, develops such bounds.
 
 `first` returns the head of the front list. That is the right answer only if the front list is
 empty only when the whole queue is: otherwise the first element might be waiting in the back list. The
@@ -1213,8 +1227,8 @@ implementation happens to return `hd []` for the empty queue, so this particular
 without the second premise.)
 
 The lemmas `qinv_qempty`, `qinv_enq` and `qinv_deq` say that every queue built from `qempty` with `enq`
-and `deq` satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` always
-holds for the queues a program can build.
+and `deq` satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` holds
+for queues constructed through those operations. Calling `first_correct` also requires non-emptiness.
 
 ### Verified data structures in practice {#practice}
 
@@ -1225,8 +1239,8 @@ general.
   collection of verified functional data structures (in the folder `src/HOL/Data_Structures` of your
   Isabelle installation). Its theory `Queue_Spec` states the queue specification of this section, with
   an emptiness test as well (Exercise 12.6): eight properties, with an abstraction function `list` and an
-  invariant `invar`. `Queue_2Lists` proves them for the two-list queue, and proves that on average
-  each operation takes a constant number of steps.
+  invariant `invar`. `Queue_2Lists` proves them for a two-list queue and establishes amortised bounds
+  in an explicit operation-cost model.
   `Set_Specs` states the set specification of Section 12.5, with deletion as well, and theories such as
   `Tree_Set`, `AVL_Set` and `RBT_Set` prove it for unbalanced, AVL and red-black trees.
 - **The code generator.** When Isabelle generates code for sets, it represents a finite set by a list of
@@ -1280,11 +1294,12 @@ type class `Ord` that Isabelle generates from its own class `ord`; the classes `
 of the module list what it exports: the functions, the class `Linorder`, and the types `Btree` and
 `Queue` without their constructors.
 
-This is what `export_code` does by default: it exports the functions in its list and, without their
+For this Haskell export, `export_code` exposes the functions in its list and, without their
 constructors, the datatypes and classes that these functions use directly. It exports the constructors
-of a datatype only when the list names one of them. This protects the invariants. Other Haskell code
-can build trees only from `tempty` with `tinsert`, and queues only from `qempty` with `enq` and `deq`,
-so it cannot build a tree that breaks `bst` or a queue that breaks `qinv`. Had the list named the
+of a datatype only when the list names one of them. Hiding constructors protects the representation:
+ordinary clients can construct finite, defined trees through `tempty` and `tinsert`, and queues through
+`qempty`, `enq` and `deq`, preserving the proved invariants. This does not enforce operation preconditions
+such as a non-empty queue for `first`. Had the list named the
 constructor `Lf` instead of `tempty`, Isabelle would have exported the type `Btree` with all its
 constructors, `Nd` included, and with them the power to build any tree at all.
 
@@ -1301,11 +1316,15 @@ Every function in the generated module comes from equations that are theorems in
 own functions, the equations of your `fun` and `definition` commands (Module 8). The code generator
 translates each equation into an equation of the target language and adds the definitions it needs from
 the library. So when the generated `isort` returns a list, that list is the value of `isort` in the
-logic, and the correctness theorem says that it is sorted and a permutation of the input. This
+logic, under the trusted-base assumptions below, and the correctness theorem says that it is sorted
+and a permutation of the input. This
 guarantee, that every result the program produces is a result the logic agrees with, is called
 **partial correctness** (Module 8): it speaks about the results the program returns, not about whether
 it returns at all. The generated `first`, for example, stops with an error on an empty queue, because
-the library's `hd` has no equation for `[]`. That is no result, so it breaks no promise.
+the library's `hd` has no equation for `[]`. The non-empty precondition excludes that call from
+`first_correct`; partial correctness alone would not promise a result in any case. The correspondence
+concerns inputs and defined results representing HOL values. Haskell also admits `undefined` and
+infinite lists, which do not represent values of HOL's finite-list datatype.
 
 What the guarantee rests on is the trusted base of Module 1, enlarged by the steps after the proof:
 
@@ -1319,9 +1338,10 @@ What the guarantee rests on is the trusted base of Module 1, enlarged by the ste
   In the logic `isort` works on lists of any length; a real computer runs out of memory or stack at some
   length.
 - **The code around it.** The theorems about `isin`, `deq` and `first` assume the invariants `bst` and
-  `qinv`. The generated module keeps them safe from other Haskell code, as described above, but not
-  from code that edits the generated file or exports the constructors: a tree or queue that breaks its
-  invariant voids the promise. In the same way, the theorems about `isort` and the tree functions
+  `qinv`; `first_correct` also requires a non-empty queue. Constructor hiding preserves representation
+  invariants for finite, defined values built through the interface. Editing the generated code,
+  exposing constructors or bypassing the type system can invalidate that reasoning. In the same way,
+  the theorems about `isort` and the tree functions
   assume that `≤` and `<` form a linear order. After `export_code open`, other code compares the
   elements of its own types with operations that it supplies, and nothing checks that they obey the laws
   of `linorder`.
@@ -1333,13 +1353,15 @@ Some correspondences between HOL and the target language are set up by hand, and
 trusted base as well. Even the default set-up has a few: the generated code uses Haskell's own lists,
 Booleans and `reverse`. Library theories such as `HOL-Library.Code_Target_Nat`, which Module 8
 mentioned, add more: they make the generated code use the target language's own integers instead of a
-datatype of natural numbers. That is faster, and it is safe as long as the target's integers behave like
-mathematical ones, which Haskell's `Integer` does; but the kernel does not check it.
+datatype of natural numbers. Haskell's `Integer` uses arbitrary precision, subject to resource limits;
+the kernel does not check this implementation. Inputs representing HOL natural numbers must still be
+non-negative: an arbitrary negative `Integer` supplied by calling code is not a natural-number value.
 :::
 
 ## What you learned {#summary}
 
-- To **verify** a program is to prove a **correctness theorem**: for every input, the result of the
+- To **verify** a program is to prove a **correctness theorem**: for every input satisfying its
+  preconditions, the result of the
   **implementation** (how) has the property of the **specification** (what). The specification is
   written for people to read and validate; the implementation for the computer.
 - **Insertion sort** meets the sorting specification: `sorted (isort xs) ∧ mset (isort xs) = mset xs`.
@@ -1359,8 +1381,8 @@ mathematical ones, which Haskell's `Integer` does; but the kernel does not check
   two-list queue refines lists, and needs its invariant for `deq` and `first`.
 - `export_code` turns verified functions into code, stored as theory exports. The generated code is
   partially correct relative to the proved equations; the code generator, the compiler, the machine and
-  the calling code remain in the trusted base. Exporting types without their constructors keeps other
-  code from breaking the invariants.
+  the calling code remain in the trusted base. Hiding constructors protects representation invariants
+  for defined values built through the interface; callers still have to meet operation preconditions.
 
 ## Exercises {#exercises}
 
@@ -1755,9 +1777,9 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
 ? What does a correctness theorem for a program state?
 - [ ] That the program passes all of its tests
 - [ ] That the specification says what the users want
-- [x] That for every input, the program's result has the property the specification describes
+- [x] That for every input satisfying the theorem's preconditions, its result has the specified property
 - [ ] That the program terminates quickly on every input
-> The theorem connects implementation and specification for all inputs. Whether the specification is what the users want is validation.
+> The theorem connects implementation and specification under its stated assumptions and preconditions. Whether the specification is what the users want is validation.
 
 ? `sort_drop xs = []` for every list. Which half of the sorting specification does it meet?
 - [x] `sorted (sort_drop xs)`, but not `mset (sort_drop xs) = mset xs`

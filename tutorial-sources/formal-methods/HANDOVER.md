@@ -26,12 +26,15 @@ pages is generated from this folder; never edit the published HTML by hand.
 
 ## Status (17 November 2026)
 
-- **English content audit (17 November 2026):** Modules 1–10 have been revised for mathematical scope,
-  modelling assumptions and teaching clarity. `notes/reviews/module_01.md` through `module_10.md`
+- **English content audit (17 November 2026):** Modules 1–14 have been revised for mathematical scope,
+  modelling assumptions and teaching clarity. `notes/reviews/module_01.md` through `module_14.md`
   record the changes and sources. Isabelle and captured-output blocks are unchanged; Isabelle2026
   is unavailable on the reviewing Mac, so these revisions have not had a fresh prover run.
   Modules 6–10 clarify proof-system guarantees, quantifier scope, total functions versus executable
   code, automation limits and Isar fact passing; Figure 9.2 was corrected and regenerated in English.
+  Modules 11–14 clarify induction strategies, specification preconditions, amortised queue costs,
+  bounded counterexample searches, safety versus liveness, refinement and compiler trust boundaries.
+  Their 299 Isabelle blocks, 143 output blocks and proof tree remain unchanged.
   The English source checker, HTML/MkDocs builds, desktop/mobile rendering checks and 14 natural-deduction
   widget checks passed. Wide proof trees still scroll within the existing containers.
   Reconcile these English revisions when the paused Chinese edition resumes.

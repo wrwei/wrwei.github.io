@@ -40,8 +40,8 @@ for x in xs:
 return total
 ```
 
-A functional program has no loops. It uses a recursive function with an extra argument that carries the
-running total from one call to the next:
+The HOL functions here express repetition by recursion. An extra argument carries the running total
+from one call to the next:
 
 ```isabelle
 fun sumacc :: "nat list ⇒ nat ⇒ nat" where
@@ -78,7 +78,7 @@ $$
 = \mathit{sumacc}\ [\,]\ 8 = 8
 $$
 
-The list gets shorter and the accumulator grows. The library function `sum_list` adds up a list
+The list gets shorter and the accumulator is updated. The library function `sum_list` adds up a list
 directly, so the natural claim is that the loop computes the same total: `sumacc xs 0 = sum_list xs`.
 
 ::: example The proof attempt on paper
@@ -148,8 +148,8 @@ rewriting turns one into the other. The proof is abandoned:
 ::: keyidea
 A stuck goal is information, not only a failure. Compare the IH with the conclusion and ask what differs.
 Here they differ in one argument: the IH fixes the accumulator to `0`, but the recursive call changes
-it. When a function changes an argument in its recursive call, the claim must speak about every value of
-that argument.
+it. A useful repair is often to generalise the claim so that it covers the values of that argument
+passed by recursive calls.
 :::
 
 ## Generalising and strengthening the goal {#generalise}
@@ -193,7 +193,7 @@ Evaluated terms:
   sum_list xs = 0
 ```
 
-The correct generalisation passes the test, so try to prove it:
+Now try to prove the corrected generalisation:
 
 ```isabelle
 lemma "sumacc xs acc = acc + sum_list xs"
@@ -444,8 +444,8 @@ goal (1 subgoal):
 
 Read the stuck goal. The IH is `val (counter n) = n`, and the conclusion needs
 `val (inc (counter n)) = Suc n`. The simplifier knows what `inc` does to `[]` and to `b # bs`, but
-`counter n` is neither, so no equation of `inc` applies. Generalising does not help: no variable is
-fixed in the wrong way. What is missing is a fact about `val` and `inc`.
+`counter n` is not visibly either constructor form, so no equation of `inc` applies. Adding
+`arbitrary:` alone does not supply the missing fact about `val` and `inc`.
 
 Which fact? Look at the subterm the simplifier cannot touch, `val (inc (counter n))`. The inner
 `counter n` is an accident of this proof; the fact should hold for every bit list there. Write `bs` for
@@ -517,10 +517,10 @@ found 1 theorem(s):
 
 ::: pitfall
 Do not state the stuck goal itself as the lemma. `val (inc (counter n)) = Suc n` mentions the specific
-list `counter n`, and an induction on `n` only moves the problem: its step needs
-`val (inc (inc (counter n)))`. The lemma has to be more general than the goal. Sledgehammer (Module 9) does not help here either: it
-searches for a proof from facts that already exist, and it does not do induction, so it cannot invent
-`val_inc` for you.
+list `counter n`, and repeating the same induction on `n` only moves the problem: its step needs
+`val (inc (inc (counter n)))`. Abstracting from `counter n` gives a lemma whose own induction can
+follow `inc`. Sledgehammer (Module 9) searches from available facts; it does not automatically invent
+and prove this auxiliary induction lemma for you.
 :::
 
 ## Induction on trees {#trees}
@@ -717,8 +717,10 @@ value "merge [1, 4, 6] [2, 3, 7]"
   :: "nat list"
 ```
 
-Merging should lose no element: `length (merge xs ys) = length xs + length ys`. Try structural
-induction on `xs`, already generalised over `ys`:
+Merging should preserve the total number of entries: `length (merge xs ys) = length xs + length ys`.
+This alone does not show that the entries are the right ones: a function could replace them while
+keeping the length. The set lemma below checks which values occur, and Exercise 11.2 checks how often
+each occurs. First try structural induction on `xs`, already generalised over `ys`:
 
 ```isabelle
 lemma "length (merge xs ys) = length xs + length ys"
@@ -811,7 +813,7 @@ goal (3 subgoals):
 ```
 
 ::: definition Computation induction
-For a function `f` defined with `fun`, the rule `f.induct` has one case for each defining equation
+For the single-function definitions used here, the rule `f.induct` has one case for each defining equation
 (after overlapping equations have been made disjoint) and, in each case, one induction hypothesis for
 each recursive call on the right-hand side, under the conditions that lead to the call. You use it with
 `induction x₁ … xₙ rule: f.induct`, where `x₁ … xₙ` are the arguments of `f` in the goal. The rule is
@@ -863,7 +865,7 @@ $b$ to $c$, then $c$ is reachable from $a$." Grammars, reachability in state mac
 the meaning of programs are all defined this way, by **rules**.
 
 ::: definition Inductive definition
-An **inductive definition** of a predicate $I$ is a list of rules of the form
+The **inductive definitions** here specify a predicate $I$ by finitely branching rules of the form
 $$I\ a_1 \Imp \dots \Imp I\ a_n \Imp I\ a$$
 called **introduction rules** ($n$ may be 0, and a rule may have further premises that do not mention
 $I$, called side conditions). $I\ x$ holds exactly when it can be derived by finitely many rule
@@ -1141,10 +1143,10 @@ You could have defined evenness by a recursive function instead, with equations 
 | Positive facts (`ev 4`) | apply the rules | evaluate |
 | Negative facts (`¬ ev 3`) | rule inversion | evaluate |
 | Facts about all members | rule induction | computation induction |
-| `value` | not by default | yes |
+| `value` | not by default | when the definition and its operations are executable |
 
-The last row deserves a demonstration. An inductive predicate is not a program, and `value` cannot run
-it:
+The last row deserves a demonstration. An inductive declaration supplies logical rules, not executable
+code equations by default. Here `value` cannot run `ev`:
 
 ```isabelle fails
 value "ev (Suc (Suc 0))"
@@ -1158,14 +1160,15 @@ value "ev (Suc (Suc 0))"
 
 (Isabelle can turn many inductive predicates into programs with the command `code_pred`; this series
 does not need it.) Prefer a recursive function when the notion is a computation you want to run. Prefer an
-inductive definition when there is no terminating recursion: reachability in a state machine that has
-cycles, a grammar with concatenation, the evaluation of a program that may loop. Rule induction then
-gives you exactly the cases that matter.
+inductive definition when rules are the more natural description: reachability, grammars with
+concatenation, or evaluation of programs that may loop. A cyclic finite graph still admits a
+terminating reachability algorithm, so these styles are not distinguished by whether an algorithm
+exists. Rule induction follows the defining rules directly.
 
 ::: pitfall
-The predicate being defined may appear in the premises of its rules only *positively*, not under a
-negation. A rule such as "if `odd' n` does not hold, then `odd' (Suc n)` holds" does not describe a
-smallest predicate, and Isabelle rejects it. It starts the usual proofs and reports that one of them
+The operator specified by the rules must be **monotone** in the predicate being defined. Direct
+negative dependence is a problem: "if `odd' n` does not hold, then `odd' (Suc n)` holds" has no least
+closed predicate, and Isabelle rejects it. It starts the usual proofs and reports that one of them
 failed. That proof runs in parallel with the others, so on your screen the messages may come in a
 different order. The goal it could not prove, `mono (…)`, says that the rules must be *monotone*: when
 more facts `odd' n` hold, the rules may not derive fewer conclusions. A negated premise does exactly
@@ -1268,8 +1271,9 @@ premise `steps r ca c`. The IH and that premise give `steps r b c`, and rule `st
 ```
 
 ::: trouble
-`induction rule: steps.induct` always inducts on the *first* premise. With the premises the other way
-round, it inducts on the wrong one, and the proof fails:
+With no arguments or chained fact specified here, `induction rule: steps.induct` selects the first
+matching `steps` premise. With these two premises reversed, it selects the other reachability fact,
+and the displayed proof fails:
 
 ```isabelle fails
 lemma "steps r b c ⟹ steps r a b ⟹ steps r a c"
@@ -1284,7 +1288,8 @@ lemma "steps r b c ⟹ steps r a b ⟹ steps r a c"
 ***        ⟹ steps r a c
 ```
 
-Put the premise you want to induct on first.
+For this proof, put the premise you want to induct on first; in a structured proof you can also pass
+the intended fact explicitly to the induction method.
 :::
 
 ### Constants in the premise {#constants}
@@ -1342,8 +1347,8 @@ goal (2 subgoals):
 ```
 
 ::: pitfall
-Rule induction needs variables in the inductive premise. If an argument is a constant or a compound
-term, generalise it by hand (`a = Done` as an extra premise), or name the terms after `induction`.
+For these rule-induction patterns, an unhandled constant or compound argument can lose its intended
+constraint. Generalise it by hand (`a = Done` as an extra premise), or name the terms after `induction`.
 Module 13 meets the same situation with a state written as a pair, and avoids it for the initial state
 by building that state into its definition of reachability.
 :::
@@ -1592,10 +1597,10 @@ Before you start a long proof by hand, check the claim with `quickcheck`, and tr
 
 ## What you learned {#summary}
 
-- An induction gets stuck when its **induction hypothesis** is too weak. Read the stuck goal and compare
-  the IH with the conclusion: the difference tells you what to change.
-- If a recursive call changes an argument, as an **accumulator** does, **generalise** the claim to every
-  value of that argument and use `induction xs arbitrary: acc`; the IH is then bound by ⋀.
+- A weak **induction hypothesis** is one reason an induction gets stuck; missing lemmas or insufficient
+  automation are others. Read the remaining goal before choosing a repair.
+- If a recursive call changes an argument, as an **accumulator** does, try **generalising** the claim
+  and using `induction xs arbitrary: acc`; the IH is then bound by ⋀ for every accumulator.
 - If the IH is true but too weak, **strengthen** the claim (`oddsum n = n * n` rather than "a square").
 - If the simplifier cannot rewrite a subterm such as `val (inc (counter n))`, find an **auxiliary
   lemma**: generalise the subterm, test with `value` and `quickcheck`, prove it, add it to the simplifier.
@@ -1604,8 +1609,8 @@ Before you start a long proof by hand, check the claim with `quickcheck`, and tr
   recursive call (two in the last case of `fib`); in Isar the cases are numbered, and `"3.IH"` needs
   quotes.
 - An **inductive definition** (`inductive`) defines the smallest predicate closed under its rules.
-  **Rule induction** (`rule: I.induct`) proves facts about all its members and works on the first
-  premise, whose arguments must be variables; **rule inversion** (`cases`, `inductive_cases`) draws
+  **Rule induction** (`rule: I.induct`) proves facts about all its members; select the intended premise
+  and preserve constraints on non-variable arguments. **Rule inversion** (`cases`, `inductive_cases`) draws
   conclusions from one fact, including negative facts.
 - **Complete induction** with `less_induct` lets the step use the claim for any smaller value.
 
@@ -1724,8 +1729,8 @@ exists.
 ::::
 
 :::: exercise Flattening with an accumulator {#ex-11-4} ★★
-The function `inorder` uses `@` at every node, which makes it slow on large trees. Define the
-accumulator version
+The function `inorder` uses `@` at every node. Repeatedly copying left-subtree traversals can require
+quadratic work on a left-skewed tree. Define the accumulator version
 
 ```text
 flat Lf acc = acc
@@ -1927,7 +1932,7 @@ auxiliary-lemma situation of Section 11.3, with the lemma already proved.
 - [ ] Use `less_induct` instead of structural induction
 - [x] Generalise: prove the claim for every value of the second argument, with `arbitrary:`
 - [ ] Use `blast` instead of `auto`
-> The IH fixes the second argument to `0`, but the conclusion needs it with value `a`. The claim must speak about every value of that argument, and the induction must not fix it.
+> The IH fixes the second argument to `0`, but the conclusion needs it with value `a`. A general claim about every accumulator supplies the instances this proof needs.
 
 ? What does `arbitrary: acc` change in an induction?
 - [x] `acc` is bound by ⋀ in the induction hypothesis, so the hypothesis holds for every value of `acc`
@@ -1936,7 +1941,7 @@ auxiliary-lemma situation of Section 11.3, with the lemma already proved.
 - [ ] `acc` is removed from the goal
 > The claim is proved for all values of `acc` at once, so in the step the IH can be used with the value the recursive call passes, such as `acc + x`.
 
-? How many cases and induction hypotheses does `f.induct` have for a function `f` defined by `fun`?
+? For the single-function definitions used here, how does `f.induct` follow the defining equations after pattern preprocessing?
 - [ ] One case per constructor of the argument type, one IH per case
 - [ ] Always two cases, base and step
 - [ ] One case per recursive call, no IH

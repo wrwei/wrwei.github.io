@@ -1,5 +1,57 @@
 # Review of Module 13, Modelling systems: state machines and invariants
 
+## Follow-up content audit, 17 November 2026
+
+Read every model, proof, exercise solution and quiz; worked through the reachable states,
+counterexample traces, timer transitions and three figure sources. Line numbers refer to the source
+at the start of this follow-up.
+
+- **L19–31, 61–68, 87–94, 132–138:** reactive systems need not literally run forever. Distinguished
+  finite traces from infinite event sequences, stated when events determine states, and related finite
+  reachability derivations to finite prefixes. Model checking can be symbolic rather than state-by-state.
+- **L397–402:** `run` consumes attempted events and skips disabled attempts; the input list need not
+  itself be an enabled trace. Deleting skipped attempts yields a real trace.
+- **L516–554, 602–618, 727–769, summary and quiz:** unavailable executable equations and a bounded
+  search are not impossibility or unreachability proofs. A failed proof method is not a genuine
+  preservation counterexample. If a genuine counterexample starts in a reachable state, its successor
+  violates the candidate invariant; the full rule-induction goal may also provide reachability facts.
+- **L658–668:** `card = 6` chooses a default Nitpick scope, not a six-state crossing or a unique,
+  reproducible counterexample. The record still has 12 logical values; datatype structure and
+  type-specific settings matter. Quickcheck's size bound is a generator bound, not a promise to
+  enumerate all lists of that length.
+- **L801–808, Figure 13.3 caption, 888–892:** delays are minimum tick counts, not exact durations,
+  physical seconds or upper waiting bounds. Initial green has timer 0. The state type is infinite,
+  but reachable timers are bounded by 10. Identified omitted pedestrian fields in the figure caption.
+- **L901–907:** refinement carries abstract state invariants through composed abstraction functions;
+  newly added concrete details need their own proofs.
+- **L930–973, summary and quiz:** distinguished finite prefixes from complete stopped executions
+  under liveness semantics. Weak fairness can exclude the press-only starvation run. A decreasing
+  timer rules out tick-only divergence, without forcing a phase change or proving eventual service.
+  Progress measures are one proof technique, not a universal form of every liveness proof.
+- **L954–973:** the request flag coalesces presses, and the temporal formula allows an existing walk
+  to satisfy a request immediately. It provides neither a per-pedestrian obligation nor a waiting-time
+  bound. Model checkers can prove properties of finite models as well as refute them.
+
+The six crossing states, four lift states, 12/8/7/6 set counts, five-event bad trace, guard repair,
+timed simulation and lazy-controller exercise remain consistent. No model or proof script changed.
+
+Primary references: [Nitpick manual](https://isabelle.in.tum.de/doc/nitpick.pdf) (scope, datatype and
+record approximation; also consulted its [official source mirror](https://github.com/isabelle-prover/mirror-isabelle/blob/master/src/Doc/Nitpick/document/root.tex)),
+[Isabelle2026 scope implementation](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL/ISABELLE_HOME/src/HOL/Tools/Nitpick/nitpick_scope.ML.html),
+[Isar reference, HOL-specific tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/HOL_Specific.html),
+and the [Rodin handbook](https://stups.hhu-hosting.de/handbook/rodin/current/html/machine.html)
+(convergent events and variants). Reachability, stuttering and the temporal-formula limits also follow
+directly from the displayed models.
+
+Validation: all 44 Isabelle blocks, 18 captured-output blocks and existing IDs are unchanged.
+English checker: no errors or warnings. English HTML and root MkDocs builds passed. Inspected the
+whole page at 1280 and 390 px with solutions expanded: no page overflow, broken images, KaTeX errors,
+missing local anchors, SVG text outside its view box or browser errors. Isabelle is unavailable on
+this Mac, so the earlier successful prover run was not repeated. Chinese synchronisation remains
+deferred. No figure, widget or shared-tool changes were needed.
+
+## Original review, 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_13.md` and `src/figures/_gen/figs_13.py`. Line numbers are
 those of the page as I found it (snapshot commit 0230b69, 1312 lines), before my edits.
 

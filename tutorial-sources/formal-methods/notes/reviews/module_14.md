@@ -1,5 +1,54 @@
 # Review of Module 14, Capstone: a verified compiler
 
+## Follow-up content audit, 17 November 2026
+
+Read every definition, execution example, proof, exercise solution and quiz, and checked the three
+figure sources. Line numbers refer to the source at the start of this follow-up.
+
+- **L17–31, 53–68, 72–77:** a verified compiler theorem states what successful compilation preserves
+  under its semantics and assumptions. Semantics need not always be total functions. This example
+  starts from syntax trees and does not verify a textual parser.
+- **L206–230, 284–298, Exercise 14.7:** the short-stack case deliberately specifies underflow
+  behaviour; totality alone does not force that runtime choice. Arbitrary programs can consume
+  pre-existing stack contents. The preservation property is proved for compiled expressions, rather
+  than being true of every stack-machine program.
+- **L360–369:** qualified constant names depend on print context; an unconstrained, fresh unknown
+  term is a free variable, not evidence that a constant of that name exists.
+- **L409–420, 479–489, summary:** Quickcheck searches bounded generators, including representations
+  of function values. It does not enumerate all mathematical states, guarantee a smallest
+  counterexample or find every false claim. A genuine counterexample refutes a claim; a failed proof
+  attempt alone does not determine whether the statement or strategy is wrong.
+- **L581–590, 632–641, 919–924:** explained the generalisation needed by these inductions without
+  claiming that every changed argument universally requires it or that an auxiliary lemma is impossible.
+- **L803–821, 940–949:** scoped optimisation correctness to its specified semantics. Constant
+  folding evaluates constants; dropping a right-hand zero is an algebraic simplification in the same
+  pass. The signed-zero example needs a rounding-mode qualification; relaxed floating-point options
+  can permit transformations that strict signed-zero semantics would disallow.
+- **L1015–1023:** stated the code-generator, extraction, runtime and representation trust boundaries;
+  the theorem does not verify a parser, assembler or physical stack-machine implementation.
+- **L1077–1082, 1214–1230:** unrestricted backward jumps obstruct this unfuelled total interpreter;
+  a relation or fuelled interpreter are alternatives. Running out of fuel does not prove divergence.
+  Multiplication adds proof cases, and storing `let` bindings is one implementation choice.
+- **L1391–1396:** the optimisation exercise bounds instruction counts, not elapsed time, compilation
+  cost or integer memory. Clarified the trusted-software quiz and linked the book's official site.
+
+Primary references: [Isabelle code generation manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Introduction.html)
+and [foundations](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Foundations.html),
+[functions manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Functions/Functions.html),
+[GCC optimisation options](https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html) (`-fsigned-zeros`),
+[CompCert manual](https://compcert.org/man/manual001.html) (semantic preservation and verified boundaries),
+and [Concrete Semantics](https://concrete-semantics.org/). The stack and instruction-count statements
+were also checked directly against the equations and proofs.
+
+Validation: all 76 Isabelle blocks, 40 captured-output blocks, three raw-text blocks and existing
+IDs are unchanged. English checker: no errors or warnings. English HTML and root MkDocs builds passed.
+Inspected the whole page at 1280 and 390 px with solutions expanded: no page overflow, broken images,
+KaTeX errors, missing local anchors, SVG text outside its view box or browser errors. Isabelle is
+unavailable on this Mac, so the earlier successful prover run was not repeated. Chinese synchronisation
+remains deferred. No figure, widget or shared-tool changes were needed.
+
+## Original review, 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_14.md` and `src/figures/_gen/figs_14.py`. Line numbers are
 those of the page as I found it (snapshot commit 0230b69, 1686 lines), before my edits.
 
