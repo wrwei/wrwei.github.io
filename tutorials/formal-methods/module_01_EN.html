@@ -1,7 +1,7 @@
 <!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Module 1: Formal methods, what and why — Formal Methods with Isabelle</title>
-<meta name="description" content="Why some software has to be proved correct, what makes a method formal, where proof assistants such as Isabelle fit among the other formal methods, and your first theory in Isabelle/HOL.">
+<meta name="description" content="What formal methods can establish about software, how specifications and proofs work together, where Isabelle fits among the other methods, and how to write your first theory in Isabelle/HOL.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -38,121 +38,136 @@
     <div class="module-hero">
       <div class="series">Formal Methods with Isabelle &middot; Part I · Foundations</div>
       <h1 class="module-title"><span class="title-n">Module 1</span>Formal methods, what and why</h1>
-      <p class="module-lead">Why some software has to be proved correct, what makes a method formal, where proof assistants such as Isabelle fit among the other formal methods, and your first theory in Isabelle/HOL.</p>
+      <p class="module-lead">What formal methods can establish about software, how specifications and proofs work together, where Isabelle fits among the other methods, and how to write your first theory in Isabelle/HOL.</p>
       <div class="hero-chips"><span class="chip chip-time">&#9201; 150 min</span><span class="chip chip-needs">You need: Some programming in any language. No logic or proof yet.</span></div>
     </div>
 <section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Explain what a formal specification and a formal proof are, and when they are worth the effort</li><li>Tell testing, model checking, SAT and SMT solving, and interactive theorem proving apart</li><li>Say why you can trust a theorem that a proof assistant has checked</li><li>Install Isabelle2026 and find your way round Isabelle/jEdit</li><li>Write a first theory that computes values, proves a lemma and finds a counterexample</li></ul></section>
 <div class="content">
 <span class="section-anchor" id="why"></span>
 <div class="section-header"><span class="section-num">1</span><h2>When software must not fail</h2></div>
-<p>Most software bugs are a nuisance: an app crashes, you restart it, you lose a few minutes. Some software,
+<p>Some software bugs are a nuisance: an app crashes, you restart it, you lose a few minutes. Other software,
 though, flies aircraft, doses radiation, runs trains, moves money or guards secrets. There a bug can cost
 lives or a fortune, and finding it after the fact is too late. Three well-documented failures show what is
 at stake.</p>
 <ul>
 <li><strong>Ariane 5, 1996.</strong> Less than a minute after its first launch, the rocket veered off course and broke
-up. Its guidance software, reused from the slower Ariane 4, converted a 64-bit floating-point number to a
-16-bit integer. On the new rocket the value no longer fitted, the conversion failed, and the failure shut
-down both inertial reference units, the main one and its identical backup.</li>
+up. Software in its inertial reference system, reused from Ariane 4, converted a 64-bit floating-point
+number to a 16-bit signed integer. Ariane 5’s different trajectory produced a value outside the range
+assumed by that software. The conversion failed, shutting down both the main and backup reference
+units, which ran the same software.</li>
 <li><strong>Therac-25, 1985–1987.</strong> A radiation therapy machine gave massive overdoses to six patients, at least
 three of whom died. Among the causes was a race condition in the control software: an operator who
 edited the treatment settings quickly could leave the machine in a lethal configuration that earlier
 models had blocked with hardware interlocks.</li>
 <li><strong>Pentium FDIV, 1994.</strong> Intel’s new processor divided some numbers wrongly because a few entries were
-missing from a table in its division circuit. Replacing the chips cost Intel 475 million dollars. Since
-then, chip makers have used theorem provers to verify their arithmetic units.</li>
+missing from a table in its division circuit. Intel recorded a 475-million-dollar charge for chip
+replacement and write-offs. Arithmetic circuits are one application of formal verification.</li>
 </ul>
 <p>In each case the system had been tested, and testing missed the bug. Edsger Dijkstra put the reason in one
-sentence in 1970: <em>“Program testing can be used to show the presence of bugs, but never to show their
-absence.”</em></p>
+sentence in <em>Notes on Structured Programming</em>: <em>“Program testing can be used to show the presence of
+bugs, but never to show their absence.”</em> This is the limitation of testing selected cases: passing those
+tests does not establish correctness on the cases you did not try.</p>
 <p>A little arithmetic shows why. A function that takes two 64-bit integers has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>128</mn></msup></mrow><annotation encoding="application/x-tex">2^{128}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">128</span></span></span></span></span></span></span></span></span></span></span></span>⁠, about
 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3.4</mn><mo>×</mo><msup><mn>10</mn><mn>38</mn></msup></mrow><annotation encoding="application/x-tex">3.4 \times 10^{38}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3.4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">38</span></span></span></span></span></span></span></span></span></span></span></span>⁠, possible inputs. Testing a billion of them every second, you would need about
-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>22</mn></msup></mrow><annotation encoding="application/x-tex">10^{22}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">22</span></span></span></span></span></span></span></span></span></span></span></span> years to try them all, nearly a trillion times the age of the universe. Tests sample this space;
-they cannot cover it.</p>
-<p>There is another way: describe what the program must do in mathematics, and <strong>prove</strong> that it does so for
-every input. That is the idea behind formal methods, and it works at industrial scale.</p>
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>22</mn></msup></mrow><annotation encoding="application/x-tex">10^{22}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">22</span></span></span></span></span></span></span></span></span></span></span></span> years to try them all, nearly a trillion times the age of the universe. Exhaustive testing is
+possible for some small, finite problems, but it is impractical for this one. For programs whose
+behaviour depends on stored state, timing or interactions with other programs, there is more to cover
+than the input values alone.</p>
+<p>Formal methods offer another kind of evidence: describe the required behaviour mathematically, then
+check a claim against that description. A <strong>proof</strong> can establish a property for every input covered by
+its assumptions. A model checker can explore all the reachable states of a finite model. These methods
+complement testing, and they work at industrial scale.</p>
 <ul>
 <li><strong>seL4</strong> is an operating-system microkernel whose C code was proved, in 2009, to implement its
 specification, with a machine-checked proof in <strong>Isabelle/HOL</strong>, the system this series teaches. It was
 the first general-purpose kernel with such a proof.</li>
 <li><strong>CompCert</strong> is a C compiler proved correct in the proof assistant Rocq (formerly Coq). In 2011,
 researchers tested C compilers with randomly generated programs and found many bugs that made GCC and
-LLVM produce wrong code, but none in the verified parts of CompCert.</li>
+LLVM produce wrong code, but none in the verified parts of CompCert. They did find bugs in its
+unverified parts: the scope of the proof matters.</li>
 <li><strong>Amazon Web Services</strong> engineers have written specifications in the language TLA+ since 2011, for
 systems such as S3 and DynamoDB, and checked them with a model checker. It found subtle design bugs; one
 needed a 35-step sequence of events to show.</li>
 <li><strong>Paris Métro line 14</strong> has run without drivers since it opened in 1998. Its safety-critical software
 was developed and proved with the B method.</li>
 </ul>
-<p>Formal methods cost time and expertise, so they are used where failure costs more: avionics, railways,
-medical devices, processors, operating-system kernels, compilers, cryptographic protocols. Standards for
-these fields recognise them: the avionics standard DO-178C has a formal-methods supplement, DO-333, and
-the highest level of the Common Criteria for security evaluation, EAL 7, requires a formally verified
-design.</p>
+<p>Formal methods cost time and expertise. They are especially useful when failures are costly or when
+interactions are difficult to test: avionics, railways, medical devices, processors, operating-system
+kernels, compilers and cryptographic protocols. Their use also appears in assurance guidance: DO-333 is
+the formal-methods supplement to the avionics software guidance DO-178C. Choosing a method still depends
+on the particular system and the property you need to establish.</p>
 <span class="section-anchor" id="formal"></span>
 <div class="section-header"><span class="section-num">2</span><h2>What makes a method formal</h2></div>
-<p>Everyday language is good for talking and bad for specifying. Take a requirement from a school’s
-software: <em>“Sort the list of scores before printing it.”</em> Highest first or lowest first? What happens to
-two equal scores? And a question that is easy to miss: may the sorting function return the empty list? An empty list is
-certainly sorted. Nobody would write that function on purpose, but nothing in the sentence forbids it,
-and a program that loses scores is exactly the kind of bug that slips through.</p>
-<p>A <strong>formal</strong> method removes this vagueness with three ingredients:</p>
+<p>Everyday language often leaves details to context. Take a requirement from a school’s software:
+<em>“Sort the list of scores before printing it.”</em> Should the highest score come first or the lowest?
+Suppose we agree on lowest first, with repeated scores retained. For input <code>[80, 55, 80]</code>, the expected
+output is <code>[55, 80, 80]</code>.</p>
+<p>Now imagine checking only that the output is in order. <code>[55, 80]</code> would pass that check, despite losing
+a score; even the empty list would pass, because it has no out-of-order pair. The requirement to sort
+the original list already implies keeping its contents. Our check must express that requirement too.</p>
+<p>A formal method makes such requirements explicit using:</p>
 <ol>
-<li><strong>A formal language</strong> with an exact grammar, so that every statement has one reading.</li>
-<li><strong>A semantics</strong>, a mathematical definition of what each statement means and when it is true.</li>
-<li><strong>A proof system</strong>, rules for deriving true statements step by step, so simple that a computer can
-check every step.</li>
+<li><strong>A formal language</strong> with a precise grammar that determines how expressions are structured.</li>
+<li><strong>A semantics</strong>, a mathematical account of what those expressions mean and when statements are true.</li>
+<li><strong>A rigorous checking method</strong>, such as proof using explicit inference rules, or exhaustive
+exploration of a finite model. In a <strong>proof system</strong>, inference rules specify which conclusions may
+be drawn from which premises.</li>
 </ol>
 <div class="box box-definition"><div class="box-label">Definition 1.1<span class="box-title">Formal method</span></div>
 <p>A <strong>formal method</strong> is a way of specifying or verifying a system in a language with a precise
 mathematical meaning, so that claims about the system can be checked by calculation or proof, often by
 a computer.</p>
 </div>
-<p>In such a language the sorting requirement becomes two conditions on the input list <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">xs</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span></span></span></span> and the output
-list <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">ys</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span></span></span></span>⁠:</p>
+<p>Let <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">xs</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span></span></span></span> name the input list and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">ys</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span></span></span></span> the output list. We can express our chosen requirement as two
+conditions that must both hold:</p>
 <div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>∧</mo><mtext>  </mtext><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathit{sorted}(ys) \;\land\; \mathit{mset}(ys) = \mathit{mset}(xs)
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span></span></div>
-<p>Read it as “<em>ys</em> is sorted, <strong>and</strong> <em>ys</em> contains the same elements as <em>xs</em>, each as often”. The symbol
-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∧</mo></mrow><annotation encoding="application/x-tex">\land</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5556em;"></span><span class="mord">∧</span></span></span></span> means “and”; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\mathit{mset}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord"><span class="mord mathit">mset</span></span></span></span></span> turns a list into the bag (multiset) of its elements, ignoring
-order. The second condition is the one the sentence forgot: it rules out losing, adding or duplicating
-scores. You will learn to read and write such formulas in Modules 2 and 3; for now, notice that writing
-the specification forced a decision the sentence left open.</p>
+<p>Read it as “<em>ys</em> is in ascending order, <strong>and</strong> every score occurs the same number of times in <em>ys</em> as in
+<em>xs</em>”. Here, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathit{sorted}(ys)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span> means that the scores never decrease: equal scores are allowed.
+The symbol <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∧</mo></mrow><annotation encoding="application/x-tex">\land</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5556em;"></span><span class="mord">∧</span></span></span></span> means “and”. A <strong>multiset</strong> records which elements occur and how many times each
+occurs, while ignoring their order; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\mathit{mset}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord"><span class="mord mathit">mset</span></span></span></span></span> turns a list into its multiset. Thus <code>[80, 55, 80]</code>
+and <code>[55, 80, 80]</code> have the same multiset, but <code>[55, 80]</code> does not.</p>
+<p>The first condition checks the order; the second rules out losing, adding or duplicating scores.
+These conditions describe a returned result. To verify a sorting function, we must establish them for
+every permitted input and establish that the function returns. Writing the formula makes our choices
+explicit; it does not choose the requirements for us or prevent us from omitting one. Modules 2 and 3
+introduce logical notation in detail, and Module 12 verifies a sorting function against these conditions.</p>
 <div class="box box-definition"><div class="box-label">Definition 1.2<span class="box-title">Specification</span></div>
-<p>A <strong>specification</strong> is a precise statement of <em>what</em> a system must do, without saying <em>how</em>. A
-<strong>formal specification</strong> is written in a formal language.</p>
+<p>A <strong>specification</strong> describes the behaviour required of a system. A <strong>formal specification</strong> does so
+in a language with a precise mathematical meaning. It can leave implementation choices open: our
+sorting specification says what result is required without choosing a sorting algorithm.</p>
 </div>
 <div class="box box-definition"><div class="box-label">Definition 1.3<span class="box-title">Verification and validation</span></div>
 <p><strong>Verification</strong> shows that an implementation meets its specification. <strong>Validation</strong> checks that the
 specification describes what is actually wanted. Barry Boehm’s summary: verification asks “are we
 building the product right?”, validation asks “are we building the right product?”.</p>
 </div>
-<figure class="fig" id="fig-01-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img"><title>Validation and verification</title><defs><marker id="fig-01-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="20" width="200" height="150" rx="12" fill="#FFFBEB" stroke="#B45309" stroke-width="1.8"/><text x="120" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#B45309" text-anchor="middle">Requirement</text><text x="120" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">informal, in words</text><rect x="280" y="20" width="200" height="150" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="380" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="middle">Specification</text><text x="380" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">formal, in logic</text><rect x="540" y="20" width="200" height="150" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="640" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#15803D" text-anchor="middle">Implementation</text><text x="640" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">a program</text><text x="120" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">“Sort the list of</text><text x="120" y="117" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">scores before</text><text x="120" y="136" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">printing it.”</text><text x="380" y="104" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">sorted ys</text><text x="380" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">∧ mset ys = mset xs</text><text x="640" y="104" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">fun insort …</text><text x="640" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">fun isort …</text><line x1="224" y1="112" x2="274" y2="112" stroke="#475569" stroke-width="2" marker-end="url(#fig-01-1__ah-475569)"/><text x="250" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">formalise</text><line x1="484" y1="112" x2="534" y2="112" stroke="#475569" stroke-width="2" marker-end="url(#fig-01-1__ah-475569)"/><text x="510" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">implement</text><path d="M120 184 V196 H380 V184" stroke="#B45309" stroke-width="2" fill="none"/><text x="250.0" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#B45309" text-anchor="middle">Validation</text><text x="250.0" y="244" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Does the specification say</text><text x="250.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">what we really want?</text><text x="250.0" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">review, examples, testing</text><path d="M380 184 V196 H640 V184" stroke="#15803D" stroke-width="2" fill="none"/><text x="510.0" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">Verification</text><text x="510.0" y="244" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Does the program do what</text><text x="510.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">the specification says?</text><text x="510.0" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">proof, for every input</text></svg>
+<figure class="fig" id="fig-01-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img"><title>Validation and verification</title><defs><marker id="fig-01-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="20" width="200" height="150" rx="12" fill="#FFFBEB" stroke="#B45309" stroke-width="1.8"/><text x="120" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#B45309" text-anchor="middle">Requirement</text><text x="120" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">informal, in words</text><rect x="280" y="20" width="200" height="150" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="380" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="middle">Specification</text><text x="380" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">formal, in logic</text><rect x="540" y="20" width="200" height="150" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="640" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#15803D" text-anchor="middle">Implementation</text><text x="640" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">a program</text><text x="120" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">“Sort the list of</text><text x="120" y="117" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">scores before</text><text x="120" y="136" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">printing it.”</text><text x="380" y="104" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">sorted ys</text><text x="380" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">∧ mset ys = mset xs</text><text x="640" y="104" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">fun insort …</text><text x="640" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">fun isort …</text><line x1="224" y1="112" x2="274" y2="112" stroke="#475569" stroke-width="2" marker-end="url(#fig-01-1__ah-475569)"/><text x="250" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">formalise</text><line x1="484" y1="112" x2="534" y2="112" stroke="#475569" stroke-width="2" marker-end="url(#fig-01-1__ah-475569)"/><text x="510" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">implement</text><path d="M120 184 V196 H380 V184" stroke="#B45309" stroke-width="2" fill="none"/><text x="250.0" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#B45309" text-anchor="middle">Validation</text><text x="250.0" y="244" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Does the specification say</text><text x="250.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">what we really want?</text><text x="250.0" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">review, examples, testing</text><path d="M380 184 V196 H640 V184" stroke="#15803D" stroke-width="2" fill="none"/><text x="510.0" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">Verification</text><text x="510.0" y="244" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Does the program do what</text><text x="510.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">the specification says?</text><text x="510.0" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">proof, under stated assumptions</text></svg>
 </div><figcaption><span class="fig-num">Figure 1.1</span> <p>Formal methods sit between a requirement and a program. Validation connects the requirement to the
 specification; verification connects the specification to the implementation.</p>
 </figcaption></figure>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
-<p>A test says something about one input. A proof says something about every input. But a proof only shows
-that the program meets its <em>specification</em>: if the specification is wrong, you have proved the wrong
-thing. Validation still matters.</p>
+<p>A passing test establishes what happened in that test case. A proof of a general claim can cover every
+input satisfying its assumptions. The claim still needs to express the intended behaviour: a proof
+of sortedness alone would not catch lost scores. Validation still matters.</p>
 </div>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
-<p>“Verified” never means “correct” without qualification. It means correct <em>with respect to a
-specification</em>, <em>under assumptions</em>: that the compiler, the hardware and the model of the environment
-behave as described. These assumptions, together with the proof checker itself, are the <strong>trusted
-base</strong>. Knowing what is in it is part of using formal methods well.</p>
+<p>When someone says “verified”, ask which property was proved and under which assumptions. A proof about
+source code may rely on a model of the programming language, correct compilation, and assumptions about
+the hardware and environment. Checking the proof also relies on a <strong>trusted computing base</strong>: the
+software and hardware whose correct operation is needed for the check to be reliable. Keep these two
+questions in view: is the proof valid, and does its claim apply to the running system?</p>
 </div>
 <span class="section-anchor" id="landscape"></span>
 <div class="section-header"><span class="section-num">3</span><h2>A map of formal methods</h2></div>
 <p>Formal methods are a family. They differ in how much they can express, how much they do automatically,
-and what they give you back. Testing is not a formal method, but it is the baseline every other method is
-compared with.</p>
+and what they give you back. Testing provides a useful comparison and complements formal verification.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>Method</th>
 <th>You provide</th>
-<th>It does</th>
-<th>You get</th>
+<th>What it checks and returns</th>
 <th>Limits</th>
 <th>Examples</th>
 </tr>
@@ -160,93 +175,113 @@ compared with.</p>
 <tbody>
 <tr>
 <td>Testing</td>
-<td>Inputs and expected outputs</td>
-<td>Runs the program</td>
-<td>Bugs on the inputs you chose</td>
-<td>Cannot show that bugs are absent</td>
+<td>Inputs and expected results or properties</td>
+<td>Runs the program; reports failures on the cases tried</td>
+<td>Untested cases remain; exhaustive testing is often impractical</td>
 <td>Unit tests; property-based testing (QuickCheck, Hypothesis)</td>
 </tr>
 <tr>
 <td>Model checking</td>
-<td>A finite model of the system and a property</td>
-<td>Explores every reachable state</td>
-<td>“Holds”, or a counterexample trace</td>
-<td>The number of states explodes; models must be finite or abstracted</td>
+<td>A model of the system and a property</td>
+<td>For finite-state checking, explores reachable states; reports that the property holds or gives a counterexample trace</td>
+<td>Too many states can exhaust time or memory; a finite model may cover only selected system sizes</td>
 <td>SPIN, NuSMV, TLC for TLA+, UPPAAL</td>
 </tr>
 <tr>
-<td>SAT and SMT solving</td>
-<td>A formula over Booleans, numbers, arrays or bit vectors</td>
-<td>Decides automatically whether it can be made true</td>
-<td>A satisfying assignment, or “unsatisfiable”</td>
-<td>Many questions are undecidable or too hard: may give up</td>
-<td>MiniSat, CaDiCaL, Z3, cvc5</td>
+<td>SAT solving</td>
+<td>A formula built from Boolean variables and logical connectives</td>
+<td>Finds a truth assignment making the formula true, or establishes that none exists</td>
+<td>Decidable, but large instances can be too expensive to solve</td>
+<td>MiniSat, CaDiCaL</td>
+</tr>
+<tr>
+<td>SMT solving</td>
+<td>A logical formula using theories such as arithmetic, arrays or bit vectors</td>
+<td>Searches for values making the formula true, or establishes that none exist</td>
+<td>Some supported fragments are decidable; others are not. A solver may report “unknown” or reach a resource limit</td>
+<td>Z3, cvc5</td>
 </tr>
 <tr>
 <td>Interactive theorem proving</td>
-<td>Definitions and theorems in an expressive logic, and the proofs, with help from automation</td>
-<td>Checks every proof step</td>
-<td>A theorem that holds in every case, including infinitely many</td>
-<td>Needs human effort and skill</td>
+<td>Definitions, claims and proof instructions</td>
+<td>Checks a proof of the stated claim, which may cover infinitely many cases</td>
+<td>Expressive claims often need human guidance; finding a proof is not guaranteed</td>
 <td>Isabelle, Rocq, Lean, HOL4, ACL2</td>
 </tr>
 </tbody>
 </table></div>
-<p>Two things follow from the table. First, the methods trade expressiveness against automation. A SAT
-solver answers on its own but only about finite, fixed-size problems; a theorem prover can state that a
-compiler is correct for every program ever written, but needs your guidance to prove it. Second, the
-methods combine. Program verifiers such as Dafny and Frama-C turn programs into formulas for SMT solvers.
+<p>Calling SAT <strong>decidable</strong> means that an algorithm can always finish with the correct yes-or-no answer;
+it does not promise a practical running time. <strong>Undecidable</strong> means that no algorithm can do this for
+every instance. To read the solver rows, <strong>satisfiable</strong> means that some choice of values makes the
+formula true;
+<strong>unsatisfiable</strong> means that no such choice exists. One verification technique is to ask a solver for an
+input on which an implementation violates its specification. A satisfying assignment then describes a
+counterexample; unsatisfiability rules out counterexamples within the encoded model.</p>
+<p>Two things follow from the table. First, expressiveness and automation involve trade-offs. SAT solving
+is automatic and decidable, but that does not mean every instance finishes quickly. A theorem prover
+can express a compiler-correctness claim for programs of any size, but may need your guidance to prove
+it. Second, the methods combine. Program verifiers such as Dafny, and Frama-C’s WP plug-in, generate
+proof obligations that can be sent to SMT solvers.
 And Isabelle, as you will see, includes a tester (<strong>Quickcheck</strong>), a counterexample finder (<strong>Nitpick</strong>,
 which uses a SAT solver) and a bridge to automatic provers and SMT solvers (<strong>Sledgehammer</strong>, which calls
 Z3, cvc5 and others). The proofs that Sledgehammer finds are checked by the same small kernel as every
 other proof (Section 1.4).</p>
 <div class="callout note"><div class="callout-label">Good to know</div>
-<p>Why can a computer not decide by itself whether any statement is true? Because no algorithm can: Alan
-Turing showed in 1936 that no program can decide, for every program and input, whether it halts, and
-Kurt Gödel had shown that no proof system can prove every truth about arithmetic. So for expressive
-logics, some human guidance is unavoidable. Module 3 returns to this.</p>
+<p>There is no algorithm that always decides whether an arbitrary program halts on an arbitrary input:
+this is the <strong>halting problem</strong>, shown undecidable by Alan Turing. Expressive verification problems can
+encode this problem, so there cannot be a verifier that always settles every such problem correctly.
+That does not stop automatic tools from solving many useful cases. Human guidance can help with a
+particular proof, but it does not remove the general limit. Module 3 returns to decidability.</p>
 </div>
 <span class="section-anchor" id="trust"></span>
 <div class="section-header"><span class="section-num">4</span><h2>Proof assistants and why you can trust them</h2></div>
 <p>A <strong>proof assistant</strong>, or interactive theorem prover, is a program that checks proofs written in a
 formal logic and helps you find them. Think of a colleague who reads every line of your proof, never
 tires and never lets a gap pass, together with a team of helpers who can fill in routine steps.</p>
-<p>But a proof assistant is itself a large program. Isabelle has hundreds of thousands of lines of code.
-Why trust it more than the software it checks? The answer is an architecture invented by Robin Milner in
+<p>But a proof assistant is itself a large program. Why trust its proof checking? One answer is an
+architecture developed by Robin Milner and colleagues in
 the 1970s for the Edinburgh LCF system (Logic for Computable Functions), and used by Isabelle and many
 other provers.</p>
 <div class="box box-definition"><div class="box-label">Definition 1.4<span class="box-title">The LCF approach</span></div>
-<p>In an <strong>LCF-style</strong> prover, theorems are values of an abstract type, <code>thm</code>. The only functions that can
-create values of this type implement the inference rules of the logic. They form a small <strong>kernel</strong>.
-Every other part of the system, however clever, must call the kernel to build a theorem.</p>
+<p>In an <strong>LCF-style</strong> prover, theorems are values of an abstract type, <code>thm</code>. Proof tools cannot construct
+these values directly. They must use the operations provided by a <strong>kernel</strong>, which implements the
+inference rules and keeps track of the assumptions on which theorems depend.</p>
 </div>
-<figure class="fig" id="fig-01-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>The LCF architecture of Isabelle</title><defs></defs><rect x="20" y="20" width="470" height="320" rx="16" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.6"/><text x="42" y="50" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#475569" text-anchor="start">Your theories</text><text x="42" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">definitions, lemmas, proofs</text><rect x="50" y="90" width="410" height="230" rx="14" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.6" stroke-dasharray="6 5"/><text x="72" y="118" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="start">Proof tools</text><text x="72" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#6D28D9" text-anchor="start">simp, auto, blast, Sledgehammer, …</text><text x="72" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">large; may contain bugs</text><rect x="150" y="180" width="210" height="116" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="2.6"/><text x="255" y="212" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="16" font-weight="700" fill="#15803D" text-anchor="middle">Kernel</text><text x="255" y="234" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">the rules of the logic</text><text x="255" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle" font-style="italic">small; checked with care</text><rect x="213.5" y="266" width="83" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="255.0" y="283" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ theorem</text><circle cx="528" cy="55" r="12" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="528" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="550" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">Only the kernel can</text><text x="550" y="79" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">make a theorem.</text><circle cx="528" cy="151" r="12" fill="#6D28D9" stroke="#6D28D9" stroke-width="1"/><text x="528" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="550" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">Tools propose proof steps;</text><text x="550" y="175" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">the kernel checks</text><text x="550" y="194" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">every one.</text><circle cx="528" cy="247" r="12" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="528" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="550" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">A bug in a tool can make</text><text x="550" y="271" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">a proof fail. It cannot</text><text x="550" y="290" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">make a false statement</text><text x="550" y="309" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">a theorem.</text></svg>
-</div><figcaption><span class="fig-num">Figure 1.2</span> <p>The LCF architecture. Proof tools can be large and can have bugs, because every theorem they produce is
-built by the kernel’s rules.</p>
+<figure class="fig" id="fig-01-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>The LCF architecture of Isabelle</title><defs></defs><rect x="20" y="20" width="470" height="320" rx="16" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.6"/><text x="42" y="50" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#475569" text-anchor="start">Your theories</text><text x="42" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">definitions, lemmas, proofs</text><rect x="50" y="90" width="410" height="230" rx="14" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.6" stroke-dasharray="6 5"/><text x="72" y="118" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="start">Proof tools</text><text x="72" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#6D28D9" text-anchor="start">simp, auto, blast, Sledgehammer, …</text><text x="72" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">large; may contain bugs</text><rect x="150" y="180" width="210" height="116" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="2.6"/><text x="255" y="212" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="16" font-weight="700" fill="#15803D" text-anchor="middle">Kernel</text><text x="255" y="234" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">the rules of the logic</text><text x="255" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle" font-style="italic">small; checked with care</text><rect x="213.5" y="266" width="83" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="255.0" y="283" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ theorem</text><circle cx="528" cy="55" r="12" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="528" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="550" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">Only the kernel can</text><text x="550" y="79" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">make a theorem.</text><circle cx="528" cy="151" r="12" fill="#6D28D9" stroke="#6D28D9" stroke-width="1"/><text x="528" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="550" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">Tools propose proof steps;</text><text x="550" y="175" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">the kernel checks</text><text x="550" y="194" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">every one.</text><circle cx="528" cy="247" r="12" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="528" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="550" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">With sound assumptions,</text><text x="550" y="271" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">proof-search bugs cannot</text><text x="550" y="290" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">turn a false claim into</text><text x="550" y="309" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">a proved theorem.</text></svg>
+</div><figcaption><span class="fig-num">Figure 1.2</span> <p>The LCF architecture. Proof tools construct theorems through the kernel’s operations. The guarantee
+depends on sound rules and assumptions, as well as a correctly operating implementation.</p>
 </figcaption></figure>
-<p>So the simplifier, the automatic provers and every other tool are outside the trusted base: if one of
-them has a bug, a proof may fail or take forever, but a false statement cannot become a theorem. Only the
-kernel has to be right, and it is small enough to be checked with great care. Milner also designed a
-programming language, ML (“Meta Language”), for writing such tools safely; Isabelle is still written in
-ML and Scala.</p>
+<p>For ordinary proofs built through these operations, a bug in a proof-search tool may make a proof fail
+or take forever, but it cannot bypass the kernel’s inference rules. This concentrates logical checking
+in a much smaller part of the system. It does not mean that literally only the kernel must work: the
+logic’s axioms, the ML runtime, and the hardware also matter. Milner and colleagues developed ML
+(“Meta Language”) for writing proof tools; Isabelle uses ML and Scala.</p>
+<p>Isabelle also permits explicit axioms, admitted proofs (<code>sorry</code>), and <strong>oracles</strong>, interfaces that accept
+results without deriving them through the ordinary inference rules. Those introduce additional trust;
+the LCF architecture does not make their claims true. The proofs in this series use the standard
+logic and library, without adding axioms or using admitted steps or external oracle proof methods.
+In particular,
+Sledgehammer’s external results must be reconstructed as Isabelle proofs before they count as theorems.</p>
 <p><strong>Isabelle</strong> was begun by Lawrence Paulson at the University of Cambridge in 1986 as a <em>generic</em> proof
 assistant: a framework in which many logics can be defined. Tobias Nipkow and his group at the Technical
 University of Munich developed <strong>Isabelle/HOL</strong>, the logic almost everyone uses, and Makarius Wenzel
 created the Isar proof language and the Isabelle/jEdit prover IDE. HOL stands for <strong>higher-order logic</strong>:
-a typed logic in which functions are values like any other, close to a functional programming language
-with logic added. This series uses Isabelle/HOL throughout; “Isabelle” below means Isabelle/HOL.</p>
+a typed logic in which functions can be arguments to other functions and variables can range over
+functions. It supports both mathematical statements and functional program definitions. This series
+uses Isabelle/HOL throughout; “Isabelle” below means Isabelle/HOL.</p>
 <p>Isabelle/HOL has been used for the seL4 proof, for part of the proof of the Kepler conjecture (with HOL
 Light), and for hundreds of developments in the <strong>Archive of Formal Proofs</strong>, an online library of
 checked Isabelle proofs. Other proof assistants you may meet are Rocq (formerly Coq), Lean, HOL4 and
 ACL2. They differ in their logics and styles, but the ideas in this series carry over.</p>
 <span class="section-anchor" id="install"></span>
 <div class="section-header"><span class="section-num">5</span><h2>Install Isabelle2026</h2></div>
-<p>Isabelle2026, released in October 2026, is the current version. The download contains everything: the
-Isabelle/jEdit editor, the prebuilt HOL logic, the automatic provers and the manuals. You do not need to
-install Java or anything else. Isabelle’s home page asks for 4 GB of memory and 2 processor cores for
-small experiments, and 8 GB and 4 cores for medium-sized applications; this series stays small.</p>
-<p>Download it from <strong>isabelle.in.tum.de</strong> (the “Download for …” links on the home page), then follow the
-steps for your system.</p>
+<p>This series uses Isabelle2026, released in October 2026. The application bundle includes the
+Isabelle/jEdit editor, Java, the prebuilt HOL logic, the automatic provers and the manuals. You do not
+need a separate Java installation or a LaTeX installation to follow this series. Isabelle’s home page
+asks for 4 GB of memory and 2 processor cores for small experiments, and 8 GB and 4 cores for medium-sized applications; this series stays small.</p>
+<p>Download the bundle for your system from the <a href="https://isabelle.in.tum.de/" target="_blank" rel="noopener">Isabelle home page</a>, then
+follow the steps below. The <a href="https://isabelle.in.tum.de/installation.html" target="_blank" rel="noopener">official installation instructions</a>
+give platform requirements and further troubleshooting advice.</p>
 <div class="tabs" data-group="1"><div class="tab-buttons" role="tablist"></div>
 <div class="tab-panel" role="tabpanel" data-tab="windows" data-label="Windows">
 <ol>
@@ -285,14 +320,15 @@ does not need them.</p>
 </ol>
 </div>
 </div>
-<p>On the first start Isabelle/jEdit opens an empty theory called <code>Scratch.thy</code> from your home folder.
+<p>On the first start Isabelle/jEdit opens a scratch theory called <code>Scratch.thy</code> in your home folder.
 Wait until the <strong>Theories</strong> panel on the right says <strong>Prover: ready</strong>: Isabelle has then loaded HOL and is
 ready to check what you type.</p>
 <details class="trouble"><summary>If something went wrong</summary><div class="details-body">
 <ul>
 <li><strong>Windows: Sledgehammer or <code>smt</code> reports that a prover failed to run.</strong> Windows Defender can block
 Isabelle’s external provers. Isabelle’s installation page recommends excluding the whole Isabelle
-folder in <strong>Virus &amp; threat protection</strong>. You will not need these tools until Module 9.</li>
+folder in <strong>Virus &amp; threat protection</strong>. Follow the official installation advice if you encounter
+this problem; neither tool is needed for the examples in this module.</li>
 <li><strong>macOS: there is no Open Anyway button.</strong> It appears only after you have tried to open the
 application once. Open Isabelle2026.app again, click Cancel, and look again in Privacy &amp; Security.</li>
 <li><strong>Isabelle is very slow, or stops with an out-of-memory message.</strong> Close other large programs.
@@ -304,7 +340,8 @@ Isabelle needs the memory stated above.</li>
 <p>Isabelle/jEdit, the window you now have open, is a <strong>prover IDE</strong>: an editor in which Isabelle checks your
 text continuously, as you type. There is no “run” button. Figure 1.3 shows the window with the theory you
 are about to write.</p>
-<figure class="fig" id="fig-01-3"><div class="fig-photo"><img src="assets/jedit-overview.png" alt="The Isabelle/jEdit window with a theory in the editor, the Output panel open below it, the Theories panel on the right and the Documentation panel on the left. Numbered marks 1 to 5 label these parts." loading="lazy"></div><figcaption><span class="fig-num">Figure 1.3</span> <p>Isabelle/jEdit, Isabelle2026 on Linux. Windows and macOS look the same apart from the window frame.</p>
+<figure class="fig" id="fig-01-3"><div class="fig-photo"><img src="assets/jedit-overview.png" alt="The Isabelle/jEdit window with a theory in the editor, the Output panel open below it, the Theories panel on the right and the Documentation panel on the left. Numbered marks 1 to 5 label these parts." loading="lazy"></div><figcaption><span class="fig-num">Figure 1.3</span> <p>Isabelle/jEdit, Isabelle2026 on Linux. The same editor and panels are available on Windows and macOS;
+their appearance and keyboard shortcuts can differ.</p>
 </figcaption></figure>
 <ol>
 <li><strong>The text area</strong>, where you write a theory. Commands are coloured by kind, and the gutter on the left
@@ -422,8 +459,11 @@ lines before <code>end</code>.</p>
   :: &quot;nat&quot;</code></pre></div>
 <p><code>value</code> evaluates a term. The text inside the quotation marks is in Isabelle’s <strong>inner syntax</strong>, the
 language of terms and types; commands such as <code>value</code> and <code>lemma</code> are <strong>outer syntax</strong> and stay outside the
-quotes. <code>:: nat</code> is a type annotation: it says that <code>2 + 3</code> is a natural number, one of 0, 1, 2, … .
-Without it Isabelle would not know which kind of number you mean, and could not evaluate the sum.</p>
+quotes. <code>:: nat</code> is a <strong>type annotation</strong>: it fixes the type of <code>2 + 3</code> to the natural numbers,
+0, 1, 2, … . Isabelle supports numerals and addition at several types. Without enough context to choose
+one, this expression remains <strong>polymorphic</strong>, meaning that its type is still general, and <code>value</code> cannot
+evaluate it as a concrete number. Other expressions can obtain their types from context without an
+annotation.</p>
 <p>Isabelle computes with more than numbers. <code>rev</code> reverses a list:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;rev [1, 2, 3 :: nat]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;rev [1, 2, 3 :: nat]&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[3, 2, 1]&quot;
@@ -448,8 +488,8 @@ goal (1 subgoal):
  1. rev (rev xs) = xs</code></pre></div>
 <p>Now prove it. On the next line type:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by simp">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> simp</code></pre></div>
-<p>The goal disappears and nothing is reported: the proof is accepted. <code>simp</code> is the <strong>simplifier</strong>, which
-rewrites a goal with equations it knows until the goal becomes <code>True</code>. Here the library already contains
+<p>Once checking finishes without an error, the proof is accepted. <code>simp</code> is the <strong>simplifier</strong>, which
+uses known equations and logical rules to simplify the goal. It succeeds here because the library contains
 the fact that <code>rev (rev xs) = xs</code>. Isabelle/jEdit even tells you so: the blue <strong>i</strong> in the gutter next
 to the lemma carries the message “Auto solve_direct: the current goal can be solved directly with
 List.rev_rev_ident”. Behind the scenes, <code>simp</code> built the theorem by calling the kernel’s rules, as
@@ -467,7 +507,9 @@ Found termination order: &quot;{}&quot;</code></pre></div>
 the ⇒ symbol. The equation after <code>where</code> says what <code>double</code> computes. Isabelle answers with the new
 constant and its type, and reports that it found a termination order: for every function defined with
 <code>fun</code>, Isabelle proves that the function terminates. Here there is no recursion, so the proof is trivial;
-Modules 5 and 8 explain why termination matters. Now try the function:</p>
+Modules 5 and 8 explain why termination matters. A definition that cannot pass the termination check
+is not accepted by <code>fun</code> in this form. This is a mathematical termination result; it does not promise
+that an actual machine has enough time or memory for every input. Now try the function:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;double 21&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;double 21&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;42&quot;
   :: &quot;nat&quot;</code></pre></div>
@@ -482,9 +524,10 @@ arithmetic. Put the cursor on the lemma line to see the goal, as in Figure 1.4.<
 <h3 id="first-refute">Refute</h3>
 <p>What if a claim is false? Try one:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;double n = n * n&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;double n = n * n&quot;</span></code></pre></div>
-<p>Within a second, a blue <strong>i</strong> appears next to the line. Put the cursor on the line (Figure 1.5):
-Isabelle/jEdit has tried the claim on small values automatically, with <strong>Quickcheck</strong>, and found one where
-it fails. You can also run Quickcheck yourself, which is what the theory files of this series do:</p>
+<p>With the default settings, a blue <strong>i</strong> should appear next to the line after checking. Put the cursor on
+the line (Figure 1.5): Isabelle/jEdit has tried the claim on small values automatically, with
+<strong>Quickcheck</strong>, and found one where it fails. You can also run Quickcheck yourself, which is what the
+theory files of this series do:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  quickcheck">Copy</button></div><pre class="isa-body"><code>  <span class="isa-cmd">quickcheck</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
 
@@ -493,11 +536,16 @@ Quickcheck found a counterexample:
 Evaluated terms:
   double n = 2
   n * n = 1</code></pre></div>
-<figure class="fig" id="fig-01-5"><div class="fig-photo"><img src="assets/jedit-counterexample.png" alt="The cursor is on the line lemma double n = n * n. The Output panel shows: Auto Quickcheck found a counterexample: n = 1. Evaluated terms: double n = 2, n * n = 1." loading="lazy"></div><figcaption><span class="fig-num">Figure 1.5</span> <p>Isabelle/jEdit runs Quickcheck on every new lemma. It reports <code>n = 1</code>: <code>double 1</code> is 2, but <code>1 * 1</code> is 1.</p>
+<figure class="fig" id="fig-01-5"><div class="fig-photo"><img src="assets/jedit-counterexample.png" alt="The cursor is on the line lemma double n = n * n. The Output panel shows: Auto Quickcheck found a counterexample: n = 1. Evaluated terms: double n = 2, n * n = 1." loading="lazy"></div><figcaption><span class="fig-num">Figure 1.5</span> <p>By default, Isabelle/jEdit tries Quickcheck automatically on new lemmas. Here it reports <code>n = 1</code>:
+<code>double 1</code> is 2, but <code>1 * 1</code> is 1.</p>
 </figcaption></figure>
 <p>Notice that the claim holds for <code>n = 0</code> and for <code>n = 2</code>. A tester who tried only those two values would
-have been satisfied. Quickcheck tries small values systematically, which is why it found <code>n = 1</code>.</p>
-<p>The lemma is false, so no proof can succeed. Finish it with <code>oops</code>, which abandons a proof:</p>
+have missed the error. The exhaustive Quickcheck tester used here tries small values systematically,
+which is why it found <code>n = 1</code>. If it finds no counterexample within its search, the claim is still
+unproved. Finding one counterexample is enough to refute a universal claim; failing to find one is
+not enough to prove it.</p>
+<p>The lemma is false over the natural numbers, so it has no sound proof from the standard assumptions.
+Finish it with <code>oops</code>, which abandons a proof without recording the claim as a proved theorem:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
 <p>What if you had tried <code>by simp</code> anyway? The proof fails, and Isabelle shows what it could not prove:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;double n = n * n&quot;</span>
@@ -505,7 +553,9 @@ have been satisfied. Quickcheck tries small values systematically, which is why 
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
 goal (1 subgoal):
  1. n + n = n * n</span></code></pre></div>
-<p>The simplifier unfolded <code>double</code>, but <code>n + n = n * n</code> is not true in general, so it stopped. Isabelle/jEdit
+<p>The simplifier unfolded <code>double</code>, but could not discharge the remaining goal. Here we know why:
+<code>n + n = n * n</code> is false at <code>n = 1</code>. A failed <code>simp</code> attempt alone would not establish that the claim
+is false; true claims can also need a different proof. Isabelle/jEdit
 shows the failure in three ways: a red <strong>!</strong> in the gutter, a red underline under <code>by simp</code>, and the
 message in the Output panel (Figure 1.6). The ⌂ in the message stands for the position the message is
 about; in Isabelle/jEdit it is a link back to that place in the text. Replace <code>by simp</code> with <code>oops</code> and the
@@ -516,8 +566,9 @@ proofs in parallel and records a statement before its proof has finished. The re
 </figcaption></figure>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
 <p>You have now seen the three things you will do in Isabelle all through this series: <strong>compute</strong> with
-<code>value</code>, <strong>prove</strong> with <code>lemma … by …</code>, and <strong>refute</strong> with Quickcheck. Of the three, only a proof covers
-every case, and only a proof is checked by the kernel.</p>
+<code>value</code>, <strong>prove</strong> with <code>lemma … by …</code>, and search for counterexamples with <strong>Quickcheck</strong>. A completed
+proof of a general claim covers all the cases in that claim. A counterexample refutes it. The
+<code>value</code> and Quickcheck results shown here are computed results, rather than kernel-checked proofs.</p>
 </div>
 <p>Save the theory with <strong>File → Save</strong> (<kbd>Ctrl</kbd>+<kbd>S</kbd>, or <kbd>Cmd</kbd>+<kbd>S</kbd> on macOS).</p>
 <span class="section-anchor" id="series"></span>
@@ -555,7 +606,8 @@ every case, and only a proof is checked by the kernel.</p>
 </tbody>
 </table></div>
 <p>Part I is mostly mathematics, done on paper first: each idea gets a definition, a worked example, and
-then a <strong>Check it in Isabelle</strong> box where Isabelle confirms it. From Part II on, Isabelle takes the lead.
+then a <strong>Check it in Isabelle</strong> box where you compute examples, test claims or check proofs. Module 6
+develops proof on paper; from Module 7 on, Isabelle takes the lead.
 The <a href="../math/index.html">Mathematical Foundations</a> series covers logic, sets and proof for computing in
 general, with more practice; this series takes what formal methods need from those subjects and goes on
 to machine-checked proof.</p>
@@ -563,8 +615,10 @@ to machine-checked proof.</p>
 <ul>
 <li><strong>Definition</strong>, <strong>Example</strong> and <strong>Fact</strong> boxes are numbered, so that later modules can refer to them.</li>
 <li>Isabelle text is shown in Isabelle’s own font, with a <strong>Copy</strong> button. Every output shown below a block
-was produced by Isabelle2026 from that very text: if your screen shows something else, check what you
-typed. Blocks marked <strong>fails on purpose</strong> show an error deliberately.</li>
+was produced by Isabelle2026 from that text in the context of the preceding blocks. If your screen
+differs, check the text, earlier commands, Isabelle version and settings. Some messages, especially
+counterexamples and prover searches, can vary; an output marked <strong>example run</strong> illustrates one run.
+Blocks marked <strong>fails on purpose</strong> show an error deliberately.</li>
 <li><strong>Exercises</strong> come at three levels: ★ check your understanding, ★★ apply what you learned, ★★★ stretch
 yourself. Every exercise has a full solution, folded away; try first, then look. The Isabelle in every
 solution has been checked by Isabelle.</li>
@@ -580,18 +634,22 @@ Isabelle’s community answers questions on the isabelle-users mailing list and 
 <span class="section-anchor" id="summary"></span>
 <div class="section-header"><span class="section-num">9</span><h2>What you learned</h2></div>
 <ul>
-<li>Testing samples the inputs; it can show that bugs are present but never that they are absent.
-Formal methods describe a system in mathematics and check claims about <strong>all</strong> of its behaviours.</li>
-<li>A formal method has a <strong>formal language</strong>, a <strong>semantics</strong> and a <strong>proof system</strong>.</li>
+<li>Passing sampled tests does not rule out failures in untested cases. Exhaustive testing can cover
+small finite domains, but it is often impractical. Formal verification checks a stated property
+across the cases covered by a mathematical model and its assumptions.</li>
+<li>Formal methods use a <strong>formal language</strong>, a <strong>semantics</strong> and rigorous checking, for example a
+<strong>proof system</strong> or finite-state model exploration.</li>
 <li>A <strong>specification</strong> says what a system must do. <strong>Verification</strong> shows that an implementation meets its
 specification; <strong>validation</strong> checks that the specification is what is wanted.</li>
 <li>Testing, model checking, SAT and SMT solving and interactive theorem proving trade expressiveness
 against automation; Isabelle combines a theorem prover with automatic tools.</li>
-<li>In an <strong>LCF-style</strong> prover such as Isabelle, only a small <strong>kernel</strong> can create theorems, so bugs in
-the proof tools cannot produce false theorems.</li>
-<li>An Isabelle <strong>theory</strong> <code>T</code> lives in the file <code>T.thy</code>, imports <code>Main</code>, and contains commands between
-<code>begin</code> and <code>end</code>. <code>value</code> computes, <code>lemma … by simp</code> proves, <code>quickcheck</code> searches for
-counterexamples, and <code>oops</code> abandons a proof.</li>
+<li>In an <strong>LCF-style</strong> prover such as Isabelle, proof tools build theorems through the <strong>kernel</strong>.
+This protects ordinary proofs from proof-search bugs, assuming sound rules and assumptions and a
+correctly operating trusted computing base. Axioms, admissions and oracles need separate scrutiny.</li>
+<li>An Isabelle <strong>theory</strong> <code>T</code> lives in the file <code>T.thy</code> and declares which theories it imports; our
+first theory imports <code>Main</code>. Its body goes between <code>begin</code> and <code>end</code>. <code>value</code> computes,
+<code>lemma … by simp</code> attempts a proof, <code>quickcheck</code> searches for counterexamples, and <code>oops</code> abandons a
+proof. Neither a failed proof attempt nor a counterexample search with no result settles a claim.</li>
 </ul>
 <span class="section-anchor" id="exercises"></span>
 <div class="section-header"><span class="section-num">10</span><h2>Exercises</h2></div>
@@ -600,7 +658,8 @@ counterexamples, and <code>oops</code> abandons a proof.</li>
 <ol>
 <li>Showing the customer what the specification of a timetable system implies for next week’s trains,
 and asking “is this what you meant?”.</li>
-<li>Proving in Isabelle that a sorting function always returns a sorted list with the same elements.</li>
+<li>Proving in Isabelle that a sorting function always returns a sorted list with the same elements,
+each occurring the same number of times.</li>
 <li>Discovering that “sort the scores” should have said “highest score first”.</li>
 <li>Running a model checker to show that no reachable state of a protocol design violates its safety
 property.</li>
@@ -611,8 +670,8 @@ property.</li>
 <li><strong>Verification</strong>: it shows that the implementation meets its specification.</li>
 <li><strong>Validation</strong>: it corrects the specification itself.</li>
 <li><strong>Verification</strong>: it shows that a design meets a stated property. (The design is checked against the
-property, the property against nothing. Whether the property is the right one is a validation
-question.)</li>
+property. Whether the model represents the intended system and whether the property is the right
+one are validation questions.)</li>
 </ol>
 </div></details>
 </div>
@@ -620,21 +679,24 @@ question.)</li>
 <p>Which method from the table in Section 1.3 fits each task best?</p>
 <ol>
 <li>Check that a 32-bit multiplier circuit agrees with a reference design on every pair of inputs.</li>
-<li>Show that a cache protocol for three processors never lets two processors write the same address at
-once.</li>
+<li>Check a finite-state model of a cache protocol for three processors, with bounded storage and
+message queues, to show that two processors never have write permission for the same address at once.</li>
 <li>Prove that a sorting function is correct for lists of every length.</li>
 <li>Find bugs quickly in a parser by feeding it thousands of random inputs.</li>
 </ol>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
 <ol>
-<li><strong>SAT or SMT solving.</strong> The question is about fixed-size bit vectors, which a solver handles
-automatically (this is called equivalence checking).</li>
-<li><strong>Model checking.</strong> With three processors the protocol has finitely many states, and the property
-must hold in every reachable one.</li>
-<li><strong>Interactive theorem proving.</strong> “Every length” means infinitely many cases; this needs induction,
-which Module 5 and Part III teach.</li>
-<li><strong>Testing</strong>, specifically property-based or random testing. It will not prove the parser correct, but
-it is cheap and finds many bugs.</li>
+<li><strong>SAT or SMT solving</strong> is a standard approach to this kind of <strong>equivalence checking</strong>. Ask whether
+any pair of fixed-size inputs makes the circuits disagree. An unsatisfiable result establishes
+agreement in the circuit model. Large multipliers can still be difficult solver instances.</li>
+<li><strong>Model checking.</strong> The stated bounds make this a finite-state problem. Checking one three-processor
+model does not by itself establish correctness for every number of processors.</li>
+<li><strong>Interactive theorem proving</strong> fits the unbounded list lengths. Induction is a standard way to
+prove such claims; Module 5 and Part III teach it. Some verification tools can automate particular
+inductive proofs too.</li>
+<li><strong>Testing</strong>, specifically random testing, or property-based testing if inputs are checked against
+stated properties. You need a way to recognise failures, such as crashes, rejected valid inputs or
+disagreement with a reference parser. Random inputs alone do not tell you whether an output is right.</li>
 </ol>
 </div></details>
 </div>
@@ -709,39 +771,42 @@ could still make the function misbehave when it runs on a real computer.</p>
 failure).</li>
 <li>The <strong>model of C</strong> used in the proof differs from what the C standard or the compiler does, for
 example on integer overflow or memory layout.</li>
-<li>The <strong>compiler</strong> has a bug and produces machine code that does not match the C code (unless the
-compiler is verified too, as CompCert is).</li>
+<li>The <strong>compiler</strong> has a bug and produces machine code that does not match the C code. A compiler
+correctness proof, as in CompCert, can reduce this concern within its scope; unverified front-end
+code, assembly and linking can still matter.</li>
 <li>The <strong>hardware</strong> is faulty or behaves differently from its documentation.</li>
 <li>The <strong>assumptions</strong> of the theorem do not hold in practice, for example that the caller passes a valid
 pointer, or that no other thread changes the data.</li>
-<li>The <strong>kernel</strong> of the proof assistant, or the logic itself, is unsound. This is the least likely item:
-the kernel is small and has been scrutinised for decades.</li>
+<li>The <strong>proof-checking infrastructure</strong> is unsound or malfunctioning: for example, a kernel bug,
+inconsistent added axioms, an unjustified oracle result, or a runtime or hardware fault affecting
+the check. A small, scrutinised kernel reduces this risk; it does not eliminate it.</li>
 </ol>
 </div></details>
 </div>
 <div class="exercise" id="ex-1-7"><div class="ex-label"><span class="ex-num">Exercise 1.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A buggy simplifier</span></div>
-<p>Suppose a programmer adds a bug to Isabelle’s simplifier, outside the kernel, that makes it rewrite
-<code>0</code> to <code>1</code> in every goal. Explain what happens when you then try to prove the false statement <code>0 = 1</code> by
-<code>simp</code>, and why the LCF architecture matters here.</p>
+<p>Suppose a bug in Isabelle’s simplifier, outside the kernel, makes it try to rewrite <code>(0 :: nat)</code> to <code>1</code>
+without a theorem justifying that rewrite. You try to prove the false statement <code>(0 :: nat) = 1</code> by
+<code>simp</code>. Assume that the kernel, logic and runtime are sound and that no axioms or oracles are added.
+Could the simplifier return an accepted proof of the statement? Explain why the LCF architecture matters.</p>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
-<p>In an LCF-style prover the simplifier cannot announce a theorem on its own authority: to produce one it must build it
-by applying the kernel’s inference rules, because only the kernel can create values of type <code>thm</code>. The
-kernel checks each step. Rewriting <code>0</code> to <code>1</code> is not a valid step: no rule allows it, because the
-equation <code>0 = 1</code> is not a theorem. So the buggy simplifier either fails, or raises an error when it tries
-to make an invalid step, and Isabelle does not accept <code>0 = 1</code>.</p>
-<p>The bug therefore costs you a working simplifier, not the soundness of your results. In a prover without
-this architecture, where the simplifier could create theorems directly, the same bug would let a false
-statement become a theorem, and every proof built on it would be worthless.</p>
+<p>No. In an LCF-style prover the simplifier must construct a theorem of the original goal through the
+kernel’s operations. Replacing text in its own working data is not enough. A proof-producing rewrite
+from <code>0</code> to <code>1</code> would need a theorem justifying that equality, which the sound rules cannot supply for
+natural numbers under the stated assumptions.</p>
+<p>The exact symptom depends on the bug: the simplifier could fail, raise an error, loop, or return an
+irrelevant theorem. It cannot return a kernel theorem that proves the false original goal. Isabelle
+also checks that the result of a proof method establishes the goal it was asked to prove. This is why
+an error in proof search need not become an error in an accepted proof.</p>
 </div></details>
 </div>
 <span class="section-anchor" id="quiz"></span>
 <div class="section-header"><span class="section-num">11</span><h2>Check yourself</h2></div>
 <div class="quiz" data-n="6">
-<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>A function has been formally verified against its specification. What does that guarantee?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the function has no bugs of any kind</button></li><li><button type="button" class="quiz-opt" data-i="1">That it meets the specification for every input, provided the trusted base is right</button></li><li><button type="button" class="quiz-opt" data-i="2">That it passes every test the customer will write</button></li><li><button type="button" class="quiz-opt" data-i="3">That the specification says what the customer wants</button></li></ol><div class="quiz-expl" hidden>A proof covers every input, but only relative to the specification and the assumptions in the trusted base. Whether the specification is right is validation.</div></div>
-<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What did Dijkstra say testing can and cannot do?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It can show that bugs are absent, given enough tests</button></li><li><button type="button" class="quiz-opt" data-i="1">It can show that bugs are present, but never that they are absent</button></li><li><button type="button" class="quiz-opt" data-i="2">It cannot find bugs that a proof would miss</button></li><li><button type="button" class="quiz-opt" data-i="3">It is a formal method</button></li></ol><div class="quiz-expl" hidden>Tests sample the inputs. A passing test says nothing about the inputs that were not tried.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>A function has been formally verified against its specification. What does that guarantee?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the function has no bugs of any kind</button></li><li><button type="button" class="quiz-opt" data-i="1">That it meets the stated specification in its model for the cases covered by the proof, under its assumptions</button></li><li><button type="button" class="quiz-opt" data-i="2">That it passes every test the customer will write</button></li><li><button type="button" class="quiz-opt" data-i="3">That the specification says what the customer wants</button></li></ol><div class="quiz-expl" hidden>The guarantee has the scope of the proved claim and its assumptions, and relies on sound proof checking. Whether the specification and model describe the intended system is validation.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What did Dijkstra say testing can and cannot do?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It can show that bugs are absent, given enough tests</button></li><li><button type="button" class="quiz-opt" data-i="1">It can show that bugs are present, but never that they are absent</button></li><li><button type="button" class="quiz-opt" data-i="2">It cannot find bugs that a proof would miss</button></li><li><button type="button" class="quiz-opt" data-i="3">It is a formal method</button></li></ol><div class="quiz-expl" hidden>This is the warning about testing selected cases: passing them does not establish correctness on untested cases. Exhaustive testing is possible for some small finite domains, as Section 1.1 explains.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>Which activity is validation?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Proving that an implementation meets its specification</button></li><li><button type="button" class="quiz-opt" data-i="1">Model checking a protocol against its safety property</button></li><li><button type="button" class="quiz-opt" data-i="2">Reviewing the specification with its users to see whether it says what they need</button></li><li><button type="button" class="quiz-opt" data-i="3">Running the kernel’s inference rules</button></li></ol><div class="quiz-expl" hidden>Validation asks “are we building the right product?”, so it checks the specification against what is wanted.</div></div>
-<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>In an LCF-style prover such as Isabelle, which part must be correct for every theorem to be trustworthy?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The simplifier</button></li><li><button type="button" class="quiz-opt" data-i="1">Sledgehammer and the automatic provers it calls</button></li><li><button type="button" class="quiz-opt" data-i="2">The kernel that implements the inference rules</button></li><li><button type="button" class="quiz-opt" data-i="3">The editor</button></li></ol><div class="quiz-expl" hidden>Every theorem is built by the kernel. The tools can only ask the kernel to apply its rules.</div></div>
-<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Why does Isabelle need the annotation in <code>value &quot;2 + 3 :: nat&quot;</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>value</code> only works for natural numbers</button></li><li><button type="button" class="quiz-opt" data-i="1">Without it Isabelle does not know which type of numbers <code>2 + 3</code> belongs to, so it cannot evaluate it</button></li><li><button type="button" class="quiz-opt" data-i="2">Annotations make evaluation faster</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>nat</code> turns on the simplifier</button></li></ol><div class="quiz-expl" hidden>Numerals such as <code>2</code> exist in many types (natural numbers, integers, reals …). The annotation picks one.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which component enforces the inference rules when Isabelle’s proof tools construct an ordinary proof?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The simplifier</button></li><li><button type="button" class="quiz-opt" data-i="1">Sledgehammer and the automatic provers it calls</button></li><li><button type="button" class="quiz-opt" data-i="2">The kernel that implements the inference rules</button></li><li><button type="button" class="quiz-opt" data-i="3">The editor</button></li></ol><div class="quiz-expl" hidden>Proof tools construct theorems through kernel operations. Trust also depends on the logic, assumptions and runtime; an axiom, admission or oracle is not made true by this architecture.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Why does Isabelle need the annotation in <code>value &quot;2 + 3 :: nat&quot;</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>value</code> only works for natural numbers</button></li><li><button type="button" class="quiz-opt" data-i="1">In this expression, no other context fixes a concrete number type for evaluation</button></li><li><button type="button" class="quiz-opt" data-i="2">Annotations make evaluation faster</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>nat</code> turns on the simplifier</button></li></ol><div class="quiz-expl" hidden>Numerals such as <code>2</code> exist in many types (natural numbers, integers, reals …). The annotation picks one; in other expressions, context may already determine the type.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Quickcheck reports “found a counterexample: n = 1” for a lemma. What do you know?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The lemma is true, but <code>simp</code> cannot prove it</button></li><li><button type="button" class="quiz-opt" data-i="1">The lemma is true for <code>n = 1</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The lemma is false: for <code>n = 1</code> the statement does not hold</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle has a bug</button></li></ol><div class="quiz-expl" hidden>A counterexample is a value that makes the statement false, so no proof can succeed. Fix the statement, or abandon it with <code>oops</code>.</div></div>
 <div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
 

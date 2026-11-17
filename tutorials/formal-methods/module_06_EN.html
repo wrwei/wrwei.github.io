@@ -45,15 +45,16 @@
 <div class="content">
 <span class="section-anchor" id="informal"></span>
 <div class="section-header"><span class="section-num">1</span><h2>Proofs you already know</h2></div>
-<p>A <strong>proof</strong> is an argument that leaves no room for doubt: each step follows from earlier ones, for reasons
-that everyone accepts. You have built such arguments before, perhaps without the name. When you convince a
+<p>A <strong>proof</strong> establishes a stated claim from explicit assumptions by justified steps. Its force depends
+on those assumptions and the rules used. You have built such arguments before, perhaps without the name. When you convince a
 colleague that a loop always terminates, or that a function never returns a negative number, you give
 reasons, and each reason rests on the ones before it.</p>
 <p>This section collects the patterns that such arguments use. The rest of the module turns each one into a
 precise rule, so that a computer can check every step. Modules 2 and 3 gave you formulas and their meaning;
-this module adds the third ingredient of a formal method from Module 1, a proof system.</p>
+this module develops one of Module 1’s checking methods: a proof system.</p>
 <div class="box box-example"><div class="box-label">Example 6.1<span class="box-title">A withdrawal never makes the balance negative</span></div>
-<p><strong>Claim.</strong> If the balance b is at least 0 and the amount a is at most b, then b − a is at least 0.</p>
+<p><strong>Claim.</strong> For mathematical integers a and b, if the balance b is at least 0 and the amount a is at most
+b, then b − a is at least 0. The arithmetic here has no machine-integer overflow.</p>
 <p><strong>Proof.</strong> Assume b ≥ 0 and a ≤ b. Subtract a from both sides of a ≤ b: this gives 0 ≤ b − a. ∎</p>
 </div>
 <p>The mark ∎ ends a proof. Two patterns are at work. To prove an <em>if … then …</em> statement, the proof
@@ -95,9 +96,10 @@ as well, reusing the k of m, it would have assumed that n has the same half as m
 “proof” would then cover only sums m + m. Section 6.6 shows how natural deduction rules this mistake out.</p>
 </div>
 <div class="callout note"><div class="callout-label">Good to know</div>
-<p>A witness is the one kind of proof a test can deliver. “Some input makes the parser crash” is proved by a
-single crashing input. Claims about <em>all</em> inputs are another matter: as Module 1 put it, tests can show the
-presence of bugs, never their absence.</p>
+<p>A single observed failure can establish an existential claim about that run: “some input makes this
+parser crash”. It does not establish behaviour on untested inputs. As Module 1 explained, exhaustive
+checking can cover a small finite domain, but sampled tests do not establish an unrestricted claim
+about all inputs.</p>
 </div>
 <div class="box box-example"><div class="box-label">Example 6.4<span class="box-title">There is no largest natural number</span></div>
 <p><strong>Claim.</strong> There is no largest natural number.</p>
@@ -185,9 +187,11 @@ it.</p>
 <p>Three mistakes are common in informal proofs:</p>
 <ul>
 <li><strong>Checking examples instead of proving.</strong> In Module 1, double n = n * n held for n = 0 and n = 2 and
-failed for n = 1. Examples can refute a <em>for all</em> claim, never prove it.</li>
-<li><strong>Assuming what you want to prove.</strong> An argument that uses its own conclusion along the way proves
-nothing, however convincing each step looks.</li>
+failed for n = 1. A counterexample refutes a universal claim; passing selected examples leaves
+untested cases open. Checking every case in a finite domain is different.</li>
+<li><strong>Assuming what you want to prove.</strong> Taking A as an undischarged premise does not establish A without
+that premise. Temporary assumptions used and discharged by a proof rule are legitimate; leaving
+the desired conclusion among the assumptions is circular when the goal was to prove it outright.</li>
 <li><strong>Proving the converse.</strong> Asked for <em>if A then B</em>, it is easy to slip into proving <em>if B then A</em>. They
 are different claims: “if it rained, the street is wet” is not “if the street is wet, it rained”.</li>
 </ul>
@@ -206,7 +210,7 @@ no insight at all. A set of such rules is a <strong>proof system</strong>.</p>
 <p>Read each rule as: from the statements above the line, the <strong>premises</strong>, you may conclude the statement
 below the line, the <strong>conclusion</strong>. The name of the rule is written beside the line. (ev₀) has no premises:
 you may write <em>even 0</em> at any time. (ev₂) says that from <em>even n</em> you may conclude <em>even (n + 2)</em>, for any
-number n. Here is a <strong>derivation</strong> built from these rules:</p>
+natural number n. Here is a <strong>derivation</strong> built from these rules:</p>
 <div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem pt-axiom"></div><div class="pt-bar"><span class="pt-rule">ev₀</span></div><div class="pt-concl"><span class="pt-f">even 0</span></div></div></div><div class="pt-bar"><span class="pt-rule">ev₂</span></div><div class="pt-concl"><span class="pt-f">even 2</span></div></div></div><div class="pt-bar"><span class="pt-rule">ev₂</span></div><div class="pt-concl"><span class="pt-f">even 4</span></div></div></div></div>
 <p>Read it from the top down: (ev₀) gives <em>even 0</em>; (ev₂) with n = 0 gives <em>even 2</em>; (ev₂) with n = 2 gives
 <em>even 4</em>. Each horizontal line is one step, labelled with its rule. To check the derivation, a program
@@ -226,7 +230,7 @@ assumption holds. Here is a derivation in the same system with an assumption at 
 is correct: it says what would follow if <em>even 1</em> held.</p>
 <div class="box box-definition"><div class="box-label">Definition 6.2<span class="box-title">Derivability</span></div>
 <p><strong>Γ ⊢ A</strong>, read “Γ derives A” or “A is derivable from Γ”, means that some derivation has conclusion A
-and all its assumptions in the set of formulas Γ (the Greek capital letter gamma). The set is written as a
+and all its <strong>open</strong>, or undischarged, assumptions in the set of formulas Γ (the Greek capital letter gamma). The set is written as a
 list: <em>even 1</em> ⊢ <em>even 5</em>. <strong>⊢ A</strong>, with nothing on the left, means that A has a derivation without any
 assumptions; A is then a <strong>theorem</strong> of the proof system.</p>
 </div>
@@ -240,9 +244,13 @@ This is why the kernel of a proof assistant can be small (Module 1): the kernel 
 </div>
 <p>There are many proof systems for logic: Hilbert-style systems with many axioms and one or two rules,
 sequent calculi, tableaux, and resolution, which automatic provers use. For propositional and first-order
-logic they all establish the same consequences; they differ in convenience. This module uses <strong>natural
+logic, sound and complete versions establish the same consequences; they differ in convenience. This module uses <strong>natural
 deduction</strong>, because it follows the informal patterns of Section 6.1 closely and because Isabelle is
 designed around it (Module 7).</p>
+<p>For the rule presentation below, <code>True</code> (also written ⊤) abbreviates ¬⊥, and A ⟷ B abbreviates
+(A ⟶ B) ∧ (B ⟶ A). Expand these abbreviations when building a derivation: no separate rules for
+<code>True</code> or ⟷ are listed here. The completeness claims use this convention and the non-empty domains
+of Module 3.</p>
 <span class="section-anchor" id="soundness"></span>
 <div class="section-header"><span class="section-num">3</span><h2>Derivable and true</h2></div>
 <p>A proof system manipulates symbols. It does not know what <em>even</em> means, or what ∧ means. Truth is a
@@ -262,8 +270,8 @@ logical consequence from Module 2, a question about meaning (semantics).</li>
 <p>The even system shows both properties on a small scale. Give <em>even n</em> its natural meaning, “n is divisible
 by 2”. The system is <strong>sound</strong>: (ev₀) concludes a true statement, and (ev₂) turns a true statement into a
 true one, because n + 2 is divisible by 2 whenever n is. A derivation applies these rules finitely often, so
-its conclusion is true (an induction on the size of the derivation, as in Module 5). In particular <em>even 3</em>
-is false, so it has no derivation: soundness answers the question of the last section without trying a
+its conclusion is true <strong>whenever its open assumptions are true</strong> (an induction on the derivation, as
+in Module 5). In particular, <em>even 3</em> is false, so it has no derivation without assumptions: soundness answers the question of the last section without trying a
 single tree. For statements without assumptions the system is also <strong>complete</strong>: every true statement
 <em>even 2k</em> has a derivation, with one use of (ev₀) and k uses of (ev₂).</p>
 <figure class="fig" id="fig-06-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img"><title>Derivability and consequence: soundness and completeness</title><defs><marker id="fig-06-1__ah-1A2E4A" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#1A2E4A"/></marker><marker id="fig-06-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="16" y="16" width="290" height="236" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="161" y="44" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#2563EB" text-anchor="middle">Γ ⊢ A</text><text x="161" y="66" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#1A2E4A" text-anchor="middle">A is derivable from Γ</text><text x="161" y="84" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">rules and derivations: syntax</text><text x="100" y="116" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">A ∧ B</text><line x1="76" y1="124" x2="124" y2="124" stroke="#1A2E4A" stroke-width="1.4"/><text x="127" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="400" fill="#475569" text-anchor="start">(∧E₂)</text><text x="100" y="142" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">B</text><text x="205" y="116" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">A ∧ B</text><line x1="181" y1="124" x2="229" y2="124" stroke="#1A2E4A" stroke-width="1.4"/><text x="232" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="400" fill="#475569" text-anchor="start">(∧E₁)</text><text x="205" y="142" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">A</text><line x1="76" y1="150" x2="229" y2="150" stroke="#1A2E4A" stroke-width="1.4"/><text x="233" y="154" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="400" fill="#475569" text-anchor="start">(∧I)</text><text x="152" y="168" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">B ∧ A</text><text x="161" y="196" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">a finite tree of rule steps,</text><text x="161" y="212" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">each step checked mechanically</text><text x="161" y="242" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#2563EB" text-anchor="middle">Show it: give a derivation.</text><rect x="454" y="16" width="290" height="236" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="599" y="44" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#15803D" text-anchor="middle">Γ ⊨ A</text><text x="599" y="66" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#1A2E4A" text-anchor="middle">A is true wherever Γ is</text><text x="599" y="84" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">valuations and structures: semantics</text><rect x="512" y="121" width="172" height="17" rx="4" fill="#DCFCE7" stroke="#DCFCE7" stroke-width="1"/><text x="530" y="110" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#1A2E4A" text-anchor="middle">A</text><text x="562" y="110" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#1A2E4A" text-anchor="middle">B</text><text x="612" y="110" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#1A2E4A" text-anchor="middle">A ∧ B</text><text x="666" y="110" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#1A2E4A" text-anchor="middle">B</text><line x1="512" y1="116" x2="684" y2="116" stroke="#CBD5E1" stroke-width="1.2"/><line x1="638" y1="98" x2="638" y2="186" stroke="#CBD5E1" stroke-width="1.2"/><text x="530" y="134" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="562" y="134" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="612" y="134" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="666" y="134" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="530" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="562" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="612" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="666" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="530" y="166" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="562" y="166" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="612" y="166" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="666" y="166" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">T</text><text x="530" y="182" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="562" y="182" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="612" y="182" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="666" y="182" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#DC2626" text-anchor="middle">F</text><text x="599" y="204" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">B is true in every row</text><text x="599" y="220" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">in which A ∧ B is true</text><text x="599" y="242" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#15803D" text-anchor="middle">Refute it: give a counterexample.</text><text x="380" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">soundness</text><line x1="312" y1="100" x2="448" y2="100" stroke="#1A2E4A" stroke-width="2.2" marker-end="url(#fig-06-1__ah-1A2E4A)"/><text x="380" y="118" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">⊢ implies ⊨</text><text x="380" y="164" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#6D28D9" text-anchor="middle">completeness</text><line x1="448" y1="174" x2="312" y2="174" stroke="#6D28D9" stroke-width="2.2" marker-end="url(#fig-06-1__ah-6D28D9)"/><text x="380" y="192" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="middle">⊨ implies ⊢</text><text x="380" y="288" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">Natural deduction has both properties, for propositional and first-order logic:</text><text x="380" y="308" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">Γ ⊢ A exactly when Γ ⊨ A. So a counterexample shows that no derivation exists.</text></svg>
@@ -272,15 +280,15 @@ in every valuation or structure that makes the assumptions true. Soundness and c
 </figcaption></figure>
 <p>What would it mean if one of the two properties failed?</p>
 <ul>
-<li><strong>If soundness fails</strong>, the system can derive something false. Suppose you add to the rules of this
+<li><strong>If soundness fails</strong>, a derivation can reach a conclusion not entailed by its premises. Suppose you add to the rules of this
 module one plausible-looking rule: from A ∨ B, conclude A. (“The request came from the admin or from a
 guest, so it came from the admin.”) Then A ∨ B ⊢ A, although A ∨ B ⊭ A (read “A ∨ B does not entail
 A”): with A false and B true, A ∨ B is true and A is false. It gets worse. Section 6.5 derives A ∨ ¬A
 for every formula A; with the new rule, every A would follow, including ⊥, the formula that is always
-false. A derivation in an unsound system proves nothing. For a proof assistant this is the worst
+false. Derivability in an unsound system no longer guarantees semantic consequence. For a proof assistant this is the worst
 possible bug, which is why Module 1’s LCF kernel is kept small and checked with care.</li>
-<li><strong>If completeness fails</strong>, some consequence has no derivation. The system never derives anything false,
-but it cannot prove everything you need, and a failed search does not tell you whether you were unlucky
+<li><strong>If completeness fails</strong>, some consequence has no derivation. A system can be sound yet incomplete:
+it derives only consequences of its premises, but cannot derive all of them. A failed search does not tell you whether you were unlucky
 or the system is too weak. Section 6.5 meets an example: without its last rule, natural deduction cannot
 derive A ∨ ¬A, although every row of its truth table is true.</li>
 </ul>
@@ -298,14 +306,16 @@ logic in his doctoral thesis of 1929, for a different proof system that derives 
 <li><strong>Counterexamples show that a proof does not exist.</strong> To show that A is <em>not</em> derivable from Γ, you do
 not have to try every derivation. Find one valuation or structure that makes Γ true and A false; by
 soundness, no derivation exists. This is what Quickcheck and Nitpick do in Isabelle (Modules 1–3): a
-counterexample means “stop trying to prove it”.</li>
+genuine counterexample satisfying the premises refutes the claim under those premises. A result
+marked potentially spurious needs further investigation.</li>
 <li><strong>Proof search can succeed, but not always fail.</strong> Derivations can be listed one after another, by size,
 and each can be checked mechanically. A program that works through the list will find a derivation of
 every valid first-order formula, eventually. For a formula that is not valid, it may search forever:
-validity in first-order logic is undecidable (Module 3), so no program can always answer “no”. Proof
+validity in first-order logic is undecidable (Module 3), so no algorithm always terminates with the
+correct yes-or-no answer for every first-order formula. Proof
 search tools such as Isabelle’s <code>blast</code> live with this: they search up to a bound and then give up.</li>
 <li><strong>Gödel’s incompleteness theorem is about something else.</strong> Completeness concerns truth in <em>every</em>
-structure; the incompleteness theorem of 1931 (Module 1) concerns truth in one structure, the natural
+structure; the incompleteness theorem of 1931 (Module 3) concerns truth in one structure, the natural
 numbers: no mechanically checkable proof system that derives only true statements about arithmetic
 derives all of them. Isabelle/HOL can express arithmetic, so its proof system, like every other that a
 machine can check, cannot derive every true statement about the natural numbers. What Isabelle
@@ -541,8 +551,11 @@ the direction the pattern uses, (¬B ⟶ ¬A) ⟶ (A ⟶ B), does (Exercise 6.5)
 <h3 id="intuitionistic">Intuitionistic logic</h3>
 <p>Natural deduction without (RAA) is <strong>intuitionistic logic</strong>. It goes back to L. E. J. Brouwer’s view,
 early in the twentieth century, that a proof must construct what it talks about; Arend Heyting set down its
-rules in 1930. In intuitionistic logic a proof of A ∨ B tells you which side holds, and a proof of ∃x. P x
-supplies a witness. Classical proofs need not, as this famous example shows.</p>
+rules in 1930. Closed proofs in the basic intuitionistic calculus have the disjunction and witness
+properties: a proof of A ∨ B yields a proof of a side, and a proof of ∃x. P x yields a witness.
+With premises or additional axioms, extracting such evidence also depends on the evidence those supply;
+an assumption A ∨ B alone does not tell you which side holds. Classical existence arguments need not
+select an explicit witness, as this example shows.</p>
 <div class="box box-example"><div class="box-label">Example 6.6<span class="box-title">A proof that does not say which</span></div>
 <p><strong>Claim.</strong> There are irrational numbers a and b such that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mi>b</mi></msup></mrow><annotation encoding="application/x-tex">a^b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span></span> is rational.</p>
 <p><strong>Proof.</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msqrt><mn>2</mn></msqrt></mrow><annotation encoding="application/x-tex">\sqrt2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.1328em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9072em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;">2</span></span><span style="top:-2.8672em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
@@ -676,11 +689,14 @@ M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">�
 evidence for B, a proof of A ∧ B is a pair, and a proof of A ∨ B is a value tagged <em>left</em> or <em>right</em>. The
 derivation of A ∧ B ⟶ B ∧ A is then the function that swaps a pair, and that of
 (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C) composes two functions. This is the <strong>Curry–Howard correspondence</strong>, on which
-proof assistants such as Rocq and Lean are built. (RAA) has no such reading in general: a program that
-produced evidence for A ∨ ¬A for every A would decide every question, including whether any program halts.</p>
+proof assistants such as Rocq and Lean are built. These assistants also support classical reasoning;
+using classical axioms does not in general provide the same constructive extraction guarantee.
+Classical proofs have computational interpretations too, for example using continuations, but (RAA)
+does not give a general algorithm that decides which side of A ∨ ¬A holds. Such an algorithm for
+arbitrary computational propositions would decide the halting problem.</p>
 </div>
 <p>Isabelle/HOL is classical, like most of mathematics: (RAA) is one of its rules (Module 7). Still, notice
-when a proof uses (RAA): it shows <em>that</em> something holds without showing <em>which</em> case or <em>what</em> witness.</p>
+when a proof uses (RAA): it may establish a claim without selecting a case or an existential witness.</p>
 <span class="section-anchor" id="quantifiers"></span>
 <div class="section-header"><span class="section-num">6</span><h2>The quantifier rules</h2></div>
 <p>In the rules for ∀ and ∃, <strong>P x</strong> stands for any formula in which the variable x may occur free, and
@@ -812,8 +828,11 @@ which you must go back and try something else.</p>
 <p>(⟶I), (¬I), (∧I) and (∀I) are safe on the goal, and so are (∧E₁), (∧E₂), (∨E) and (∃E) on the
 assumptions. (∨I₁) and (∨I₂) are not, as step 2 showed, nor is (∃I), whose witness may be the wrong one,
 nor (⊥E), which replaces the goal by ⊥. Isabelle’s reference manual draws the same distinction for its
-automatic provers: a safe rule “must never reduce a provable goal to an unprovable set of subgoals”. The
-rules of thumb follow:</p>
+automatic provers: a safe rule “must never reduce a provable goal to an unprovable set of subgoals”.</p>
+<p>Retaining a universal assumption and adding one of its instances preserves provability too. However,
+there are indefinitely many possible instances, so trying them indiscriminately can prevent a search
+from making progress. Preserving provability does not by itself guarantee a terminating search.</p>
+<p>The rules of thumb follow:</p>
 <ol>
 <li><strong>Close</strong> a goal that is one of its assumptions.</li>
 <li><strong>Apply safe introduction rules</strong> to the goal: (⟶I), (¬I), (∧I), and (∀I) with a fresh name.</li>
@@ -842,8 +861,11 @@ search never closes. That is no accident: the formula is not valid, so by soundn
 for an elimination rule, first click the assumption it should use. The box for terms and names serves
 (∀I), (∃I), (∀E) and (∃E); left empty, it gives (∀I) and (∃E) a fresh name. Start with A ∧ B ⟶ B ∧ A and
 compare the finished tree with Section 6.4. Then apply (∨I₁) too early in A ∨ B ⟶ B ∨ A, see the dead-end
-warning, and undo. Finally take the last-but-one goal, the converse above, and watch the eigenvariable
-checks refuse every way out.</p>
+warning, and undo. Finally take the last-but-one goal, the converse above, and inspect the failed
+eigenvariable checks. The widget implements a subset of proof operations; its equality elimination
+rewrites all matching occurrences from left to right, whereas the paper rule permits selective
+replacement. Expand <code>True</code> and ⟷ yourself as described in Section 6.2. Getting stuck in the widget
+does not establish that a goal is unprovable.</p>
 </div></div>
 <span class="section-anchor" id="equality"></span>
 <div class="section-header"><span class="section-num">8</span><h2>Equality</h2></div>
@@ -971,8 +993,9 @@ the lemma exists.</p>
   <span class="isa-proof">by</span> blast</code></pre></div>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
 <p>On paper and in Isabelle you use the same two tools: derivations establish ⊢, and counterexamples refute
-⊨. Soundness links them, and a proof assistant adds a guarantee that paper cannot give: every step of every
-derivation has been checked by its kernel.</p>
+⊨. Soundness links them. For an ordinary completed Isabelle proof, the logical steps have been checked
+through the kernel’s operations. This remains relative to the axioms, assumptions and trusted
+infrastructure discussed in Module 1; an admitted proof or an oracle result is not the same evidence.</p>
 </div>
 <span class="section-anchor" id="summary"></span>
 <div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
@@ -982,7 +1005,7 @@ the premise, case analysis, contradiction, contrapositive, arbitrary element, wi
 witness.</li>
 <li>A <strong>proof system</strong> has inference rules; a <strong>derivation</strong> is a tree of rule applications. <strong>Γ ⊢ A</strong>
 means that A has a derivation whose open assumptions are in Γ; checking a derivation is mechanical.</li>
-<li><strong>Γ ⊨ A</strong> is about truth. <strong>Soundness</strong> (⊢ implies ⊨) means that the system derives nothing false;
+<li><strong>Γ ⊨ A</strong> is about truth. <strong>Soundness</strong> (⊢ implies ⊨) means that true premises lead only to true conclusions;
 <strong>completeness</strong> (⊨ implies ⊢) means that it derives every consequence. Natural deduction is both, for
 propositional and first-order logic. A counterexample shows that no derivation exists.</li>
 <li><strong>Natural deduction</strong> has introduction rules, which prove a connective, and elimination rules, which use
@@ -1033,9 +1056,9 @@ rule (∃I). A single test proves an existential claim.</li>
 B, conclude A. Is it sound? Justify your answer with a valuation.</li>
 <li>Another system has only the rules (∧I), (∧E₁) and (∧E₂). Is it sound? Is it complete for propositional
 logic?</li>
-<li>A proof search for a formula A has run for an hour without finding a derivation. What do you know about
+<li>A proof search for a first-order formula A has run for an hour without finding a derivation. What do you know about
 A?</li>
-<li>Nitpick finds a counterexample to A. What do you know about ⊢ A?</li>
+<li>Nitpick finds a genuine counterexample to A. What do you know about ⊢ A under the same assumptions?</li>
 </ol>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
 <ol>
@@ -1219,7 +1242,8 @@ without (RAA): it is one of the classical laws.</p>
 </li>
 <li>
 <p>The witness is a name a that occurs nowhere else. (∀E) allows any term, and (∃I) accepts any term as a
-witness, so the derivation needs no element that is known to exist.</p>
+witness. No particular named constant is needed: the free variable a denotes an arbitrary element
+under an assignment, relying on the convention that the domain is non-empty.</p>
 </li>
 <li>
 <p>The formula is valid because the domain of every structure has at least one element, and the
@@ -1241,7 +1265,7 @@ quantifier rules would be unsound, because ∃x. x = x is a theorem”. So <code
 <div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
 <div class="quiz" data-n="6">
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does ⊢ A ∧ B ⟶ B ∧ A say?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A ∧ B ⟶ B ∧ A is true in every valuation</button></li><li><button type="button" class="quiz-opt" data-i="1">There is a derivation of A ∧ B ⟶ B ∧ A with no open assumptions</button></li><li><button type="button" class="quiz-opt" data-i="2">A ∧ B ⟶ B ∧ A has been checked by Isabelle</button></li><li><button type="button" class="quiz-opt" data-i="3">B ∧ A follows from A ∧ B in some valuation</button></li></ol><div class="quiz-expl" hidden>⊢ is about derivations: a tree of rule applications whose open assumptions are all on the left of ⊢, here none. Truth in every valuation is ⊨; soundness and completeness say that the two agree.</div></div>
-<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>A proof system is sound if …</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">every formula it derives from Γ is true in every valuation or structure that makes Γ true</button></li><li><button type="button" class="quiz-opt" data-i="1">every formula that is true in every valuation can be derived</button></li><li><button type="button" class="quiz-opt" data-i="2">every derivation can be checked by a computer</button></li><li><button type="button" class="quiz-opt" data-i="3">it has an introduction and an elimination rule for each connective</button></li></ol><div class="quiz-expl" hidden>Soundness is “⊢ implies ⊨”: the system derives nothing false. The second option is completeness.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>A proof system is sound if …</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">every formula it derives from Γ is true in every valuation or structure that makes Γ true</button></li><li><button type="button" class="quiz-opt" data-i="1">every formula that is true in every valuation can be derived</button></li><li><button type="button" class="quiz-opt" data-i="2">every derivation can be checked by a computer</button></li><li><button type="button" class="quiz-opt" data-i="3">it has an introduction and an elimination rule for each connective</button></li></ol><div class="quiz-expl" hidden>Soundness is “⊢ implies ⊨”: whenever the premises are true, the conclusion is true. Derivations may have false open assumptions; soundness does not assert those assumptions. The second option is completeness.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>In a derivation, (⟶I¹) concludes A ⟶ B. What happens to the assumption [A]¹?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It becomes an open assumption of the conclusion</button></li><li><button type="button" class="quiz-opt" data-i="1">It must have been derived earlier by another rule</button></li><li><button type="button" class="quiz-opt" data-i="2">It is discharged: the conclusion A ⟶ B no longer depends on it, and it may be used only above this rule</button></li><li><button type="button" class="quiz-opt" data-i="3">It is deleted from the derivation</button></li></ol><div class="quiz-expl" hidden>Discharging moves the assumption into the conclusion. Its scope is the part of the derivation above the rule that discharges it.</div></div>
 <div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which formula cannot be derived without (RAA)?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A ⟶ ¬¬A</button></li><li><button type="button" class="quiz-opt" data-i="1">¬(A ∨ B) ⟶ ¬A ∧ ¬B</button></li><li><button type="button" class="quiz-opt" data-i="2">(A ⟶ B) ⟶ (¬B ⟶ ¬A)</button></li><li><button type="button" class="quiz-opt" data-i="3">¬¬A ⟶ A</button></li></ol><div class="quiz-expl" hidden>Double-negation elimination is classical. The other three have derivations in Sections 6.4 and 6.5 and in Exercise 6.5 that use no (RAA).</div></div>
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Why is this step wrong: from the open assumption P a, conclude ∀x. P x by (∀I)?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">(∀I) needs two premises</button></li><li><button type="button" class="quiz-opt" data-i="1">The eigenvariable a occurs free in an open assumption, so a is not arbitrary</button></li><li><button type="button" class="quiz-opt" data-i="2">P a must first be turned into ∃x. P x</button></li><li><button type="button" class="quiz-opt" data-i="3">A variable named a cannot be generalised, only x can</button></li></ol><div class="quiz-expl" hidden>The eigenvariable condition of (∀I): a may not occur free in any open assumption. Here the assumption P a is exactly what makes a special.</div></div>

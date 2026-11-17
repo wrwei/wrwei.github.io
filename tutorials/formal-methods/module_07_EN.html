@@ -378,7 +378,7 @@ and 7.4), so it is worth learning to see it.</p>
 and an arbitrary formula, a schematic variable such as <code>?R</code>, as its conclusion. Its other premises say
 what you may assume while you prove that formula: <code>conjE</code>, <code>disjE</code>, <code>impE</code>, <code>notE</code>, <code>FalseE</code>, <code>allE</code>,
 <code>exE</code>.</li>
-<li>A <strong>destruction rule</strong> has the connective in its major premise and a part of the major premise as its
+<li>A <strong>destruction rule</strong> has the connective in its major premise and a part or instance of the major premise as its
 conclusion: <code>conjunct1</code>, <code>conjunct2</code>, <code>mp</code>, <code>spec</code>, <code>iffD1</code>, <code>iffD2</code>.</li>
 </ul>
 </div>
@@ -449,7 +449,8 @@ goal (2 subgoals):
  1. A ∧ B ⟹ B
  2. A ∧ B ⟹ A</code></pre></div>
 <p><code>conjI</code> has two premises, so there are now two subgoals, one for each branch of the tree. Both keep the
-assumption A ∧ B. Methods work on subgoal 1; subgoal 2 waits its turn.</p>
+assumption A ∧ B. The <code>rule</code> and <code>assumption</code> steps used here act on subgoal 1; subgoal 2 waits its turn.
+Other methods, such as <code>auto</code> and <code>simp_all</code>, can work on all subgoals (Module 5).</p>
 <p>Now (∧E₂), used backwards:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjunct2)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjunct2)</code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
@@ -498,15 +499,18 @@ starting at the root; each <code>assumption</code> step closes one leaf. The goa
 branches that are still open.</p>
 </figcaption></figure>
 <div class="callout analogy"><div class="callout-label">Think of it like this</div>
-<p>The proof state is a to-do list. Each <code>apply</code> takes the first item off the list and may put new, smaller
-items in its place; <code>done</code> checks that the list is empty.</p>
+<p>The proof state is a to-do list. In these rule-by-rule scripts, <code>apply</code> replaces the first item with
+the subgoals of the chosen step; <code>done</code> checks that the list is empty.</p>
 </div>
 <h3 id="backward-unification">Unification</h3>
 <div class="box box-definition"><div class="box-label">Definition 7.8<span class="box-title">Unification</span></div>
 <p><strong>Unification</strong> makes two terms identical by choosing values for their schematic variables. Isabelle uses
 it whenever it applies a rule: in <code>rule</code>, between the conclusion of the rule and the conclusion of the
 subgoal; in <code>assumption</code>, between the conclusion of the subgoal and an assumption. If no choice of values
-makes the two terms identical, the step fails.</p>
+makes the two terms identical, that application cannot succeed. Isabelle also respects types and
+variable scopes, and compares terms modulo bound-variable renaming and lambda conversion; it does
+not prove arbitrary arithmetic identities while unifying. Higher-order unification is not a general
+decision procedure, so a search need not find every possible instantiation.</p>
 </div>
 <div class="table-wrap"><table>
 <thead>
@@ -697,7 +701,7 @@ goal (1 subgoal):
   <span class="isa-proof">apply</span> assumption
   <span class="isa-proof">apply</span> assumption
   <span class="isa-proof">done</span></code></pre></div>
-<p>Section 7.6 has a case where <code>frule</code> is necessary: a quantified assumption that is needed twice.</p>
+<p>Section 7.6 has a case where <code>frule</code> is useful: a quantified assumption that is needed twice.</p>
 <h3 id="assumptions-intro">Many steps at once: intro and elim</h3>
 <div class="box box-definition"><div class="box-label">Definition 7.11<span class="box-title">The methods intro and elim</span></div>
 <p><code>apply (intro r₁ … rₙ)</code> applies the given introduction rules to subgoal 1, then again to the subgoals
@@ -768,6 +772,10 @@ subgoal 1 only. In <code>imp_chain</code> above, <code>apply (intro impI)</code>
 </tr>
 </tbody>
 </table></div>
+<p>These are customary pairings, not restrictions enforced by the method names. <code>rule</code> can use an
+elimination or destruction theorem backwards too, as <code>rule conjunct2</code> already did. Likewise, <code>erule</code>
+can use a theorem such as <code>mp</code> when its first premise and conclusion fit. The methods differ in how
+they resolve the theorem against the subgoal and its assumptions.</p>
 <div class="callout tip"><div class="callout-label">Tip</div>
 <p>Look at the subgoal before you look for a rule. If you want to attack the main connective of the
 conclusion, apply its introduction rule with <code>rule</code>. If you want to use an assumption, apply the
@@ -994,17 +1002,20 @@ identical, and that needs the witness to be x. Unification may not do that, so <
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
 goal (1 subgoal):
  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</span></code></pre></div>
-<p>No other method can help either. The proof is stuck, and the only way out is to go back:</p>
+<p>This direct rule sequence has blocked the intended <code>assumption</code> step. For this proof, restart with
+<code>exE</code> before <code>exI</code>, so that the witness can depend on the named master key:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
-<p>On paper the same thing happens. Applying (∃I) below (∃E) in the tree means choosing the witness before
-the eigenvariable a of (∃E) exists. The only witness that works is a, and then the conclusion of (∃E)
-would mention its own eigenvariable, which the side condition forbids. Isabelle’s check is the same
-condition in another form.</p>
+<p>On paper, this attempted tree would use the eigenvariable a as an existential witness outside the
+scope of its (∃E). That violates the side condition. Isabelle’s refusal to instantiate <code>?x4 y</code> with
+the later fixed x enforces the same scope restriction. This does not prove that no HOL method could
+solve the remaining schematic goal: HOL’s choice operator can express a master key without referring
+to that local name. The point is the dependency required by this particular rule-by-rule proof.</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
 <p><strong>Fix first, guess later.</strong> <code>rule allI</code> and <code>erule exE</code> fix variables; <code>rule exI</code>, <code>erule allE</code> and
 <code>drule spec</code> create unknowns. An unknown can only become a term built from variables that were fixed
-before it was created. So apply the rules that fix variables first, and the rules that create unknowns
-afterwards. This is the advice of Section 6.7, to open existential assumptions first and then choose
+before it was created, as recorded by its arguments in the displayed subgoal. Context parameters and
+constants remain available too. Fixing variables first is a useful strategy for these proofs, rather
+than a requirement on every possible HOL proof. This is the advice of Section 6.7, to open existential assumptions first and then choose
 instances and witnesses, and Isabelle’s unknowns show why it works.</p>
 </div>
 <p>For a statement that is not valid, no order works. The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y), says
@@ -1018,8 +1029,8 @@ countermodel, and Exercise 7.9 lets you watch the attempt get stuck.</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
 goal (1 subgoal):
  1. ?n + ?n = 6</code></pre></div>
-<p>No assumption says which number <code>?n</code> should be, and <code>simp</code> (Module 1) cannot solve an equation for an
-unknown:</p>
+<p>No assumption fixes <code>?n</code>, and <code>simp</code> (Module 1) does not solve this equation by searching for a
+numerical witness:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp
   <span class="isa-proof">done</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
@@ -1099,7 +1110,9 @@ goal (1 subgoal):
 <span class="section-anchor" id="classical"></span>
 <div class="section-header"><span class="section-num">7</span><h2>Classical reasoning and equality</h2></div>
 <h3 id="classical-raa">Proof by contradiction</h3>
-<p>All the rules used so far are intuitionistic: none of them is (RAA). Module 6 showed that some
+<p>The explicit natural-deduction rules used so far have intuitionistic counterparts; none is (RAA).
+This does not make the underlying HOL theory intuitionistic or classify every library fact used by
+automation as constructive. Module 6 explained that some
 tautologies cannot be derived without (RAA) (<a href="module_06_EN.html#classical">Section 6.5</a>), and A ∨ ¬A, the
 law of excluded middle, is the standard example. Try it without:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
@@ -1173,7 +1186,7 @@ goal (1 subgoal):
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm excluded_middle">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> excluded_middle</code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>¬ ?P ∨ ?P</code></pre></div>
 <h3 id="classical-demorgan">A De Morgan law</h3>
-<p>Of the four directions of De Morgan’s laws, Section 6.5 showed that one needs (RAA):
+<p>Of the four directions of De Morgan’s laws, Section 6.5 stated that one needs (RAA):
 ¬(A ∧ B) ⟶ ¬A ∨ ¬B. The idea: suppose ¬A ∨ ¬B were false. Then A would have to hold, since otherwise
 ¬A ∨ ¬B would; and B likewise. But A ∧ B contradicts ¬(A ∧ B).</p>
 <div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∧ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(¬A ∨ ¬B)]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬A]³</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA³</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(¬A ∨ ¬B)]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬B]⁴</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA⁴</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA²</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">¬(A ∧ B) ⟶ ¬A ∨ ¬B</span></div></div></div></div>
@@ -1324,8 +1337,9 @@ subgoal A ∧ B ⟹ B ∧ A is a conjunction:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
 goal (1 subgoal):
  1. A ∧ B ⟹ B ∧ A</span></code></pre></div>
-<p>When in doubt, look the rule up with <code>thm</code>: for <code>rule</code>, its conclusion must have the same main connective
-as the conclusion of the subgoal.</p>
+<p>When in doubt, look the rule up with <code>thm</code>: for <code>rule</code>, its conclusion must unify with the conclusion
+of the subgoal. A fixed connective must match, but a schematic conclusion such as <code>?P</code> can match
+different shapes. The rule need not display the goal’s connective before instantiation.</p>
 <h3 id="errors-name">Undefined fact</h3>
 <p>A misspelt rule name gives a different message. Many rule names end in a capital I, which looks much
 like a lower-case l:</p>
@@ -1398,8 +1412,8 @@ Fix variables before you create unknowns (Section 7.6).</li>
 have now done by hand what <code>blast</code> does automatically. <code>blast</code> belongs to Isabelle’s <strong>classical
 reasoner</strong>, a family of proof methods built on natural-deduction rules. It applies introduction and
 elimination rules like the ones in this module: the safe ones of Section 6.7 freely, the others as
-choices. When a choice leads nowhere, it goes back and tries another, and in the end it either finds a
-complete proof or fails. Each example of this module takes a single call:</p>
+choices. When a choice leads nowhere, it can go back and try another, within its search bounds.
+It may find a complete proof, fail, or hit a resource limit. The examples below take a single call:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;
   by blast
 
@@ -1417,7 +1431,9 @@ lemma &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s)
   <span class="isa-proof">by</span> blast</code></pre></div>
 <p><code>blast</code> found the instance step s that unification alone got wrong in Section 7.6: when one choice
 fails, it tries another. And whatever <code>blast</code> finds, the theorem is built by Isabelle’s kernel from the
-rules of the logic, as for every other method (Module 1).</p>
+rules of the logic. As Module 1 explains, this guarantee concerns ordinary reconstructed proofs,
+relative to the theory’s axioms and trusted infrastructure; admissions and oracle methods introduce
+different evidence.</p>
 <p>When the statement is not valid, <code>blast</code> fails, as Section 6.9 showed for the master key:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
   <span class="isa-proof">by</span> blast</code></pre></div>
@@ -1437,7 +1453,7 @@ goal (1 subgoal):
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
 <p><code>auto</code> turned the implication into an assumption and stopped there. <code>auto</code> combines classical reasoning
 with the simplifier, and leaves the subgoals it cannot prove; Module 9 covers it in depth. <code>blast</code> does
-no rewriting and knows little about equality, but <em>Programming and Proving in Isabelle/HOL</em> calls it “the
+not invoke the simplifier and knows little about equality, but <em>Programming and Proving in Isabelle/HOL</em> calls it “the
 method of choice for complex logical goals”.</p>
 <p>So which should you use? For routine logic, <code>blast</code> or <code>auto</code>. But automation fails often enough, on
 goals that are too big or not quite true, and then the manual steps are how you find out why: apply a
@@ -1455,12 +1471,13 @@ on the lemma.</p>
 <li>Isabelle has two levels of logic: the meta-logic <strong>Pure</strong>, with ⟹, ⋀ and ≡, in which rules and goals
 are written, and the object logic <strong>HOL</strong>, with ¬ ∧ ∨ ⟶ ∀ ∃ and =, in which formulas are written.</li>
 <li>A rule is a theorem: <code>thm conjI</code> shows <code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code>. <strong>Schematic variables</strong> such as <code>?P</code> can
-be replaced by any term: by <strong>unification</strong> automatically, or by hand with <code>of</code> and <code>rule_tac</code>.</li>
+be instantiated by terms of the appropriate type and permitted variable dependencies: by
+<strong>unification</strong> automatically, or by hand with <code>of</code> and <code>rule_tac</code>.</li>
 <li>Each rule of Module 6 has an Isabelle name: <code>conjI</code>, <code>conjunct1</code>, <code>conjunct2</code>, <code>conjE</code>, <code>disjI1</code>,
 <code>disjI2</code>, <code>disjE</code>, <code>impI</code>, <code>mp</code>, <code>impE</code>, <code>notI</code>, <code>notE</code>, <code>FalseE</code>, <code>allI</code>, <code>spec</code>, <code>allE</code>, <code>exI</code>,
 <code>exE</code>, <code>ccontr</code>, <code>classical</code>, <code>refl</code> and <code>subst</code>.</li>
-<li>A proof script builds the paper tree from the root: <code>rule</code> applies an introduction rule to the
-conclusion; <code>erule</code>, <code>drule</code> and <code>frule</code> apply elimination and destruction rules to assumptions;
+<li>A proof script builds the paper tree from the root: <code>rule</code> matches a rule’s conclusion against the
+goal; <code>erule</code>, <code>drule</code> and <code>frule</code> resolve rules against assumptions in different ways;
 <code>assumption</code> closes a branch; <code>intro</code> and <code>elim</code> repeat; <code>done</code> checks that nothing is left.</li>
 <li><code>allI</code> and <code>exE</code> create <strong>fixed variables</strong> (⋀x), which enforce the eigenvariable conditions; <code>exI</code>,
 <code>allE</code> and <code>spec</code> create unknowns. Fix first, guess later.</li>
@@ -1779,7 +1796,8 @@ goal (2 subgoals):
 <p>The converse is not valid: P could be “is even” and Q “is odd” on the natural numbers. Both have
 witnesses, but no number is both. In a proof attempt, the two <code>exE</code> steps fix two different variables,
 one with P and one with Q, and the single unknown witness of <code>exI</code> cannot become both: unification never
-makes two different fixed variables equal. This is the broken eigenvariable condition of Exercise 6.6 in
+makes two different fixed variables equal. Different names do not assert different values; rather,
+we have no equality that lets us treat these arbitrary witnesses as the same. This is the broken eigenvariable condition of Exercise 6.6 in
 Isabelle’s form.</p>
 </div></details>
 </div>
@@ -1850,7 +1868,7 @@ goal (1 subgoal):
 happen in Isabelle: apply the quantifier rules in the best order you can find, and show the state where
 you get stuck. Then explain, with fixed variables and unknowns, why no order can work.</p>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
-<p>The conclusion starts with ∃x, so the only rule for the conclusion is <code>exI</code>, and it creates the unknown
+<p>Direct introduction of the conclusion’s ∃x uses <code>exI</code>, and it creates the unknown
 witness before anything is fixed:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;
   apply (rule impI)
@@ -1884,7 +1902,7 @@ that make Isabelle refuse these unifications are what keep its proofs sound.</p>
 <div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
 <div class="quiz" data-n="6">
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>In the subgoal <code>⟦A ⟶ B; A⟧ ⟹ B</code>, what does ⟹ say?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the formula (A ⟶ B) ∧ A ⟶ B has already been proved</button></li><li><button type="button" class="quiz-opt" data-i="1">That B must be proved, and A ⟶ B and A may be used as assumptions</button></li><li><button type="button" class="quiz-opt" data-i="2">That A ⟶ B and A are the conclusions of the subgoal</button></li><li><button type="button" class="quiz-opt" data-i="3">Nothing more than ⟶: Isabelle prints the two arrows differently only for display</button></li></ol><div class="quiz-expl" hidden>⟹ is Pure’s “from … infer”. Left of it are the assumptions of the subgoal, right of it the conclusion still to be proved.</div></div>
-<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>thm exI</code> prints <code>?P ?x ⟹ ∃x. ?P x</code>. What does the question mark in <code>?x</code> mean?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That x is optional</button></li><li><button type="button" class="quiz-opt" data-i="1">That x is a fixed variable of the current subgoal</button></li><li><button type="button" class="quiz-opt" data-i="2">That ?x is a schematic variable: when the rule is used, it can be replaced by any term</button></li><li><button type="button" class="quiz-opt" data-i="3">That x has not been defined</button></li></ol><div class="quiz-expl" hidden>Schematic variables are placeholders. Isabelle fills them in by unification, or you choose them with <code>of</code> or <code>rule_tac</code>.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>thm exI</code> prints <code>?P ?x ⟹ ∃x. ?P x</code>. What does the question mark in <code>?x</code> mean?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That x is optional</button></li><li><button type="button" class="quiz-opt" data-i="1">That x is a fixed variable of the current subgoal</button></li><li><button type="button" class="quiz-opt" data-i="2">That ?x is schematic: it may be instantiated by a term of the right type and permitted scope</button></li><li><button type="button" class="quiz-opt" data-i="3">That x has not been defined</button></li></ol><div class="quiz-expl" hidden>Schematic variables are placeholders constrained by types and scope. Isabelle fills them in by unification, or you choose them with <code>of</code> or <code>rule_tac</code>; a later local variable cannot escape through an earlier unknown.</div></div>
 <div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>The subgoal is <code>A ∨ B ⟹ B ∨ A</code>. Which step performs (∨E) on the assumption, leaving one subgoal per case?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>apply (rule disjI1)</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>apply (rule disjE)</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>apply (drule disjI2)</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>apply (erule disjE)</code></button></li></ol><div class="quiz-expl" hidden><code>erule</code> matches the major premise A ∨ B with the assumption and leaves the two cases. <code>rule disjE</code> leaves three subgoals with unknown formulas.</div></div>
 <div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>After <code>apply (rule allI)</code> the subgoal reads <code>⋀x. ∀x. P x ∧ Q x ⟹ P x</code>. What is the x after ⋀?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A fixed variable: it stands for an arbitrary value and unification never replaces it</button></li><li><button type="button" class="quiz-opt" data-i="1">A schematic variable that unification will choose later</button></li><li><button type="button" class="quiz-opt" data-i="2">The same variable as the x bound by ∀ in the assumption</button></li><li><button type="button" class="quiz-opt" data-i="3">A constant from Isabelle’s library</button></li></ol><div class="quiz-expl" hidden><code>allI</code> turns the HOL quantifier into Pure’s ⋀. The fixed variable is what Module 6 called the eigenvariable.</div></div>
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>A proof is stuck at <code>⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</code>, and <code>apply assumption</code> fails. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The relation R would have to be reflexive</button></li><li><button type="button" class="quiz-opt" data-i="1">The unknown ?x4 was created before x was fixed, so it cannot become x</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>assumption</code> cannot handle two fixed variables</button></li><li><button type="button" class="quiz-opt" data-i="3">The statement being proved is false</button></li></ol><div class="quiz-expl" hidden>The statement is valid (it is <code>ex_all</code>), but <code>exI</code> came before <code>exE</code>. Fix first, guess later.</div></div>
