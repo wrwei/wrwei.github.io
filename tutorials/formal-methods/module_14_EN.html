@@ -46,13 +46,13 @@
 <span class="section-anchor" id="circle"></span>
 <div class="section-header"><span class="section-num">1</span><h2>Closing the circle</h2></div>
 <p>Module 1 began with software that must not fail, and one of its examples was a compiler: CompCert, a C
-compiler with a machine-checked proof of correctness. Compilers deserve that attention. Every program
-you run has been translated by one, and a bug in the translation breaks programs whose source code is
-correct. It breaks proofs too. A proof about a C function speaks about the C code, but the computer runs
+compiler with a machine-checked proof of correctness. Compilers deserve that attention. Much of the
+software you run relies on a compiler, and a translation bug can change the behaviour of correct source code.
+It can invalidate an end-to-end guarantee too. A proof about a C function speaks about the C code, but the computer runs
 whatever the compiler produced. In Exercise 1.6 the compiler appeared on the list of things that a
 verified program still has to trust. A verified compiler takes it off that list, or nearly so (Section
-14.7 says what remains): its correctness theorem says that the code it produces does what the source
-program means, for every source program.</p>
+14.7 says what remains). Its theorem specifies the behaviour preserved when compilation succeeds,
+under the source and target semantics and the assumptions of that theorem.</p>
 <p>The idea is almost as old as compilers. In 1967 John McCarthy and James Painter proved on paper that a
 compiler for arithmetic expressions is correct, the first proof of its kind. In 1972 Robin Milner and
 Richard Weyhrauch checked such a proof by machine, for a compiler from arithmetic expressions to code
@@ -78,15 +78,16 @@ if the two ways always agree.</p>
 </div><figcaption><span class="fig-num">Figure 14.1</span> <p>Evaluating an expression and running its compiled code must agree. The theorem <code>compile_correct</code> of
 Section 14.5 says that they do, for every expression, every state of the variables and every stack.</p>
 </figcaption></figure>
-<p>The machine is a <strong>stack machine</strong>: it keeps intermediate results on a stack, and its instructions take
-their operands from the top of the stack and put their results back there. This is a realistic design.
+<p>The machine is a <strong>stack machine</strong>: it keeps intermediate results on a stack, and arithmetic instructions
+consume values from the top and push their results there. This is a realistic design.
 The Java Virtual Machine, WebAssembly and the interpreter of Python all run instructions for stack
 machines of this kind, and their compilers produce such code.</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
 <p>A compiler translates, and a correct translation preserves meaning. To prove that it does, you need the
-meaning of both languages as mathematical functions: an evaluation function for the source and an
-execution function for the target. “Preserves meaning” then becomes an equation between the two, which
-you can test on examples and prove by induction.</p>
+meaning of both languages. Here they are mathematical functions: evaluation for the source and
+execution for the target. Other languages may need relations to describe nontermination or
+nondeterminism. Here “preserves meaning” becomes an equation that you can test on examples and prove
+by induction.</p>
 </div>
 <span class="section-anchor" id="source"></span>
 <div class="section-header"><span class="section-num">2</span><h2>Expressions and their meaning</h2></div>
@@ -94,7 +95,7 @@ you can test on examples and prove by induction.</p>
 <p>Programs are written as text, but a compiler works on their structure. The text <code>x + (2 + y)</code> is an
 addition whose left operand is the variable x and whose right operand is another addition, of the number
 2 and the variable y. The program that turns text into structure is the <strong>parser</strong>. Parsing is a subject
-of its own, and this module, like most compiler proofs, starts after it.</p>
+of its own. This module starts from syntax trees and does not verify a parser or a textual input format.</p>
 <div class="box box-definition"><div class="box-label">Definition 14.1<span class="box-title">Abstract syntax</span></div>
 <p>The <strong>abstract syntax</strong> of a language describes its programs as trees: each node is an operation and its
 children are the operands. Parentheses and spaces belong to the text, the <strong>concrete syntax</strong>, and do not
@@ -192,8 +193,9 @@ type_synonym stack = &quot;int list&quot;">Copy</button></div><pre class="isa-bo
 stack is <code>#</code>, and taking values off is pattern matching on <code>#</code>.</p>
 <div class="box box-definition"><div class="box-label">Definition 14.3<span class="box-title">Stack machine</span></div>
 <p>A <strong>stack machine</strong> computes with a <strong>stack</strong>, a list of values that is used only at one end, its
-<strong>top</strong>. Each instruction takes its operands from the top of the stack and leaves its result there. A
-<strong>program</strong> for the machine is a list of instructions, executed from left to right.</p>
+<strong>top</strong>. Arithmetic instructions take values from the top and push a result; instructions such as
+<code>PUSH</code> and <code>LOAD</code> supply values. A <strong>program</strong> for this straight-line machine is a list of instructions,
+executed from left to right.</p>
 </div>
 <p>The function <code>exec1</code> executes one instruction:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec1 :: &quot;instr ⇒ state ⇒ stack ⇒ stack&quot; where
@@ -207,11 +209,11 @@ stack is <code>#</code>, and taking values off is pattern matching on <code>#</c
 | <span class="isa-inner">&quot;exec1 ADD s stk = stk&quot;</span></code></pre></div>
 <p>The third equation does the work of <code>ADD</code>: j is the top of the stack and i the number below it, and the
 sum i + j replaces both. The order of i and j looks irrelevant now, but it will matter when you add
-subtraction in Section 14.8. The fourth equation is there because every HOL function is total (Module
-8): <code>exec1</code> must return a stack even when <code>ADD</code> finds fewer than two numbers. A real machine would stop
-with an error, a <strong>stack underflow</strong>; this one leaves the stack as it is. The choice does not affect the
-compiler, whose code never meets this case. Exercise 14.7 builds a machine that stops instead, and
-proves that.</p>
+subtraction in Section 14.8. Every HOL function denotes a value for every argument (Module 8); the
+fourth equation makes a deliberate choice for malformed <code>ADD</code> instructions instead of leaving a
+missing case unspecified. With fewer than two numbers, it leaves the stack unchanged. Another machine
+might report <strong>stack underflow</strong>, meaning too few operands. Compiled expressions supply both operands
+before <code>ADD</code>; Exercise 14.7 verifies this with a machine that reports failure explicitly.</p>
 <p>The third and fourth equations overlap: a stack with two or more numbers matches both. <code>fun</code> resolves the
 overlap in order, the earlier equation first (Module 8). <code>thm exec1.simps</code> shows the equations that
 <code>fun</code> has derived from the definition, the ones <code>simp</code> uses:</p>
@@ -243,11 +245,12 @@ when <code>LOAD ''y''</code> has run, and each <code>ADD</code> makes it one sho
 </div><figcaption><span class="fig-num">Figure 14.2</span> <p>The program <code>LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD</code> run in the state <code>s0</code> on the empty stack. Each
 <code>ADD</code> replaces the two numbers on top by their sum.</p>
 </figcaption></figure>
-<p>What was on the stack before a program started stays where it is, below the new values:</p>
+<p>This sequence only pushes values, so pre-existing stack contents stay below the new values:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec [LOAD ''x'', PUSH 2] s0 [100]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec [LOAD ''x'', PUSH 2] s0 [100]&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[2, 5, 100]&quot;
   :: &quot;int list&quot;</code></pre></div>
-<p>This property, code that leaves the rest of the stack alone, is what will make the compiler work.</p>
+<p>Arbitrary machine programs can consume pre-existing values: <code>ADD</code> above did so. The compiler theorem
+will establish that the code of an expression leaves the original stack intact while pushing its result.</p>
 <span class="section-anchor" id="compiler"></span>
 <div class="section-header"><span class="section-num">4</span><h2>The compiler</h2></div>
 <h3 id="compiling">Compiling expressions</h3>
@@ -285,11 +288,12 @@ composition, written ∘:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(∘)&quot;
   :: &quot;('a ⇒ 'b) ⇒ ('c ⇒ 'a) ⇒ 'c ⇒ 'b&quot;</code></pre></div>
 <p>Isabelle would accept a function of your own called <code>comp</code>, and the name would then refer to yours. But
-the short name would have two meanings, so from then on Isabelle prints yours with the name of your
-theory in front, as in <code>T.comp (Num 1)</code> for a theory <code>T</code>, in every goal and message. Before you name a
+the short name would have two meanings, so Isabelle may need to print a qualified name such as
+<code>T.comp (Num 1)</code> for a theory <code>T</code> to disambiguate it. Before you name a
 function, ask Isabelle whether the name is free. <code>term</code> prints the type of a constant that exists; a name
-that is not a constant is printed with type <code>'a</code>, because Isabelle reads it as a free variable (Module
-8). <code>find_consts</code> (Module 9) searches by type, and with the criterion <code>name:</code> also by name.</p>
+that is fresh and undeclared is read as a free variable (Module 8); in an unconstrained <code>term</code> command
+it has type <code>'a</code>. That output is not evidence that a constant exists. <code>find_consts</code> (Module 9) searches
+by type, and with the criterion <code>name:</code> also by name.</p>
 </div>
 <h3 id="correct">What correct means</h3>
 <p>On the example, the two ways agree. “Correct” means that they agree always:</p>
@@ -321,11 +325,10 @@ it, so start with Quickcheck:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
 
 Quickcheck found no counterexample.</code></pre></div>
-<p>Quickcheck tried every expression, state and stack up to size 3 and found nothing wrong. The option
-<code>size = 3</code> limits the search to small values. Without it, Quickcheck searches up to its default size, and
-on this claim it stops with “Quickcheck ran out of time” when its time limit is reached: the state is a
-function from strings to integers, and there are very many small functions of that kind. On a false
-claim the plain command is fast, because Quickcheck stops at the first counterexample it finds.</p>
+<p>Quickcheck found no counterexample among its bounded test values for expressions, states and stacks.
+<code>size = 3</code> limits the generators; it does not enumerate all mathematical functions from strings to
+integers. With the larger default search it may run out of time. A false claim can also need values
+beyond the bounds, though Quickcheck stops as soon as it finds a counterexample.</p>
 <p>Quickcheck is at its best on claims that are wrong. Here is a correctness claim that forgets the stack:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = [eval e s]&quot;
   quickcheck
@@ -377,13 +380,14 @@ Quickcheck found a counterexample:
 Evaluated terms:
   exec (compile_bad e) s stk = [0, 0]
   eval e s # stk = [0]</code></pre></div>
-<p>The smallest counterexample is 0 + 0. The numbers do not matter: the order of the instructions is wrong,
-and Quickcheck, which tries small values first, finds the smallest expression that contains an <code>ADD</code>.</p>
+<p>The counterexample is 0 + 0, an expression with one addition. The particular numbers do not matter:
+the order of the instructions is wrong. A single addition is the smallest expression shape on which
+this compiler differs from the correct one.</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
-<p>Test before you prove. <code>value</code> checks one example; Quickcheck checks thousands of small ones and reports
-the first failure it finds, which is usually the simplest. Neither proves anything, but both are fast,
-and a counterexample shows you exactly what is wrong. A proof attempt on a false claim only fails, and
-the goal it leaves does not tell you whether the claim or the proof is at fault.</p>
+<p>Test before you prove. <code>value</code> evaluates examples; Quickcheck searches bounded test cases and reports
+a counterexample if it finds one. Neither establishes an unrestricted correctness theorem. A genuine
+counterexample refutes the claim, while an unfinished proof attempt alone does not tell you whether
+the claim or the proof strategy is at fault.</p>
 </div>
 <span class="section-anchor" id="proof"></span>
 <div class="section-header"><span class="section-num">5</span><h2>The correctness proof</h2></div>
@@ -455,8 +459,8 @@ afterwards, and an example agrees:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
 
 Quickcheck found no counterexample.</code></pre></div>
-<p>Prove it by induction on c1. The recursive call of <code>exec</code> receives a new stack, <code>exec1 i s stk</code>, so the
-stack must be arbitrary, as Module 11’s tip says for every argument that changes in a recursive call:</p>
+<p>Prove it by induction on c1. The recursive call of <code>exec</code> receives a new stack, <code>exec1 i s stk</code>, so
+generalise the stack to give this induction the required hypothesis, following Module 11’s strategy:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma exec_append [simp]: &quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;
   apply (induction c1 arbitrary: stk)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> exec_append [simp]: <span class="isa-inner">&quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;</span>
   <span class="isa-proof">apply</span> (induction c1 <span class="isa-minor">arbitrary</span>: stk)</code></pre></div>
@@ -490,8 +494,8 @@ goal (1 subgoal):
           [eval e1 s + eval e2 s]</code></pre></div>
 <p>Progress: the code of e1 has run, by <code>exec_append</code> and the hypothesis for e1, and left <code>[eval e1 s]</code>.
 Now the code of e2 runs on the stack <code>[eval e1 s]</code>, but the hypothesis for e2 speaks only about the empty
-stack. This is the second point of the paper proof. The hypothesis is too weak, and the remedy is to
-change the claim, not to add a lemma.</p>
+stack. This is the second point of the paper proof. Strengthen the induction statement so that its
+hypothesis covers the stack passed to the second subexpression.</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
 <p>Module 11 showed what to do, in two steps:</p>
 <ol>
@@ -630,16 +634,17 @@ arbitrary (Module 11).</p>
 </div></details>
 <span class="section-anchor" id="optimise"></span>
 <div class="section-header"><span class="section-num">6</span><h2>A verified optimisation</h2></div>
-<p>Real compilers improve the code they produce: they <strong>optimise</strong> it. Every optimisation is a new chance
-for a bug, because the improved code must do exactly what the original did, in every case. A verified
-compiler proves that for each optimisation.</p>
+<p>Real compilers transform code to improve it: they <strong>optimise</strong> it. Each transformation must preserve
+the behaviour required by its specification, which creates another proof obligation. A verified
+optimisation comes with a theorem stating which behaviour it preserves. Here expressions use total,
+pure integer arithmetic, and preservation means equality of their values in every state.</p>
 <h3 id="folding">Constant folding</h3>
 <p>Part of an expression may not depend on the state at all. In <code>(2 + 3) + (x + 0)</code>, the sum 2 + 3 is 5 in
 every state, and adding 0 changes nothing. A compiler can do that work once, at compile time, instead of
 every time the code runs.</p>
 <div class="box box-definition"><div class="box-label">Definition 14.5<span class="box-title">Constant folding</span></div>
-<p><strong>Constant folding</strong> replaces the parts of a program whose value does not depend on the state by their
-value, and removes operations that have no effect. An optimisation is <strong>correct</strong>, or
+<p><strong>Constant folding</strong> evaluates constant subexpressions at compile time. The pass below also performs
+an algebraic simplification, removing an addition of 0 on the right. An optimisation is <strong>correct</strong>, or
 <strong>semantics-preserving</strong>, if the optimised program has the same meaning as the original in every state.</p>
 </div>
 <p>The work is done one addition at a time, by a function that builds an addition and simplifies it where it
@@ -707,8 +712,8 @@ two cases:</p>
   <span class="isa-proof">by</span> (induction e) auto</code></pre></div>
 <p>This time no variable is arbitrary. <code>eval</code> passes the state unchanged to its recursive calls, so the
 hypotheses for the same s are exactly what the case <code>Add</code> needs. Compare <code>exec</code>, whose recursive call
-receives a new stack: Module 11’s tip asks which arguments change in the recursive calls, and only those
-need generalising.</p>
+receives a new stack: inspecting changed arguments is a useful guide to the generalisation needed by
+these proofs, rather than a universal rule for choosing induction hypotheses.</p>
 <h3 id="pipeline">Optimise, then compile</h3>
 <p>The two theorems fit together. Optimise first, then compile, and the code still computes the value of
 the original expression:</p>
@@ -723,10 +728,11 @@ passes, through several intermediate languages, and each pass has its own proof 
 meaning; the theorems compose into one about the whole chain of passes.</p>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
 <p>An optimisation is correct with respect to a semantics, here the semantics of mathematical integers.
-For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic, which almost every
-processor uses, adding 0.0 to −0.0 gives +0.0. So replacing <code>x + 0.0</code> by <code>x</code> changes the result when x
-is −0.0, and compilers that follow the IEEE rules do not make that replacement. A proof about the wrong
-semantics proves nothing about the real program.</p>
+For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic under round-to-nearest,
+adding +0.0 to −0.0 gives +0.0. Replacing <code>x + 0.0</code> by <code>x</code> can therefore change the sign of zero.
+A compiler required to preserve signed-zero behaviour cannot apply that rewrite unconditionally;
+options that relax floating-point semantics can permit it. Applying the integer proof to floating-point
+code would need a separate argument for the chosen semantics.</p>
 </div>
 <span class="section-anchor" id="export"></span>
 <div class="section-header"><span class="section-num">7</span><h2>From proof to program</h2></div>
@@ -782,9 +788,10 @@ Here it means that other Haskell code cannot build an expression to give to <cod
 generator is designed so that each step of the generated program corresponds to rewriting with
 equations that are theorems, but it is not part of the kernel (Module 8): it belongs to the trusted
 base, together with the Haskell compiler that turns the generated code into machine code, and the
-hardware. The trusted base has not disappeared. It has moved from your compiler to a few general tools
-that many people use and check. CompCert is in the same position: it is written and proved in Rocq and
-turned into OCaml code by Rocq’s own code extraction.</p>
+hardware and runtime, plus the agreed representation of logical values and any hand-written target
+adaptations (Module 12). The theorem covers this syntax-tree compiler and the modelled stack machine;
+it does not verify a parser, assembler, or physical machine implementation. CompCert also uses
+Rocq-to-OCaml extraction and has a documented boundary of verified and unverified components.</p>
 <span class="section-anchor" id="extensions"></span>
 <div class="section-header"><span class="section-num">8</span><h2>Extending the compiler ★★★</h2></div>
 <p>This section is a stretch, at the level of the ★★★ exercises. It adds subtraction and a conditional
@@ -848,8 +855,8 @@ Found termination order: &quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</co
 program. The last equation catches what the others leave out, an <code>ADD2</code> or <code>SUB</code> on a short stack and a
 <code>JMPZ</code> on the empty one, and skips the instruction. Jumps only go forwards, so every recursive call is on
 a shorter list, and Isabelle finds the termination order, the length of the program, without help. With
-backward jumps a program could run for ever, and <code>fun</code> could not define <code>exec2</code> (more on that in
-Section 14.8.4).</p>
+unrestricted backward jumps some programs could run forever, so this unfuelled recursive interpreter
+would no longer pass <code>fun</code>’s termination requirement (more on that in Section 14.8.4).</p>
 <h3 id="operand-order">The order of operands</h3>
 <p><code>SUB</code> computes i − j, where j is the top of the stack and i the number below it. So the compiler must
 push a first and b second, as it does for addition:</p>
@@ -952,14 +959,15 @@ without <code>exec_append</code>.</p>
 </div>
 <h3 id="directions">Further directions</h3>
 <ul>
-<li><strong>More operators.</strong> Multiplication needs one constructor, one instruction and one equation in each
-function; the proofs go through unchanged.</li>
-<li><strong><code>let</code>.</strong> An expression <code>let x = a in b</code> needs an instruction that stores a value into a variable.
-The code then changes the state as well as the stack, and the theorem must say which variables it may
+<li><strong>More operators.</strong> Multiplication adds a constructor, an instruction and corresponding equations.
+The correctness proof follows the same pattern with an additional constructor case.</li>
+<li><strong><code>let</code>.</strong> One implementation of <code>let x = a in b</code> adds an instruction that stores a value into a variable.
+That code changes the state as well as the stack, and the theorem must say which variables it may
 change: storing the value of a in x itself destroys the x that the surrounding expression may need.</li>
-<li><strong>Loops.</strong> With backward jumps a program can run for ever, so execution becomes a relation between
-configurations of the machine (a program counter, a state and a stack), defined with <code>inductive</code> as in
-Modules 11 and 13, instead of a function.</li>
+<li><strong>Loops.</strong> With backward jumps a program can run forever. One model is an inductively defined
+execution relation on configurations (a program counter, state and stack), as in Modules 11 and 13.
+Another is a total interpreter with a fuel argument limiting the number of steps. Exhausting fuel
+reports that the bound was reached; it does not establish divergence.</li>
 <li><strong>Other machines.</strong> Exercise 14.7 makes the machine stop on a stack underflow, and Exercise 14.8
 compiles to a machine with registers.</li>
 </ul>
@@ -1040,8 +1048,8 @@ seL4: a semantics for each language, a precise statement of what correct means, 
 the structure of the programs, and lemmas found by reading the goals where the proof stops.</p>
 <p>Where to go from here:</p>
 <ul>
-<li><em><strong>Concrete Semantics</strong></em> by Tobias Nipkow and Gerwin Klein (Springer, 2014; web site
-concrete-semantics.org) continues where this module ends. Its first part is an Isabelle
+<li><em><strong><a href="https://concrete-semantics.org/" target="_blank" rel="noopener">Concrete Semantics</a></strong></em> by Tobias Nipkow and Gerwin Klein (Springer,
+2014) continues where this module ends. Its first part is an Isabelle
 tutorial; its second part defines a small imperative language, IMP, with assignments and loops, and
 treats its semantics, a compiler for it, type systems, Hoare logic and program analysis, all in
 Isabelle.</li>
@@ -1061,15 +1069,14 @@ result is a theorem about every program it will ever compile.</p>
 <span class="section-anchor" id="summary"></span>
 <div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
 <ul>
-<li>A compiler is correct when running its code agrees with the meaning of the source program. To state
-this you need both semantics as functions: here <code>eval</code> for expressions and <code>exec</code> for the stack
+<li>Here compiler correctness is an equation between two semantic functions: <code>eval</code> for expressions and <code>exec</code> for the stack
 machine. The statement is the equation <code>exec (compile e) s stk = eval e s # stk</code>.</li>
 <li>Abstract syntax is a datatype; a compositional semantics is a recursive function on it. A <strong>state</strong>
 maps variable names to values; <code>f(a := v)</code> updates a function.</li>
 <li>A <strong>stack machine</strong> takes its operands from the top of a stack. The compiler produces code in postfix
 order: the code of the operands, then the operator.</li>
-<li>Test first. <code>value</code> compares evaluation and execution on examples; Quickcheck finds the smallest
-counterexample to a wrong claim or a wrong compiler. Limit the search with <code>quickcheck [size = n]</code> when
+<li>Test first. <code>value</code> compares evaluation and execution on examples; Quickcheck searches bounded cases
+for counterexamples, without guaranteeing a smallest one or finding every bug. Limit the search with <code>quickcheck [size = n]</code> when
 the claim has functions among its variables.</li>
 <li>The proof needs two ideas from Module 11: the auxiliary lemma <code>exec_append</code>, found from the stuck goal,
 and <strong>generalisation over the stack</strong>, with <code>arbitrary: stk</code>, because the code of the second operand
@@ -1168,7 +1175,8 @@ qed simp_all">Copy</button></div><pre class="isa-body"><code><span class="isa-cm
     <span class="isa-proof">using</span> Add.IH <span class="isa-proof">by</span> simp
   <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
 <span class="isa-proof">qed</span> simp_all</code></pre></div>
-<p><code>qed simp_all</code> proves the cases <code>Num</code> and <code>Var</code>, which the Isar text does not mention, by <code>simp</code>.</p>
+<p><code>qed simp_all</code> proves the cases <code>Num</code> and <code>Var</code>, which the Isar text does not mention, by <code>simp</code>.
+The result bounds instruction counts, not compilation time, running time or the memory used by integer values.</p>
 </div></details>
 </div>
 <div class="exercise" id="ex-14-4"><div class="ex-label"><span class="ex-num">Exercise 14.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">A wrong optimisation</span></div>
@@ -1279,7 +1287,7 @@ continuation <code>compile b @ ADD # c</code>, and the hypothesis for b with the
 </div></details>
 </div>
 <div class="exercise" id="ex-14-7"><div class="ex-label"><span class="ex-num">Exercise 14.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A machine that can fail</span></div>
-<p>A real stack machine stops with an error on a stack underflow. Model this with an option type (Module
+<p>Model a stack machine that reports stack underflow with an option type (Module
 8): <code>exec1_opt</code> returns <code>None</code> when <code>ADD</code> finds fewer than two numbers, and <code>exec_opt</code> stops at the first
 <code>None</code>. Define both, check with <code>value</code> that <code>[PUSH 1, ADD]</code> fails on the empty stack, and prove that
 compiled code never fails:</p>
@@ -1430,7 +1438,7 @@ accumulator and registers, not a stack.</p>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What is <code>compile (Add (Num 1) (Var ''x''))</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>[ADD, PUSH 1, LOAD ''x'']</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>[PUSH 1, ADD, LOAD ''x'']</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>[PUSH 1, LOAD ''x'', ADD]</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>[LOAD ''x'', PUSH 1, ADD]</code></button></li></ol><div class="quiz-expl" hidden>Postfix order: the code of the left operand, then the code of the right one, then the operator.</div></div>
 <div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div><code>quickcheck [size = 3]</code> finds no counterexample to a claim. What do you know?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The claim holds for the values up to size 3 that Quickcheck tried; it may still be false</button></li><li><button type="button" class="quiz-opt" data-i="1">The claim is a theorem</button></li><li><button type="button" class="quiz-opt" data-i="2">The claim is false for some value larger than 3</button></li><li><button type="button" class="quiz-opt" data-i="3">Quickcheck ran out of time</button></li></ol><div class="quiz-expl" hidden>Testing is evidence, not proof. Only a proof covers every expression.</div></div>
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>For the machine with jumps, the lemma <code>exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)</code> is false. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because <code>SUB</code> is not commutative</button></li><li><button type="button" class="quiz-opt" data-i="1">Because a jump in c1 can skip instructions of c2 when the two run as one program</button></li><li><button type="button" class="quiz-opt" data-i="2">Because <code>exec2</code> does not terminate</button></li><li><button type="button" class="quiz-opt" data-i="3">Because <code>drop</code> is not defined for long lists</button></li></ol><div class="quiz-expl" hidden>Running c1 alone, a jump at its end skips nothing. The repair is to state correctness for the compiled code followed by any continuation c.</div></div>
-<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>You run the Haskell code that <code>export_code</code> generated from <code>compile</code>. What must you still trust?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The proof of <code>compile_correct</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The simplifier that proved the lemmas</button></li><li><button type="button" class="quiz-opt" data-i="2">Quickcheck</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle’s code generator and the Haskell compiler</button></li></ol><div class="quiz-expl" hidden>The proofs are checked by Isabelle’s kernel. The translation to Haskell and its compilation are outside the kernel, so they are part of the trusted base.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Which additional software components are trusted when running the Haskell exported from <code>compile</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The proof of <code>compile_correct</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The simplifier that proved the lemmas</button></li><li><button type="button" class="quiz-opt" data-i="2">Quickcheck</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle’s code generator and the Haskell compiler</button></li></ol><div class="quiz-expl" hidden>Besides the inference kernel and the runtime/hardware assumptions, execution relies on the code generator and Haskell compiler. Their translations are outside the kernel’s proof checking.</div></div>
 <div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
 
 </div>
