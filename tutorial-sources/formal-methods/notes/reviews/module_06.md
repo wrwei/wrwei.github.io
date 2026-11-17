@@ -1,5 +1,42 @@
 # Review of Module 6, What is a proof? Natural deduction
 
+## Follow-up content audit, 17 November 2026
+
+Read the whole English module, including rule side conditions, derivations, exercises and quiz.
+Line numbers refer to the source at the start of this follow-up.
+
+- **L19–23, 83–87, 135–141:** made proof relative to explicit assumptions and rules, distinguished
+  sampled tests from exhaustive finite checking, and distinguished circularity from discharged
+  assumptions. The withdrawal example now uses mathematical integers without overflow.
+- **L163, 198, 213–219:** restricted the even system to natural numbers, specified open assumptions,
+  and qualified equivalence of proof systems. Added the missing convention that `True` and `⟷`
+  abbreviate `¬⊥` and `(A ⟶ B) ∧ (B ⟶ A)` when using the listed rules and completeness claim.
+- **L240–291:** soundness requires true open premises; incompleteness does not imply soundness.
+  Qualified genuine/spurious counterexamples, corrected the undecidability statement to exclude a
+  terminating, correct yes-or-no algorithm, and fixed the reference to Module 3.
+- **L640–666:** qualified intuitionistic disjunction/witness extraction for closed proofs in the basic
+  calculus and suitable evidence for premises. Classical use of Rocq or Lean does not automatically
+  provide constructive extraction; classical computational interpretations also exist.
+- **L859–898, 1053–1057:** separated preservation of provability from termination of search, documented
+  the widget's restricted equality rewriting, and qualified the kernel guarantee. A stuck widget is
+  not an unprovability result.
+- **L1116–1119, 1426–1430 and quiz:** clarified first-order search, matching assumptions for a genuine
+  counterexample, and why a free parameter can witness existence in a non-empty domain.
+
+Primary references: [Isabelle2026 implementation manual, Logic](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Implementation/Logic.html)
+and [Isar reference, Generic tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Generic.html).
+Mathematical arguments and countermodels were checked by hand.
+
+Validation: all 8 Isabelle blocks, 3 captured-output blocks, 33 proof trees and existing IDs are
+unchanged. English source checker: no errors or warnings. The natural-deduction widget passes all 14
+checks. English HTML and root MkDocs builds passed. Inspected the whole page at 1280 and 390 px with
+solutions expanded: no page overflow, broken images, KaTeX errors, missing local anchors or browser
+errors. Wide proof trees continue to scroll in their containers; the shared renderer issue below is
+unchanged. Isabelle is unavailable on this Mac, so no fresh prover run was possible. Chinese
+synchronisation remains deferred while that edition is paused.
+
+## Original review, 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_06.md`, `src/widgets/nd-builder.js` (with its test
 `tools/widget-tests/nd-builder.mjs`) and `src/figures/_gen/figs_06.py`. Line numbers are those of the
 page as I found it, before my edits.

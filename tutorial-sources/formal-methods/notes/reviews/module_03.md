@@ -1,5 +1,37 @@
 # Review of Module 3, Predicate logic
 
+## Audit and revision — 17 November 2026
+
+English content audit against commit `a79a552`. Line numbers below refer to that baseline; current sections retain their IDs.
+
+- **L25.** Opening example: added document guards and the report-is-a-document premise in the one-domain formula, while keeping the later typed Isabelle example intact.
+- **L99.** Semantics: separated denotation from executable computation and corrected the claim that enumeration over an infinite domain never returns early.
+- **L449.** Validity: limited the arbitrary-interpretation explanation to the first-order examples; concrete types, definitions and assumptions remain fixed in general Isabelle lemmas.
+- **L495.** Countermodels: fixed-size search does not guarantee identical witnesses or labels; conservative quiz wording now reports only what the search found.
+- **L710.** Substitution: made capture-avoiding renaming part of the definition.
+- **L933.** Policies: stated the one-domain typing assumptions for admins, ownership and permissions. Added the missing train/block guards in independently translated exercise sentences.
+- **L1007.** Types: qualified the first-order translation with non-empty sorts and sort-respecting functions; distinguished it from higher-order quantification.
+- **L1047.** Permissions: ownership is sufficient, not necessary, for deletion under the stated rule.
+- **L1183.** Decidability: removed a stale cross-reference and guaranteed-efficiency wording; revised Figure 3.3 to show exhaustive theoretical searches rather than promising completeness for simp/blast.
+- **L1550.** Names: explained that Alice and Bob can denote the same user in the one-element countermodel.
+
+### Validation and scope
+
+- Re-read the English page, worked examples, exercise solutions and quiz; retained the established section and exercise IDs.
+- Every Isabelle and captured-output block is byte-for-byte unchanged from commit `a79a552`. The existing downloadable theories are reused unchanged.
+- `node tools/check.mjs --lang en`: 18 pages, 0 errors, 0 warnings. The English site builds successfully, and `mkdocs build` from the repository root passes.
+- Browser checks cover desktop (1280 px) and phone (390 px), expanded solutions, image decoding, formula rendering, internal anchors, page overflow and JavaScript errors. See the local `out/audit-module-03/` screenshots and metrics.
+- Isabelle2026 is not installed on this computer. The requested Isabelle recheck could not run; unchanged code/output comparison and the earlier successful proof-check logs are not represented as a fresh prover run.
+- Chinese work remains paused. These English changes must be reconciled before publishing the Chinese edition.
+
+### Additional checks and sources
+
+- Model-explorer widget: 29 existing scripted checks passed, 0 failed.
+- [Isabelle2026 implementation manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Implementation/Logic.html), for theory context and logical variables; [official Nitpick manual](https://isabelle.in.tum.de/doc/nitpick.pdf), for bounded search and potentially spurious results.
+- Figure 3.3 distinguishes exhaustive theoretical search from the bounded practical tools. The Chinese figure is unchanged while translation is paused.
+
+## Earlier review — 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_03.md`, `src/widgets/model-explorer.js` (with its test
 `tools/widget-tests/model-explorer.mjs`) and `src/figures/_gen/figs_03.py`. Line numbers are those of the
 page as I found it (snapshot commit 710e1a5), before my edits.

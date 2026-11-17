@@ -93,11 +93,11 @@ def fig_03_2(L):
 def fig_03_3(L):
     """What proof search and countermodel search can settle."""
     T = {'en': dict(title='What proof search and countermodel search can settle',
-                    ps=['proof search', '(simp, blast, Sledgehammer …)'], cs=['countermodel search', '(Nitpick, Quickcheck)'],
-                    ns=['no search', 'succeeds'],
-                    t1=['Valid'], b1=['A proof exists', '(Gödel, 1929/30).', 'Proof search finds it', 'in the end.'],
+                    ps=['systematic proof search', '(enumerating all proofs)'], cs=['finite-model search', '(enumerating structures)'],
+                    ns=['neither exhaustive', 'search settles it'],
+                    t1=['Valid'], b1=['A proof exists', '(Gödel, 1929/30).', 'Exhaustive proof search', 'eventually finds one.'],
                     t2=['Not valid,', 'finite countermodel'], b2=['Searching finite structures', 'finds a countermodel', 'in the end.'],
-                    t3=['Not valid, only', 'infinite countermodels'], b3=['Neither search', 'ever stops.'],
+                    t3=['Not valid, only', 'infinite countermodels'], b3=['No first-order proof,', 'and no finite countermodel.'],
                     e3=['R irreflexive, transitive', '⟶ ¬ (∀x. ∃y. R x y)'],
                     eg='for example', foot='No algorithm decides, for every formula, which box it belongs to (Church, Turing, 1936).'),
          'zh': dict(title='证明搜索与反模型搜索能解决什么',

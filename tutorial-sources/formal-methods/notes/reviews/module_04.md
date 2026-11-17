@@ -1,5 +1,35 @@
 # Review of Module 4: Sets, relations and functions
 
+## Audit and revision — 17 November 2026
+
+English content audit against commit `a79a552`. Line numbers below refer to that baseline; current sections retain their IDs.
+
+- **L30.** Sets and evaluation: clarified extensionality and why the particular comprehension lacks executable enumeration, without claiming that value can only reason about finite sets.
+- **L736.** Orders: added the small-carrier exception for power-set inclusion, zero-edge Hasse paths, and the distinction between dependency order and a full schedule.
+- **L789.** Termination: supplied Euclid's stopping case and stated the need for terminating work between measure decreases.
+- **L850.** Closures: fixed the carrier convention; explained that Isabelle rtrancl contains the identity of the entire element type. Treated non-empty cycles correctly in the finite path bound.
+- **L1003.** Functions: separated a mathematical option-valued model of partiality from an executable termination guarantee; qualified the encryption example.
+- **L1109.** Inverses: distinguished the left-inverse, right-inverse and two-sided laws and their assumptions.
+- **L1142.** Counting: required a non-empty codomain for the strengthened pigeonhole bound.
+- **L1262.** Computability: required a decider to halt correctly on every input and avoided suggesting an effective enumeration of all total programs.
+- **L1327.** Summary: functions can be injective, surjective, both or neither; inverse and decidability claims now have their intended scope.
+
+### Validation and scope
+
+- Re-read the English page, worked examples, exercise solutions and quiz; retained the established section and exercise IDs.
+- Every Isabelle and captured-output block is byte-for-byte unchanged from commit `a79a552`. The existing downloadable theories are reused unchanged.
+- `node tools/check.mjs --lang en`: 18 pages, 0 errors, 0 warnings. The English site builds successfully, and `mkdocs build` from the repository root passes.
+- Browser checks cover desktop (1280 px) and phone (390 px), expanded solutions, image decoding, formula rendering, internal anchors, page overflow and JavaScript errors. See the local `out/audit-module-04/` screenshots and metrics.
+- Isabelle2026 is not installed on this computer. The requested Isabelle recheck could not run; unchanged code/output comparison and the earlier successful proof-check logs are not represented as a fresh prover run.
+- Chinese work remains paused. These English changes must be reconciled before publishing the Chinese edition.
+
+### Additional checks and sources
+
+- Relation-explorer widget: 15 existing scripted checks passed, 0 failed.
+- [Isabelle2026 Relation theory](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL/Relation.html), [Set theory](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL/Set.html), and the `rtrancl_refl` rule of `Transitive_Closure.thy`, which includes `(a, a)` with no carrier restriction.
+
+## Earlier review — 16 November 2026
+
 Reviewer's log, 16 November 2026. Files: `src/en/module_04.md`, `src/widgets/relation-explorer.js`,
 `tools/widget-tests/relation-explorer.mjs`, `src/figures/_gen/figs_04.py`. Line numbers refer to the page
 as it was before the review.

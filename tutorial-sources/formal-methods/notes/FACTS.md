@@ -4,7 +4,24 @@ Every fact about Isabelle that the pages state is listed here with its source. S
 Isabelle web site (read 16 November 2026), the Isabelle2026 Linux bundle (`Isabelle2026_linux.tar.gz`,
 ISABELLE_ID `096842708b28`) and its manuals in `doc/`, and screenshots of Isabelle2026/jEdit running
 on Linux in this project (scratchpad, `jedit/`). Outputs of Isabelle are not listed here: they are
-produced by `tools/isa.py` and checked on every build.
+produced and compared by `tools/isa.py` when the prover checks are run. The HTML site builder does not
+rerun Isabelle.
+
+## Clarifications checked during the 17 November 2026 audit
+
+| Fact | Primary source |
+|---|---|
+| The inference kernel works relative to a theory containing declarations and axioms. Oracles introduce additional trusted results; they are not ordinary derived proofs. | [Isabelle2026 implementation manual, Logic](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Implementation/Logic.html), primitive derivations and `Thm.add_oracle`. |
+| `fun` includes proof obligations for pattern completeness and compatibility as well as termination. Its default termination method searches lexicographic combinations of size measures; failure need not mean that the function diverges. | [Isabelle2026 functions manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Functions/Functions.html), “From `fun` to `function`” and “Termination”. |
+| `rtrancl` includes `(a, a)` for every value of the element type, even outside a finite carrier drawn in an example. A carrier-restricted closure is obtained by intersecting with `A × A`. | `Transitive_Closure.thy`, constructor `rtrancl_refl`; [Isabelle2026 library](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL/Transitive_Closure.html). |
+| A bounded Nitpick search is not a validity proof; some HOL encodings use approximations and distinguish genuine from potentially spurious counterexamples. Fixing a cardinality does not specify a unique countermodel. | [Nitpick manual](https://isabelle.in.tum.de/doc/nitpick.pdf), counterexamples, scopes and infinite-type approximation. |
+| `rule` is not restricted to introduction rules: it resolves a theorem's conclusion against the goal. Resolution and unification respect types and parameter dependencies. | [Isabelle2026 Isar reference, Proof](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Proof.html), basic methods; [Generic tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Generic.html), classical rule methods. |
+| HOL choice can select a witness satisfying `P` when one exists: `someI_ex` derives `P (SOME x. P x)` from `∃x. P x`. A blocked direct unification is not a general impossibility proof. | [Isabelle2026 `Hilbert_Choice`](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL/Hilbert_Choice.html), `someI_ex`. |
+| `definition` does not register its defining equation with `simp` by default; `[simp]`, `declare` and method modifiers can change the rule set. `simp only:` retains implicit solvers. Congruence rules control recursive descent. | [Isabelle2026 Isar reference, Generic tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Generic.html), simplification. |
+| `clarsimp` combines non-branching clarification with simplification; configured simplifier splitters can still split its subgoal. | Same reference, “Partially automated methods”. |
+| Generated code uses equational theorems and provides partial correctness under its translation/runtime assumptions. A total logical function need not have executable code equations; different proved code equations can make an otherwise non-executable definition executable. | [Isabelle2026 code generation manual, Introduction](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Introduction.html) and [Foundations](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Foundations.html), “Understanding code equations”. |
+| Datatypes have generated size equations, with special behaviour for nested recursion and some nonrecursive constructors. The stack/light examples do not justify a universal constructor-counting formula. | [Isabelle2026 datatype manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Datatypes/Datatypes.html), size plugin and old/new datatype differences. |
+| Leaving an Isar context generalises fixed variables and discharges its assumptions; the resulting fact remains conditional. Local facts are not all passed automatically to ordinary methods, but configured context rules remain available. | [Isabelle2026 Isar reference, Proof](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Proof.html), local contexts and proof steps. |
 
 ## Release and download
 

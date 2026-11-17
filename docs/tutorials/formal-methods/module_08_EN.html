@@ -1,7 +1,7 @@
 <!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Module 8: Functional programming in HOL — Formal Methods with Isabelle</title>
-<meta name="description" content="Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why every function must terminate, and turn your definitions into Haskell code.">
+<meta name="description" content="Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why recursive definitions need termination proofs, and turn executable definitions into Haskell code.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -32,32 +32,34 @@
   
 </header>
 <div id="layout">
-<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#hol"><span class="num">1</span><span class="side-t">Programs in a logic</span></a><a href="#functions"><span class="num">2</span><span class="side-t">Functions are values</span></a><a href="#datatypes"><span class="num">3</span><span class="side-t">Data types</span></a><a href="#definitions"><span class="num">4</span><span class="side-t">Three ways to define a function</span></a><a href="#lists"><span class="num">5</span><span class="side-t">Lists in practice</span></a><a href="#numbers"><span class="num">6</span><span class="side-t">Numbers and type classes</span></a><a href="#termination"><span class="num">7</span><span class="side-t">Why every function must terminate</span></a><a href="#codegen"><span class="num">8</span><span class="side-t">From HOL to running code</span></a><a href="#summary"><span class="num">9</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">Check yourself</span></a></nav>
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#hol"><span class="num">1</span><span class="side-t">Programs in a logic</span></a><a href="#functions"><span class="num">2</span><span class="side-t">Functions are values</span></a><a href="#datatypes"><span class="num">3</span><span class="side-t">Data types</span></a><a href="#definitions"><span class="num">4</span><span class="side-t">Three ways to define a function</span></a><a href="#lists"><span class="num">5</span><span class="side-t">Lists in practice</span></a><a href="#numbers"><span class="num">6</span><span class="side-t">Numbers and type classes</span></a><a href="#termination"><span class="num">7</span><span class="side-t">Why fun requires termination</span></a><a href="#codegen"><span class="num">8</span><span class="side-t">From HOL to running code</span></a><a href="#summary"><span class="num">9</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">Check yourself</span></a></nav>
 <div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">Formal Methods with Isabelle &middot; Part III · Isabelle/HOL in practice</div>
       <h1 class="module-title"><span class="title-n">Module 8</span>Functional programming in HOL</h1>
-      <p class="module-lead">Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why every function must terminate, and turn your definitions into Haskell code.</p>
+      <p class="module-lead">Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why recursive definitions need termination proofs, and turn executable definitions into Haskell code.</p>
       <div class="hero-chips"><span class="chip chip-time">&#9201; 210 min</span><span class="chip chip-needs">You need: Modules 1–7</span></div>
     </div>
-<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Read and write HOL types and terms, and inspect them with <code>typ</code>, <code>term</code> and <code>value</code></li><li>Use λ-abstraction, currying and partial application</li><li>Define data types, and functions on them with <code>definition</code>, <code>fun</code> and <code>primrec</code></li><li>Compute with lists and numbers, and explain overloaded notation with type classes</li><li>Explain why every function must terminate, read Isabelle’s termination messages, and supply a measure when Isabelle cannot find one</li><li>Generate Haskell code from your definitions with <code>export_code</code></li></ul></section>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Read and write HOL types and terms, and inspect them with <code>typ</code>, <code>term</code> and <code>value</code></li><li>Use λ-abstraction, currying and partial application</li><li>Define data types, and functions on them with <code>definition</code>, <code>fun</code> and <code>primrec</code></li><li>Compute with lists and numbers, and explain overloaded notation with type classes</li><li>Explain why <code>fun</code> requires termination, read Isabelle’s termination messages, and supply a measure when Isabelle cannot find one</li><li>Generate Haskell code from your definitions with <code>export_code</code></li></ul></section>
 <div class="content">
 <span class="section-anchor" id="hol"></span>
 <div class="section-header"><span class="section-num">1</span><h2>Programs in a logic</h2></div>
 <p>In Part II you used Isabelle to check proofs about formulas. Part III turns to the other half of
-Isabelle/HOL: it is also a programming language. HOL contains a small, typed <strong>functional programming
+Isabelle/HOL: its executable definitions form a programming language. HOL contains a typed <strong>functional programming
 language</strong>, close to Haskell, OCaml and Standard ML (the language of Isabelle’s own core).
 You write programs as equations, Isabelle runs them, and because the programs are part of the logic,
 you can prove facts about them. Modules 9 to 11 are about the proving; this module is about the
 programming.</p>
 <p>Programs in HOL differ from programs in Python, Java or C in three ways.</p>
 <ul>
-<li><strong>No side effects.</strong> A HOL function does not change variables, print, or read files. Given the same
-arguments, it always returns the same result, like a function in mathematics.</li>
-<li><strong>No loops.</strong> Repetition is done by recursion, as in Module 5.</li>
-<li><strong>Every function is total.</strong> It returns a result for every argument of its type. Section 8.7 explains
-why the logic insists on this.</li>
+<li><strong>No side effects.</strong> A HOL function does not change variables, print, or read files. Its arguments
+determine its mathematical value. State changes can be modelled explicitly by passing a state in and out.</li>
+<li><strong>Recursion for repetition.</strong> The functions here use recursion, as in Module 5. Loops can also be
+modelled in HOL; they are not a primitive construct in these function definitions.</li>
+<li><strong>Every function is total.</strong> It denotes a value for every argument of its type. This does not mean
+that every HOL function has executable code, or that every evaluation succeeds. Section 8.7 explains
+why recursive equations accepted by <code>fun</code> need a termination proof.</li>
 </ul>
 <p>This module builds one example step by step: a controller for a British traffic light, which shows red,
 then red and amber together, then green, then amber, and then red again. You will describe its states as
@@ -143,7 +145,7 @@ list.</p>
 <h3 id="terms">Terms and type inference</h3>
 <p>A <strong>term</strong> is an expression of HOL: a constant such as <code>True</code>, <code>0</code> or <code>rev</code>, a variable such as <code>x</code>, a
 function applied to arguments such as <code>rev xs</code>, or one of the forms this module introduces. The command
-<code>term</code> reads a term, works out its type and prints both, without evaluating anything:</p>
+<code>term</code> reads a term, works out its type and prints both, without running it as a program:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Suc 0&quot;
 term &quot;[Suc 0, 5]&quot;
 term &quot;(Suc 0, [True])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Suc 0&quot;</span>
@@ -161,7 +163,8 @@ term &quot;(Suc 0, [True])&quot;">Copy</button></div><pre class="isa-body"><code
 type, <code>Suc 0</code> is a <code>nat</code>, so <code>5</code> must be a <code>nat</code> too. In the last term, the pair has a <code>nat</code> on the left
 and a <code>bool list</code> on the right, so its type is <code>nat × bool list</code>.</p>
 <div class="box box-definition"><div class="box-label">Definition 8.2<span class="box-title">Type inference and type annotations</span></div>
-<p><strong>Type inference</strong> computes the type of every part of a term from the types of the constants in it.
+<p><strong>Type inference</strong> computes the type of every part of a term from the types of its constants and variables
+and the constraints imposed by application and binding.
 Where the constants leave the type open, the result contains type variables. A <strong>type annotation</strong>
 <code>t :: τ</code> (or <code>(t::τ)</code> inside a larger term) tells Isabelle that <code>t</code> has type τ.</p>
 </div>
@@ -176,7 +179,8 @@ Where the constants leave the type open, the result contains type variables. A <
   :: &quot;nat&quot;</code></pre></div>
 <p>Since <code>+</code> takes two arguments of the same type, <code>x</code> is now a <code>nat</code> too. Section 8.6 explains what Isabelle
 knows about the <code>'a</code> in <code>x + 1</code>.</p>
-<p><code>x</code> is a <strong>free variable</strong>: a name that is not a constant. Isabelle/jEdit shows free variables in blue,
+<p><code>x</code> is a <strong>free variable</strong>: it is neither a declared constant nor bound by a quantifier or λ.
+Isabelle/jEdit shows free variables in blue,
 and constants such as <code>Suc</code> in black.</p>
 <h3 id="value">Computing with value</h3>
 <p><code>value</code> evaluates a term and prints the result with its type, as in Module 1. It also works with free
@@ -238,8 +242,9 @@ maps <code>x</code> to <code>x + 1</code>. Read it “lambda x, x plus 1”. Typ
 <div class="box box-definition"><div class="box-label">Definition 8.3<span class="box-title">λ-abstraction and application</span></div>
 <p>If <code>t</code> is a term of type τ₂ in which the variable <code>x</code> of type τ₁ may occur, then <code>λx. t</code> is the function of
 type τ₁ ⇒ τ₂ that maps each value <code>x</code> to <code>t</code>. <strong>Application</strong> of a function <code>f</code> to an argument <code>a</code> is
-written <code>f a</code>, without parentheses or commas. Applying <code>λx. t</code> to <code>a</code> gives <code>t</code> with <code>a</code> in place of <code>x</code>;
-this step is called <strong>β-reduction</strong>.</p>
+written <code>f a</code>, without parentheses or commas. Applying <code>λx. t</code> to <code>a</code> replaces the free occurrences of
+<code>x</code> in <code>t</code> by <code>a</code>, renaming bound variables when needed to avoid capturing variables of <code>a</code> (Module 3).
+This step is called <strong>β-reduction</strong>.</p>
 </div>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;λx::nat. x + 1&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;λx::nat. x + 1&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;λx. x + 1&quot;
@@ -308,7 +313,7 @@ Operator:  Suc :: nat ⇒ nat
 Operand:   Suc :: nat ⇒ nat
 </span></code></pre></div>
 <p>The operand of <code>Suc</code> is the function <code>Suc :: nat ⇒ nat</code> where a <code>nat</code> is needed. Write <code>Suc (Suc 0)</code>.
-Missing parentheses are the most common cause of type errors.</p>
+Missing parentheses are a common cause of type errors.</p>
 </div>
 <span class="section-anchor" id="datatypes"></span>
 <div class="section-header"><span class="section-num">3</span><h2>Data types</h2></div>
@@ -349,8 +354,9 @@ Isabelle reports the new constant with its type, and a termination order, <code>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;next_light (next_light Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;next_light (next_light Red)&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Green&quot;
   :: &quot;light&quot;</code></pre></div>
-<p>The facts listed in Definition 8.5 come with the datatype and are known to <code>simp</code>. It proves at once that
-two constructors differ:</p>
+<p>The datatype supplies the constructor properties of Definition 8.5. Distinctness and injectivity are
+available to <code>simp</code>; exhaustiveness supports the <code>cases</code> method below. <code>simp</code> proves at once that two
+constructors differ:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;Red ≠ Green&quot;
   by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;Red ≠ Green&quot;</span>
   <span class="isa-proof">by</span> simp</code></pre></div>
@@ -370,8 +376,8 @@ computes:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp_all
   done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp_all
   <span class="isa-proof">done</span></code></pre></div>
-<p><code>simp_all</code> applies <code>simp</code> to all subgoals. A test with <code>value</code> would have checked one light; the lemma
-covers all four.</p>
+<p><code>simp_all</code> applies <code>simp</code> to all subgoals. Evaluating the equation at one light would check that instance;
+the lemma covers all four. Since this type is finite, an exhaustive computation could also check all four.</p>
 <p>Finally, the light’s timing. Each state lasts a fixed number of seconds:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun duration :: &quot;light ⇒ nat&quot; where
   &quot;duration Red = 30&quot;
@@ -429,9 +435,10 @@ turns a stack into a list, top element first:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[1, 2, 3]&quot;
   :: &quot;nat list&quot;</code></pre></div>
 <h3 id="options">Options and pairs</h3>
-<p>What is the top element of an empty stack? In Java you might get an exception, in C whatever happens to
-be in memory. A HOL function is total, so a function of type <code>'a stack ⇒ 'a</code> must return <em>some</em> element
-even for <code>Empty</code>. The clean way out is to change the result type. HOL’s library defines, in essence,</p>
+<p>What is the top element of an empty stack? An implementation might raise an exception; an invalid
+memory access in C can have undefined behaviour. A HOL function of type <code>'a stack ⇒ 'a</code> instead denotes
+<em>some</em> element even for <code>Empty</code>, without necessarily providing code to compute it. To represent the
+missing result explicitly, change the result type. HOL’s library defines, in essence,</p>
 <p><code>datatype 'a option = None | Some 'a</code></p>
 <p>A value of type <code>'a option</code> is either <code>None</code>, “no result”, or <code>Some x</code>, the result <code>x</code>. Functions that
 can fail return an option:</p>
@@ -468,7 +475,7 @@ equations, HOL has a <strong>case expression</strong> that matches a value again
 <p><code>top_or d s</code> is the top element of <code>s</code>, or the default <code>d</code> if <code>s</code> is empty. Read
 <code>case t of p₁ ⇒ e₁ | p₂ ⇒ e₂</code> as: compute <code>t</code>, find the first pattern pᵢ that matches its value, and
 return eᵢ, with the variables of the pattern standing for the matching parts. The arrow is the same ⇒ as
-in function types. A <code>case</code> expression inside a larger term must be in parentheses, like
+in function types. A <code>case</code> expression inside a larger term often needs parentheses to mark its extent, like
 <code>if … then … else …</code>.</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;top_or Red (Push Green Empty)&quot;
 value &quot;top_or Red Empty&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_or Red (Push Green Empty)&quot;</span>
@@ -534,7 +541,8 @@ lemma safe_Red: &quot;safe (Red, l)&quot;
 <p>The last lemma holds for every state <code>l</code> of the east–west light: whatever it shows, the junction is safe
 while the north–south light is red.</p>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
-<p><code>simp</code> does not unfold a <code>definition</code> unless you ask with <code>simp add: f_def</code>. This is deliberate. A
+<p>By default, <code>definition</code> does not register its equation as a simplification rule. You can supply it with
+<code>simp add: f_def</code> or register it for later use (Module 9). This is deliberate. A
 definition introduces a concept; once you have proved its important properties, such as <code>safe_Red</code>,
 later proofs should use those properties rather than the definition. Proofs then stay short, and if the
 definition changes, only the proofs of the properties need repair. Module 9 shows more ways of
@@ -553,12 +561,12 @@ The error(s) above occurred in definition:
 <p>Use <code>fst</code> and <code>snd</code> as above, a <code>case</code> expression, or <code>fun</code>, which accepts patterns.</p>
 </div>
 <h3 id="fun-primrec">Recursive functions: fun and primrec</h3>
-<p><code>primrec</code> accepts only <strong>primitive recursion</strong>: one equation for each constructor, each with the
-constructor applied to variables as its pattern, and recursive calls only on the immediate parts of the
+<p>For the simple datatypes here, <code>primrec</code> uses <strong>primitive recursion</strong>: constructor patterns with
+variables for the constructor arguments, and recursive calls only on the immediate recursive parts of the
 argument, such as <code>height s</code> in the equation for <code>Push x s</code>. Such a function always terminates, so
 <code>primrec</code> needs no termination proof; it reports only the new constant, as you saw for <code>height</code>.</p>
-<p><code>fun</code> accepts much more: nested patterns, patterns on several arguments, equations that overlap, and any
-recursion for which Isabelle can find a termination proof by itself. This function pushes the elements of
+<p><code>fun</code> accepts much more: nested patterns, patterns on several arguments, equations that overlap, and a
+broad range of recursive definitions whose termination Isabelle proves automatically. This function pushes the elements of
 a list onto a stack, one after another; its recursive call changes both arguments:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun push_all :: &quot;'a list ⇒ 'a stack ⇒ 'a stack&quot; where
   &quot;push_all [] s = s&quot;
@@ -597,14 +605,14 @@ arguments, decreases in every recursive call. The element pushed last ends on to
 <tr>
 <td>Patterns</td>
 <td>none: <code>f x₁ … xₙ = t</code></td>
-<td>one constructor pattern per equation</td>
-<td>any constructor patterns, also nested and overlapping</td>
+<td>constructor patterns with variable arguments</td>
+<td>constructor patterns, also nested and overlapping</td>
 </tr>
 <tr>
 <td>Used by <code>simp</code></td>
-<td>only with <code>simp add: f_def</code></td>
-<td>always (<code>f.simps</code>)</td>
-<td>always (<code>f.simps</code>)</td>
+<td>not registered by default; add <code>f_def</code></td>
+<td><code>f.simps</code> registered by default</td>
+<td><code>f.simps</code> registered by default</td>
 </tr>
 <tr>
 <td>Termination</td>
@@ -632,9 +640,9 @@ consts
 Found termination order: &quot;{}&quot;</code></pre></div>
 <p>Isabelle accepts the definition with a warning, and completes it with the equation
 <code>top_value Empty = undefined</code>. It uses this equation to construct the function, but it does not add it
-to <code>top_value.simps</code>, so <code>simp</code> cannot use it. Here <code>undefined</code> is a constant of every type about which
-nothing is known:
-<code>top_value Empty</code> is <em>some</em> element, but no proof can tell which. The function is total, as every HOL
+to <code>top_value.simps</code>, so <code>simp</code> does not use it automatically. Here <code>undefined</code> is a polymorphic constant
+whose value is not specified beyond its type:
+<code>top_value Empty</code> is <em>some</em> element, with no particular element selected by the definition. The function is total, as every HOL
 function is, but on <code>Empty</code> it is <strong>unspecified</strong>. When you try to compute that value, the code behind
 <code>value</code> has no equation to use and stops with an exception (Section 8.8 explains where this code comes
 from):</p>
@@ -679,7 +687,7 @@ variables, and the plain variable <code>l</code> is not such a pattern:</p>
   False</span></code></pre></div>
 <h3 id="names">When a name is misspelt</h3>
 <p>Section 8.1 showed that a misspelt name in a term becomes a free variable. In a definition, a free
-variable on the right-hand side has no value, so Isabelle rejects it:</p>
+variable on the right-hand side is not determined by the arguments, so Isabelle rejects it:</p>
 <div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cycle_time :: <span class="isa-inner">&quot;light list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
   <span class="isa-inner">&quot;cycle_time [] = 0&quot;</span>
 | <span class="isa-inner">&quot;cycle_time (l # ls) = duraton l + cycle_time ls&quot;</span></code></pre></div>
@@ -713,7 +721,7 @@ Found termination order: &quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[Red, RedAmber, Green, Amber, Red, RedAmber]&quot;
   :: &quot;light list&quot;</code></pre></div>
 <div class="box box-example"><div class="box-label">Example 8.1<span class="box-title">Evaluating trace by hand</span></div>
-<p><code>value</code> computes by rewriting with the defining equations, and you can do the same on paper. Write <code>3</code>
+<p>The computation performed by <code>value</code> follows the defining equations, and you can do the same on paper. Write <code>3</code>
 as <code>Suc (Suc (Suc 0))</code>:</p>
 <div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>3</mn><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>2</mn><mtext>  </mtext><mo stretchy="false">(</mo><mrow><mi>n</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>_</mi><mi>l</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi></mrow><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>2</mn><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>1</mn><mtext>  </mtext><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>0</mn><mtext>  </mtext><mrow><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">[</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo separator="true">,</mo><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow><mo stretchy="false">]</mo></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
 \mathit{trace}\;3\;\mathit{Red} &amp;= \mathit{Red} \mathbin{\#} \mathit{trace}\;2\;(\mathit{next\_light}\;\mathit{Red}) = \mathit{Red} \mathbin{\#} \mathit{trace}\;2\;\mathit{RedAmber}\\
@@ -844,8 +852,8 @@ which takes the elements <code>l</code> of the list one by one; <code>duration l
 several generators and conditions, separated by commas.</p>
 <div class="callout pitfall"><div class="callout-label">Watch out</div>
 <p>Some list functions are unspecified for some arguments: <code>hd []</code>, the first element of the empty list,
-and <code>xs ! n</code> when <code>n</code> is not a position of <code>xs</code>. They return <em>some</em> value of the right type, but nothing
-is known about it, and computing it with <code>value</code> stops with an exception, as for <code>top_value</code> in
+and <code>xs ! n</code> when <code>n</code> is not a position of <code>xs</code>. They denote <em>some</em> value of the right type, without
+specifying which, and computing it with <code>value</code> stops with an exception, as for <code>top_value</code> in
 Section 8.4. Before you use <code>hd xs</code> or <code>xs ! n</code> in a definition, make sure that <code>xs</code> is not empty or that
 <code>n &lt; length xs</code>.</p>
 </div>
@@ -910,8 +918,9 @@ value &quot;(-17::int) mod 5&quot;">Copy</button></div><pre class="isa-body"><co
 <p>In HOL, <code>a div 0 = 0</code> and <code>a mod 0 = a</code> for every <code>a</code> (the library’s lemmas <code>div_by_0</code> and <code>mod_by_0</code>).</p>
 </div>
 <p>This is not a mistake. Every HOL function is total, so <code>17 div 0</code> must be some number. The library
-chooses 0, a value that makes many laws hold without side conditions. A program that divides by zero is
-still wrong; the logic does not stop with an error. When division by zero matters, state <code>b ≠ 0</code>
+chooses 0, a value that makes many laws hold without side conditions. A program that is required to reject
+division by zero needs an explicit check; the logic does not raise an error for this operation. When
+division by zero matters, state <code>b ≠ 0</code>
 as an assumption in your lemmas.</p>
 <p>The functions <code>int :: nat ⇒ int</code> and <code>nat :: int ⇒ nat</code> convert between the two types; <code>nat</code> maps
 negative integers to 0. The operator <code>/</code> is division on fields such as the real numbers, not on <code>nat</code>
@@ -1006,7 +1015,7 @@ equations of <code>trace</code> apply:</p>
   <span class="isa-proof">by</span> (simp add: numeral_eq_Suc)</code></pre></div>
 </div>
 <span class="section-anchor" id="termination"></span>
-<div class="section-header"><span class="section-num">7</span><h2>Why every function must terminate</h2></div>
+<div class="section-header"><span class="section-num">7</span><h2>Why fun requires termination</h2></div>
 <p>Every <code>fun</code> you have written produced a line “Found termination order”. Module 5 (Section 5.7)
 explained why Isabelle insists on termination, what a measure is, and how to read the message when <code>fun</code>
 rejects a definition. Module 1 promised that this module would explain why termination matters, so this
@@ -1035,7 +1044,9 @@ constant being defined, so it cannot be circular, and it can never make the logi
 does not take your recursive equations on trust. It first defines the function by non-recursive
 definitions of this safe kind, through a construction that Isabelle carries out for you, and then
 <em>proves</em> your equations from them as theorems. That proof needs a termination argument. If Isabelle
-cannot find one, the definition is rejected, and nothing about the function becomes a theorem.</p>
+cannot find one, <code>fun</code> fails: it does not provide the unrestricted defining equations as theorems. The
+underlying <code>function</code> package can retain a partial definition and conditional facts, which are beyond
+this introduction.</p>
 </div>
 <p>If every chain of recursive calls ends in an equation without a recursive call, the equations determine
 the function’s value for every argument, one step at a time, as in Example 8.1, and the proof goes
@@ -1048,11 +1059,11 @@ a value unspecified, which can never contradict anything, so <code>fun</code> on
 natural numbers that becomes smaller with every recursive call. The measures it tries are built from the
 sizes of the arguments.</p>
 <div class="box box-definition"><div class="box-label">Definition 8.9<span class="box-title">Size</span></div>
-<p>Every value of a datatype has a <strong>size</strong>, a natural number, written <code>size x</code>. For a natural number <code>n</code>
-the size is <code>n</code> itself, and for a list its length. For a value of a datatype you define, the size counts
-the constructors in it that have an argument of the same datatype, a <strong>recursive</strong> argument:
-<code>size (Push 1 (Push 2 Empty))</code> is 2, and every <code>light</code> has size 0, because no constructor of <code>light</code>
-takes an argument.</p>
+<p>For the datatypes here, Isabelle supplies a <strong>size</strong>, a natural number written <code>size x</code>. For a natural
+number <code>n</code> the size is <code>n</code> itself, and for a list its length. For our stack, <code>Empty</code> has size 0 and each
+<code>Push</code> adds 1 to the size of the inner stack: <code>size (Push 1 (Push 2 Empty))</code> is 2. Every <code>light</code> has size
+0. Other datatypes can have different size equations; inspect their generated <code>t.size</code> facts rather
+than assuming that <code>size</code> counts every constructor or every stored element.</p>
 </div>
 <p>When the search succeeds, <code>fun</code> prints the measure it found. You have seen three kinds of report in this
 module:</p>
@@ -1187,23 +1198,23 @@ termination
   <span class="isa-proof">by</span> pat_completeness auto
 <span class="isa-cmd">termination</span>
   <span class="isa-proof">by</span> (relation <span class="isa-inner">&quot;measure (λ(i, n). n + 1 - i)&quot;</span>) auto</code></pre></div>
-<p><code>function</code> takes the same equations as <code>fun</code>, but proves nothing by itself. The line
+<p><code>function</code> takes the same equations as <code>fun</code>, but leaves proof obligations for you. The line
 <code>by pat_completeness auto</code> proves that the patterns cover every case and do not contradict each other;
 with a single equation that is a formality. <code>termination</code> then asks for the termination proof, and you
 name the measure. <code>λ(i, n). n + 1 - i</code> is the function that maps the pair of arguments <code>(i, n)</code> to
 <code>n + 1 - i</code>; <code>measure</code> turns it into the relation “has a smaller measure”, and the method <code>relation</code>
 makes Isabelle use that relation. <code>auto</code> proves the rest: that the relation is well-founded, as it is
-for every measure (Module 5), and that the call decreases the measure, from <code>n + 1 - i</code> to
+for every natural-number measure (Module 5), and that the call decreases the measure, from <code>n + 1 - i</code> to
 <code>n + 1 - (i + 1)</code>, because the call happens only when <code>¬ n &lt; i</code>. Now <code>sum_from</code> is defined, and it computes:</p>
 <div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;sum_from 3 5&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;sum_from 3 5&quot;</span></code></pre></div>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;12&quot;
   :: &quot;nat&quot;</code></pre></div>
 <p>The manual <em>Defining Recursive Functions in Isabelle/HOL</em>, under <strong>functions</strong> in the Documentation
-panel, explains <code>function</code> in depth. Every function defined with <code>fun</code> or <code>function</code> also comes with an
-induction rule that follows its recursion, <code>f.induct</code>; Module 11 uses it.</p>
+panel, explains <code>function</code> in depth. After termination is proved, these definitions also supply an
+induction rule that follows the recursion, <code>f.induct</code>; Module 11 uses it.</p>
 <span class="section-anchor" id="codegen"></span>
 <div class="section-header"><span class="section-num">8</span><h2>From HOL to running code</h2></div>
-<p>The functions you have defined are programs, and Isabelle can translate them into other programming
+<p>The executable functions you have defined are programs, and Isabelle can translate them into other programming
 languages: Standard ML, OCaml, Haskell and Scala. This is how a function that you have proved correct
 becomes part of real software, and Modules 12 and 14 use it for verified programs. Generate Haskell
 code for the traffic light:</p>
@@ -1211,10 +1222,12 @@ code for the traffic light:</p>
 <div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>See theory exports</code></pre></div>
 <p><code>export_code</code> takes the names of the functions to translate, and adds everything they need: here the
 datatype <code>light</code> and the natural numbers. <code>module_name</code> names the Haskell module. Write <code>in SML</code>,
-<code>in OCaml</code> or <code>in Scala</code> for the other languages. Only definitions that compute can be translated. A
-definition that quantifies over all natural numbers, such as <code>all_small k = (∀n::nat. n &lt; k)</code>, has no
-program: <code>export_code</code> rejects it with a wellsortedness error, because <code>∀</code> can be computed only over
-types whose elements can be listed, the class <code>enum</code>, and <code>nat</code> is not in it.</p>
+<code>in OCaml</code> or <code>in Scala</code> for the other languages. Translation needs executable code equations for the
+operations involved. For example, exporting the raw definition <code>all_small k = (∀n::nat. n &lt; k)</code> fails
+with a wellsortedness error: the default code for <code>∀</code> enumerates a type in the class <code>enum</code>, and <code>nat</code>
+is not in that class. This does not mean <code>all_small</code> is uncomputable: it is always <code>False</code> (take
+<code>n = k</code>), so a proved code equation <code>all_small k = False</code> would make it executable. This distinction
+matters when turning specifications into running code, as in Module 12.</p>
 <p>The code does not appear in the Output panel. In Isabelle/jEdit, the words <em>theory exports</em> in the
 message are a link: click it, and jEdit’s File Browser opens on the generated files, in a virtual folder
 whose name begins with <code>isabelle-export:</code>. The Haskell module is the file <code>Traffic.hs</code>, in a folder
@@ -1276,8 +1289,10 @@ integers.</p>
 <p>The code generator is not part of Isabelle’s kernel, so the generated code is not checked by the kernel:
 the code generator belongs to the trusted base (Module 1). It is designed so that every computation
 step of the generated program corresponds to rewriting with equations that are theorems in the logic.
-So if the program returns a result, the result agrees with your definitions; the guarantee is called
-<em>partial correctness</em>. The command <code>value</code> uses the same machinery. For a term without variables it
+Provided the generator, its configuration and the target runtime preserve this correspondence, a
+returned result agrees with the logical definitions; this is a <em>partial correctness</em> guarantee. It
+does not promise that generated code terminates on every target-language input or avoids resource errors.
+The command <code>value</code> uses the same machinery. For a term without variables it
 translates the term into ML, runs it, and turns the result back into a term with <code>term_of</code>; that is why
 it needs the class <code>term_of</code> (Section 8.6), and why it stopped with an exception at <code>top_value Empty</code>
 (Section 8.4). For a term with variables, such as <code>rev [a, b, c]</code>, it uses a symbolic variant of the
@@ -1286,23 +1301,24 @@ same translation.</p>
 <span class="section-anchor" id="summary"></span>
 <div class="section-header"><span class="section-num">9</span><h2>What you learned</h2></div>
 <ul>
-<li>HOL is a typed functional programming language inside a logic. Functions have no side effects, use
-recursion instead of loops, and are total. <code>typ</code> prints a type, <code>term</code> the type of a term, and <code>value</code>
+<li>HOL supports typed functional programming inside a logic. Functions denote total mathematical
+mappings; the executable definitions here use recursion and have no side effects. <code>typ</code> prints a type, <code>term</code> a term and its type, and <code>value</code>
 evaluates a term.</li>
 <li>Types are built from base types (<code>bool</code>, <code>nat</code>, <code>int</code>), type constructors written after their
 arguments (<code>'a list</code>, <code>'a option</code>), pairs <code>'a × 'b</code>, functions <code>'a ⇒ 'b</code> and type variables. Isabelle
-infers types; an annotation <code>t :: τ</code> fixes one. Misspelt names become free variables.</li>
+infers types; an annotation <code>t :: τ</code> fixes one. In terms, undeclared names can become free variables.</li>
 <li><code>λx. t</code> is a function without a name. Functions of several arguments are curried: <code>nat ⇒ nat ⇒ nat</code>
 means <code>nat ⇒ (nat ⇒ nat)</code>, <code>f x y</code> means <code>(f x) y</code>, and a partial application is a function.</li>
 <li><code>datatype</code> defines enumerations and recursive types such as stacks and lists. Functions take values
 apart by pattern matching in equations or with <code>case</code>. Options represent results that may be missing.</li>
-<li><code>definition</code> defines non-recursive functions; <code>simp</code> uses <code>f_def</code> only when asked. <code>primrec</code> allows
+<li><code>definition</code> defines non-recursive functions; <code>f_def</code> is not a simplification rule by default. <code>primrec</code> allows
 primitive recursion; <code>fun</code> allows general patterns and recursion, warns about missing patterns, and
 resolves overlapping ones in order.</li>
 <li>The list library offers <code>map</code>, <code>filter</code>, <code>foldr</code>, <code>zip</code>, <code>take</code>, <code>drop</code>, <code>!</code>, <code>[m..&lt;n]</code> and list
 comprehension. Subtraction on <code>nat</code> is truncated, <code>div</code> and <code>mod</code> are total, and overloaded
 operations are organised in type classes and sorts.</li>
-<li>Every <code>fun</code> must terminate, or its equations could prove <code>0 = 1</code>. Isabelle searches for a decreasing
+<li><code>fun</code> requires termination before supplying unrestricted defining equations: accepting arbitrary
+recursive equations could prove <code>0 = 1</code>. Isabelle searches for a decreasing
 measure, reports it, and explains its failure with a matrix of calls and measures. With <code>function</code> and
 <code>termination</code> you supply the measure yourself.</li>
 <li><code>export_code</code> translates definitions into Haskell, SML, OCaml or Scala.</li>
@@ -1643,8 +1659,9 @@ Found termination order:
 &quot;[1, 2, 3, 4, 6, 7]&quot;
   :: &quot;nat list&quot;</code></pre></div>
 <p>There are two recursive calls. The first makes the first list shorter and keeps the second; the
-second call does the opposite. So neither length decreases at both calls, and no single measure works,
-but a lexicographic order does, as for Ackermann’s function in Module 5. Isabelle picked the length of
+second call does the opposite. So neither argument’s length alone decreases at both calls. Their sum
+would be a suitable single measure; Isabelle instead finds a lexicographic order, as for Ackermann’s
+function in Module 5. It picked the length of
 the second list first: it decreases (<code>&lt;</code>) at the second call and stays the same (<code>&lt;=</code>) at the first
 call, where the length of the first list then decreases. Comparing the first lists first would work as
 well.</p>
@@ -1705,7 +1722,7 @@ value &quot;count_up 3 10&quot;">Copy</button></div><pre class="isa-body"><code>
 <div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What is the difference between the commands <code>term</code> and <code>value</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>term</code> works only for terms without variables</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>term</code> prints a term and its type without evaluating it; <code>value</code> evaluates it</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>value</code> prints only the type, <code>term</code> only the value</button></li><li><button type="button" class="quiz-opt" data-i="3">There is none; they are two names for the same command</button></li></ol><div class="quiz-expl" hidden><code>term &quot;(λx::nat. x * x) 7&quot;</code> prints <code>7 * 7</code>, after β-reduction but without arithmetic; <code>value</code> prints <code>49</code>.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>What is the type of <code>map Suc</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>nat ⇒ nat</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>(nat ⇒ nat) ⇒ nat list ⇒ nat list</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>nat list ⇒ nat list</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>nat list</code></button></li></ol><div class="quiz-expl" hidden><code>map :: ('a ⇒ 'b) ⇒ 'a list ⇒ 'b list</code> has received its first argument, <code>Suc :: nat ⇒ nat</code>. The partial application waits for a list of natural numbers.</div></div>
 <div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>What does <code>value &quot;(3::nat) - 5&quot;</code> print?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>- 2</code></button></li><li><button type="button" class="quiz-opt" data-i="1">an error, because the result is negative</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>2</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>0</code></button></li></ol><div class="quiz-expl" hidden>Subtraction on <code>nat</code> is truncated: <code>m - n = 0</code> whenever <code>m ≤ n</code>.</div></div>
-<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>You define <code>safe</code> with <code>definition</code>, and <code>lemma &quot;safe (Red, Green)&quot; by simp</code> fails. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>simp</code> does not use the equation of a <code>definition</code> unless you add it, as in <code>simp add: safe_def</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The lemma is false</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>definition</code> cannot define functions on pairs</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> cannot prove statements about datatypes</button></li></ol><div class="quiz-expl" hidden>Definitions are not unfolded automatically, so that proofs can use proved properties of a concept instead of its definition.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>You define <code>safe</code> with <code>definition</code>, and <code>lemma &quot;safe (Red, Green)&quot; by simp</code> fails. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>simp</code> does not use the equation of a <code>definition</code> unless you add it, as in <code>simp add: safe_def</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The lemma is false</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>definition</code> cannot define functions on pairs</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> cannot prove statements about datatypes</button></li></ol><div class="quiz-expl" hidden><code>definition</code> does not register its equation with <code>simp</code> by default. You can supply or register it when unfolding is useful.</div></div>
 <div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>Why does <code>fun</code> refuse a recursive definition whose termination it cannot prove?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because non-terminating functions would make <code>value</code> slow</button></li><li><button type="button" class="quiz-opt" data-i="1">Because HOL has no type for infinite computations</button></li><li><button type="button" class="quiz-opt" data-i="2">Because the equations of a non-terminating “definition” can be contradictory, as <code>f x = f x + 1</code> implies <code>0 = 1</code></button></li><li><button type="button" class="quiz-opt" data-i="3">Because the code generator cannot translate such functions</button></li></ol><div class="quiz-expl" hidden><code>fun</code> proves your equations from a construction that needs a termination argument. Without one, accepting the equations could make the logic inconsistent.</div></div>
 <div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>value &quot;2 + 2&quot;</code> reports “Cannot derive subsort relation numeral &lt; term_of”. What is the cause?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The number 2 is too small for <code>value</code></button></li><li><button type="button" class="quiz-opt" data-i="1">Natural numbers cannot be added with <code>value</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The class <code>numeral</code> is not defined in <code>Main</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The type of <code>2 + 2</code> is unknown; Isabelle knows only that it has numerals, which is not enough to print the result</button></li></ol><div class="quiz-expl" hidden><code>value</code> needs the class <code>term_of</code> to print a result. A type annotation such as <code>:: nat</code> fixes the type and removes the error.</div></div>
 <div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>

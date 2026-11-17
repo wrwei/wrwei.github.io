@@ -1,5 +1,37 @@
 # Review of Module 10, Structured proofs in Isar
 
+## Follow-up content audit, 17 November 2026
+
+Read every proof, calculation, error example, exercise solution and quiz. The examples are
+consistent; corrections concern their surrounding claims. Line numbers refer to the source at the
+start of this follow-up.
+
+- **L244–247, 283–285:** `next` separates case contexts in the displayed pattern. Generalising a fixed
+  variable does not discard assumptions: `P x` proved under `A x` exports as `⋀x. A x ⟹ P x`, not an
+  unconditional universal fact.
+- **L506–508:** automation does not give chained facts the positional roles used by `rule conjI`,
+  but their order can still affect search and simplification. Removed the blanket promise that fact
+  order makes no difference to `blast`, `simp` and `auto`.
+- **L523–552 and summary:** ordinary methods do not automatically consume every local fact, but can
+  use subgoal premises and configured context rules. A local fact registered with `[simp]` need not
+  be separately passed with `using`.
+- **L637–645, 673–675 and summary:** single-dot proofs directly use matching chained facts; they do
+  not automatically weaken `<` to `≤`. Scoped the “strictest relation” claim to numeric chains.
+  Described the introduced forms as core Isar rather than an exhaustive description of the language.
+
+Primary references: [Isar reference, Proof](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Proof.html)
+(local contexts, export, `this`, and calculations) and
+[Generic tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Generic.html)
+(chained facts and context rules).
+
+Validation: all 75 Isabelle blocks, 31 captured-output blocks, the proof tree and existing IDs are
+unchanged. English checker: no errors or warnings. English HTML and root MkDocs builds passed.
+Inspected the whole page at 1280 and 390 px with solutions expanded: no page overflow, broken images,
+KaTeX errors, missing local anchors or browser errors. Isabelle is unavailable on this Mac, so the
+earlier successful prover run was not repeated. Chinese synchronisation remains deferred.
+
+## Original review, 16 November 2026
+
 Reviewed 16 November 2026 against Isabelle2026. Line numbers are those of `src/en/module_10.md` before
 the review's edits. Claims about Isabelle were checked in the sources, the manuals (`isar-ref`, `jedit`,
 `prog-prove`) or scratch builds (`out/scratch/rev1011`, `out/scratch/rev1011b`).

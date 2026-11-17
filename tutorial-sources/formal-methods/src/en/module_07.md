@@ -320,7 +320,7 @@ and 7.4), so it is worth learning to see it.
   and an arbitrary formula, a schematic variable such as `?R`, as its conclusion. Its other premises say
   what you may assume while you prove that formula: `conjE`, `disjE`, `impE`, `notE`, `FalseE`, `allE`,
   `exE`.
-- A **destruction rule** has the connective in its major premise and a part of the major premise as its
+- A **destruction rule** has the connective in its major premise and a part or instance of the major premise as its
   conclusion: `conjunct1`, `conjunct2`, `mp`, `spec`, `iffD1`, `iffD2`.
 :::
 
@@ -430,7 +430,8 @@ goal (2 subgoals):
 ```
 
 `conjI` has two premises, so there are now two subgoals, one for each branch of the tree. Both keep the
-assumption A ∧ B. Methods work on subgoal 1; subgoal 2 waits its turn.
+assumption A ∧ B. The `rule` and `assumption` steps used here act on subgoal 1; subgoal 2 waits its turn.
+Other methods, such as `auto` and `simp_all`, can work on all subgoals (Module 5).
 
 Now (∧E₂), used backwards:
 
@@ -523,8 +524,8 @@ branches that are still open.
 :::
 
 ::: analogy
-The proof state is a to-do list. Each `apply` takes the first item off the list and may put new, smaller
-items in its place; `done` checks that the list is empty.
+The proof state is a to-do list. In these rule-by-rule scripts, `apply` replaces the first item with
+the subgoals of the chosen step; `done` checks that the list is empty.
 :::
 
 ### Unification {#backward-unification}
@@ -533,7 +534,10 @@ items in its place; `done` checks that the list is empty.
 **Unification** makes two terms identical by choosing values for their schematic variables. Isabelle uses
 it whenever it applies a rule: in `rule`, between the conclusion of the rule and the conclusion of the
 subgoal; in `assumption`, between the conclusion of the subgoal and an assumption. If no choice of values
-makes the two terms identical, the step fails.
+makes the two terms identical, that application cannot succeed. Isabelle also respects types and
+variable scopes, and compares terms modulo bound-variable renaming and lambda conversion; it does
+not prove arbitrary arithmetic identities while unifying. Higher-order unification is not a general
+decision procedure, so a search need not find every possible instantiation.
 :::
 
 | Unify | with | Result |
@@ -832,7 +836,7 @@ goal (1 subgoal):
   done
 ```
 
-Section 7.6 has a case where `frule` is necessary: a quantified assumption that is needed twice.
+Section 7.6 has a case where `frule` is useful: a quantified assumption that is needed twice.
 
 ### Many steps at once: intro and elim {#assumptions-intro}
 
@@ -884,6 +888,11 @@ subgoal 1 only. In `imp_chain` above, `apply (intro impI)` would replace the thr
 | An assumption gives a new fact | destruction | `drule`, or `frule` to keep it | `apply (drule mp)` |
 | The conclusion is one of the assumptions | none | `assumption` | `apply assumption` |
 | Many steps of one kind | introduction or elimination | `intro`, `elim` | `apply (intro impI conjI)` |
+
+These are customary pairings, not restrictions enforced by the method names. `rule` can use an
+elimination or destruction theorem backwards too, as `rule conjunct2` already did. Likewise, `erule`
+can use a theorem such as `mp` when its first premise and conclusion fit. The methods differ in how
+they resolve the theorem against the subgoal and its assumptions.
 
 ::: tip
 Look at the subgoal before you look for a rule. If you want to attack the main connective of the
@@ -1281,22 +1290,25 @@ identical, and that needs the witness to be x. Unification may not do that, so `
 ***  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
 ```
 
-No other method can help either. The proof is stuck, and the only way out is to go back:
+This direct rule sequence has blocked the intended `assumption` step. For this proof, restart with
+`exE` before `exI`, so that the witness can depend on the named master key:
 
 ```isabelle
   oops
 ```
 
-On paper the same thing happens. Applying (∃I) below (∃E) in the tree means choosing the witness before
-the eigenvariable a of (∃E) exists. The only witness that works is a, and then the conclusion of (∃E)
-would mention its own eigenvariable, which the side condition forbids. Isabelle's check is the same
-condition in another form.
+On paper, this attempted tree would use the eigenvariable a as an existential witness outside the
+scope of its (∃E). That violates the side condition. Isabelle's refusal to instantiate `?x4 y` with
+the later fixed x enforces the same scope restriction. This does not prove that no HOL method could
+solve the remaining schematic goal: HOL's choice operator can express a master key without referring
+to that local name. The point is the dependency required by this particular rule-by-rule proof.
 
 ::: keyidea
 **Fix first, guess later.** `rule allI` and `erule exE` fix variables; `rule exI`, `erule allE` and
 `drule spec` create unknowns. An unknown can only become a term built from variables that were fixed
-before it was created. So apply the rules that fix variables first, and the rules that create unknowns
-afterwards. This is the advice of Section 6.7, to open existential assumptions first and then choose
+before it was created, as recorded by its arguments in the displayed subgoal. Context parameters and
+constants remain available too. Fixing variables first is a useful strategy for these proofs, rather
+than a requirement on every possible HOL proof. This is the advice of Section 6.7, to open existential assumptions first and then choose
 instances and witnesses, and Isabelle's unknowns show why it works.
 :::
 
@@ -1319,8 +1331,8 @@ goal (1 subgoal):
  1. ?n + ?n = 6
 ```
 
-No assumption says which number `?n` should be, and `simp` (Module 1) cannot solve an equation for an
-unknown:
+No assumption fixes `?n`, and `simp` (Module 1) does not solve this equation by searching for a
+numerical witness:
 
 ```isabelle fails
   apply simp
@@ -1445,7 +1457,9 @@ Arguments of this kind, about every state a system can reach, return in Module 1
 
 ### Proof by contradiction {#classical-raa}
 
-All the rules used so far are intuitionistic: none of them is (RAA). Module 6 showed that some
+The explicit natural-deduction rules used so far have intuitionistic counterparts; none is (RAA).
+This does not make the underlying HOL theory intuitionistic or classify every library fact used by
+automation as constructive. Module 6 explained that some
 tautologies cannot be derived without (RAA) ([Section 6.5](module_06_EN.html#classical)), and A ∨ ¬A, the
 law of excluded middle, is the standard example. Try it without:
 
@@ -1585,7 +1599,7 @@ thm excluded_middle
 
 ### A De Morgan law {#classical-demorgan}
 
-Of the four directions of De Morgan's laws, Section 6.5 showed that one needs (RAA):
+Of the four directions of De Morgan's laws, Section 6.5 stated that one needs (RAA):
 ¬(A ∧ B) ⟶ ¬A ∨ ¬B. The idea: suppose ¬A ∨ ¬B were false. Then A would have to hold, since otherwise
 ¬A ∨ ¬B would; and B likewise. But A ∧ B contradicts ¬(A ∧ B).
 
@@ -1836,8 +1850,9 @@ lemma "A ∧ B ⟶ B ∧ A"
 ***  1. A ∧ B ⟹ B ∧ A
 ```
 
-When in doubt, look the rule up with `thm`: for `rule`, its conclusion must have the same main connective
-as the conclusion of the subgoal.
+When in doubt, look the rule up with `thm`: for `rule`, its conclusion must unify with the conclusion
+of the subgoal. A fixed connective must match, but a schematic conclusion such as `?P` can match
+different shapes. The rule need not display the goal's connective before instantiation.
 
 ### Undefined fact {#errors-name}
 
@@ -1946,8 +1961,8 @@ Module 6 ended by letting `blast` prove its derivations ([Section 6.9](module_06
 have now done by hand what `blast` does automatically. `blast` belongs to Isabelle's **classical
 reasoner**, a family of proof methods built on natural-deduction rules. It applies introduction and
 elimination rules like the ones in this module: the safe ones of Section 6.7 freely, the others as
-choices. When a choice leads nowhere, it goes back and tries another, and in the end it either finds a
-complete proof or fails. Each example of this module takes a single call:
+choices. When a choice leads nowhere, it can go back and try another, within its search bounds.
+It may find a complete proof, fail, or hit a resource limit. The examples below take a single call:
 
 ```isabelle
 lemma "¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B"
@@ -1962,7 +1977,9 @@ lemma "⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))"
 
 `blast` found the instance step s that unification alone got wrong in Section 7.6: when one choice
 fails, it tries another. And whatever `blast` finds, the theorem is built by Isabelle's kernel from the
-rules of the logic, as for every other method (Module 1).
+rules of the logic. As Module 1 explains, this guarantee concerns ordinary reconstructed proofs,
+relative to the theory's axioms and trusted infrastructure; admissions and oracle methods introduce
+different evidence.
 
 When the statement is not valid, `blast` fails, as Section 6.9 showed for the master key:
 
@@ -1999,7 +2016,7 @@ goal (1 subgoal):
 
 `auto` turned the implication into an assumption and stopped there. `auto` combines classical reasoning
 with the simplifier, and leaves the subgoals it cannot prove; Module 9 covers it in depth. `blast` does
-no rewriting and knows little about equality, but *Programming and Proving in Isabelle/HOL* calls it "the
+not invoke the simplifier and knows little about equality, but *Programming and Proving in Isabelle/HOL* calls it "the
 method of choice for complex logical goals".
 
 So which should you use? For routine logic, `blast` or `auto`. But automation fails often enough, on
@@ -2019,12 +2036,13 @@ on the lemma.
 - Isabelle has two levels of logic: the meta-logic **Pure**, with ⟹, ⋀ and ≡, in which rules and goals
   are written, and the object logic **HOL**, with ¬ ∧ ∨ ⟶ ∀ ∃ and =, in which formulas are written.
 - A rule is a theorem: `thm conjI` shows `⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q`. **Schematic variables** such as `?P` can
-  be replaced by any term: by **unification** automatically, or by hand with `of` and `rule_tac`.
+  be instantiated by terms of the appropriate type and permitted variable dependencies: by
+  **unification** automatically, or by hand with `of` and `rule_tac`.
 - Each rule of Module 6 has an Isabelle name: `conjI`, `conjunct1`, `conjunct2`, `conjE`, `disjI1`,
   `disjI2`, `disjE`, `impI`, `mp`, `impE`, `notI`, `notE`, `FalseE`, `allI`, `spec`, `allE`, `exI`,
   `exE`, `ccontr`, `classical`, `refl` and `subst`.
-- A proof script builds the paper tree from the root: `rule` applies an introduction rule to the
-  conclusion; `erule`, `drule` and `frule` apply elimination and destruction rules to assumptions;
+- A proof script builds the paper tree from the root: `rule` matches a rule's conclusion against the
+  goal; `erule`, `drule` and `frule` resolve rules against assumptions in different ways;
   `assumption` closes a branch; `intro` and `elim` repeat; `done` checks that nothing is left.
 - `allI` and `exE` create **fixed variables** (⋀x), which enforce the eigenvariable conditions; `exI`,
   `allE` and `spec` create unknowns. Fix first, guess later.
@@ -2353,7 +2371,8 @@ goal (2 subgoals):
 The converse is not valid: P could be "is even" and Q "is odd" on the natural numbers. Both have
 witnesses, but no number is both. In a proof attempt, the two `exE` steps fix two different variables,
 one with P and one with Q, and the single unknown witness of `exI` cannot become both: unification never
-makes two different fixed variables equal. This is the broken eigenvariable condition of Exercise 6.6 in
+makes two different fixed variables equal. Different names do not assert different values; rather,
+we have no equality that lets us treat these arbitrary witnesses as the same. This is the broken eigenvariable condition of Exercise 6.6 in
 Isabelle's form.
 :::
 ::::
@@ -2448,7 +2467,7 @@ happen in Isabelle: apply the quantifier rules in the best order you can find, a
 you get stuck. Then explain, with fixed variables and unknowns, why no order can work.
 
 ::: solution
-The conclusion starts with ∃x, so the only rule for the conclusion is `exI`, and it creates the unknown
+Direct introduction of the conclusion's ∃x uses `exI`, and it creates the unknown
 witness before anything is fixed:
 
 ```isabelle
@@ -2498,9 +2517,9 @@ that make Isabelle refuse these unifications are what keep its proofs sound.
 ? `thm exI` prints `?P ?x ⟹ ∃x. ?P x`. What does the question mark in `?x` mean?
 - [ ] That x is optional
 - [ ] That x is a fixed variable of the current subgoal
-- [x] That ?x is a schematic variable: when the rule is used, it can be replaced by any term
+- [x] That ?x is schematic: it may be instantiated by a term of the right type and permitted scope
 - [ ] That x has not been defined
-> Schematic variables are placeholders. Isabelle fills them in by unification, or you choose them with `of` or `rule_tac`.
+> Schematic variables are placeholders constrained by types and scope. Isabelle fills them in by unification, or you choose them with `of` or `rule_tac`; a later local variable cannot escape through an earlier unknown.
 
 ? The subgoal is `A ∨ B ⟹ B ∨ A`. Which step performs (∨E) on the assumption, leaving one subgoal per case?
 - [ ] `apply (rule disjI1)`

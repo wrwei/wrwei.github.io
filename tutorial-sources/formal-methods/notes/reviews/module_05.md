@@ -1,5 +1,36 @@
 # Review of Module 5, Induction and recursion
 
+## Audit and revision — 17 November 2026
+
+English content audit against commit `a79a552`. Line numbers below refer to that baseline; current sections retain their IDs.
+
+- **L4.** Recursion: scoped the termination requirement to fun and the definitions here, rather than recursion in every programming language.
+- **L163.** Evaluation: distinguished normal forms from concrete values, kept rewrite parentheses explicit, and separated executable value evaluation from proof-producing simplification.
+- **L345.** Cost: counted Fibonacci additions without assuming constant-cost arithmetic on growing integers.
+- **L593.** Proof advice: replaced guaranteed induction/auto success with a strategy, and qualified the recommendation to register lemmas as simp rules.
+- **L895.** Induction: explained that strengthening ordinary induction can provide the hypotheses used in strong induction; aligned the formal display with the series notation.
+- **L1022.** Safe definitions: included completeness and compatibility of equations as well as termination, under the trusted logical infrastructure.
+- **L1059.** Measures: distinguished failure of individual argument-size measures from non-existence of any natural-valued measure; qualified the automatic search description.
+- **L1164.** Invariants: explicitly used inductive invariants, stated natural/unbounded arithmetic for the loop, and limited the ticket model to coin-insertion transitions.
+- **L1451.** Exercise: required positive dimensions in the chocolate-bar argument.
+
+### Validation and scope
+
+- Re-read the English page, worked examples, exercise solutions and quiz; retained the established section and exercise IDs.
+- Every Isabelle and captured-output block is byte-for-byte unchanged from commit `a79a552`. The existing downloadable theories are reused unchanged.
+- `node tools/check.mjs --lang en`: 18 pages, 0 errors, 0 warnings. The English site builds successfully, and `mkdocs build` from the repository root passes.
+- Browser checks cover desktop (1280 px) and phone (390 px), expanded solutions, image decoding, formula rendering, internal anchors, page overflow and JavaScript errors. See the local `out/audit-module-05/` screenshots and metrics.
+- Isabelle2026 is not installed on this computer. The requested Isabelle recheck could not run; unchanged code/output comparison and the earlier successful proof-check logs are not represented as a fresh prover run.
+- Chinese work remains paused. These English changes must be reconciled before publishing the Chinese edition.
+
+### Additional checks and sources
+
+- Evaluation-stepper widget: 16 existing scripted checks passed, 0 failed.
+- [Isabelle2026 functions manual](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Functions/Functions.html): pattern completeness/compatibility, termination, and default lexicographic size-measure search.
+- Fibonacci call counts and Ackermann digit count recomputed; the unchanged numerical examples agree. [Barina's Collatz verification project](https://pcbarina.fit.vutbr.cz/) documents the distinction between a large verified finite bound and a general proof.
+
+## Earlier review — 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_05.md`, `src/widgets/eval-stepper.js` (with its test
 `tools/widget-tests/eval-stepper.mjs`) and `src/figures/_gen/figs_05.py`. Line numbers are those of the
 page as I found it, before my edits.

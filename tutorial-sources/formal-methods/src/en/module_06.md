@@ -16,17 +16,18 @@ imports: Main
 
 ## Proofs you already know {#informal}
 
-A **proof** is an argument that leaves no room for doubt: each step follows from earlier ones, for reasons
-that everyone accepts. You have built such arguments before, perhaps without the name. When you convince a
+A **proof** establishes a stated claim from explicit assumptions by justified steps. Its force depends
+on those assumptions and the rules used. You have built such arguments before, perhaps without the name. When you convince a
 colleague that a loop always terminates, or that a function never returns a negative number, you give
 reasons, and each reason rests on the ones before it.
 
 This section collects the patterns that such arguments use. The rest of the module turns each one into a
 precise rule, so that a computer can check every step. Modules 2 and 3 gave you formulas and their meaning;
-this module adds the third ingredient of a formal method from Module 1, a proof system.
+this module develops one of Module 1's checking methods: a proof system.
 
 ::: example A withdrawal never makes the balance negative
-**Claim.** If the balance b is at least 0 and the amount a is at most b, then b − a is at least 0.
+**Claim.** For mathematical integers a and b, if the balance b is at least 0 and the amount a is at most
+b, then b − a is at least 0. The arithmetic here has no machine-integer overflow.
 
 **Proof.** Assume b ≥ 0 and a ≤ b. Subtract a from both sides of a ≤ b: this gives 0 ≤ b − a. ∎
 :::
@@ -80,9 +81,10 @@ as well, reusing the k of m, it would have assumed that n has the same half as m
 :::
 
 ::: note
-A witness is the one kind of proof a test can deliver. "Some input makes the parser crash" is proved by a
-single crashing input. Claims about *all* inputs are another matter: as Module 1 put it, tests can show the
-presence of bugs, never their absence.
+A single observed failure can establish an existential claim about that run: "some input makes this
+parser crash". It does not establish behaviour on untested inputs. As Module 1 explained, exhaustive
+checking can cover a small finite domain, but sampled tests do not establish an unrestricted claim
+about all inputs.
 :::
 
 ::: example There is no largest natural number
@@ -135,9 +137,11 @@ it.
 Three mistakes are common in informal proofs:
 
 - **Checking examples instead of proving.** In Module 1, double n = n * n held for n = 0 and n = 2 and
-  failed for n = 1. Examples can refute a *for all* claim, never prove it.
-- **Assuming what you want to prove.** An argument that uses its own conclusion along the way proves
-  nothing, however convincing each step looks.
+  failed for n = 1. A counterexample refutes a universal claim; passing selected examples leaves
+  untested cases open. Checking every case in a finite domain is different.
+- **Assuming what you want to prove.** Taking A as an undischarged premise does not establish A without
+  that premise. Temporary assumptions used and discharged by a proof rule are legitimate; leaving
+  the desired conclusion among the assumptions is circular when the goal was to prove it outright.
 - **Proving the converse.** Asked for *if A then B*, it is easy to slip into proving *if B then A*. They
   are different claims: "if it rained, the street is wet" is not "if the street is wet, it rained".
 :::
@@ -160,7 +164,7 @@ $$
 Read each rule as: from the statements above the line, the **premises**, you may conclude the statement
 below the line, the **conclusion**. The name of the rule is written beside the line. (ev₀) has no premises:
 you may write *even 0* at any time. (ev₂) says that from *even n* you may conclude *even (n + 2)*, for any
-number n. Here is a **derivation** built from these rules:
+natural number n. Here is a **derivation** built from these rules:
 
 ```prooftree
 even 4   (ev₂)
@@ -195,7 +199,7 @@ is correct: it says what would follow if *even 1* held.
 
 ::: definition Derivability
 **Γ ⊢ A**, read "Γ derives A" or "A is derivable from Γ", means that some derivation has conclusion A
-and all its assumptions in the set of formulas Γ (the Greek capital letter gamma). The set is written as a
+and all its **open**, or undischarged, assumptions in the set of formulas Γ (the Greek capital letter gamma). The set is written as a
 list: *even 1* ⊢ *even 5*. **⊢ A**, with nothing on the left, means that A has a derivation without any
 assumptions; A is then a **theorem** of the proof system.
 :::
@@ -212,9 +216,14 @@ This is why the kernel of a proof assistant can be small (Module 1): the kernel 
 
 There are many proof systems for logic: Hilbert-style systems with many axioms and one or two rules,
 sequent calculi, tableaux, and resolution, which automatic provers use. For propositional and first-order
-logic they all establish the same consequences; they differ in convenience. This module uses **natural
+logic, sound and complete versions establish the same consequences; they differ in convenience. This module uses **natural
 deduction**, because it follows the informal patterns of Section 6.1 closely and because Isabelle is
 designed around it (Module 7).
+
+For the rule presentation below, `True` (also written ⊤) abbreviates ¬⊥, and A ⟷ B abbreviates
+(A ⟶ B) ∧ (B ⟶ A). Expand these abbreviations when building a derivation: no separate rules for
+`True` or ⟷ are listed here. The completeness claims use this convention and the non-empty domains
+of Module 3.
 
 ## Derivable and true {#soundness}
 
@@ -237,8 +246,8 @@ A proof system is **sound** if everything it derives is a consequence: for all �
 The even system shows both properties on a small scale. Give *even n* its natural meaning, "n is divisible
 by 2". The system is **sound**: (ev₀) concludes a true statement, and (ev₂) turns a true statement into a
 true one, because n + 2 is divisible by 2 whenever n is. A derivation applies these rules finitely often, so
-its conclusion is true (an induction on the size of the derivation, as in Module 5). In particular *even 3*
-is false, so it has no derivation: soundness answers the question of the last section without trying a
+its conclusion is true **whenever its open assumptions are true** (an induction on the derivation, as
+in Module 5). In particular, *even 3* is false, so it has no derivation without assumptions: soundness answers the question of the last section without trying a
 single tree. For statements without assumptions the system is also **complete**: every true statement
 *even 2k* has a derivation, with one use of (ev₀) and k uses of (ev₂).
 
@@ -249,15 +258,15 @@ in every valuation or structure that makes the assumptions true. Soundness and c
 
 What would it mean if one of the two properties failed?
 
-- **If soundness fails**, the system can derive something false. Suppose you add to the rules of this
+- **If soundness fails**, a derivation can reach a conclusion not entailed by its premises. Suppose you add to the rules of this
   module one plausible-looking rule: from A ∨ B, conclude A. ("The request came from the admin or from a
   guest, so it came from the admin.") Then A ∨ B ⊢ A, although A ∨ B ⊭ A (read "A ∨ B does not entail
   A"): with A false and B true, A ∨ B is true and A is false. It gets worse. Section 6.5 derives A ∨ ¬A
   for every formula A; with the new rule, every A would follow, including ⊥, the formula that is always
-  false. A derivation in an unsound system proves nothing. For a proof assistant this is the worst
+  false. Derivability in an unsound system no longer guarantees semantic consequence. For a proof assistant this is the worst
   possible bug, which is why Module 1's LCF kernel is kept small and checked with care.
-- **If completeness fails**, some consequence has no derivation. The system never derives anything false,
-  but it cannot prove everything you need, and a failed search does not tell you whether you were unlucky
+- **If completeness fails**, some consequence has no derivation. A system can be sound yet incomplete:
+  it derives only consequences of its premises, but cannot derive all of them. A failed search does not tell you whether you were unlucky
   or the system is too weak. Section 6.5 meets an example: without its last rule, natural deduction cannot
   derive A ∨ ¬A, although every row of its truth table is true.
 
@@ -277,14 +286,16 @@ Three consequences matter in practice.
 1. **Counterexamples show that a proof does not exist.** To show that A is *not* derivable from Γ, you do
    not have to try every derivation. Find one valuation or structure that makes Γ true and A false; by
    soundness, no derivation exists. This is what Quickcheck and Nitpick do in Isabelle (Modules 1–3): a
-   counterexample means "stop trying to prove it".
+   genuine counterexample satisfying the premises refutes the claim under those premises. A result
+   marked potentially spurious needs further investigation.
 2. **Proof search can succeed, but not always fail.** Derivations can be listed one after another, by size,
    and each can be checked mechanically. A program that works through the list will find a derivation of
    every valid first-order formula, eventually. For a formula that is not valid, it may search forever:
-   validity in first-order logic is undecidable (Module 3), so no program can always answer "no". Proof
+   validity in first-order logic is undecidable (Module 3), so no algorithm always terminates with the
+   correct yes-or-no answer for every first-order formula. Proof
    search tools such as Isabelle's `blast` live with this: they search up to a bound and then give up.
 3. **Gödel's incompleteness theorem is about something else.** Completeness concerns truth in *every*
-   structure; the incompleteness theorem of 1931 (Module 1) concerns truth in one structure, the natural
+   structure; the incompleteness theorem of 1931 (Module 3) concerns truth in one structure, the natural
    numbers: no mechanically checkable proof system that derives only true statements about arithmetic
    derives all of them. Isabelle/HOL can express arithmetic, so its proof system, like every other that a
    machine can check, cannot derive every true statement about the natural numbers. What Isabelle
@@ -637,8 +648,11 @@ the direction the pattern uses, (¬B ⟶ ¬A) ⟶ (A ⟶ B), does (Exercise 6.5)
 
 Natural deduction without (RAA) is **intuitionistic logic**. It goes back to L. E. J. Brouwer's view,
 early in the twentieth century, that a proof must construct what it talks about; Arend Heyting set down its
-rules in 1930. In intuitionistic logic a proof of A ∨ B tells you which side holds, and a proof of ∃x. P x
-supplies a witness. Classical proofs need not, as this famous example shows.
+rules in 1930. Closed proofs in the basic intuitionistic calculus have the disjunction and witness
+properties: a proof of A ∨ B yields a proof of a side, and a proof of ∃x. P x yields a witness.
+With premises or additional axioms, extracting such evidence also depends on the evidence those supply;
+an assumption A ∨ B alone does not tell you which side holds. Classical existence arguments need not
+select an explicit witness, as this example shows.
 
 ::: example A proof that does not say which
 **Claim.** There are irrational numbers a and b such that $a^b$ is rational.
@@ -655,12 +669,15 @@ Intuitionistic proofs can be read as programs: a proof of A ⟶ B is a function 
 evidence for B, a proof of A ∧ B is a pair, and a proof of A ∨ B is a value tagged *left* or *right*. The
 derivation of A ∧ B ⟶ B ∧ A is then the function that swaps a pair, and that of
 (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C) composes two functions. This is the **Curry–Howard correspondence**, on which
-proof assistants such as Rocq and Lean are built. (RAA) has no such reading in general: a program that
-produced evidence for A ∨ ¬A for every A would decide every question, including whether any program halts.
+proof assistants such as Rocq and Lean are built. These assistants also support classical reasoning;
+using classical axioms does not in general provide the same constructive extraction guarantee.
+Classical proofs have computational interpretations too, for example using continuations, but (RAA)
+does not give a general algorithm that decides which side of A ∨ ¬A holds. Such an algorithm for
+arbitrary computational propositions would decide the halting problem.
 :::
 
 Isabelle/HOL is classical, like most of mathematics: (RAA) is one of its rules (Module 7). Still, notice
-when a proof uses (RAA): it shows *that* something holds without showing *which* case or *what* witness.
+when a proof uses (RAA): it may establish a claim without selecting a case or an existential witness.
 
 ## The quantifier rules {#quantifiers}
 
@@ -855,8 +872,13 @@ which you must go back and try something else.
 (⟶I), (¬I), (∧I) and (∀I) are safe on the goal, and so are (∧E₁), (∧E₂), (∨E) and (∃E) on the
 assumptions. (∨I₁) and (∨I₂) are not, as step 2 showed, nor is (∃I), whose witness may be the wrong one,
 nor (⊥E), which replaces the goal by ⊥. Isabelle's reference manual draws the same distinction for its
-automatic provers: a safe rule "must never reduce a provable goal to an unprovable set of subgoals". The
-rules of thumb follow:
+automatic provers: a safe rule "must never reduce a provable goal to an unprovable set of subgoals".
+
+Retaining a universal assumption and adding one of its instances preserves provability too. However,
+there are indefinitely many possible instances, so trying them indiscriminately can prevent a search
+from making progress. Preserving provability does not by itself guarantee a terminating search.
+
+The rules of thumb follow:
 
 1. **Close** a goal that is one of its assumptions.
 2. **Apply safe introduction rules** to the goal: (⟶I), (¬I), (∧I), and (∀I) with a fresh name.
@@ -887,8 +909,11 @@ Build proofs backwards, as above. Pick a goal from the list or type your own. Se
 for an elimination rule, first click the assumption it should use. The box for terms and names serves
 (∀I), (∃I), (∀E) and (∃E); left empty, it gives (∀I) and (∃E) a fresh name. Start with A ∧ B ⟶ B ∧ A and
 compare the finished tree with Section 6.4. Then apply (∨I₁) too early in A ∨ B ⟶ B ∨ A, see the dead-end
-warning, and undo. Finally take the last-but-one goal, the converse above, and watch the eigenvariable
-checks refuse every way out.
+warning, and undo. Finally take the last-but-one goal, the converse above, and inspect the failed
+eigenvariable checks. The widget implements a subset of proof operations; its equality elimination
+rewrites all matching occurrences from left to right, whereas the paper rule permits selective
+replacement. Expand `True` and ⟷ yourself as described in Section 6.2. Getting stuck in the widget
+does not establish that a goal is unprovable.
 :::
 
 ## Equality {#equality}
@@ -1053,8 +1078,9 @@ lemma "s = t ⟶ t = s"
 
 ::: keyidea
 On paper and in Isabelle you use the same two tools: derivations establish ⊢, and counterexamples refute
-⊨. Soundness links them, and a proof assistant adds a guarantee that paper cannot give: every step of every
-derivation has been checked by its kernel.
+⊨. Soundness links them. For an ordinary completed Isabelle proof, the logical steps have been checked
+through the kernel's operations. This remains relative to the axioms, assumptions and trusted
+infrastructure discussed in Module 1; an admitted proof or an oracle result is not the same evidence.
 :::
 
 ## What you learned {#summary}
@@ -1064,7 +1090,7 @@ derivation has been checked by its kernel.
   witness.
 - A **proof system** has inference rules; a **derivation** is a tree of rule applications. **Γ ⊢ A**
   means that A has a derivation whose open assumptions are in Γ; checking a derivation is mechanical.
-- **Γ ⊨ A** is about truth. **Soundness** (⊢ implies ⊨) means that the system derives nothing false;
+- **Γ ⊨ A** is about truth. **Soundness** (⊢ implies ⊨) means that true premises lead only to true conclusions;
   **completeness** (⊨ implies ⊢) means that it derives every consequence. Natural deduction is both, for
   propositional and first-order logic. A counterexample shows that no derivation exists.
 - **Natural deduction** has introduction rules, which prove a connective, and elimination rules, which use
@@ -1113,9 +1139,9 @@ behind each.
    B, conclude A. Is it sound? Justify your answer with a valuation.
 2. Another system has only the rules (∧I), (∧E₁) and (∧E₂). Is it sound? Is it complete for propositional
    logic?
-3. A proof search for a formula A has run for an hour without finding a derivation. What do you know about
+3. A proof search for a first-order formula A has run for an hour without finding a derivation. What do you know about
    A?
-4. Nitpick finds a counterexample to A. What do you know about ⊢ A?
+4. Nitpick finds a genuine counterexample to A. What do you know about ⊢ A under the same assumptions?
 
 ::: solution
 1. **Not sound.** The new rule derives A from A ⟶ B and B. The valuation with A false and B true makes
@@ -1424,7 +1450,8 @@ without (RAA): it is one of the classical laws.
    ```
 
 2. The witness is a name a that occurs nowhere else. (∀E) allows any term, and (∃I) accepts any term as a
-   witness, so the derivation needs no element that is known to exist.
+   witness. No particular named constant is needed: the free variable a denotes an arbitrary element
+   under an assignment, relying on the convention that the domain is non-empty.
 3. The formula is valid because the domain of every structure has at least one element, and the
    rules build this in: any name may serve as a witness. In an empty domain, ∀x. P x would be true, since
    there is nothing to check, and ∃x. P x would be false, since there is nothing to find. First-order logic
@@ -1454,7 +1481,7 @@ without (RAA): it is one of the classical laws.
 - [ ] every formula that is true in every valuation can be derived
 - [ ] every derivation can be checked by a computer
 - [ ] it has an introduction and an elimination rule for each connective
-> Soundness is "⊢ implies ⊨": the system derives nothing false. The second option is completeness.
+> Soundness is "⊢ implies ⊨": whenever the premises are true, the conclusion is true. Derivations may have false open assumptions; soundness does not assert those assumptions. The second option is completeness.
 
 ? In a derivation, (⟶I¹) concludes A ⟶ B. What happens to the assumption [A]¹?
 - [ ] It becomes an open assumption of the conclusion

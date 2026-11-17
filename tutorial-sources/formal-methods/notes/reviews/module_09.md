@@ -1,5 +1,41 @@
 # Review of Module 9, Proof automation
 
+## Follow-up content audit, 17 November 2026
+
+Read every method description, worked proof, counterexample, exercise solution and quiz answer.
+Line numbers refer to the source at the start of this follow-up.
+
+- **L25–30, 215–242, 331–342:** restricted kernel guarantees to reconstructed proofs relative to
+  assumptions/axioms and separated proof methods from search/test commands. Defining equations are not
+  simp rules by default. A failed initial method reports no successful initial result, not that no
+  internal rewrite was attempted.
+- **L143–158, 438–451, 810–835:** ordinary rewriting is inside-out with congruence control.
+  `simp only:` retains assumptions and implicit solvers. `clarsimp` can finish a proof; its logical
+  clarification avoids branching, but simplifier splitters can still create subgoals.
+- **L880–883, 919–932, 1330–1333 and quiz:** Presburger divisibility uses fixed divisors.
+  Undecidability rules out a terminating decision procedure for every nonlinear integer-arithmetic
+  question; “no complete method” conflated that with proof search. The fallback section now uses
+  first-order undecidability from Module 3, without an unqualified claim about higher-order completeness.
+- **L1011–1013, 1032–1034, 1195–1210, 1336–1344, 1357:** `find_theorems simp:` finds potential rewrite
+  theorems, including unregistered ones. Automatic Quickcheck is configurable. Nitpick's finite
+  approximations distinguish genuine/spurious results; finding none is not a probability of truth.
+  Induction is a suitable strategy, not necessary merely because a statement covers all lists.
+- **Figure 9.2:** added `nat` to the monotonicity example and replaced unconditional slogans about
+  incorrect translations and false statements with the checked reconstruction requirement. Regenerated
+  the English SVG from its generator; the Chinese SVG remains byte-identical.
+
+Primary references: [Isar reference, Generic tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Generic.html),
+[HOL-specific tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/HOL_Specific.html),
+and [implementation manual, Logic](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Implementation/Logic.html).
+
+Validation: all 80 Isabelle blocks, 42 captured-output blocks and existing IDs are unchanged.
+English checker: no errors or warnings. English HTML and root MkDocs builds passed. Inspected all
+sections at 1280 and 390 px with solutions expanded, including the amended diagram: no page overflow,
+broken images, KaTeX errors, missing local anchors or browser errors. No fresh Isabelle run was
+possible on this Mac. Chinese synchronisation remains deferred.
+
+## Original review, 16 November 2026
+
 Reviewer's pass, 16 November 2026. Line numbers are those of `src/en/module_09.md` before the review.
 Claims that no output block covers were checked in scratch sessions (`out/scratch/rev79/`: theories
 `R79_*`) or in the Isabelle2026 sources and manuals.

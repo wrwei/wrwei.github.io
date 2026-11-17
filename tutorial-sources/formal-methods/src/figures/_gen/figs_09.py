@@ -64,8 +64,8 @@ def fig_09_2(L):
                     recon='Reconstruction in Isabelle', reconk='“Try this:” one-line proof',
                     kernel='Kernel', kernelk='checks every step', thm='theorem',
                     outside='outside Isabelle: not trusted', inside='inside Isabelle',
-                    note=['If a prover or the translation is wrong, reconstruction fails.',
-                          'A false statement never becomes a theorem.']),
+                    note=['External answers alone prove nothing; Isabelle must reconstruct a proof.',
+                          'Checked inferences establish the goal from its assumptions and axioms.']),
          'zh': dict(title='Sledgehammer 如何找到证明',
                     goal='你的目标', filt='相关性过滤', filtk=['从库中挑选', '至多约 1000 条事实'],
                     trans='翻译', transk=['译成各个证明器', '的输入语言'],
@@ -85,7 +85,8 @@ def fig_09_2(L):
     # top row: goal -> filter -> translation -> provers
     s.rect(22, 30, 150, 86, fill=C['skyp'], stroke=C['blue'], r=10, sw=1.6)
     s.text(97, 54, T['goal'], size=14, weight=700, fill=C['blue'], anchor='middle')
-    s.lines(97, 80, ['x ≤ y ⟹', 'x * x ≤ y * y'], size=12.5, anchor='middle', mono=True, gap=18)
+    premise = '(x::nat) ≤ y ⟹' if L == 'en' else 'x ≤ y ⟹'
+    s.lines(97, 80, [premise, 'x * x ≤ y * y'], size=12.5, anchor='middle', mono=True, gap=18)
     s.rect(200, 30, 150, 86, fill=C['bg'], stroke=C['slate'], r=10, sw=1.5)
     s.text(275, 54, T['filt'], size=14, weight=700, fill=C['navy'], anchor='middle')
     s.lines(275, 78, T['filtk'], size=12, anchor='middle', fill=C['slate'])

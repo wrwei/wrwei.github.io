@@ -240,8 +240,9 @@ qed
 A `show` may solve any pending goal of its block, not only the first: Isabelle looks for a goal that the
 shown fact solves. `next` separates the proofs of different goals. It closes the current part of the
 block and opens a fresh one, so that whatever you assume for one goal is not available for the next.
-Here nothing is assumed inside the inner block, so `next` could be left out; with case analysis and
-induction (Sections 10.5 and 10.6) it is needed. Figure 10.1 shows the structure of this proof.
+Here nothing is assumed inside the inner block, so `next` could be left out. In the case analysis and
+induction patterns below (Sections 10.5 and 10.6), use it to separate the case contexts. Figure 10.1
+shows the structure of this proof.
 
 ::: figure id=fig-10-1
 The block structure of the nested proof. Each `proof … qed` opens a block with its own pending goals,
@@ -281,8 +282,9 @@ qed
 
 ::: definition Fixed variable
 `fix x` introduces a **fixed variable** x, like the variables bound by ⋀ in Module 7: a name for an
-arbitrary value, about which the proof knows nothing except what it assumes. When the block is closed,
-a fact proved for the fixed x holds for every value of x.
+arbitrary value, about which the proof knows nothing except its type and the available assumptions.
+On leaving the block, Isabelle generalises x and discharges local assumptions: proving `P x` under
+`A x` establishes `⋀x. A x ⟹ P x`, not an unconditional `⋀x. P x`.
 :::
 
 ### Lemmas with assumptions: assumes, shows and ?thesis {#shape-assms}
@@ -504,7 +506,9 @@ qed
 ```
 
 The order of the facts matters here: `rule conjI` uses the first fact for the left conjunct and the
-second for the right one. For `blast`, `simp` and `auto` the order makes no difference.
+second for the right one. `blast`, `simp` and `auto` do not assign these positional roles to the facts.
+Their search or rewriting can still depend on fact order; there is no general promise that reordering
+facts leaves automation's behaviour unchanged.
 
 ::: fact Chaining shorthands
 | You write | It means |
@@ -520,7 +524,7 @@ You will meet `hence` and `thus` in older proofs, including the Isabelle tutoria
 accepts them, but its reference manual calls them left-overs from the early history of Isar and
 recommends the longer forms, which this series uses.
 
-### Methods see only the facts you give them {#facts-visible}
+### Passing local facts to methods {#facts-visible}
 
 In Section 10.2.5 the proof of `clamp_lower` said `using assms`. Leave it out:
 
@@ -539,14 +543,15 @@ lemma
 
 The simplifier unfolded `clamp` and split the `if`s, and what remains is the one case that needs the
 assumption: when x is above the range, `clamp` returns hi, and lo ≤ hi is exactly what `simp` did not
-know. The assumption was in the proof all the time, but **a proof method sees only the goal and the
-facts passed to it** with `then`, `from`, `with` or `using`, besides the rules it always uses (for
-`simp`, the simp rules, which include the equation of `clamp`). This is deliberate: you decide which
-facts matter, and automation does not get lost among hundreds of them.
+know. The assumption was available as a local fact, but **these methods do not automatically use every
+local fact**. They receive the goal and facts passed with `then`, `from`, `with` or `using`, and consult
+their configured context rules (for `simp`, the simp rules, including the equation of `clamp`). A fact
+registered with `[simp]` can therefore be used without being passed explicitly. Premises already inside
+the subgoal are also available. Explicit fact passing makes the dependencies of these proofs visible.
 
 ::: keyidea
-Assumptions and proved facts are available in a proof, but a method uses them only when you pass them.
-When a step fails, first check that it receives the facts it needs.
+Local assumptions and proved facts are available to pass to a method; availability alone does not add
+them to its input or rule collections. When a step fails, first check that it receives the facts it needs.
 :::
 
 ### Using an existential: obtain {#facts-obtain}
@@ -636,7 +641,8 @@ qed
 - `also` adds the new step to the chain. Isabelle composes the steps by transitivity: from a = b and
   b = c it derives a = c.
 - `finally` composes the last step and passes the result, first term = last term, to the next claim.
-- `.` (a single dot) is a proof that succeeds when the claim is exactly the fact passed to it. Here the
+- `.` (a single dot) directly uses the passed fact when it matches the claim, without deriving a weaker
+  consequence by logical search. Here the
   claim is `?thesis`, the statement of the lemma.
 
 Each step has its own justification: `distrib_right` is the law (a + b)c = ac + bc, `distrib_left` the
@@ -677,7 +683,8 @@ result is `2 * i + 1 < 2 * n`. Only the last step needs the assumption, and only
 :::
 
 ::: pitfall
-`finally` produces the strictest relation, and `.` accepts only that exact fact. A weaker claim fails,
+For these numeric chains, `finally` produces the strictest relation, and `.` directly uses that fact.
+It does not automatically weaken `<` to `≤`. A weaker claim fails,
 even though it follows:
 
 ```isabelle fails
@@ -1157,7 +1164,7 @@ follows from `Cons.prems`. So both are passed.
 
 ## From paper and apply scripts to Isar {#translate}
 
-You have now seen every part of Isar that this series needs. This section puts it side by side with the
+You have now seen the core Isar forms used in this series. This section puts them side by side with the
 proofs of Modules 5, 6 and 7, so that you can translate in both directions.
 
 ### A natural-deduction proof {#translate-nd}
@@ -1408,11 +1415,11 @@ A few habits make Isar proofs easier to write and to keep working:
 - **Facts** flow from step to step: `then` passes `this`, `from a` passes named facts, `with a` passes
   both, `using a` comes after the claim, `note` collects facts, and `moreover … ultimately` collects
   several before using them. `hence` and `thus` are old forms of `then have` and `then show`. A method
-  sees only the facts passed to it.
+  receives the passed facts and can also use its configured context rules and the subgoal's premises.
 - `obtain x where …` uses an existential fact, as the rule (∃E) does.
 - **Calculations** chain steps with `also` and end them with `finally`; `…` stands for the previous
-  right-hand side, and `.` proves the claim that the chain produced. The result has the strictest
-  relation of the chain.
+  right-hand side, and `.` directly uses the fact that the chain produced. For numeric chains mixing
+  `=`, `≤` and `<`, the result has the strictest relation of the chain.
 - **Case analysis** uses `proof (cases …)` with `case True`/`case False` or the constructors of a
   datatype, `consider` for cases of your own, and `proof` with a disjunction passed to it.
 - **Induction** uses `proof (induction x)` with `case Nil`, `case (Cons x xs)`, `case 0`,

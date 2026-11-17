@@ -1,5 +1,45 @@
 # Review of Module 8: Functional programming in HOL
 
+## Follow-up content audit, 17 November 2026
+
+Read every section, example, exercise solution and quiz against the preceding foundations.
+Line numbers refer to the source at the start of this follow-up.
+
+- **L4–33, 563–570, 1340–1381 and summary:** separated total mathematical denotation from executable
+  code and successful evaluation. HOL can model state and loops. `fun` requires termination before
+  supplying unrestricted equations; a failed attempt can retain an underlying partial construction.
+  Updated the heading and learning goals.
+- **L118–150, 247–250:** inference also uses variable types and binding/application constraints; a free
+  variable is neither a constant nor locally bound. β-reduction uses capture-avoiding substitution.
+- **L446–478, 714–718, 788–789, 821–829, 900–902, 1118–1123:** distinguished constructor simp rules
+  from case analysis, single tests from finite exhaustive checks, and default rule registration from
+  explicit registration. Unspecified values still satisfy their type's properties. A right-side-only
+  variable is not determined by the function arguments.
+- **L1200–1203, 1383–1390, 1539–1559:** made division-by-zero handling specification-dependent,
+  restricted size claims to the datatypes used, and clarified `function` proof obligations and its
+  termination-dependent induction rule.
+- **L1576–1582:** the raw quantifier in `all_small k = (∀n::nat. n < k)` lacks default executable code;
+  the function is nevertheless computable as `False`. A proved code equation bridges that gap.
+- **L1641–1654, 2040–2046:** qualified generated-code partial correctness and target assumptions.
+  Corrected “no single measure works” for `merge`: the sum of list lengths works, while the displayed
+  automatic proof uses lexicographic combinations of individual lengths.
+
+Primary references: Isabelle2026 [Functions](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Functions/Functions.html),
+[Datatypes](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Datatypes/Datatypes.html),
+and code generation [Introduction](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Introduction.html),
+[Foundations](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Foundations.html)
+and [Further issues](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Codegen/Further.html).
+Also consulted the Collatz verification project's [current results](https://pcbarina.fit.vut.cz/);
+finite verification does not establish termination for all natural numbers.
+
+Validation: all 91 Isabelle blocks, 75 captured-output blocks, the displayed Haskell and existing IDs
+are unchanged. English checker: no errors or warnings. English HTML and root MkDocs builds passed.
+Inspected the whole page at 1280 and 390 px with solutions expanded: no page overflow, broken images,
+KaTeX errors, missing local anchors or browser errors. Isabelle is unavailable on this Mac; this pass
+did not rerun proofs, evaluations or code export. Chinese synchronisation remains deferred.
+
+## Original review, 16 November 2026
+
 Reviewer's log, 16 November 2026. Files: `src/en/module_08.md`, `src/figures/_gen/figs_08.py`. Line
 numbers refer to the page as it was before the review.
 

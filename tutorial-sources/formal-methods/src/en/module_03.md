@@ -22,7 +22,7 @@ once: *every* request, *some* server, *no* two trains, *the owner* of a file. He
 policy and a conclusion that anyone would draw from it:
 
 1. Every administrator can delete every document.
-2. Alice is an administrator.
+2. Alice is an administrator, and the quarterly report is a document.
 3. Therefore Alice can delete the quarterly report.
 
 In propositional logic each sentence becomes an atom, say $A$, $B$ and $C$, and the argument becomes the
@@ -41,23 +41,26 @@ Alice of sentence 2 is the Alice of sentence 3, "every administrator" in sentenc
 - **properties and relations** of objects, such as "is an administrator" and "can delete";
 - **quantifiers**, the words of quantity "every" and "some", with variables that range over the objects.
 
-**Predicate logic** adds exactly these to the connectives of Module 2. It is also called **first-order
-logic**, because its variables range over objects, the "first order" of things, and not over properties
-of objects. Gottlob Frege introduced quantifiers in his *Begriffsschrift* of 1879, and predicate logic
+Here **predicate logic** means **first-order logic**: its variables range over objects, rather than
+over predicates or relations themselves. It adds the vocabulary and quantifiers above to the
+connectives of Module 2. Gottlob Frege introduced quantifiers in his *Begriffsschrift* of 1879, and predicate logic
 has since become the standard language for stating mathematics precisely. Written in it, the whole
 argument is one formula:
 
 $$
-(\forall u\ d.\ \mathit{admin}\ u \imp \mathit{can\_delete}\ u\ d) \land \mathit{admin}\ \mathit{alice} \imp \mathit{can\_delete}\ \mathit{alice}\ \mathit{report}
+(\forall u\ d.\ \mathit{admin}\ u \land \mathit{doc}\ d \imp \mathit{can\_delete}\ u\ d)
+\land \mathit{admin}\ \mathit{alice} \land \mathit{doc}\ \mathit{report}
+\imp \mathit{can\_delete}\ \mathit{alice}\ \mathit{report}
 $$
 
-Read it as "if every administrator $u$ can delete every document $d$, and Alice is an administrator, then
-Alice can delete the report". By the end of this module you will know what it means for this formula to
+Here $\mathit{doc}\ d$ means "$d$ is a document". Read the formula as "if every administrator can delete
+every document, Alice is an administrator, and the report is a document, then Alice can delete the
+report". By the end of this module you will know what it means for this formula to
 be true however its words are interpreted, and Isabelle will prove it in one line (Section 3.8).
 
-Predicate logic is the language of specifications: the sorting specification of Module 1,
-$\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$, is one of its formulas, and
-Isabelle's logic, HOL, extends it.
+Predicate logic is one language for specifications. The sorting condition of Module 1,
+$\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$, uses predicates, functions and
+equality in this way. Isabelle supplies their typed definitions in its richer logic, HOL.
 
 ## Terms, predicates and formulas {#language}
 
@@ -96,7 +99,8 @@ A term names an object. It is never true or false.
 
 $\mathit{alice}$, $d$, $\mathit{owner}\ d$, $x + 1$ and $2 * (x + y)$ are terms. $\mathit{owner}\ d$
 names the owner of whichever document $d$ stands for, and $x + 1$ names a number. Terms are like the
-expressions of a programming language: they compute values.
+expressions of a programming language in that they denote values. An interpretation need not supply
+an executable algorithm for computing them.
 
 ### Atomic formulas {#atoms}
 
@@ -286,7 +290,8 @@ $\mathcal M$ under $s$** according to these rules:
 
 - $P\ t_1\ \dots\ t_n$ is true when the tuple of the values of $t_1, \dots, t_n$ is in
   $P^{\mathcal M}$; $t_1 = t_2$ is true when the two terms have the same value.
-- $\lnot$, $\land$, $\lor$, $\imp$ and $\iff$ follow their truth tables from Module 2.
+- $\mathit{True}$ is true and $\mathit{False}$ is false; $\lnot$, $\land$, $\lor$, $\imp$ and $\iff$
+  follow their truth tables from Module 2.
 - $\forall x.\ \varphi$ is true when $\varphi$ is true for **every** value of $x$ in $D$, the other
   variables keeping their values.
 - $\exists x.\ \varphi$ is true when $\varphi$ is true for **at least one** value of $x$ in $D$.
@@ -298,8 +303,9 @@ For a sentence the assignment makes no difference. You then write $\mathcal M \m
 ::: analogy
 Over a finite domain, a quantifier is a loop. $\forall x$ is a loop that succeeds only if every round
 succeeds; $\exists x$ succeeds as soon as one round does. In Python, $\forall x.\ \exists y.\ R\ x\ y$
-over a list `D` is `all(any(R(x, y) for y in D) for x in D)`. Over an infinite domain the loop never
-ends, and you need a proof instead.
+over a list `D` is `all(any(R(x, y) for y in D) for x in D)`. Over an infinite domain, enumeration
+is not a general decision procedure: a search may find a witness or a counterexample, but it cannot
+finish inspecting every element. General reasoning can settle claims that enumeration cannot.
 :::
 
 Now an example by hand. Figure 3.2 draws a structure for a vocabulary with two one-place predicates,
@@ -445,9 +451,11 @@ many that propositional logic cannot explain, such as $(\forall x.\ P\ x) \imp P
 
 ::: isabelle
 In an Isabelle lemma, **free variables are implicitly universal**: the lemma claims its formula for every
-value of them. A free `P` stands for any predicate and a free `c` for any element, and the elements may
-come from any domain. So a lemma with free variables claims that its formula is valid. `blast`, which Module 2 used for
-tautologies, also searches for proofs in predicate logic:
+value of them of the inferred types. In the first-order example below, `P` and `Q` are arbitrary
+predicates, `c` is an arbitrary element, and the element type is unconstrained. This represents a
+validity claim. A lemma using a particular type such as `nat`, defined operations, or additional
+assumptions makes a claim in that context; it does not reinterpret those operations arbitrarily.
+`blast`, which Module 2 used for tautologies, also searches for proofs in predicate logic:
 
 ```isabelle
 lemma "(∀x. P x ⟶ Q x) ∧ P c ⟶ Q c"
@@ -492,8 +500,9 @@ So `P a` is true and `∀x. P x` is false: a countermodel, as in Definition 3.9.
 ```
 
 Without an option, Nitpick tries domains of 1 to 10 elements in parallel, and the size of the countermodel
-it reports first can change from run to run; `[card 'a = 2]` makes its answer repeatable. Isabelle/jEdit
-also runs Quickcheck on every new lemma, so a counterexample may appear before you call Nitpick.
+it reports first can change from run to run. `[card 'a = 2]` fixes the domain size, but does not promise
+the same printed witnesses or element labels on every run. With default settings Isabelle/jEdit also
+tries Quickcheck on new lemmas, so a counterexample may appear before you call Nitpick.
 Quickcheck writes a predicate as the set of elements where it is true, such as `P = {a₁}`.
 :::
 
@@ -707,8 +716,8 @@ call" follows "if Alice is an admin, Alice is on call". The step replaces the va
 
 ::: definition Substitution
 $\varphi[t/x]$, read "$\varphi$ with $t$ for $x$", is the formula obtained from $\varphi$ by replacing
-every **free** occurrence of the variable $x$ with the term $t$. Bound occurrences of $x$ stay as they
-are.
+every **free** occurrence of the variable $x$ with the term $t$, renaming bound variables first if
+necessary so that no free variable of $t$ becomes bound. Bound occurrences of $x$ are not replaced.
 :::
 
 For example, $(P\ x \land (\forall x.\ Q\ x))[a/x]$ is $P\ a \land (\forall x.\ Q\ x)$: only the first
@@ -933,6 +942,12 @@ $\mathit{user}$ and $\mathit{doc}$ say which kind an object is; such predicates 
 The other symbols are $\mathit{admin}\ u$, $\mathit{owns}\ u\ d$, $\mathit{can\_read}\ u\ d$ and
 $\mathit{can\_delete}\ u\ d$.
 
+We assume that admins are users and that ownership and permissions relate users to documents. These
+are modelling assumptions, not consequences of the predicate names. For example, we require
+$\forall u.\ \mathit{admin}\ u \imp \mathit{user}\ u$, and likewise
+$\forall u\ d.\ \mathit{owns}\ u\ d \imp \mathit{user}\ u \land \mathit{doc}\ d$ for ownership,
+with corresponding restrictions for the two permission predicates.
+
 1. Every document has exactly one owner, and the owner is a user:
    $$\forall d.\ \mathit{doc}\ d \imp (\exists u.\ \mathit{user}\ u \land \mathit{owns}\ u\ d \land (\forall v.\ \mathit{owns}\ v\ d \imp v = u))$$
 2. Only the owner of a document or an admin can delete it:
@@ -950,8 +965,9 @@ $A$ is $B$" pattern, with "owns no document" written as a negated ∃.
 
 ::: isabelle
 Isabelle can compare two translations. If they are equivalent, `blast` proves the `⟷`. If they are not,
-Nitpick produces a structure that tells them apart, and that structure shows which formula says what you
-meant. Here are the two ways of saying "exactly one" from Section 3.6:
+Nitpick may find a structure that tells them apart. Comparing that structure with the intended
+requirement helps you judge which translation is appropriate; it does not make that decision for you.
+Here are the two ways of saying "exactly one" from Section 3.6:
 
 ```isabelle
 lemma "(∃x. holds x ∧ (∀y. holds y ⟶ y = x)) ⟷
@@ -998,17 +1014,19 @@ for a user, because a structure interprets it by a function on the whole domain.
 ::: definition Many-sorted logic
 In a **many-sorted** or **typed** logic, the vocabulary gives each constant, each argument of a function
 or predicate symbol and each function result a **sort**, also called a **type**. A structure has one
-domain per sort, and each variable ranges over the domain of one sort:
+non-empty domain per sort in the convention used here, and each variable ranges over the domain of one sort:
 $\forall d{::}\mathit{doc}.\ \exists u{::}\mathit{user}.\ \mathit{owns}\ u\ d$ reads "for every document
 $d$ there is a user $u$ who owns $d$". An expression that puts an argument of the wrong sort somewhere is
 not a formula at all.
 :::
 
-Types add no expressive power: $\forall d{::}\mathit{doc}.\ \varphi$ says what
-$\forall d.\ \mathit{doc}\ d \imp \varphi$ says, and $\exists u{::}\mathit{user}.\ \varphi$ what
-$\exists u.\ \mathit{user}\ u \land \varphi$ says, exactly the patterns of Section 3.7. What types add is
-a check. The mistakes above become type errors, which a computer finds before anybody reasons with the
-formula.
+Many-sorted **first-order** logic can be translated into one-domain first-order logic. Quantifiers
+become guarded quantifiers: $\forall d{::}\mathit{doc}.\ \varphi$ becomes
+$\forall d.\ \mathit{doc}\ d \imp \varphi$, and $\exists u{::}\mathit{user}.\ \varphi$ becomes
+$\exists u.\ \mathit{user}\ u \land \varphi$. The translation also needs assumptions that the sorts
+are non-empty and that constants and functions respect their declared sorts. Types make such
+restrictions part of the language, so wrong-sort arguments become errors that a computer finds before
+proof. This translation concerns first-order sorts; HOL also adds higher-order quantification.
 
 Isabelle/HOL is typed through and through. Every term has a type. Formulas are terms of type `bool`,
 whose two values are `True` and `False`. A predicate on objects of type `τ` (tau) is a function of type
@@ -1044,8 +1062,10 @@ lemma "(∀u d. admin u ⟶ can_delete u d) ∧ admin alice ⟶ can_delete alice
 ```
 
 The variables `u` and `d` need no guards: their types follow from `admin u` and `can_delete u d`. Now
-something that does not follow. If owners can delete their documents, can Alice delete the report? Only
-if she owns it. Nitpick needs the option `show_consts` to display the values of constants:
+something that does not follow. If owners can delete their documents, can Alice delete the report?
+That permission would follow if she owned it, but we have not assumed that she does. The premise also
+does not forbid other ways of obtaining permission. Nitpick needs the option `show_consts` to display
+the values of constants:
 
 ```isabelle
 lemma "(∀u d. owns u d ⟶ can_delete u d) ⟶ can_delete alice report"
@@ -1180,7 +1200,7 @@ semi-decidable.
 
 Two theorems of Gödel are easily confused. The **completeness theorem** (1929/1930) is about the valid
 formulas, those true in every structure: all of them can be proved. His **incompleteness theorems**
-(1931), which Module 1 mentioned, are about the formulas true in one particular structure, the natural
+(1931) concern the formulas true in one particular structure, the natural
 numbers: no proof system whose axioms a program can check, and which proves only true statements, proves
 all of them. HOL can describe the natural numbers, so incompleteness applies to Isabelle's logic too.
 
@@ -1197,7 +1217,9 @@ $$
 (\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)
 $$
 
-"If $R$ is irreflexive and transitive, then some element has no $R$-successor." It is not valid: with the
+Here **irreflexive** means that no element is related to itself, and **transitive** means that
+$R\ x\ y$ and $R\ y\ z$ together imply $R\ x\ z$. The formula says: "If $R$ is irreflexive and
+transitive, then some element has no $R$-successor." It is not valid: with the
 natural numbers as domain and $<$ as $R$, both premises hold, and every number has a larger one. But it
 is true in every finite structure (Exercise 3.8 asks you to show why), so a search through finite
 structures never finds a countermodel, and a proof search never finds a proof, because there is none.
@@ -1245,7 +1267,8 @@ countermodel above.
 What this means in practice:
 
 - **Proof search** (`simp`, `blast`, `auto`, and the provers that Sledgehammer calls in Module 9)
-  succeeds or gives up. Success gives a theorem; giving up tells you nothing.
+  can close a goal, leave subgoals, fail or reach a resource limit. A completed proof gives a theorem;
+  an unfinished attempt does not establish that the claim is false.
 - **Countermodel search** (Nitpick and Quickcheck) is the other half: a genuine counterexample shows that
   a formula is not valid; finding none shows nothing.
 - When both give up, the work is yours: find the idea of the proof and guide Isabelle through it, as
@@ -1253,7 +1276,8 @@ What this means in practice:
 
 Not everything is undecidable. Propositional logic is decidable, and so is the part of predicate logic
 in which every predicate takes one argument and there are no function symbols. SAT and SMT solvers
-(Module 1) decide useful fragments efficiently, which is why Isabelle's tools call them for help.
+(Module 1) can solve many useful instances of decidable fragments efficiently, although no practical
+running time is guaranteed for every instance. That is why Isabelle's tools call them for help.
 
 ::: keyidea
 Validity in predicate logic is semi-decidable: a systematic search finds a proof whenever one exists,
@@ -1274,7 +1298,9 @@ series teaches you to guide proofs yourself.
   **countermodel** refutes validity; validity needs an argument about every structure.
 - Negation swaps ∀ and ∃; ∀ distributes over ∧ and ∃ over ∨, but not the other way round; ∃y. ∀x
   implies ∀x. ∃y, but not conversely. **Substitution** must not **capture** variables.
-- In specifications, ∀ goes with ⟶ and ∃ with ∧, "only" reverses the arrow, and counting needs `=`.
+- For restricted statements such as "every admin is on call", use ∀ with ⟶; for "some admin is on
+  call", use ∃ with ∧. These are translation patterns, not restrictions on which connectives may occur
+  under a quantifier. "Only" introduces a necessary condition, and counting uses equality.
 - In Isabelle, predicates are functions to `bool`; `typedecl` and `consts` declare a vocabulary; free
   variables of a lemma are implicitly universal; `blast` proves first-order goals and `nitpick` finds
   countermodels. `=` binds more tightly than `¬` and `∧`, `⟷` as loosely as `⟶`.
@@ -1332,8 +1358,8 @@ $(a, c)$ and $(b, c)$.
 
 :::: exercise From English to formulas {#ex-3-3} ★
 The vocabulary has the one-place predicates $\mathit{train}$ and $\mathit{block}$, the two-place
-predicate $\mathit{occupies}\ t\ b$ ("train $t$ occupies block $b$") and the constant $\mathit{depot}$.
-Translate:
+predicate $\mathit{occupies}\ t\ b$ ("train $t$ occupies block $b$") and the constant $\mathit{depot}$,
+which denotes a block. Translate each sentence independently; do not assume the other sentences yet:
 
 1. Every train occupies some block.
 2. No block is occupied by two different trains.
@@ -1343,16 +1369,17 @@ Translate:
 
 ::: solution
 1. $\forall t.\ \mathit{train}\ t \imp (\exists b.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b)$
-2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$.
+2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{train}\ t \land \mathit{train}\ u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$.
    An equivalent form follows the English more closely:
-   $\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$.
+   $\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land \mathit{train}\ t \land \mathit{train}\ u \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$.
 3. $\exists b.\ \mathit{block}\ b \land \lnot (\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ b)$
-4. $\forall x\ b.\ \mathit{occupies}\ x\ b \imp \mathit{train}\ x$: "only" reverses the arrow.
+4. $\forall x\ b.\ \mathit{block}\ b \land \mathit{occupies}\ x\ b \imp \mathit{train}\ x$:
+   anything occupying a block must be a train.
 5. $\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ \mathit{depot} \land (\forall u.\ \mathit{train}\ u \land \mathit{occupies}\ u\ \mathit{depot} \imp u = t)$
 
-In 1 and 3, ∀ goes with ⟶ and ∃ with ∧, as the patterns of Section 3.7 say. In 2, guards
-$\mathit{train}\ t$ and $\mathit{train}\ u$ are unnecessary because of sentence 4, but adding them does
-no harm.
+In 1 and 3, ∀ goes with ⟶ and ∃ with ∧, as the patterns of Section 3.7 say. In 2, the train guards
+restrict the statement to trains as requested. If sentence 4 is also assumed, those guards become
+redundant for occupants of blocks, but they are needed when translating sentence 2 on its own.
 :::
 ::::
 
@@ -1548,7 +1575,8 @@ Section 3.9.
 
 :::: exercise A typed policy in Isabelle {#ex-3-9} ★★★
 Extend the vocabulary of Section 3.8 with `can_read :: "user ⇒ doc ⇒ bool"` and a second user
-`bob :: user`. Take these requirements: nobody can delete a document they cannot read, and owners can
+`bob :: user`. Different constant names do not by themselves require different users; do not assume
+`bob ≠ alice`. Take these requirements: nobody can delete a document they cannot read, and owners can
 delete their documents.
 
 1. Prove with `blast`: if, in addition, Alice owns the report, then Alice can read the report.
@@ -1594,7 +1622,8 @@ Nitpick found a counterexample for card doc = 1 and card user = 1:
   oops
 ```
 
-In the countermodel Bob is an admin, but nobody owns anything and nobody can read or delete anything;
+In the one-user countermodel, Alice and Bob denote the same user. Bob is an admin, but nobody owns
+anything and nobody can read or delete anything;
 both requirements hold, vacuously. Nothing in the requirements gives admins any rights. If admins should
 read everything, that is a further requirement, such as requirement 3 of Example 3.10.
 :::
@@ -1642,6 +1671,6 @@ read everything, that is a further requirement, such as requirement 3 of Example
 - [ ] The lemma is valid
 - [ ] The lemma is unsatisfiable
 - [ ] The lemma has an infinite countermodel
-- [x] No countermodel exists among the finite structures that Nitpick searched; the lemma may still be false
-> Nitpick searches domains up to a size limit, 10 elements by default. Some formulas that are not valid, such as the one in Section 3.9, have only infinite countermodels.
+- [x] The search found no counterexample within its bounds; the lemma may still be false
+> Nitpick searches within finite bounds, using approximations for some HOL constructs. Its default domain-size range is 1–10. Some formulas that are not valid, such as the one in Section 3.9, have only infinite countermodels.
 ```

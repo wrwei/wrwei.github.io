@@ -29,7 +29,7 @@ a PIN pad, the fire alarm and a lockdown switch, and decides whether to unlock t
 
 ::: definition Proposition
 A **proposition** is a statement that is either true or false. An **atomic proposition**, or **atom**,
-is one that is not built from other propositions. In formulas, atoms are names such as A, B or `fire`.
+is one treated as indivisible at the chosen level of modelling. In formulas, atoms are names such as A, B or `fire`.
 Propositional logic never looks inside an atom: all it uses is whether the atom is true or false.
 :::
 
@@ -70,7 +70,8 @@ English has many ways to express each connective:
 | A if and only if B; A exactly when B | A ⟷ B |
 
 Two entries deserve a second look. **Or** is inclusive in logic: A ∨ B is true when both A and B are
-true, whereas the "or" of "tea or coffee?" means one but not both, which is *exclusive or*, ¬(A ⟷ B).
+true, whereas a question such as "tea or coffee?" often invites a choice of one but not both. That
+exclusive reading is *exclusive or*, ¬(A ⟷ B); context determines which reading English intends.
 And **but** adds a contrast that logic ignores: "the badge is valid but the door stays shut" is
 `badge ∧ ¬ opens`.
 
@@ -78,7 +79,7 @@ And **but** adds a contrast that logic ignores: "the badge is valid but the door
 "A only if B" is A ⟶ B, not B ⟶ A. "The door opens only if the badge is valid" says that whenever the
 door opens, the badge was valid: `opens ⟶ badge`. It does not say that a valid badge opens the door;
 that would be `badge ⟶ opens`, "the door opens if the badge is valid". A requirement with "only if"
-limits what the system may do; it never forces the system to act.
+states a necessary condition; this example does not require the door to open when a badge is valid.
 :::
 
 ::: example Formalising an access rule
@@ -91,6 +92,9 @@ correct PIN is entered, unless the fire alarm is on."* Choose an atom for each b
 | `badge` | a valid badge is shown |
 | `pin` | the correct PIN is entered |
 | `fire` | the fire alarm is on |
+
+Here `opens` models the controller's decision to unlock. It does not model physical door movement,
+actuator failures or people entering. The formulas below describe one situation at a time.
 
 "The door opens only if a valid badge is shown and the correct PIN is entered" is
 `opens ⟶ badge ∧ pin`, and "X unless F" is ¬F ⟶ X, so the requirement is
@@ -194,8 +198,9 @@ changes the parse tree but not the meaning (Section 2.5).
 
 ::: isabelle
 Isabelle prints a formula with only the parentheses its priorities need, so it can show you how it read
-yours. `value`, which you met in Module 1, cannot compute a truth value for a formula with variables;
-for formulas like these, it prints the formula back. Put the cursor on each line in turn:
+yours. `value`, which you met in Module 1, can simplify expressions symbolically, but it does not
+enumerate valuations of free variables. For the examples below, it prints the formula back. Put the
+cursor on each line in turn:
 
 ```isabelle
 value "(¬ A) ∧ (B ⟶ C)"
@@ -255,8 +260,9 @@ A ∨ B
 A ⟶ B
 ```
 
-The tables on these pages are computed from their formulas when the page is built, so they contain no
-slips. They list the atoms in alphabetical order, start with the row in which every atom is T, and end
+The tables on these pages are generated from their formulas when the page is built. This avoids
+transcribing the rows by hand; we must still choose the right formula. They list the atoms in
+alphabetical order, start with the row in which every atom is T, and end
 with a line that classifies the last column; Section 2.4 explains the words.
 
 The column for A ⟶ B surprises most people. An implication is false in exactly one row: when its
@@ -332,8 +338,8 @@ value "True ⟶ True ∧ False ∨ False"
   :: "bool"
 ```
 
-With variables, `value` does not try the valuations for you. It prints the formula back, even when the
-formula is true in every row:
+With variables, `value` does not try the valuations for you. In this example it prints the formula
+back, even though the formula is true in every row:
 
 ```isabelle
 value "A ∨ ¬ A"
@@ -344,7 +350,8 @@ value "A ∨ ¬ A"
   :: "bool"
 ```
 
-To show that a formula is true in every row you need a proof, the subject of the next section.
+To establish that a formula is true in every row, you can check its complete truth table or give a
+general proof. The next section introduces proofs checked by Isabelle.
 :::
 
 ## Tautologies, contradictions and satisfiable formulas {#classify}
@@ -434,8 +441,8 @@ goal (1 subgoal):
 
 Three proof methods prove tautologies:
 
-- `simp`, the simplifier from Module 1, rewrites the goal with equations it knows until it becomes
-  `True`.
+- `simp`, the simplifier from Module 1, simplifies the goal using known equations and logical rules.
+  Some goals close this way; others need additional reasoning.
 - `blast` searches for a proof: it takes the formula apart, considers cases and backtracks when a
   choice leads nowhere. It either proves the goal completely or fails.
 - `auto` combines the simplifier with logical steps of the kind `blast` takes, and leaves behind what it
@@ -454,8 +461,9 @@ lemma "((A ⟶ B) ⟶ A) ⟶ A"
 ***  1. ((A ⟶ B) ⟶ A) ⟶ A
 ```
 
-"Failed to apply initial proof method" means that `simp` could not even start: none of its equations
-applies to the goal. `blast` proves it:
+Here "Failed to apply initial proof method" means that the method did not produce a successful
+initial proof step. The message does not establish that the statement is false, nor does it identify
+which reasoning rule is missing. `blast` proves it:
 
 ```isabelle
 lemma "((A ⟶ B) ⟶ A) ⟶ A"
@@ -538,16 +546,17 @@ Nitpick found a counterexample:
 Both found the same counterexample: A and B true, C false. In that row the formula is T ⟶ T ⟶ F, which
 is F. Quickcheck *tests*: it evaluates the formula for one valuation after another until one makes it
 false. Nitpick *searches*: it translates the question into a satisfiability problem for a SAT solver
-(Section 2.8). For propositional formulas both answer at once. On a tautology both come back
-empty-handed, with "Quickcheck found no counterexample." and "Nitpick found no counterexample".
-Isabelle/jEdit runs Quickcheck automatically on every new lemma, as you saw in Module 1; Nitpick runs
-only when you call it.
+(Section 2.8). Both tools quickly find the valuation in this example. A search that finds no
+counterexample, or reaches a resource limit, has not supplied a kernel-checked proof. With the default
+settings Isabelle/jEdit also tries Quickcheck automatically on new lemmas, as you saw in Module 1;
+Nitpick is not automatic by default.
 :::
 
 ::: keyidea
 A proof shows that a formula is a tautology; a counterexample shows that it is not. A failed proof shows
 neither, because the method may have been too weak, and "no counterexample found" is not a proof. In
-Isabelle a question is settled only when `by …` succeeds or a counterexample appears.
+these examples, a completed proof establishes the universal claim, while a genuine counterexample
+refutes it.
 :::
 
 ## Logical equivalence and the laws {#equivalence}
@@ -635,9 +644,11 @@ $$
 \end{array}
 $$
 
-So the test is equivalent to `if not valid or expired:`. Read as an implication, "if the ticket is
-valid, it has expired", it suggests that the original test does not say what its author meant.
-Simplifying a condition is a cheap way to find out what it really says.
+So the test is equivalent to `if not valid or expired:`. This could be a sensible condition for rejecting
+a ticket: reject it when it is invalid or expired. The implication `valid ⟶ expired` has the same truth
+table, but is less helpful wording for that purpose; it does not assert a causal relationship between
+validity and expiry. Simplification has exposed a redundant check, not established that the policy is
+wrong. Deciding whether rejection is intended remains a validation question.
 :::
 
 ::: pitfall
@@ -654,7 +665,8 @@ In the same way, ¬(A ∧ B) is equivalent to ¬A ∨ ¬B, not to ¬A ∧ ¬B: n
 
 ::: isabelle
 In Isabelle, an equivalence is a lemma with ⟷. (Isabelle has a symbol ≡ too, but it uses it for
-definitions, as Module 7 explains.) `blast` proves the whole simplification of Example 2.5 in one step:
+meta-equality, often used in definitions, as Module 7 explains.) `blast` proves the whole simplification
+of Example 2.5 in one step:
 
 ```isabelle
 lemma "¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)"
@@ -789,8 +801,9 @@ follows.
 
 ::: keyidea
 Before you believe that a property follows from a set of requirements, check that the requirements are
-consistent. From inconsistent requirements every property follows, including its opposite, and every
-proof succeeds.
+consistent. From inconsistent premises every conclusion follows, including its opposite. That does
+not mean every proof method will find a proof; it means that entailment alone is no evidence that
+the requirements describe an achievable system.
 :::
 
 ::: isabelle
@@ -840,13 +853,17 @@ such as ¬A ∨ B ∨ ¬C; a single literal counts as a clause too.
 :::
 
 ::: definition Normal forms
-- A formula is in **negation normal form (NNF)** if it uses only ¬, ∧ and ∨, and every ¬ stands directly
-  in front of an atom.
+- A formula is in **negation normal form (NNF)** if it uses only atoms, `True`, `False` and the
+  connectives ¬, ∧ and ∨, and every ¬ stands directly in front of an atom.
 - A formula is in **conjunctive normal form (CNF)** if it is a conjunction of clauses, such as
   (A ∨ ¬B) ∧ (¬A ∨ C ∨ D) ∧ ¬C.
 - A formula is in **disjunctive normal form (DNF)** if it is a disjunction of conjunctions of literals,
   such as (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D.
 :::
+
+A single clause counts as a CNF, and a single conjunction of literals counts as a DNF. We also allow
+empty conjunctions, meaning `True`, and empty disjunctions, meaning `False`. An empty clause is therefore
+false. These conventions cover formulas that are always true or always false.
 
 A CNF is a list of small rules that must all hold: the clause ¬A ∨ ¬B ∨ C says A ∧ B ⟶ C. SAT solvers
 take their input in CNF. A DNF lists the situations in which the formula is true, so its satisfiability
@@ -910,10 +927,14 @@ says that adding them "might cause exponential blow-up".
 :::
 
 ::: note
-SAT solvers avoid the explosion with the **Tseitin transformation**, which gives each sub-formula a new
-atom as its name and adds a few clauses that define it. The resulting CNF grows only in proportion to
-the original formula. It is not equivalent to the original, because it has extra atoms, but it is
-**equisatisfiable**: satisfiable if and only if the original is, which is all a SAT solver needs.
+SAT encodings can avoid this explosion with the **Tseitin transformation**: give each compound
+sub-formula a new atom as its name, add clauses relating that name to its parts, and require the atom
+naming the whole formula to be true. That last requirement matters: definitions of the names alone
+would not require the original formula to hold. The resulting CNF has size proportional to the original
+formula. It need not be logically equivalent over the expanded set of atoms, but it is
+**equisatisfiable**: satisfiable if and only if the original is. Each satisfying valuation of the
+original can be extended with suitable values for the new atoms, and a model of the CNF gives a model
+of the original when the new atoms are discarded.
 :::
 
 ### Normal forms from truth tables {#nf-tables}
@@ -1011,13 +1032,14 @@ SAT would give fast algorithms for every problem in NP. Nobody knows whether one
 **P versus NP** question (P is the class of problems that can be *solved* in polynomial time), open since
 1971 and one of the seven Millennium Prize Problems of the Clay Mathematics Institute.
 
-Even so, SAT solving is one of the great practical successes of computer science. The worst case is
-exponential, but formulas from real problems have structure, and solvers exploit it. Most solvers
+Even so, SAT solving is a practical success. Truth-table enumeration takes exponential time in the
+number of atoms; no polynomial-time algorithm for general SAT is known. Formulas from real problems
+often have structure that solvers can exploit. Many solvers
 descend from the **DPLL procedure**, named after Davis, Putnam, Logemann and Loveland, who described it in
 the early 1960s. It works on a CNF and repeats two steps:
 
-1. **Unit propagation.** If every literal of a clause but one is false, the remaining literal must be
-   true: set it. Repeat while possible.
+1. **Unit propagation.** If an unsatisfied clause has exactly one unassigned literal and all its other
+   literals are false, that literal must be true: assign it accordingly. Repeat while possible.
 2. **Decision.** Otherwise, choose an atom without a value and try a value for it.
 
 When a clause becomes false (a **conflict**), the procedure goes back to its latest decision whose other
@@ -1026,8 +1048,9 @@ every clause becomes true, the formula is satisfiable; if a conflict leaves no d
 the formula is unsatisfiable.
 
 Since the late 1990s, solvers have added **conflict-driven clause learning (CDCL)**: after a conflict,
-the solver works out which decisions caused it and adds a clause that rules out that combination, so the
-search never makes the same mistake twice. Modern CDCL solvers often decide formulas from industry with
+the solver analyses the conflict and adds a clause that rules out a combination of assignments
+responsible for it. Retaining that clause prevents the same combination from being tried again.
+Modern CDCL solvers can solve formulas from industry with
 hundreds of thousands of atoms and millions of clauses.
 
 ::: example Unit propagation
@@ -1094,7 +1117,7 @@ Back to the server-room door. After some discussion, the security team agrees on
 The atoms `badge`, `pin`, `fire` and `lockdown` describe the situation: the sensors report them, and the
 controller cannot choose them. `opens` is the controller's decision. Three questions matter:
 
-1. Are the requirements consistent: can a controller meet them all at once?
+1. Are the requirements consistent: is there at least one situation and decision satisfying them all?
 2. Can it meet them in every situation, whatever the sensors report?
 3. Do they guarantee the properties the team cares about?
 
@@ -1158,8 +1181,10 @@ Isabelle proves that no valuation satisfies them. In a fire during a lockdown, R
 must open and R3 that it must stay shut, and no controller can do both. The same happens between R3 and
 R4 when someone shows a valid badge and the right PIN during a lockdown. Conflicts like these hide in
 combinations of rare events, which is exactly where testing seldom looks. And in these situations
-Fact 2.6 applies: from the requirements, Isabelle would prove anything, even that the door is both open
-and shut. Proofs about inconsistent requirements succeed, and mean nothing.
+Fact 2.6 applies: from the requirements **together with the conflicting sensor readings**, any conclusion
+follows, even that the door is both open and shut. The original requirements are satisfiable in other
+situations; the problem is that they cannot all hold in these situations. A proof restricted to
+impossible premises gives no assurance about how a controller should respond.
 
 ### Repairing the requirements {#repair}
 
@@ -1207,8 +1232,9 @@ requirements leave the controller no choice.
 
 ### Properties that follow, and one that does not {#properties}
 
-Finally, the properties. The team wants to be sure that, outside a fire, nobody gets in without the
-right PIN: `opens ∧ ¬ fire ⟶ pin`. It follows from the requirements:
+Finally, the properties. The team wants to be sure that, outside a fire, the controller never commands
+the door to unlock without the right PIN: `opens ∧ ¬ fire ⟶ pin`. It follows from the requirements.
+Whether this prevents unauthorised physical entry also depends on aspects outside this model:
 
 ```isabelle
 lemma "(opens ⟶ badge ∧ pin ∨ fire) ∧
@@ -1255,10 +1281,11 @@ consistent, also in the rare situations that matter; prove that the properties y
 read every counterexample as a situation to discuss. Each of these checks is a satisfiability question.
 :::
 
-Propositional logic has limits. It cannot say "the door locks again ten seconds after the alarm stops",
-which is about time, or "every employee's badge opens the doors of their own department", which is about
-many objects at once. Predicate logic in Module 3 adds objects and quantifiers, and Module 13 models
-systems that change over time.
+Our propositional model has limits. Its atoms describe a single situation, so they do not express
+"the door locks again ten seconds after the alarm stops" or quantify over every employee and department.
+One can encode finitely many employees or time steps using more atoms, but propositional logic has no
+variables ranging over objects or times. Predicate logic in Module 3 adds objects and quantifiers,
+and Module 13 models systems that change over time.
 
 ## What you learned {#summary}
 
@@ -1282,7 +1309,8 @@ systems that change over time.
   a tautology, and each counterexample is a situation to discuss.
 - In Isabelle, a lemma whose variables have type `bool` claims a tautology. `simp`, `blast` and `auto`
   prove tautologies (`blast` and `auto` more of them than `simp`); `quickcheck` and `nitpick` find
-  counterexamples; a counterexample to ¬φ is a model of φ.
+  counterexamples; a counterexample to ¬φ is a model of φ. These methods have different strengths;
+  failure of one method does not establish that a claim is false.
 
 The Mathematical Foundations series covers propositional and predicate logic for computing in general,
 with more practice, in [Logic, quantifiers, and specifications](../math/module_02_EN.html).
@@ -1414,7 +1442,7 @@ argument, give a counterexample. Then check your answers in Isabelle.
    invalid. Counterexample: ok = F, accepts = T, a lenient parser that accepts some invalid input.
 3. `tls ∨ internal`, `¬ internal` ⊨ `tls`: disjunctive syllogism, valid.
 4. `night ⟶ early`, `early ⟶ ready`, `ready` ⊨ `night`: invalid, a form of affirming the consequent.
-   Counterexample: night = F, ready = T; the report can be ready for another reason.
+   Counterexample: night = F, early = F, ready = T; the report can be ready for another reason.
 
 ```isabelle
 lemma "(warm ⟶ fast) ∧ ¬ fast ⟶ ¬ warm"
@@ -1539,7 +1567,7 @@ lemma "¬ ((low ∧ ¬ manual ⟶ pump) ∧
 
    There is a second conflict, which R3′ does not remove: in automatic mode, with the water reported
    both low and high, R1 says the pump runs and R2 says it does not. Working sensors never report
-   both; part 3 turns this into an assumption.
+   both when the marks are ordered as described; part 3 makes that environmental assumption explicit.
 
 3. Not on its own. Nitpick finds a situation in which the water is reported both low and high, in manual
    mode, and the pump is off:

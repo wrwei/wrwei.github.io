@@ -1,14 +1,14 @@
 ---
 title: Induction and recursion
 part: 1
-lead: Define functions on numbers, lists and trees by recursion and evaluate them step by step; prove that a property holds for every input by induction, on paper and in Isabelle; and see why every recursive definition must terminate.
+lead: Define functions on numbers, lists and trees by recursion and evaluate them step by step; prove general claims by induction, on paper and in Isabelle; and see why Isabelle's `fun` requires a termination proof.
 minutes: 240
 needs: Modules 1–4
 goals:
   - Define functions on natural numbers, lists and binary trees by recursion, and evaluate them by rewriting
   - Prove a statement for every natural number by induction, naming the base case, the induction step and the induction hypothesis
   - Use strong induction, and structural induction on lists and trees
-  - Explain why a recursive definition must terminate, and justify termination with a measure
+  - Explain why `fun` requires a termination proof, and justify termination with a measure
   - Prove properties by induction in Isabelle, and read the base case and the step in the proof state
   - Show with an invariant that a property holds after any number of steps of a loop or a machine
 imports: Main
@@ -16,8 +16,9 @@ imports: Main
 
 ## Recursive definitions {#recursion}
 
-A loop repeats a piece of work until it is done. Mathematics describes repetition differently: with a
-**recursive definition**, which defines a function in terms of itself on smaller arguments. "The sum
+A loop describes repeated work, which may or may not terminate. A **recursive definition** describes
+a function in terms of itself. The definitions in this module call the function on smaller arguments,
+in a sense that guarantees termination. "The sum
 0 + 1 + ⋯ + n is the sum up to n − 1, plus n" is such a definition. Recursive definitions are short and
 exact, and you can compute with them. They come with a matching proof method, **induction**, which
 proves a statement for every one of infinitely many inputs at once.
@@ -71,9 +72,10 @@ by the sum up to $n$, which is a smaller instance of the same problem. Since eve
 $n + 1$ for some $n$, the two equations cover every number, each exactly once.
 
 ::: definition Recursive definition
-A **recursive definition** defines a function by equations in which the function may also appear on the
-right-hand side. The equations cover every possible argument. The **base cases** do not use the
-function; the **recursive cases** call it on smaller arguments.
+A **recursive definition** uses equations in which the function may also appear on the right-hand
+side. For the total functions defined here, the equations cover every argument, agree wherever they
+overlap, and recursive calls decrease in a well-founded relation. The **base cases** do not call the
+function; the **recursive cases** do.
 :::
 
 Three more functions follow the same pattern: the factorial $n! = 1 \cdot 2 \cdot \ldots \cdot n$, called
@@ -147,9 +149,9 @@ Since $3 = 2 + 1$, the recursive case applies with $n = 2$, and so on down to 0:
 $$
 \begin{aligned}
 \mathit{sum\_upto}(3) &= \mathit{sum\_upto}(2) + 3\\
-&= \mathit{sum\_upto}(1) + 2 + 3\\
-&= \mathit{sum\_upto}(0) + 1 + 2 + 3\\
-&= 0 + 1 + 2 + 3\\
+&= (\mathit{sum\_upto}(1) + 2) + 3\\
+&= ((\mathit{sum\_upto}(0) + 1) + 2) + 3\\
+&= ((0 + 1) + 2) + 3\\
 &= 6
 \end{aligned}
 $$
@@ -160,7 +162,10 @@ is justified by an equation, so the chain is also a proof that $\mathit{sum\_upt
 ::: definition Evaluation by rewriting
 To **evaluate** a term by **rewriting**, repeatedly choose a part of the term that matches the left-hand
 side of an equation and replace it by the right-hand side, with the variables of the equation replaced by
-the parts they matched. When no equation applies any more, the term is a **value**: the result.
+the parts they matched. A term with no applicable rewrite is in **normal form** for those rules.
+For the closed expressions and complete definitions here, evaluation reaches a **value**, such as a
+number or a list. An expression with free variables may instead stop at a symbolic result; a normal
+form need not be a concrete value.
 :::
 
 Often several parts of a term could be rewritten. This module does what most programming languages do and
@@ -169,8 +174,10 @@ leftmost call, or arithmetic operation, whose arguments are already values. For 
 module, the order changes the terms you see along the way, but never the final value.
 
 ::: note
-Isabelle's `value` command does not rewrite step by step: it turns the equations into a program and runs
-it, which is much faster. The simplifier `simp`, on the other hand, does rewrite: it uses the defining
+For closed executable expressions, Isabelle's `value` normally turns the equations into a program and
+runs it; it does not display the rewrite sequence above. Expressions with free variables can be
+evaluated symbolically, as in the list example below. The simplifier `simp` performs proof-producing
+rewriting: it uses the defining
 equations of every function defined with `fun` as rewrite rules, as you will see in Section 5.4.
 :::
 
@@ -202,8 +209,8 @@ value "1 # 2 # [3 :: nat]"
   :: "nat list"
 ```
 
-Isabelle prints the result in the short notation. A function on lists needs one equation for `[]` and
-one for `x # xs`. Here are four: the length of a list, appending two lists, reversing a list, and the sum
+Isabelle prints the result in the short notation. A direct structural definition on lists handles `[]`
+and `x # xs`. Here are four: the length of a list, appending two lists, reversing a list, and the sum
 of a list of numbers.
 
 ```isabelle
@@ -287,7 +294,8 @@ fun tips :: "'a tree2 ⇒ nat" where
 ```
 
 Each recursive case calls the function twice, once for each subtree. Both subtrees are smaller than the
-tree, and that is all a recursive definition needs.
+tree, so the recursive calls decrease in structural size. The equations also cover both constructors
+without conflict.
 
 ::: figure id=fig-05-1
 A tree `t` and its mirror image. Tips are drawn as small squares. `mirror` swaps the left and right
@@ -342,7 +350,8 @@ The calls made to compute `fib 5`. Each call of `fib` on a number of 2 or more m
 :::
 
 As a definition, `fib` is fine: it says exactly what the Fibonacci numbers are. As a program it is slow.
-A program that keeps the last two values computes `fib n` in about n steps. Proving that such a faster
+A program that keeps the last two values computes `fib n` with a number of additions proportional to
+`n`, although the cost of adding the growing integers is not constant. Proving that such a faster
 program computes the same function as the clear definition is a typical verification task, and Modules 11
 and 12 do such proofs.
 
@@ -376,7 +385,8 @@ then $P(n)$ holds for every natural number $n$. In the induction step, the assum
 **induction hypothesis**, IH for short.
 :::
 
-In the logical notation of Modules 2 and 3: $P(0) \land (\forall n.\ P(n) \imp P(n+1)) \imp (\forall n.\ P(n))$. Read it as
+In the application notation of Modules 2 and 3:
+$P\ 0 \land (\forall n.\ P\ n \imp P\ (n+1)) \imp (\forall n.\ P\ n)$. Read it as
 "if P of 0, and for all n, P of n implies P of n plus 1, then for all n, P of n".
 
 Why is this a valid way to prove something? Here is a second argument besides the dominoes. Suppose $P$
@@ -590,8 +600,8 @@ case and step follow from the definitions and the IH, `by (induction n) auto` is
 
 ::: trouble
 - **`Failed to finish proof` after `by simp` or `by auto`, with `sum_upto n` (or another recursive
-  function applied to a variable) still in the goal.** The proof needs induction: write
-  `by (induction n) auto`.
+  function applied to a variable) still in the goal.** Induction may expose the defining cases. For
+  the sum formula, try `by (induction n) auto`; other goals may need a lemma or a different argument.
 - **`Failed to finish proof` after `by (induction n) auto`.** Look at the remaining subgoal. Sections 5.5
   and 5.6 show the common causes: induction on the wrong variable, a missing lemma, and an induction
   hypothesis that is too weak.
@@ -847,8 +857,9 @@ simplification rules.
 ::: keyidea
 When an induction gets stuck, read the stuck goal. It usually contains a term that no equation can
 rewrite, such as `reverse (app (reverse xs) [a])`. Find the general fact about that term, prove it as a
-lemma (often by induction itself), declare it `[simp]`, and try again. Module 11 develops this into a
-method.
+lemma (often by induction itself), make it available to the proof, and try again. The lemmas above
+are suitable `[simp]` rules; arbitrary lemmas can cause unhelpful rewriting or loops if registered that
+way. Module 9 discusses that choice, and Module 11 develops the induction strategy.
 :::
 
 ## Strong induction {#strong}
@@ -892,8 +903,10 @@ $n \ge 2$, and assume $P(m)$ for every $m < n$.
 For $n < 2$ there is nothing to prove. By strong induction, $P(n)$ holds for every $n$.
 :::
 
-Ordinary induction would not help here: knowing that $n - 1$ has a prime factor says nothing about $n$.
-The divisor $a$ can be any number below $n$, so the proof needs $P$ for all of them.
+The immediately preceding instance alone would not support this argument: knowing that $n - 1$ has a
+prime factor does not supply a factor of $n$. The divisor $a$ can be any number below $n$, so strong
+induction supplies exactly the hypotheses this proof uses. Ordinary induction on a strengthened
+statement could supply them too, as the preceding derivation shows.
 
 ::: example A bound on the Fibonacci numbers
 **Claim.** For every natural number $n$, $\mathit{fib}(n) < 2^n$.
@@ -967,10 +980,11 @@ Every function so far stops on every input: each recursive call works on a small
 arguments cannot get smaller forever. This section explains why Isabelle insists on that, and how it
 checks it.
 
-### Why recursion must terminate {#why-terminate}
+### Why `fun` requires termination {#why-terminate}
 
-In a programming language you can write a function that never stops; calling it makes the program hang,
-and that is all. In logic the danger is worse. Look at this "definition":
+In a programming language, recursive code may run forever instead of returning a result. HOL functions
+are mathematical total functions, and their defining equations must hold. A programming recipe cannot
+be accepted as such equations without justification. Look at this proposed definition:
 
 $$
 \mathit{bad}(n) = \mathit{bad}(n) + 1
@@ -978,8 +992,8 @@ $$
 
 If there were a function $\mathit{bad}$ on $\N$ with this property, subtracting $\mathit{bad}(n)$ from both
 sides would give $0 = 1$. An equation in a definition is a claim that something is true, and this one is
-false for every function. If Isabelle accepted it as it stands, you could prove $0 = 1$, and from a false
-statement every statement follows (Module 2): every theorem would become worthless.
+false for every function. If Isabelle accepted it as it stands, you could prove $0 = 1$, contradicting
+the arithmetic already in the logic. From a contradiction every statement follows (Module 2).
 
 So Isabelle never takes the equations of a `fun` on trust. It constructs a function from them and then
 proves the equations as theorems, and that proof needs an argument that the recursion terminates. `fun`
@@ -1017,9 +1031,11 @@ which cannot be done. The result matrix records the best it found: the measure s
 smaller (`<=`), which is not enough.
 
 ::: keyidea
-In HOL every function is **total**: it has a value for every argument. A recursive definition whose
-recursion terminates determines exactly one function, so it is safe. `fun` proves termination before it
-accepts a definition, and so a definition made with `fun` can never make the logic inconsistent.
+In HOL every function is **total**: it has a value for every argument. Complete, compatible recursive
+equations with well-founded recursion determine a total function. The function package checks the
+equations and proves termination before `fun` accepts them as defining theorems. Under the trusted
+logical infrastructure described in Module 1, this adds a definition without introducing an
+unjustified axiom. Termination alone would not excuse conflicting equations.
 :::
 
 Not every non-terminating equation is contradictory: every function satisfies $f(n) = f(n)$. But Isabelle
@@ -1034,7 +1050,8 @@ smaller at every recursive call: whenever the definition of $f(a)$ calls $f(b)$,
 :::
 
 ::: fact Termination by a measure
-If a recursive definition has a measure, every evaluation of the function terminates.
+For a recursive definition with finitely many calls in each case and terminating work outside those
+calls, a decreasing measure guarantees that every evaluation terminates.
 :::
 
 The reason is the well-foundedness of $\N$ from Section 5.3: an evaluation that never stopped would make
@@ -1056,7 +1073,8 @@ measure is `size`, which for a number is the number itself, for a list its lengt
 number of nodes. Read `f <*mlex*> {}` as "the measure `f`". For the list functions Isabelle writes
 `length` instead of `size`, for example `length <*mlex*> {}` for `reverse`.
 
-Sometimes no single measure decreases at every call. The Ackermann function is a famous example:
+Sometimes none of the individual argument sizes decreases at every call. The Ackermann function is a
+famous example for which a lexicographic combination works:
 
 ```isabelle
 fun ack :: "nat ⇒ nat ⇒ nat" where
@@ -1074,7 +1092,7 @@ Found termination order:
 ```
 
 In the call from `ack (Suc m) (Suc n)` to `ack (Suc m) n` the first argument stays the same, and in the
-outer call `ack m (ack (Suc m) n)` the second argument can be any number at all. But at every call the
+outer call `ack m (ack (Suc m) n)` the second argument can grow substantially. But at every call the
 pair of arguments gets smaller in the **lexicographic order**, the order of a dictionary: compare the
 first arguments, and only if they are equal, compare the second ones. That is the termination order
 Isabelle found. The arguments form a pair `p`; `fst p` and `snd p` are its first and second components;
@@ -1131,8 +1149,9 @@ leaves that value open, and `fun` rejects the definition all the same, because i
 termination. Pattern matching, as in `sum_upto`, prevents this mistake: there the recursive equation
 applies only to `Suc n`, where `n` really is smaller.
 
-Sometimes a function does terminate, but `fun` cannot see why. It tries only measures built from the sizes
-of the arguments, combined lexicographically. A function that counts upwards, such as
+Sometimes a function does terminate, but `fun` cannot see why. Its automatic search uses candidates
+such as argument sizes and lexicographic combinations; it does not discover every useful measure.
+A function that counts upwards, such as
 `sum_from i n = (if n < i then 0 else i + sum_from (i + 1) n)`, terminates because $n + 1 - i$ decreases
 at every call, yet neither argument gets smaller, so `fun` gives up. For such definitions Isabelle has
 the more general command `function`, with which you supply the measure yourself; Module 8 returns to
@@ -1161,7 +1180,8 @@ Induction proves facts about recursive functions. It also proves facts about pro
 step, such as loops, protocols and machines. The tool for that is an invariant.
 
 ::: definition Invariant
-An **invariant** of a process is a property of its state that holds in the initial state and is
+An **inductive invariant**, called an **invariant** here, is a property of a process's state that holds
+in every initial state and is
 **preserved** by every step: if it holds before a step, it holds after the step.
 :::
 
@@ -1175,7 +1195,9 @@ where $I$ holds. If $I$ holds after $k$ steps, the next step preserves it, so $I
 
 ### A loop {#loop-invariant}
 
-This program sums the numbers from 1 to `n` with a loop:
+This program sums the numbers from 1 to `n` with a loop. Assume that `n` is a fixed natural number and
+that arithmetic uses unbounded integers; an implementation using fixed-width integers would also need
+an overflow argument:
 
 ```text
 i := 0
@@ -1204,7 +1226,8 @@ a proof. This way of reasoning about loops goes back to Robert Floyd (1967) and 
 
 ### A machine {#machine-invariant}
 
-A ticket machine accepts 5-cent and 10-cent coins and returns every other coin. Its state is the credit,
+A model of a ticket machine accepts 5-cent and 10-cent coins and returns every other coin. We model
+only coin insertion, with no purchase or refund transitions. Its state is the credit,
 which starts at 0. Can the credit ever be exactly 12 cents? Whatever the customers do, the answer is no,
 and an invariant shows why. Take $I$: "the credit is a multiple of 5".
 
@@ -1269,18 +1292,21 @@ series.
 ## What you learned {#summary}
 
 - Natural numbers are built from `0` and `Suc`, lists from `[]` and `#`, and trees from `Tip` and
-  `Node`. A recursive definition gives one equation for each way a value can be built, and calls the
-  function only on smaller arguments. `datatype` defines new types of this kind.
-- Evaluation is rewriting with the defining equations. The order of rewriting changes the intermediate
-  terms but not the value. Clear definitions can be slow programs: the naive `fib` repeats work.
+  `Node`. Direct structural recursion handles every constructor and calls the function on smaller
+  parts. More general terminating recursion may use a different well-founded relation. `datatype`
+  defines new types of this kind.
+- The definitions here can be evaluated by rewriting their equations; the chosen rewrite order changes
+  the intermediate terms without changing their result. A symbolic normal form need not be a concrete
+  value. Clear definitions can be slow programs: the naive `fib` repeats work.
 - **Mathematical induction:** prove $P(0)$, and $P(n) \imp P(n+1)$ for an arbitrary $n$; then $P(n)$
   holds for every $n$. Both parts are needed, and the step must work for every $n$.
 - **Structural induction** does the same for lists and trees, with one IH per smaller part. **Strong
   induction** may assume $P(m)$ for every $m < n$. All of them rest on well-founded orders.
 - In Isabelle, `apply (induction n)` turns a goal into the base case and the step. Read `⋀n.` as "for an
-  arbitrary n" and `⟹` as "implies"; the IH stands to the left of `⟹`. `by (induction xs) auto` proves
-  what follows from the definitions and the IH. When it gets stuck, induct on the argument the function
-  takes apart, or prove the lemma that the stuck goal needs and declare it `[simp]`.
+  arbitrary n" and `⟹` as "implies"; the IH stands to the left of `⟹`. `by (induction xs) auto` can
+  often close the resulting goals using the definitions and IH. When it gets stuck, consider the
+  induction variable, a stronger induction hypothesis, or an auxiliary lemma. Register a lemma
+  `[simp]` only when it is suitable for automatic rewriting.
 - `fun` accepts a recursive definition only after proving that it terminates, with a measure or a
   lexicographic combination of measures that decreases at every call. Without that check, a "definition"
   such as $f(n) = f(n) + 1$ could prove $0 = 1$.
@@ -1448,7 +1474,7 @@ because $11 = 4a + 5b$ has no solution in natural numbers.
 ::::
 
 :::: exercise Breaking chocolate {#ex-5-6} ★★
-A chocolate bar has $m \times n$ squares. You break it into single squares. Each break takes one piece and
+A chocolate bar has $m \times n$ squares, where $m$ and $n$ are positive integers. You break it into single squares. Each break takes one piece and
 splits it into two pieces along a line between the squares. Find an invariant that relates the number of
 pieces to the number of breaks made so far, and use it to show that every way of breaking the bar takes
 exactly $m \cdot n - 1$ breaks.

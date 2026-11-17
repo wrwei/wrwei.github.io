@@ -1,5 +1,38 @@
 # Review of Module 7, Natural deduction in Isabelle
 
+## Follow-up content audit, 17 November 2026
+
+Read all explanations, rule applications, proof-state/error examples, exercises and quizzes.
+Line numbers refer to the source at the start of this follow-up.
+
+- **L319–323, 530–542, 879–896:** destruction can produce an instance, not just a literal part of a
+  premise. Unification respects types and scope. Clarified first-subgoal methods and customary method
+  pairings: `rule conjunct2` and `erule mp` are legitimate uses already present in the series.
+- **L1284–1304:** removed “no other method can help” after the early existential-witness choice.
+  Scope prevents the intended direct instantiation with the later parameter; it does not establish
+  impossibility of a HOL proof. A choice term can name a master key without the local parameter.
+  In the later displayed state, choosing a counterexample door also recovers the information lost by
+  consuming the universal assumption. The simple teaching repair remains `exE` before `exI`; no new
+  untested proof script was added.
+- **L1322–1325, 1448–1453, 1839–1841:** restricted the `simp` failure to the displayed witness-search
+  problem, distinguished explicit intuitionistic rules from classical HOL, and replaced the “same
+  main connective” criterion for `rule` with unification against the goal.
+- **L1950–2019, 2353–2357, 2451 and quiz:** search can hit resource limits, reconstructed proofs remain
+  relative to assumptions/axioms, and distinct fixed names do not assert unequal values. “Fix first,
+  guess later” is a useful strategy, not a requirement on every possible HOL proof.
+
+Primary references: [Isar reference, Generic tools](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Isar_Ref/Generic.html),
+[implementation manual, Proof](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/Doc/Implementation/Proof.html),
+and [`Hilbert_Choice`, notably `someI_ex`](https://isabelle.in.tum.de/website-Isabelle2026/dist/library/HOL/HOL/Hilbert_Choice.html).
+
+Validation: all 139 Isabelle blocks, 101 captured-output blocks, 11 proof trees and existing IDs are
+unchanged. English checker: no errors or warnings. English HTML and root MkDocs builds passed.
+Inspected the whole page at 1280 and 390 px with solutions expanded: no page overflow, broken images,
+KaTeX errors, missing local anchors or browser errors. Wide trees use existing horizontal scroll
+containers. No fresh Isabelle run was possible on this Mac. Chinese synchronisation remains deferred.
+
+## Original review, 16 November 2026
+
 Reviewer's pass, 16 November 2026. Line numbers are those of `src/en/module_07.md` before the review.
 Every `thm` output, proof state and error message on the page comes from `tools/isa.py`. Claims that
 no output block covers were checked in scratch sessions (`out/scratch/rev79/`) or in the Isabelle2026

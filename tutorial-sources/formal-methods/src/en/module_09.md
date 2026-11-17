@@ -23,10 +23,12 @@ This module opens the toolbox. You will learn how the tools work, what each one 
 them, and what to do when none of them works.
 
 First, a reminder of why it is safe to use tools whose inner workings you do not know in detail. In
-Section 1.4 you met the LCF architecture: only the small kernel can make a theorem. Every tool in this
-module, however clever, ends by asking the kernel to check each inference. A tool can fail, or run for a
-long time, but it cannot turn a false statement into a theorem. This holds even for Sledgehammer, which
-calls programs outside Isabelle; Section 9.8 shows how.
+Section 1.4 you met the LCF architecture: ordinary completed proofs are built from kernel inferences.
+The proof methods here use that route. A search can fail or run for a long time, but its result becomes
+a theorem only through checked inferences from the stated assumptions and axioms. Admissions and oracle
+configurations bypass this guarantee. Search tools such as `find_theorems`, Quickcheck and Nitpick do
+not themselves prove the goal. Sledgehammer's reconstructed proofs are checked too, even though it
+consults programs outside Isabelle; Section 9.8 shows how.
 
 | Tool | What it does | Good for |
 |---|---|---|
@@ -142,9 +144,9 @@ proves a goal by rewriting it to `True`.
 :::
 
 In logic, `l = r` and `r = l` say the same. The simplifier still uses each equation in one direction only,
-and that is what makes it fast and predictable: it never has to choose between going forwards and going
-back. It also follows a fixed order. Before it rewrites a term, it rewrites the parts of the term, from
-the inside out, as Figure 9.1 shows.
+and that avoids searching both directions. Ordinary rewriting works from the inside out, as Figure 9.1
+shows. Congruence rules can control which parts are simplified and under which assumptions: for
+example, an `if` can have its condition simplified first and its branches simplified under that condition.
 
 ::: figure id=fig-09-1
 The simplifier at work on `allows (grant u Read es) u Read`. At each step the highlighted part is
@@ -153,8 +155,8 @@ rewritten with the rule named on the arrow. Inner parts are rewritten before the
 
 ### Watching it in Isabelle {#simp-only}
 
-You can make Isabelle take the steps of the example one at a time. `simp only: r₁ r₂` rewrites with the
-rules `r₁ r₂` and with no others:
+You can make Isabelle take the steps of the example one at a time. `simp only: r₁ r₂` clears the ordinary
+rewrite rules and uses `r₁ r₂`, together with assumptions and built-in support described in Section 9.2.4:
 
 ```isabelle
 lemma "allows (grant u Read es) u Read"
@@ -212,7 +214,7 @@ collection of all simp rules at a point of a theory. You make a lemma a simp rul
 its name, or later with `declare name [simp]`; `declare name [simp del]` removes it again.
 :::
 
-One thing is missing from the list: definitions. A `definition` is not a simp rule, so `simp` treats
+One thing is missing from the list: equations introduced by `definition` are not simp rules by default, so `simp` treats
 `grant` as an unknown function:
 
 ```isabelle fails
@@ -226,8 +228,8 @@ lemma "allows (grant u Read es) u Read"
 ***  1. allows (grant u Read es) u Read
 ```
 
-"Failed to apply initial proof method" means that `simp` could not change the goal at all: no rule in the
-simp set matches any part of it. Tell `simp` to use the definition, with `add:`:
+Here "Failed to apply initial proof method" means that `simp` made no progress on the goal: no applicable
+rule unfolds `grant` or proves the surrounding claim. Tell `simp` to use the definition, with `add:`:
 
 ```isabelle
 lemma "allows (grant u Read es) u Read"
@@ -328,16 +330,16 @@ In the second subgoal the simplifier used the induction hypothesis, an assumptio
 rewrite rule. Section 9.3 explains how simp uses assumptions.
 
 ::: keyidea
-The simplifier is predictable. It uses the rules of the simp set, plus what you add, from left to right,
-and nothing else. When `simp` fails, ask which equation it would have needed, and whether that equation
-is in the simp set.
+To understand the simplifier, start with the oriented rules in the simp set, what you add, and the
+assumptions. Built-in solvers and case-splitting rules also contribute. When `simp` fails, ask which
+equation or split it would have needed, and whether you supplied it.
 :::
 
 ::: trouble
 The two messages of a failed `by` mean different things:
 
-- **"Failed to apply initial proof method"**: the method could not do anything with the goal. For `simp`,
-  no rule applied at all. Often a definition is not unfolded, or a needed lemma is not a simp rule.
+- **"Failed to apply initial proof method"**: the method produced no successful initial result. For
+  `simp`, it usually means no progress. Often a definition is not unfolded, or a needed lemma is not a simp rule.
 - **"Failed to finish proof"**: the method made progress but did not prove the goal. The message shows what
   is left. Read it: it tells you what the simplifier could not do.
 :::
@@ -437,8 +439,8 @@ circles.
 
 ### Case splits {#splits}
 
-A goal that contains `if c then a else b` cannot be simplified much as it is: the simplifier does not know
-whether `c` holds. So it **splits** the goal into two cases, one where `c` holds and one where it does not,
+A goal containing `if c then a else b` can get stuck when the simplifier cannot determine `c` or reduce
+both branches to the same term. It can then **split** the goal into two cases, one where `c` holds and one where it does not,
 with this library rule:
 
 ```isabelle
@@ -737,7 +739,7 @@ lemma "UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP"
 
 In principle `blast` is a **complete** method for first-order logic: if its search had no limit, it would
 find a proof of every valid first-order formula. In practice its search is bounded, as Section 6.9
-described. It does no rewriting and knows little about equality, so it fails on goals that need
+described. It does not invoke the simplifier and has limited equality reasoning, so it often fails on goals that need
 definitions unfolded, functions computed or arithmetic:
 
 ```isabelle fails
@@ -810,8 +812,9 @@ fail.
 ### clarsimp {#clarsimp}
 
 `clarsimp` applies safe rules and the simplifier. Unlike `auto`, it does not use logic to split a goal
-into several subgoals, and it never guesses. It does not try to finish the proof; it tidies the goal so
-that you can see what remains:
+into several subgoals, and it avoids unsafe search. It can finish a goal, but otherwise tidies it so
+that you can see what remains. Simplifier splitters can still create multiple subgoals, particularly
+when configured to split premises:
 
 ```isabelle
 lemma "∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP"
@@ -835,7 +838,7 @@ says that role `y` grants `Read`.
 | `auto` | all subgoals | leaves what it could not prove, or fails if nothing changed |
 | `blast` | first subgoal | fails, with no hint |
 | `force`, `fastforce` | first subgoal | fails, with no hint |
-| `clarsimp` | first subgoal | does not try to finish; leaves the goal tidied |
+| `clarsimp` | first subgoal | leaves a tidied goal (possibly split by simplification), or fails if nothing changed |
 
 `auto`, `force`, `fastforce` and `clarsimp` accept the simplifier's modifiers, written `simp add:` (or
 `simp:` for short), `simp del:` and `split:`, because `add:` alone would be ambiguous. They also accept
@@ -883,7 +886,7 @@ lemma "(2::int) * x ≠ 2 * y + 1"
 ```
 
 `presburger` decides **Presburger arithmetic**: linear arithmetic over the integers and natural numbers,
-including quantifiers, divisibility, and `div` and `mod` by numbers.
+including quantifiers, divisibility by fixed numbers, and `div` and `mod` by fixed numbers.
 
 ```isabelle
 lemma "(2::int) * x ≠ 2 * y + 1"
@@ -921,13 +924,14 @@ Presburger, 1929). With multiplication of variables it is not, not even for sing
 algorithm decides, for every polynomial equation with integer coefficients, whether it has a solution in
 whole numbers (Yuri Matiyasevich, 1970, completing work of Martin Davis, Hilary Putnam and Julia
 Robinson). Over the real numbers, formulas with addition and multiplication are decidable again (Alfred
-Tarski), but the known algorithms take very long on all but small problems.
+Tarski), although decision procedures can be very expensive on difficult inputs.
 :::
 
 A goal such as `x ≤ y ⟹ x * x ≤ y * y` is true exactly when the opposite, `x ≤ y` together with
-`y * y < x * x`, has no solution. So for whole numbers there is no complete method for arithmetic with
-products, and there cannot be one: it would answer questions that, by the fact above, no algorithm can
-answer. Isabelle's answer is the library: it contains thousands of proved facts about multiplication. The
+`y * y < x * x`, has no solution. For whole numbers there is no decision procedure that always answers
+every such question about polynomial arithmetic correctly. This does not prevent a proof method from
+solving particular nonlinear goals, or a library from supplying useful theorems. Isabelle's library
+contains thousands of proved facts about multiplication. The
 next section shows how to find the one you need, and Section 9.8 shows a tool that finds it for you.
 
 ::: tip
@@ -1008,7 +1012,8 @@ The criteria you will use most:
 | `intro`, `elim`, `dest` | that could be applied as such a rule to the current goal (inside a proof) |
 | `-` before a criterion | that do not meet it |
 
-The `simp:` criterion answers the question "what does the simplifier know about this term?":
+The `simp:` criterion finds equations that could rewrite a term, including ones that are not currently
+registered as simp rules:
 
 ```isabelle
 find_theorems simp: "set (filter _ _)"
@@ -1051,8 +1056,9 @@ not `"rev (rev xs)"`. For an operator, give a whole term such as `"_ * _"`, not 
 
 Trying to prove a false statement wastes time, and automation fails on false statements without saying
 that they are false. So test a claim before you try to prove it. Isabelle has two counterexample finders,
-Quickcheck (Module 1) and Nitpick (Modules 2 and 3). Isabelle/jEdit runs Quickcheck automatically on
-every new `lemma`; the examples here call the tools explicitly, as you can too.
+Quickcheck (Module 1) and Nitpick (Modules 2 and 3). With the default settings, Isabelle/jEdit tries
+Quickcheck automatically on new goals; this background check can be disabled. The examples here call
+the tools explicitly, as you can too.
 
 ### Quickcheck {#quickcheck}
 
@@ -1194,7 +1200,8 @@ Nitpick found no counterexample
 
 A counterexample from Nitpick is **genuine** when Nitpick has checked that it really falsifies the claim.
 For claims about infinite types such as `nat`, it may report a counterexample as **potentially
-spurious**: one that might disappear in a larger model. Treat those as hints. "No counterexample" is not a
+spurious**: the finite approximation may not correspond to any counterexample in the intended types.
+Treat those as hints to investigate. "No counterexample" is not a
 proof either: there may be a counterexample larger than the sizes Nitpick tried. On claims about
 recursive functions on lists, Nitpick often runs out of time; Quickcheck is the better tool there.
 
@@ -1202,7 +1209,7 @@ recursive functions on lists, Nitpick often runs out of time; Quickcheck is the 
 |---|---|---|
 | Method | runs the claim as a program on many values | searches for a finite model with a SAT solver |
 | Strong on | functions on lists and numbers | sets, relations, quantifiers |
-| Needs | executable definitions | nothing special |
+| Needs | executable definitions for the tested claim | supported encodings; infinite types and some constructs require approximations |
 | Runs automatically in jEdit | yes | no (it can be turned on) |
 | Main option | `size` | `card` |
 
@@ -1327,15 +1334,17 @@ yourself and call Sledgehammer on the cases. Options go in square brackets, for 
 
 ## When automation fails {#strategy}
 
-No method proves everything; there is no complete proof method for higher-order logic, not even in
-principle. Sooner or later every method fails on a goal that you believe is true. Then work through these
+No algorithm always gives a terminating, correct yes-or-no answer for every logical goal: already
+first-order validity is undecidable (Module 3). Systematic proof search can still enumerate derivable
+theorems in principle; it need not terminate on goals with no derivation. In practice, bounded automation
+will fail on some goals that you can prove. Then work through these
 steps, roughly in this order.
 
-1. **Is the claim true?** Run `quickcheck` and `nitpick`. If one finds a counterexample, the statement
+1. **Is the claim true?** Run `quickcheck` and `nitpick`. If one finds a genuine counterexample, the statement
    needs fixing, not the proof.
 2. **Simplify and read.** `apply auto` (or `apply simp`) and read what is left. The remaining subgoals
    show what the tools could not do.
-3. **Unfold definitions.** Definitions are not simp rules: add them with `simp add: f_def`.
+3. **Unfold definitions.** Defining equations are not simp rules by default: add them with `simp add: f_def`.
 4. **Split cases.** A `case` needs `split: t.split`; an `if` or `case` in an assumption needs
    `split: if_splits` or `t.splits`.
 5. **Use induction** when the claim is about all values of a recursive type and involves a recursive
@@ -1354,7 +1363,8 @@ down the list of steps above.
 Prove that the owner of a document may administer it: if `owner es = Some v` then
 `allows es v Admin`.
 
-Step 1: `quickcheck` finds no counterexample, so the claim is probably true. Step 5: both `owner` and
+Step 1: `quickcheck` finds no counterexample within its bounds; the intended meaning also suggests the
+claim is true. Step 5: both `owner` and
 `allows` are recursive functions on the list, so start an induction. Step 2: let `auto` do what it can.
 
 ```isabelle
@@ -1410,9 +1420,10 @@ unfold, a case to split, an induction to start, or a lemma to prove first.
 
 ## What you learned {#summary}
 
-- The **simplifier** rewrites with equations from left to right, inner parts first, until no rule applies;
+- The **simplifier** rewrites with oriented equations, ordinarily inner parts first, with congruence
+  rules controlling descent into terms;
   a goal rewritten to `True` is proved. It uses the **simp set**: equations of `fun`, facts from `datatype`,
-  and lemmas marked `[simp]`, but not definitions.
+  and lemmas marked `[simp]`. Equations introduced by `definition` are not registered by default.
 - `simp add:`, `simp del:` and `simp only:` change the rules for one call; `simp_all` works on every
   subgoal; `[simp]` and `declare … [simp]` change the simp set.
 - A **conditional rule** is used only if the simplifier can prove its conditions. The assumptions of a
@@ -1523,7 +1534,7 @@ say why the proof fails, and fix it.
 2. "Failed to finish proof", and the remaining goal has a `case` on `owner es` in its assumption. A `case`
    in an assumption is split only with `split: option.splits`.
 3. "Failed to apply initial proof method". The claim is about all lists and involves the recursive
-   function `revoke`, so it needs induction. In the induction step the `if` of `revoke` ends up in an
+   function `revoke`, so induction is a suitable next step. In the induction step the `if` of `revoke` ends up in an
    assumption, which needs `split: if_splits`.
 
 ```isabelle
@@ -1547,8 +1558,8 @@ Prove these three laws. Some of them need induction; choose `simp` or `auto` for
 3. `length (revoke u es) ≤ length es`
 
 ::: solution
-The first needs no induction, only the definition of `grant`. The second and third are about all lists, so
-they need induction; `revoke` contains an `if`, which the simplifier splits.
+The first needs no induction, only the definition of `grant`. For the second and third, induction on the
+list supplies the facts needed about recursive calls; `revoke` contains an `if`, which the simplifier splits.
 
 ```isabelle
 lemma "revoke u (grant u p es) = revoke u es"
@@ -1734,9 +1745,9 @@ lemma "insert a (insert b (insert c A)) = insert c (insert a (insert b A))"
 ? Why does `by simp` fail on `allows (grant u Read es) u Read` while `by (simp add: grant_def)` succeeds?
 - [ ] `simp` cannot handle lists
 - [ ] `grant_def` is a conditional rule
-- [x] `grant` is defined with `definition`, and definitions are not simp rules
+- [x] `grant` is defined with `definition`, whose equation is not a simp rule by default
 - [ ] `simp` only uses rules written with `[simp]` in the same theory
-> The equations of `fun` and many library lemmas are simp rules, but a `definition` is unfolded only when you add its `_def` theorem.
+> The equations of `fun` and many library lemmas are simp rules. A `definition` does not register its equation by default; supply or register its `_def` theorem when needed.
 
 ? A simp rule has the form `v ≠ u ⟹ allows (revoke u es) v p = allows es v p`. When does `simp` use it on `allows (revoke a es) b Read`?
 - [x] Only if it can prove `b ≠ a`, for example from an assumption of the subgoal
@@ -1764,7 +1775,7 @@ lemma "insert a (insert b (insert c A)) = insert c (insert a (insert b A))"
 - [ ] `linarith` works only on integers
 - [ ] The goal needs `presburger`
 - [x] The goal multiplies two variables, so it is not linear arithmetic
-> Linear arithmetic allows multiplication by numbers only. Arithmetic with products of variables is undecidable in general, so the proof needs a lemma such as `mult_le_mono`.
+> Linear arithmetic allows multiplication by fixed numbers only. A lemma such as `mult_le_mono` handles this nonlinear goal; undecidability rules out an algorithm that decides every nonlinear integer-arithmetic goal.
 
 ? Sledgehammer suggests a proof `by (metis …)` that uses two library lemmas. Why can you trust the resulting theorem?
 - [ ] Because the external provers are verified programs

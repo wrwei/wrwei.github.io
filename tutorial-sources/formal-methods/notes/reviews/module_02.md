@@ -1,5 +1,34 @@
 # Review of Module 2, Propositional logic
 
+## Audit and revision — 17 November 2026
+
+English content audit against commit `a79a552`. Line numbers below refer to that baseline; current sections retain their IDs.
+
+- **L73.** Language: made atomicity relative to the model and English disjunction context-dependent; stated that the door model concerns an unlocking decision.
+- **L197.** Evaluation: explained symbolic evaluation and distinguished a complete truth table from an unchecked counterexample search.
+- **L457.** Proof methods: removed the unsupported diagnostic attached to an initial-method failure and claims that an inconsistent premise makes every method succeed.
+- **L639.** Ticket example: the simplification is a valid rejection condition; material implication does not establish a policy bug.
+- **L843.** Normal forms: made constants, singleton forms, empty conjunctions and empty disjunctions explicit. The Tseitin encoding must assert the root formula, not merely define fresh names.
+- **L1014.** Complexity: separated exponential truth-table enumeration from the open complexity of general SAT; qualified clause-learning claims.
+- **L1161.** Requirements: distinguished global satisfiability from inconsistency under particular sensor readings; constrained claims about physical access and propositional modelling limits.
+
+### Validation and scope
+
+- Re-read the English page, worked examples, exercise solutions and quiz; retained the established section and exercise IDs.
+- Every Isabelle and captured-output block is byte-for-byte unchanged from commit `a79a552`. The existing downloadable theories are reused unchanged.
+- `node tools/check.mjs --lang en`: 18 pages, 0 errors, 0 warnings. The English site builds successfully, and `mkdocs build` from the repository root passes.
+- Browser checks cover desktop (1280 px) and phone (390 px), expanded solutions, image decoding, formula rendering, internal anchors, page overflow and JavaScript errors. See the local `out/audit-module-02/` screenshots and metrics.
+- Isabelle2026 is not installed on this computer. The requested Isabelle recheck could not run; unchanged code/output comparison and the earlier successful proof-check logs are not represented as a fresh prover run.
+- Chinese work remains paused. These English changes must be reconciled before publishing the Chinese edition.
+
+### Additional checks and sources
+
+- Truth-table widget: 24 existing scripted checks passed, 0 failed.
+- [Clay Mathematics Institute: P versus NP remains open](https://www.claymath.org/millennium/p-vs-np/).
+- [cvc5 documentation on solver outputs](https://cvc5.github.io/tutorials/beginners/outputs.html); [Frama-C WP](https://frama-c.com/fc-plugins/wp.html); [Boogie verification conditions](https://github.com/boogie-org/boogie).
+
+## Earlier review — 16 November 2026
+
 Reviewed on 16 November 2026: `src/en/module_02.md`, `src/widgets/truth-table.js` (with its test
 `tools/widget-tests/truth-table.mjs`) and `src/figures/_gen/figs_02.py`. Line numbers are those of the
 page as I found it (snapshot commit 710e1a5), before my edits.

@@ -1,7 +1,7 @@
 ---
 title: Functional programming in HOL
 part: 3
-lead: Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why every function must terminate, and turn your definitions into Haskell code.
+lead: Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why recursive definitions need termination proofs, and turn executable definitions into Haskell code.
 minutes: 210
 needs: Modules 1–7
 goals:
@@ -9,7 +9,7 @@ goals:
   - Use λ-abstraction, currying and partial application
   - Define data types, and functions on them with `definition`, `fun` and `primrec`
   - Compute with lists and numbers, and explain overloaded notation with type classes
-  - Explain why every function must terminate, read Isabelle's termination messages, and supply a measure when Isabelle cannot find one
+  - Explain why `fun` requires termination, read Isabelle's termination messages, and supply a measure when Isabelle cannot find one
   - Generate Haskell code from your definitions with `export_code`
 imports: Main
 ---
@@ -17,7 +17,7 @@ imports: Main
 ## Programs in a logic {#hol}
 
 In Part II you used Isabelle to check proofs about formulas. Part III turns to the other half of
-Isabelle/HOL: it is also a programming language. HOL contains a small, typed **functional programming
+Isabelle/HOL: its executable definitions form a programming language. HOL contains a typed **functional programming
 language**, close to Haskell, OCaml and Standard ML (the language of Isabelle's own core).
 You write programs as equations, Isabelle runs them, and because the programs are part of the logic,
 you can prove facts about them. Modules 9 to 11 are about the proving; this module is about the
@@ -25,11 +25,13 @@ programming.
 
 Programs in HOL differ from programs in Python, Java or C in three ways.
 
-- **No side effects.** A HOL function does not change variables, print, or read files. Given the same
-  arguments, it always returns the same result, like a function in mathematics.
-- **No loops.** Repetition is done by recursion, as in Module 5.
-- **Every function is total.** It returns a result for every argument of its type. Section 8.7 explains
-  why the logic insists on this.
+- **No side effects.** A HOL function does not change variables, print, or read files. Its arguments
+  determine its mathematical value. State changes can be modelled explicitly by passing a state in and out.
+- **Recursion for repetition.** The functions here use recursion, as in Module 5. Loops can also be
+  modelled in HOL; they are not a primitive construct in these function definitions.
+- **Every function is total.** It denotes a value for every argument of its type. This does not mean
+  that every HOL function has executable code, or that every evaluation succeeds. Section 8.7 explains
+  why recursive equations accepted by `fun` need a termination proof.
 
 This module builds one example step by step: a controller for a British traffic light, which shows red,
 then red and amber together, then green, then amber, and then red again. You will describe its states as
@@ -92,7 +94,7 @@ list.
 
 A **term** is an expression of HOL: a constant such as `True`, `0` or `rev`, a variable such as `x`, a
 function applied to arguments such as `rev xs`, or one of the forms this module introduces. The command
-`term` reads a term, works out its type and prints both, without evaluating anything:
+`term` reads a term, works out its type and prints both, without running it as a program:
 
 ```isabelle
 term "Suc 0"
@@ -116,7 +118,8 @@ type, `Suc 0` is a `nat`, so `5` must be a `nat` too. In the last term, the pair
 and a `bool list` on the right, so its type is `nat × bool list`.
 
 ::: definition Type inference and type annotations
-**Type inference** computes the type of every part of a term from the types of the constants in it.
+**Type inference** computes the type of every part of a term from the types of its constants and variables
+and the constraints imposed by application and binding.
 Where the constants leave the type open, the result contains type variables. A **type annotation**
 `t :: τ` (or `(t::τ)` inside a larger term) tells Isabelle that `t` has type τ.
 :::
@@ -147,7 +150,8 @@ term "x + (1::nat)"
 Since `+` takes two arguments of the same type, `x` is now a `nat` too. Section 8.6 explains what Isabelle
 knows about the `'a` in `x + 1`.
 
-`x` is a **free variable**: a name that is not a constant. Isabelle/jEdit shows free variables in blue,
+`x` is a **free variable**: it is neither a declared constant nor bound by a quantifier or λ.
+Isabelle/jEdit shows free variables in blue,
 and constants such as `Suc` in black.
 
 ### Computing with value {#value}
@@ -246,8 +250,9 @@ maps `x` to `x + 1`. Read it "lambda x, x plus 1". Type λ as `%` or `\lambda`.
 ::: definition λ-abstraction and application
 If `t` is a term of type τ₂ in which the variable `x` of type τ₁ may occur, then `λx. t` is the function of
 type τ₁ ⇒ τ₂ that maps each value `x` to `t`. **Application** of a function `f` to an argument `a` is
-written `f a`, without parentheses or commas. Applying `λx. t` to `a` gives `t` with `a` in place of `x`;
-this step is called **β-reduction**.
+written `f a`, without parentheses or commas. Applying `λx. t` to `a` replaces the free occurrences of
+`x` in `t` by `a`, renaming bound variables when needed to avoid capturing variables of `a` (Module 3).
+This step is called **β-reduction**.
 :::
 
 ```isabelle
@@ -378,7 +383,7 @@ value "Suc Suc 0"
 ```
 
 The operand of `Suc` is the function `Suc :: nat ⇒ nat` where a `nat` is needed. Write `Suc (Suc 0)`.
-Missing parentheses are the most common cause of type errors.
+Missing parentheses are a common cause of type errors.
 :::
 
 ## Data types {#datatypes}
@@ -443,8 +448,9 @@ value "next_light (next_light Red)"
   :: "light"
 ```
 
-The facts listed in Definition 8.5 come with the datatype and are known to `simp`. It proves at once that
-two constructors differ:
+The datatype supplies the constructor properties of Definition 8.5. Distinctness and injectivity are
+available to `simp`; exhaustiveness supports the `cases` method below. `simp` proves at once that two
+constructors differ:
 
 ```isabelle
 lemma "Red ≠ Green"
@@ -476,8 +482,8 @@ computes:
   done
 ```
 
-`simp_all` applies `simp` to all subgoals. A test with `value` would have checked one light; the lemma
-covers all four.
+`simp_all` applies `simp` to all subgoals. Evaluating the equation at one light would check that instance;
+the lemma covers all four. Since this type is finite, an exhaustive computation could also check all four.
 
 Finally, the light's timing. Each state lasts a fixed number of seconds:
 
@@ -560,9 +566,10 @@ value "to_list (Push (1::nat) (Push 2 (Push 3 Empty)))"
 
 ### Options and pairs {#options}
 
-What is the top element of an empty stack? In Java you might get an exception, in C whatever happens to
-be in memory. A HOL function is total, so a function of type `'a stack ⇒ 'a` must return *some* element
-even for `Empty`. The clean way out is to change the result type. HOL's library defines, in essence,
+What is the top element of an empty stack? An implementation might raise an exception; an invalid
+memory access in C can have undefined behaviour. A HOL function of type `'a stack ⇒ 'a` instead denotes
+*some* element even for `Empty`, without necessarily providing code to compute it. To represent the
+missing result explicitly, change the result type. HOL's library defines, in essence,
 
 `datatype 'a option = None | Some 'a`
 
@@ -611,7 +618,7 @@ fun top_or :: "'a ⇒ 'a stack ⇒ 'a" where
 `top_or d s` is the top element of `s`, or the default `d` if `s` is empty. Read
 `case t of p₁ ⇒ e₁ | p₂ ⇒ e₂` as: compute `t`, find the first pattern pᵢ that matches its value, and
 return eᵢ, with the variables of the pattern standing for the matching parts. The arrow is the same ⇒ as
-in function types. A `case` expression inside a larger term must be in parentheses, like
+in function types. A `case` expression inside a larger term often needs parentheses to mark its extent, like
 `if … then … else …`.
 
 ```isabelle
@@ -711,7 +718,8 @@ The last lemma holds for every state `l` of the east–west light: whatever it s
 while the north–south light is red.
 
 ::: keyidea
-`simp` does not unfold a `definition` unless you ask with `simp add: f_def`. This is deliberate. A
+By default, `definition` does not register its equation as a simplification rule. You can supply it with
+`simp add: f_def` or register it for later use (Module 9). This is deliberate. A
 definition introduces a concept; once you have proved its important properties, such as `safe_Red`,
 later proofs should use those properties rather than the definition. Proofs then stay short, and if the
 definition changes, only the proofs of the properties need repair. Module 9 shows more ways of
@@ -740,13 +748,13 @@ Use `fst` and `snd` as above, a `case` expression, or `fun`, which accepts patte
 
 ### Recursive functions: fun and primrec {#fun-primrec}
 
-`primrec` accepts only **primitive recursion**: one equation for each constructor, each with the
-constructor applied to variables as its pattern, and recursive calls only on the immediate parts of the
+For the simple datatypes here, `primrec` uses **primitive recursion**: constructor patterns with
+variables for the constructor arguments, and recursive calls only on the immediate recursive parts of the
 argument, such as `height s` in the equation for `Push x s`. Such a function always terminates, so
 `primrec` needs no termination proof; it reports only the new constant, as you saw for `height`.
 
-`fun` accepts much more: nested patterns, patterns on several arguments, equations that overlap, and any
-recursion for which Isabelle can find a termination proof by itself. This function pushes the elements of
+`fun` accepts much more: nested patterns, patterns on several arguments, equations that overlap, and a
+broad range of recursive definitions whose termination Isabelle proves automatically. This function pushes the elements of
 a list onto a stack, one after another; its recursive call changes both arguments:
 
 ```isabelle
@@ -788,8 +796,8 @@ thm height.simps
 | | `definition` | `primrec` | `fun` |
 |---|---|---|---|
 | Recursion | none | primitive: on the immediate parts | general, once termination is proved |
-| Patterns | none: `f x₁ … xₙ = t` | one constructor pattern per equation | any constructor patterns, also nested and overlapping |
-| Used by `simp` | only with `simp add: f_def` | always (`f.simps`) | always (`f.simps`) |
+| Patterns | none: `f x₁ … xₙ = t` | constructor patterns with variable arguments | constructor patterns, also nested and overlapping |
+| Used by `simp` | not registered by default; add `f_def` | `f.simps` registered by default | `f.simps` registered by default |
 | Termination | no question | guaranteed by the form | proved automatically, or the definition is rejected |
 
 Which to choose? Use `definition` for a non-recursive concept that you want to reason about abstractly,
@@ -818,9 +826,9 @@ Found termination order: "{}"
 
 Isabelle accepts the definition with a warning, and completes it with the equation
 `top_value Empty = undefined`. It uses this equation to construct the function, but it does not add it
-to `top_value.simps`, so `simp` cannot use it. Here `undefined` is a constant of every type about which
-nothing is known:
-`top_value Empty` is *some* element, but no proof can tell which. The function is total, as every HOL
+to `top_value.simps`, so `simp` does not use it automatically. Here `undefined` is a polymorphic constant
+whose value is not specified beyond its type:
+`top_value Empty` is *some* element, with no particular element selected by the definition. The function is total, as every HOL
 function is, but on `Empty` it is **unspecified**. When you try to compute that value, the code behind
 `value` has no equation to use and stops with an exception (Section 8.8 explains where this code comes
 from):
@@ -898,7 +906,7 @@ primrec is_red3 :: "light ⇒ bool" where
 ### When a name is misspelt {#names}
 
 Section 8.1 showed that a misspelt name in a term becomes a free variable. In a definition, a free
-variable on the right-hand side has no value, so Isabelle rejects it:
+variable on the right-hand side is not determined by the arguments, so Isabelle rejects it:
 
 ```isabelle fails
 fun cycle_time :: "light list ⇒ nat" where
@@ -958,7 +966,7 @@ value "trace 6 Red"
 ```
 
 ::: example Evaluating trace by hand
-`value` computes by rewriting with the defining equations, and you can do the same on paper. Write `3`
+The computation performed by `value` follows the defining equations, and you can do the same on paper. Write `3`
 as `Suc (Suc (Suc 0))`:
 
 $$
@@ -1100,8 +1108,8 @@ several generators and conditions, separated by commas.
 
 ::: pitfall
 Some list functions are unspecified for some arguments: `hd []`, the first element of the empty list,
-and `xs ! n` when `n` is not a position of `xs`. They return *some* value of the right type, but nothing
-is known about it, and computing it with `value` stops with an exception, as for `top_value` in
+and `xs ! n` when `n` is not a position of `xs`. They denote *some* value of the right type, without
+specifying which, and computing it with `value` stops with an exception, as for `top_value` in
 Section 8.4. Before you use `hd xs` or `xs ! n` in a definition, make sure that `xs` is not empty or that
 `n < length xs`.
 :::
@@ -1197,8 +1205,9 @@ In HOL, `a div 0 = 0` and `a mod 0 = a` for every `a` (the library's lemmas `div
 :::
 
 This is not a mistake. Every HOL function is total, so `17 div 0` must be some number. The library
-chooses 0, a value that makes many laws hold without side conditions. A program that divides by zero is
-still wrong; the logic does not stop with an error. When division by zero matters, state `b ≠ 0`
+chooses 0, a value that makes many laws hold without side conditions. A program that is required to reject
+division by zero needs an explicit check; the logic does not raise an error for this operation. When
+division by zero matters, state `b ≠ 0`
 as an assumption in your lemmas.
 
 The functions `int :: nat ⇒ int` and `nat :: int ⇒ nat` convert between the two types; `nat` maps
@@ -1337,7 +1346,7 @@ lemma "trace 2 Red = [Red, RedAmber]"
 ```
 :::
 
-## Why every function must terminate {#termination}
+## Why fun requires termination {#termination}
 
 Every `fun` you have written produced a line "Found termination order". Module 5 (Section 5.7)
 explained why Isabelle insists on termination, what a measure is, and how to read the message when `fun`
@@ -1370,7 +1379,9 @@ constant being defined, so it cannot be circular, and it can never make the logi
 does not take your recursive equations on trust. It first defines the function by non-recursive
 definitions of this safe kind, through a construction that Isabelle carries out for you, and then
 *proves* your equations from them as theorems. That proof needs a termination argument. If Isabelle
-cannot find one, the definition is rejected, and nothing about the function becomes a theorem.
+cannot find one, `fun` fails: it does not provide the unrestricted defining equations as theorems. The
+underlying `function` package can retain a partial definition and conditional facts, which are beyond
+this introduction.
 :::
 
 If every chain of recursive calls ends in an equation without a recursive call, the equations determine
@@ -1387,11 +1398,11 @@ natural numbers that becomes smaller with every recursive call. The measures it 
 sizes of the arguments.
 
 ::: definition Size
-Every value of a datatype has a **size**, a natural number, written `size x`. For a natural number `n`
-the size is `n` itself, and for a list its length. For a value of a datatype you define, the size counts
-the constructors in it that have an argument of the same datatype, a **recursive** argument:
-`size (Push 1 (Push 2 Empty))` is 2, and every `light` has size 0, because no constructor of `light`
-takes an argument.
+For the datatypes here, Isabelle supplies a **size**, a natural number written `size x`. For a natural
+number `n` the size is `n` itself, and for a list its length. For our stack, `Empty` has size 0 and each
+`Push` adds 1 to the size of the inner stack: `size (Push 1 (Push 2 Empty))` is 2. Every `light` has size
+0. Other datatypes can have different size equations; inspect their generated `t.size` facts rather
+than assuming that `size` counts every constructor or every stored element.
 :::
 
 When the search succeeds, `fun` prints the measure it found. You have seen three kinds of report in this
@@ -1536,13 +1547,13 @@ termination
   by (relation "measure (λ(i, n). n + 1 - i)") auto
 ```
 
-`function` takes the same equations as `fun`, but proves nothing by itself. The line
+`function` takes the same equations as `fun`, but leaves proof obligations for you. The line
 `by pat_completeness auto` proves that the patterns cover every case and do not contradict each other;
 with a single equation that is a formality. `termination` then asks for the termination proof, and you
 name the measure. `λ(i, n). n + 1 - i` is the function that maps the pair of arguments `(i, n)` to
 `n + 1 - i`; `measure` turns it into the relation "has a smaller measure", and the method `relation`
 makes Isabelle use that relation. `auto` proves the rest: that the relation is well-founded, as it is
-for every measure (Module 5), and that the call decreases the measure, from `n + 1 - i` to
+for every natural-number measure (Module 5), and that the call decreases the measure, from `n + 1 - i` to
 `n + 1 - (i + 1)`, because the call happens only when `¬ n < i`. Now `sum_from` is defined, and it computes:
 
 ```isabelle
@@ -1555,12 +1566,12 @@ value "sum_from 3 5"
 ```
 
 The manual *Defining Recursive Functions in Isabelle/HOL*, under **functions** in the Documentation
-panel, explains `function` in depth. Every function defined with `fun` or `function` also comes with an
-induction rule that follows its recursion, `f.induct`; Module 11 uses it.
+panel, explains `function` in depth. After termination is proved, these definitions also supply an
+induction rule that follows the recursion, `f.induct`; Module 11 uses it.
 
 ## From HOL to running code {#codegen}
 
-The functions you have defined are programs, and Isabelle can translate them into other programming
+The executable functions you have defined are programs, and Isabelle can translate them into other programming
 languages: Standard ML, OCaml, Haskell and Scala. This is how a function that you have proved correct
 becomes part of real software, and Modules 12 and 14 use it for verified programs. Generate Haskell
 code for the traffic light:
@@ -1575,10 +1586,12 @@ See theory exports
 
 `export_code` takes the names of the functions to translate, and adds everything they need: here the
 datatype `light` and the natural numbers. `module_name` names the Haskell module. Write `in SML`,
-`in OCaml` or `in Scala` for the other languages. Only definitions that compute can be translated. A
-definition that quantifies over all natural numbers, such as `all_small k = (∀n::nat. n < k)`, has no
-program: `export_code` rejects it with a wellsortedness error, because `∀` can be computed only over
-types whose elements can be listed, the class `enum`, and `nat` is not in it.
+`in OCaml` or `in Scala` for the other languages. Translation needs executable code equations for the
+operations involved. For example, exporting the raw definition `all_small k = (∀n::nat. n < k)` fails
+with a wellsortedness error: the default code for `∀` enumerates a type in the class `enum`, and `nat`
+is not in that class. This does not mean `all_small` is uncomputable: it is always `False` (take
+`n = k`), so a proved code equation `all_small k = False` would make it executable. This distinction
+matters when turning specifications into running code, as in Module 12.
 
 The code does not appear in the Output panel. In Isabelle/jEdit, the words *theory exports* in the
 message are a link: click it, and jEdit's File Browser opens on the generated files, in a virtual folder
@@ -1646,8 +1659,10 @@ integers.
 The code generator is not part of Isabelle's kernel, so the generated code is not checked by the kernel:
 the code generator belongs to the trusted base (Module 1). It is designed so that every computation
 step of the generated program corresponds to rewriting with equations that are theorems in the logic.
-So if the program returns a result, the result agrees with your definitions; the guarantee is called
-*partial correctness*. The command `value` uses the same machinery. For a term without variables it
+Provided the generator, its configuration and the target runtime preserve this correspondence, a
+returned result agrees with the logical definitions; this is a *partial correctness* guarantee. It
+does not promise that generated code terminates on every target-language input or avoids resource errors.
+The command `value` uses the same machinery. For a term without variables it
 translates the term into ML, runs it, and turns the result back into a term with `term_of`; that is why
 it needs the class `term_of` (Section 8.6), and why it stopped with an exception at `top_value Empty`
 (Section 8.4). For a term with variables, such as `rev [a, b, c]`, it uses a symbolic variant of the
@@ -1656,23 +1671,24 @@ same translation.
 
 ## What you learned {#summary}
 
-- HOL is a typed functional programming language inside a logic. Functions have no side effects, use
-  recursion instead of loops, and are total. `typ` prints a type, `term` the type of a term, and `value`
+- HOL supports typed functional programming inside a logic. Functions denote total mathematical
+  mappings; the executable definitions here use recursion and have no side effects. `typ` prints a type, `term` a term and its type, and `value`
   evaluates a term.
 - Types are built from base types (`bool`, `nat`, `int`), type constructors written after their
   arguments (`'a list`, `'a option`), pairs `'a × 'b`, functions `'a ⇒ 'b` and type variables. Isabelle
-  infers types; an annotation `t :: τ` fixes one. Misspelt names become free variables.
+  infers types; an annotation `t :: τ` fixes one. In terms, undeclared names can become free variables.
 - `λx. t` is a function without a name. Functions of several arguments are curried: `nat ⇒ nat ⇒ nat`
   means `nat ⇒ (nat ⇒ nat)`, `f x y` means `(f x) y`, and a partial application is a function.
 - `datatype` defines enumerations and recursive types such as stacks and lists. Functions take values
   apart by pattern matching in equations or with `case`. Options represent results that may be missing.
-- `definition` defines non-recursive functions; `simp` uses `f_def` only when asked. `primrec` allows
+- `definition` defines non-recursive functions; `f_def` is not a simplification rule by default. `primrec` allows
   primitive recursion; `fun` allows general patterns and recursion, warns about missing patterns, and
   resolves overlapping ones in order.
 - The list library offers `map`, `filter`, `foldr`, `zip`, `take`, `drop`, `!`, `[m..<n]` and list
   comprehension. Subtraction on `nat` is truncated, `div` and `mod` are total, and overloaded
   operations are organised in type classes and sorts.
-- Every `fun` must terminate, or its equations could prove `0 = 1`. Isabelle searches for a decreasing
+- `fun` requires termination before supplying unrestricted defining equations: accepting arbitrary
+  recursive equations could prove `0 = 1`. Isabelle searches for a decreasing
   measure, reports it, and explains its failure with a matrix of calls and measures. With `function` and
   `termination` you supply the measure yourself.
 - `export_code` translates definitions into Haskell, SML, OCaml or Scala.
@@ -2037,8 +2053,9 @@ the entries of the result matrix. Then try it.
    ```
 
    There are two recursive calls. The first makes the first list shorter and keeps the second; the
-   second call does the opposite. So neither length decreases at both calls, and no single measure works,
-   but a lexicographic order does, as for Ackermann's function in Module 5. Isabelle picked the length of
+   second call does the opposite. So neither argument's length alone decreases at both calls. Their sum
+   would be a suitable single measure; Isabelle instead finds a lexicographic order, as for Ackermann's
+   function in Module 5. It picked the length of
    the second list first: it decreases (`<`) at the second call and stays the same (`<=`) at the first
    call, where the length of the first list then decreases. Comparing the first lists first would work as
    well.
@@ -2127,7 +2144,7 @@ the entries of the result matrix. Then try it.
 - [ ] The lemma is false
 - [ ] `definition` cannot define functions on pairs
 - [ ] `simp` cannot prove statements about datatypes
-> Definitions are not unfolded automatically, so that proofs can use proved properties of a concept instead of its definition.
+> `definition` does not register its equation with `simp` by default. You can supply or register it when unfolding is useful.
 
 ? Why does `fun` refuse a recursive definition whose termination it cannot prove?
 - [ ] Because non-terminating functions would make `value` slow

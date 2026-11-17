@@ -1,7 +1,7 @@
 ---
 title: Sets, relations and functions
 part: 1
-lead: The vocabulary that specifications are written in. You will describe collections with sets, connect their elements with relations, find the states a system can reach, compare the sizes of sets with functions, and see why some infinite sets are larger than others, with Isabelle checking each step.
+lead: Describe collections with sets, connect their elements with relations, find the states a system can reach, compare the sizes of sets with functions, and see why some infinite sets are larger than others, with examples and proofs checked in Isabelle.
 minutes: 210
 needs: Modules 1–3
 goals:
@@ -27,8 +27,8 @@ mathematics, see "Sets, relations, and discrete structures" in
 
 ### Elements and set-builder notation {#sets-notation}
 
-A set is a collection of things, called its **elements**. The only question you can ask a set is
-whether something is in it. $x \in A$ reads "x is an element of A", or "x is in A"; $x \notin A$ reads
+A set is a collection of things, called its **elements**, determined entirely by which things belong
+to it. $x \in A$ reads "x is an element of A", or "x is in A"; $x \notin A$ reads
 "x is not in A" and abbreviates $\lnot (x \in A)$.
 
 There are two ways to describe a set. A **listing** names its elements between braces:
@@ -390,9 +390,10 @@ Hint: Maybe you forgot a type constraint?
   Isabelle read the set with the single element `x ∨ x < 5`, so `x` would have to be both a truth
   value and a number. Write `{x. x < 5}`, with a dot.
 - **`Wellsortedness error` … `not of sort enum` from `value`.** `value` cannot compute
-  `{x. x < (5::nat)}`: it would have to try every natural number. Take the elements from a finite set,
-  as in `{x ∈ {0..10}. x < 5}`. Lemmas about infinite sets are no problem; only `value` needs finite
-  ones.
+  `{x. x < (5::nat)}` with this representation: the evaluator has no finite list over which to search.
+  Take the elements from a finite set, as in `{x ∈ {0..10}. x < 5}`. The issue is executable
+  representation and code equations, rather than a prohibition on reasoning about infinite sets.
+  For example, membership in some infinite sets is computable even though listing every element is not.
 :::
 
 ## Relations {#relations}
@@ -524,7 +525,7 @@ write composition as $R \mathbin{;} S$, or as $S \circ R$ by analogy with functi
 which reverses the order; Isabelle's $R \mathbin{O} S$ reads from left to right.
 
 ::: example Roles and permissions
-Large systems do not give permissions to users directly. They give users roles and roles permissions;
+Many systems assign users roles and assign permissions to those roles;
 this is **role-based access control**. With
 
 $$
@@ -733,8 +734,9 @@ $x < y \iff x \le y \land x \neq y$, and $x \le y \iff x < y \lor x = y$. A stri
 
 ::: example Orders, total and partial
 - $\le$ on numbers is a total order.
-- $\subseteq$ on $\pow(A)$ is a partial order but not a total one: $\{1\}$ and $\{2\}$ are
-  **incomparable**, as neither is a subset of the other.
+- $\subseteq$ on $\pow(A)$ is a partial order. If $A$ contains two different elements, it is not total:
+  for example, when $1, 2 \in A$, $\{1\}$ and $\{2\}$ are **incomparable**, as neither is a subset
+  of the other. If $A$ has at most one element, its subsets do form a total order.
 - Divisibility on the positive integers, $a \mid b$ when $b = k \cdot a$ for some integer $k$, is a
   partial order, and 2 and 3 are incomparable.
 :::
@@ -745,7 +747,7 @@ The graph of a partial order has many arrows: a loop at every node, and a shortc
 **Hasse diagram** of a partial order on a finite set leaves out what the properties imply. It puts
 smaller elements lower, draws no loops and no arrowheads, and draws a line from $x$ up to $y$ only when
 $y$ **covers** $x$: $x < y$ with nothing strictly between them. Then $x \le y$ exactly when an upward
-path leads from $x$ to $y$.
+path leads from $x$ to $y$, allowing a path of zero edges when $x = y$.
 
 ::: figure id=fig-04-2
 Two Hasse diagrams. Left: the subsets of $\{1, 2, 3\}$, ordered by $\subseteq$. Right: the divisors of
@@ -756,9 +758,10 @@ In a partial order, $m$ is **minimal** when no element is strictly below it, and
 below every element; **maximal** and **greatest** are the same notions upside down. In Figure 4.2,
 $\emptyset$ and 1 are least, $\{1, 2, 3\}$ and 12 greatest. A partial order can have several minimal
 elements and no least one: in $\{2, 3, 4, 6\}$ ordered by divisibility, 2 and 3 are minimal, 4 and 6
-maximal. In a project plan ordered by "must be finished before", the minimal tasks are those that can
-start now, and listing all tasks in an order that respects the partial order, a **topological sort**,
-gives a schedule.
+maximal. In a project plan with no cyclic dependencies, "is a prerequisite of" is a strict order;
+adding equality gives a partial order. Its minimal tasks have no unfinished prerequisites. Listing
+tasks in an order that respects the dependencies, a **topological sort**, gives a valid dependency
+order; durations and resource constraints are further scheduling questions.
 
 ### Well-founded relations {#well-founded}
 
@@ -786,8 +789,9 @@ Well-founded relations are why programs terminate and why induction is sound.
 
 - **Termination.** If each iteration of a loop, or each recursive call, moves to a smaller value in a
   well-founded relation, the computation stops: an infinite computation would be an infinite descending
-  chain. Euclid's algorithm `gcd m n = gcd n (m mod n)` terminates because $m \bmod n < n$ whenever
-  $n > 0$. When you define a function with `fun`, Isabelle looks for such a relation; that is the
+  chain, provided the work between decreases also terminates. Euclid's algorithm returns $m$ when
+  $n = 0$; otherwise it makes the recursive call `gcd n (m mod n)`. Its second argument decreases
+  because $m \bmod n < n$ whenever $n > 0$. When you define a function with `fun`, Isabelle looks for such a relation; that is the
   "termination order" it reported in Module 1.
 - **Induction.** To prove $P\,x$ for all $x$, it suffices to prove $P\,x$ assuming that $P$ holds for
   everything smaller than $x$ (this proof is the induction step). If $P$ failed somewhere, the
@@ -843,14 +847,20 @@ are missing, and nothing else.
 ::: definition Closures
 The **reflexive**, **symmetric** or **transitive closure** of $R$ is the smallest relation that contains
 $R$ and has the property; "smallest" means that it is contained in every other such relation.
+For the paper definitions, take $R \subseteq A \times A$ and keep closures on the chosen carrier $A$.
 
 - Reflexive closure on $A$: $R \cup \mathit{Id}_A$. Symmetric closure: $R \cup R^{-1}$.
 - Transitive closure: $R^+ = R \cup (R \mathbin{O} R) \cup (R \mathbin{O} R \mathbin{O} R) \cup \dots$,
   so $(x, y) \in R^+$ when a path of one or more $R$-steps leads from $x$ to $y$.
-- **Reflexive-transitive closure**: $R^* = \mathit{Id} \cup R^+$, paths of zero or more steps.
+- **Reflexive-transitive closure** on $A$: $R^* = \mathit{Id}_A \cup R^+$, paths of zero or more steps.
 
 Isabelle writes `r⇧+` and `r⇧*` (type `r^+` and `r^*`), and calls them `trancl` and `rtrancl`.
 :::
+
+Isabelle's `r⇧*` uses the whole element type as its carrier, so it includes `(x, x)` even for values
+outside a finite set being drawn. To restrict it to $A$, take its intersection with $A \times A$.
+For reachability from initial states in $A$, a relation contained in $A \times A$ cannot leave $A$,
+so this distinction does not change the reachable states.
 
 ::: example A chain and its closure
 For $R = \{(1, 2), (2, 3), (3, 4)\}$, paths of two steps give $R \mathbin{O} R = \{(1, 3), (2, 4)\}$,
@@ -864,8 +874,10 @@ which is $<$ on $\{1, 2, 3, 4\}$; $R^*$ adds the pairs $(x, x)$ and gives $\le$.
 draws $R$ with the pairs that $R^+$ adds.
 :::
 
-On a set with $n$ elements, paths longer than $n$ steps add nothing new: such a path visits some node
-twice, and cutting out the loop between the two visits gives a shorter path with the same ends. So you
+On a set with $n$ elements, every reachable pair has a path of at most $n$ steps. For different
+endpoints, remove repeated loops to get a path of at most $n-1$ steps. For equal endpoints in $R^+$,
+keep a shortest non-empty cycle, which has at most $n$ steps; a zero-step path would not suffice for
+$R^+$. So you
 can compute $R^+$ by adding the pairs of $R \mathbin{O} R$, then of $R \mathbin{O} R \mathbin{O} R$, and
 so on, until nothing changes. The **Transitive closure** button of the widget in Section 4.2 computes
 the same relation.
@@ -1000,8 +1012,10 @@ are written with $\lambda$. `λn. 2 * n` is the function that takes `n` to `2 * 
 in mathematics (type `\lambda` or `%`). Every HOL function is **total**: it has a value for every
 element of its argument type. (This sense of "total" has nothing to do with the total relations of
 Section 4.2.) A relation in which every input has *at most* one output is a **partial function**, such
-as the function computed by a program that may loop or fail; HOL models one as a total function whose
-result says whether there is a value, with the type `option` of Module 8. Isabelle writes the image of
+as the input-output relation of a deterministic program that may not return a result. A mathematical
+partial function can be represented in HOL by a total function returning the type `option` of Module 8:
+either a value or `None`. This representation records undefinedness; it does not make a potentially
+non-terminating program executable as a terminating HOL function. Isabelle writes the image of
 a set as `` f ` A `` (one backquote) and the range as `range f`.
 
 ### Injective, surjective, bijective {#inj-surj}
@@ -1026,8 +1040,9 @@ A function $f : A \to B$ is
 :::
 
 The last two have the same formula and different properties: surjectivity depends on the domain and
-codomain. In software, injectivity means "no collisions": an encryption function must be injective, or
-decryption could not tell two messages apart.
+codomain. In software, injectivity means "no collisions". For example, for a fixed key, deterministic
+encryption with exact decryption must map different plaintexts to different ciphertexts; otherwise
+decryption could not recover both messages correctly.
 
 ### Inverses and composition {#inverse}
 
@@ -1084,7 +1099,7 @@ lemma "inj f ⟶ inj g ⟶ inj (g ∘ f)"
   by (auto simp: inj_def)
 ```
 
-`inv f` exists for every function, but it undoes `f` only when `f` is injective:
+`inv f` is defined for every HOL function. Injectivity guarantees that it undoes `f` on every input:
 
 ```isabelle
 lemma "inj f ⟶ inv f (f x) = x"
@@ -1106,8 +1121,8 @@ value "bij_betw (λx::nat. (x + 1) mod 3) {0, 1, 2} {0, 1, 2}"
 
 ::: pitfall
 When `f` is not surjective, `inv f y` still has a value for a `y` outside the range, because every HOL
-function is total, but nothing is known about it. Facts about `inv f` need an assumption such as
-`inj f`, `surj f` or `bij f`.
+function is total, but no inverse law is guaranteed there. Injectivity gives the left-inverse law
+`inv f (f x) = x`; surjectivity gives the right-inverse law `f (inv f y) = y`. Bijectivity gives both.
 :::
 
 ## Counting: cardinality and Cantor's theorem {#cardinality}
@@ -1139,8 +1154,9 @@ off elements, and that idea still works for infinite sets.
 
 ::: fact The pigeonhole principle
 If $A$ and $B$ are finite and $|A| > |B|$, then no function $f : A \to B$ is injective: two different
-elements of $A$ have the same image. More precisely, some element of $B$ is the image of at least
-$\lceil |A| / |B| \rceil$ elements of $A$.
+elements of $A$ have the same image. When $B$ is non-empty, every function $f : A \to B$ maps at least
+$\lceil |A| / |B| \rceil$ elements of $A$ to some one element of $B$. If $B$ is empty and $A$ is not,
+there is no function $A \to B$ at all.
 :::
 
 If more pigeons than holes fly into the holes, some hole holds two pigeons. Among any 13 people, two
@@ -1259,10 +1275,12 @@ The diagonal argument for $A = \N$. Row $i$ shows which numbers are in the set $
 $i$: $D$ is in no row.
 :::
 
-A subset of $\N$ is a **decision problem**, such as "is this number prime?". Every program that answers
-yes or no decides one such set, and there are only countably many programs. List the decidable sets as
-$f\,0, f\,1, f\,2, \dots$, and Cantor's $D$ is a set that no program decides: undecidable problems must
-exist. Turing's proof that the halting problem is undecidable (Module 1) is a diagonal argument too.
+A subset of $\N$ describes a **decision problem**, such as "is this number prime?". A program decides
+such a set only if it halts with the correct yes-or-no answer on every input. There are countably many
+programs, so at most countably many decidable sets, while $\pow(\N)$ is uncountable. Thus undecidable
+problems must exist. This is a counting argument: it does not give an algorithm that lists exactly the
+programs which halt on every input. Turing's proof that the halting problem is undecidable (Module 1)
+is a diagonal argument too.
 
 ::: note
 Bertrand Russell found in 1901 that the same trick breaks naive set theory, which lets every property
@@ -1324,8 +1342,9 @@ thm Cantors_theorem
   terminate and induction works.
 - The **closures** $R^+$ and $R^*$ (`r⇧+`, `r⇧*`) add the pairs joined by paths, and the **reachable
   states** of a state machine are the image of its initial states under $T^*$.
-- A **function** is **injective, surjective or bijective**, and has an inverse exactly when it is
-  bijective (`inj`, `surj`, `bij`, `inv`).
+- A function can be **injective**, **surjective**, both (**bijective**), or neither. It has a
+  two-sided inverse exactly when it is bijective. Isabelle's `inv` is defined more generally;
+  inverse laws require the appropriate assumptions (`inj`, `surj`, `bij`).
 - **Cardinality** counts finite sets (`card`, `finite`). The **pigeonhole principle** forbids injections
   into smaller sets, and **Cantor's diagonal argument** shows that no set can be mapped onto its power
   set: some sets are uncountable, and some problems have no program.
