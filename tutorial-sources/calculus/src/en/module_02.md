@@ -1369,11 +1369,18 @@ A square tile should have an area of 400 cm², and the customer accepts any area
 
 - (a) Use the method of Example 2.13, agreeing first on $\delta \le 1$, to find a $\delta$ such that $\abs{s - 20} < \delta$ guarantees the tolerance.
 - (b) Find the largest such $\delta$, to three significant figures, and say what it means in millimetres.
+- (c) Turn (a) into a proof from Definition 2.3 that $\lim_{s\to20} s^2 = 400$: give a $\delta$ that wins against every $\varepsilon > 0$.
 
 ::: solution
 **(a)** $\abs{s^2 - 400} = \abs{s - 20}\,\abs{s + 20}$. If $\abs{s - 20} < 1$, then $19 < s < 21$, so $39 < s + 20 < 41$ and $\abs{s + 20} < 41$. Then $\abs{s^2 - 400} < 41\abs{s - 20}$, which is less than 1 when $\abs{s - 20} < \tfrac{1}{41}$. So $\delta = \min\big(1, \tfrac{1}{41}\big) = \tfrac{1}{41} \approx 0.0244$ cm works.
 
-**(b)** For $s > 0$, the tolerance $399 < s^2 < 401$ holds exactly when $\sqrt{399} < s < \sqrt{401}$, that is, approximately $19.97498 < s < 20.02498$. The interval around 20 must fit on both sides, and the two sides are not equal: $20 - \sqrt{399} \approx 0.025016$ and $\sqrt{401} - 20 \approx 0.024984$. The largest $\delta$ is the smaller, $\sqrt{401} - 20 \approx 0.0250$ cm: the side must be cut to within about a quarter of a millimetre. The proof's $\delta$ in (a) is a little smaller, as Example 2.13 led you to expect.
+**(b)** For $s > 0$, the tolerance $399 < s^2 < 401$ holds exactly when $\sqrt{399} < s < \sqrt{401}$, that is, approximately $19.97498 < s < 20.02498$. The interval around 20 must fit on both sides, and the two sides are not equal: $20 - \sqrt{399} \approx 0.025016$ and $\sqrt{401} - 20 \approx 0.024984$. The largest $\delta$ is the smaller, $\sqrt{401} - 20 \approx 0.0250$ cm: the side must be cut to within about a quarter of a millimetre. The $\delta$ of (a) is a little smaller, as Example 2.13 led you to expect.
+
+**(c)** Replace the tolerance 1 by any $\varepsilon > 0$ in (a). *Proof.* Let $\varepsilon > 0$ and $\delta = \min\big(1, \tfrac{\varepsilon}{41}\big)$. Suppose that $0 < \abs{s - 20} < \delta$. Since $\delta \le 1$, $19 < s < 21$, and so $\abs{s + 20} < 41$. Since $\delta \le \varepsilon/41$, $\abs{s - 20} < \varepsilon/41$. Therefore
+
+$$\abs{s^2 - 400} = \abs{s + 20}\,\abs{s - 20} < 41 \cdot \frac{\varepsilon}{41} = \varepsilon.$$
+
+So every challenge is met, and $\lim_{s\to20} s^2 = 400$. For $\varepsilon = 1$ the proof gives the $\delta = \tfrac{1}{41}$ of (a).
 
 ```check
 sp_ = symbols('s', positive=True)
@@ -1385,6 +1392,9 @@ rounds(sqrt(399), '19.97498'); rounds(sqrt(401), '20.02498')
 rounds(20 - sqrt(399), '0.025016'); rounds(sqrt(401) - 20, '0.024984'); rounds(sqrt(401) - 20, '0.0250')
 holds(sqrt(401) - 20 < 20 - sqrt(399)); holds(Rational(1, 41) < sqrt(401) - 20)
 rounds((sqrt(401) - 20)*10, '0.25')                       # in millimetres
+same(expand((xr + 20)*(xr - 20)), xr**2 - 400); same(41*(ep/41), ep)   # (c): |s^2 - 400| = |s + 20||s - 20| < 41 eps/41
+same(solveset(Abs(xr - 20) < 1, xr, S.Reals), Interval.open(19, 21)); holds(Abs(21 + 20) == 41)
+same(Min(1, ep/41).subs(ep, 1), Rational(1, 41))
 ```
 :::
 ::::
