@@ -20,8 +20,10 @@ for English first).
 | Common mistakes (`src/en/mistakes.md`) | **Not started** |
 | Publishing | Not done |
 
-On 22 November 2026 the whole series passed: `check.mjs` 0 errors and 0 warnings on 22 pages; all 258
-widget checks; `calc.py` on every page (see the counts below).
+On 22 November 2026 the whole series passed: a full `calc.py` run, 22 pages, 12,069 checks, 0 problems,
+all outputs match (it also wrote `out/calculus-code.zip`, 23 scripts); `check.mjs` 0 errors and 0
+warnings on 22 pages; all 258 widget checks. Checks per page: Modules 1–20: 326, 1400, 544, 526, 298,
+513, 452, 462, 435, 418, 766, 449, 469, 1525, 763, 557, 330, 407, 366, 300; formula sheet 763.
 
 **What remains, in order.**
 
@@ -33,9 +35,11 @@ widget checks; `calc.py` on every page (see the counts below).
 2. **Fix the items under "Not done yet"** in `notes/reviews/cross-module.md` (formula sheet rows and
    credits, two sentences in Module 10, one in Module 12).
 3. **Finish the glossary.** In `notes/handover/glossary-draft/`: write the notation entries in
-   `notation.txt` (the symbols of the series, how the modules read them aloud, where introduced);
-   `tools/coverage.py` lists defined terms the draft misses; check each meaning against the module's own
-   definition. Then `python3 -I notes/handover/glossary-draft/tools/gen.py` writes `src/en/glossary.md`
+   `notation.txt` (the symbols of the series, how the modules read them aloud, where introduced); list
+   what the draft misses with `python3 -I tools/extract_refs.py src/en /tmp/refs` and then
+   `python3 -I notes/handover/glossary-draft/tools/coverage.py notes/handover/glossary-draft
+   /tmp/refs/terms.md` (75 lines on 22 November, most of them labels such as "Key idea", not terms);
+   check each meaning against the module's own definition, since reviews may have changed wording. Then `python3 -I notes/handover/glossary-draft/tools/gen.py` writes `src/en/glossary.md`
    (it checks every link: anchor and section number).
 4. **Write the common mistakes page**, `src/en/mistakes.md` (PLAN.md, "Reference pages"): sections by topic
    in the order of the series, one `###` entry with an id per mistake, saying why it is wrong (with a
