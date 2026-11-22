@@ -122,8 +122,14 @@ def math_axes(ax, xlim, ylim, xlabel='$x$', ylabel='$y$', xticks=None, yticks=No
         for t in axis.get_major_ticks():
             t.label1.set_path_effects([pe.withStroke(linewidth=3, foreground='white')])
     if grid:
-        ax.grid(True, color=C['grid'], linewidth=0.8, zorder=0)
-        ax.set_axisbelow(True)
+        # Grid lines drawn as lines at the bottom, so that the tick labels (axis zorder 5, with halos)
+        # stay above the curves: ax.grid with set_axisbelow would send the labels below them too.
+        for xv in ax.get_xticks():
+            if xlim[0] <= xv <= xlim[1]:
+                ax.axvline(xv, color=C['grid'], linewidth=0.8, zorder=0.3)
+        for yv in ax.get_yticks():
+            if ylim[0] <= yv <= ylim[1]:
+                ax.axhline(yv, color=C['grid'], linewidth=0.8, zorder=0.3)
     return ax
 
 

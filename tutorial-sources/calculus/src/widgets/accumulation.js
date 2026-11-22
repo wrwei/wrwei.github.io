@@ -169,8 +169,10 @@ CalcWidgets.register('accumulation', function (root, api) {
       el.setAttribute('class', 'acc-' + pr[1])
     })
   }
-  var Pf = api.plot(topBox, {
-    view: [state.view[0], state.view[1], -1, 1], aspect: 0.42, xlabel: 't', ylabel: 'f(t)',
+  // The plots are flatter on wide screens and taller on phones; api.plot reads opts.aspect whenever it sizes itself.
+  function aspect() { return (root.clientWidth || 600) < 520 ? 0.56 : 0.42 }
+  var fOpts = {
+    view: [state.view[0], state.view[1], -1, 1], aspect: aspect(), xlabel: 't', ylabel: 'f(t)',
     label: t('Graph of f with the signed area from a to x shaded', 'f 的图像，阴影为从 a 到 x 的有向面积'),
     draw: function (P) {
       P.axes()
@@ -188,9 +190,10 @@ CalcWidgets.register('accumulation', function (root, api) {
       }
       P.text(state.x, v[2], 'x', { dx: 4, dy: -6, color: 'var(--purple)', bold: true })
     },
-  })
-  var Pa = api.plot(botBox, {
-    view: [state.view[0], state.view[1], -1, 1], aspect: 0.42, xlabel: 'x', ylabel: t('A(x) (numerical)', 'A(x)（数值）'),
+  }
+  var Pf = api.plot(topBox, fOpts)
+  var aOpts = {
+    view: [state.view[0], state.view[1], -1, 1], aspect: aspect(), xlabel: 'x', ylabel: t('A(x) (numerical)', 'A(x)（数值）'),
     label: t('Graph of the area function A, computed numerically, with its tangent line at x', '面积函数 A 的图像（数值计算）及其在 x 处的切线'),
     draw: function (P) {
       P.axes()
@@ -213,7 +216,10 @@ CalcWidgets.register('accumulation', function (root, api) {
       }
       P.point(state.x, Ax, { color: 'var(--navy)' })
     },
-  })
+  }
+  var Pa = api.plot(botBox, aOpts)
+  // The plots redraw themselves shortly after a resize; give them the aspect for the new width first.
+  window.addEventListener('resize', function () { fOpts.aspect = aOpts.aspect = aspect() })
   function pick(x) { state.x = snap(x, 0.01); xSlider.set(state.x); redraw() }
   Pf.onDrag(function (x) { pick(x) })
   Pa.onDrag(function (x) { pick(x) })
@@ -250,8 +256,8 @@ CalcWidgets.register('accumulation', function (root, api) {
       return lines.join('\n')
     }
     if (x === a) lines.push(t('A(x) = 0   (x = a: no area yet)', 'A(x) = 0   （x = a：还没有面积）'))
-    else lines.push(t('A(x) ≈ ' + approx(Ax, 5) + '   (signed area from a to x, computed numerically' + (x < a ? '; x < a, so it runs backwards)' : ')'),
-      'A(x) ≈ ' + approx(Ax, 5) + '   （从 a 到 x 的有向面积，数值计算' + (x < a ? '；x < a，积分反向）' : '）')))
+    else lines.push(t('A(x) ≈ ' + approx(Ax, 5) + '   (numerical' + (x < a ? '; x < a: runs backwards)' : ')'),
+      'A(x) ≈ ' + approx(Ax, 5) + '   （数值计算' + (x < a ? '；x < a：积分反向）' : '）')))
     var fx
     try { fx = state.f(x) } catch (e) { fx = NaN }
     var s = slope(x)
@@ -268,6 +274,7 @@ CalcWidgets.register('accumulation', function (root, api) {
   }
 
   function redraw() {
+    fOpts.aspect = aOpts.aspect = aspect()
     Pf.view = [state.view[0], state.view[1], state.fy[0], state.fy[1]]
     Pa.view = [state.view[0], state.view[1], state.Ay[0], state.Ay[1]]
     Pf.redraw(); Pa.redraw()

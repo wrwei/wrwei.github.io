@@ -128,7 +128,7 @@ def fig_10_4(L):
         plot_fn(ax, g, 0, 4, color=C['navy'], lw=2.2)
         title(ax, ttl, size=11.5, pad=10)
     label(a1, 0.37, 2.0, '4', color=C['blue'], size=13, ha='center')
-    label(a1, 2.0, -1.75, r'$-4$', color=C['orange'], size=13, ha='center')
+    label(a1, 2.0, -2.15, r'$-4$', color=C['orange'], size=13, ha='center')
     label(a1, 3.63, 2.0, '4', color=C['blue'], size=13, ha='center')
     for xp in (0.37, 2.0, 3.63):
         label(a2, xp, 1.1, '4', color=C['blue'], size=13, ha='center')
@@ -146,7 +146,7 @@ def fig_10_5(L):
     math_axes(a1, xlim, ylim, xlabel='$x$', ylabel='$y$', xticks=[(1, r'$1$'), (r, r'$\sqrt{\pi}$'), (3, r'$3$')], yticks=[1, 2])
     shade(a1, g, 0, r, color=C['blue'], alpha=0.3)
     plot_fn(a1, g, 0, r, color=C['navy'], lw=2.2)
-    label(a1, 1.12, 0.75, 'area 2', color=C['blue'], size=12, ha='center')
+    label(a1, 1.24, 0.75, 'area 2', color=C['blue'], size=12, ha='center')
     title(a1, r'$y = 2x\sin(x^2)$, from $x = 0$ to $\sqrt{\pi}$', size=11.5, pad=14)
     math_axes(a2, xlim, ylim, xlabel='$u$', ylabel='$y$', xticks=[(1, r'$1$'), (PI / 2, r'$\pi/2$'), (PI, r'$\pi$')], yticks=[1, 2])
     shade(a2, np.sin, 0, PI, color=C['blue'], alpha=0.3)

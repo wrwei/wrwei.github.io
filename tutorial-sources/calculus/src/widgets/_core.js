@@ -329,15 +329,15 @@
       add('back', h('line', { y1: M.t, y2: P.H - M.b, x1: P.X(ay), x2: P.X(ay), class: 'cw-axis' }))
       for (x = Math.ceil(v[0] / sx) * sx; x <= v[1] + 1e-9; x += sx) {
         if (Math.abs(x) < sx / 1e6 || P.X(x) < M.l + 10 || P.X(x) > P.W - M.r - 10) continue
-        add('back', h('text', { x: P.X(x), y: Math.min(P.H - M.b - 3, P.Y(ax) + 15), class: 'cw-tick', 'text-anchor': 'middle' }, fmt(+x.toPrecision(10), 4)))
+        add('front', h('text', { x: P.X(x), y: Math.min(P.H - M.b - 3, P.Y(ax) + 15), class: 'cw-tick', 'text-anchor': 'middle' }, fmt(+x.toPrecision(10), 4)))
       }
       for (y = Math.ceil(v[2] / sy) * sy; y <= v[3] + 1e-9; y += sy) {
         if (Math.abs(y) < sy / 1e6 || P.Y(y) < M.t + 8 || P.Y(y) > P.H - M.b - 8) continue
-        add('back', h('text', { x: Math.max(M.l + 2, P.X(ay) - 5), y: P.Y(y) + 4, class: 'cw-tick', 'text-anchor': P.X(ay) - 5 < M.l + 20 ? 'start' : 'end' }, fmt(+y.toPrecision(10), 4)))
+        add('front', h('text', { x: Math.max(M.l + 2, P.X(ay) - 5), y: P.Y(y) + 4, class: 'cw-tick', 'text-anchor': P.X(ay) - 5 < M.l + 20 ? 'start' : 'end' }, fmt(+y.toPrecision(10), 4)))
       }
       var xl = o.xlabel || opts.xlabel || 'x', yl = o.ylabel || opts.ylabel || 'y'
-      add('back', h('text', { x: P.W - M.r - 4, y: P.Y(ax) - 6, class: 'cw-axlabel', 'text-anchor': 'end' }, xl))
-      add('back', h('text', { x: P.X(ay) + 6, y: M.t + 12, class: 'cw-axlabel' }, yl))
+      add('front', h('text', { x: P.W - M.r - 4, y: P.Y(ax) - 6, class: 'cw-axlabel', 'text-anchor': 'end' }, xl))
+      add('front', h('text', { x: P.X(ay) + 6, y: M.t + 12, class: 'cw-axlabel' }, yl))
     }
     P.curve = function (f, o) {
       o = o || {}
@@ -529,8 +529,8 @@
     '.cw-plot.cw-draggable{cursor:crosshair}',
     '.cw-grid{stroke:#E8EDF3;stroke-width:1}',
     '.cw-axis{stroke:var(--navy);stroke-width:1.2}',
-    '.cw-tick{font:11px var(--font-mono);fill:var(--slate)}',
-    '.cw-axlabel{font:italic 13px Georgia,"Times New Roman",serif;fill:var(--navy)}',
+    '.cw-tick{font:11px var(--font-mono);fill:var(--slate);paint-order:stroke;stroke:var(--white);stroke-width:3px;stroke-linejoin:round}',
+    '.cw-axlabel{font:italic 13px Georgia,"Times New Roman",serif;fill:var(--navy);paint-order:stroke;stroke:var(--white);stroke-width:3px;stroke-linejoin:round}',
     '.cw-label{font:12.5px var(--font-body, sans-serif);paint-order:stroke;stroke:var(--white);stroke-width:3px;stroke-linejoin:round}',
     '.cw-bold{font-weight:700}',
     '.cw-slider{display:flex;align-items:center;gap:.5rem;min-width:0}',

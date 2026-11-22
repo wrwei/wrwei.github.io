@@ -191,7 +191,9 @@ SymPy pitfalls met so far: `limit(f, x, a)` is the limit **from the right** (Sym
 `'+'`); a two-sided limit needs `limit(f, x, a, '+-')` (`limit_is` is two-sided by default). SymPy's
 `limit` can get one-sided limits of `Piecewise` functions wrong, and `summation` returns `nan` for some
 convergent series (e.g. the sum of 1/(2n² − n)): check such results another way (partial fractions, a
-known series, high-precision partial sums with `near`).
+known series, high-precision partial sums with `near`); `steps(Derivative(Integral(...), x), ...)` fails
+when the integrand has no elementary antiderivative, while `diff(Integral(...), x)` works. The scratchpad
+folder is shared by all authors: keep your scratch files in a subfolder named after your module.
 
 ### 6.2 Compute boxes (Python)
 
