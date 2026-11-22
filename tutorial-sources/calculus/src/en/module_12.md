@@ -73,7 +73,7 @@ Why is the limit exactly $Q$, and not only close to it? The rod shows the reason
 Leibniz's notation keeps the method in view. Write the amount in a slice of width $dx$ as $dQ = q(x)\,dx$, here $dm = \rho(x)\,dx$, and the total as $Q = \int_a^b dQ$.
 
 ::: tip
-Units check a set-up. The integrand times $dx$ must have the units of the answer: here $\text{kg/m} \times \text{m} = \text{kg}$. An integral for a volume multiplies an area by a length, and one for work a force by a distance.
+Units check a set-up: the integrand times $dx$ must have the units of the answer, here $\text{kg/m} \times \text{m} = \text{kg}$; for a volume, an area times a length; for work, a force times a distance.
 :::
 
 ::: pitfall
@@ -141,7 +141,7 @@ same(integrate(cos(x) - sin(x), (x, 0, pi)), -2); same((sin(x) + cos(x)).subs(x,
 
 ### Horizontal strips {#horizontal-strips}
 
-Some regions are easier to slice the other way. Figure 12.1 shows the region between the parabola $x = y^2$ and the line $y = x - 2$. A vertical strip runs from the lower half of the parabola, $y = -\sqrt x$, to its upper half when $0 \le x \le 1$, but from the line to the upper half when $1 \le x \le 4$: two formulas, so two integrals. Every horizontal strip runs from the parabola on the left to the line on the right. For a region between a left boundary $x = x_L(y)$ and a right boundary $x = x_R(y)$, for $c \le y \le d$, a horizontal strip of height $\Delta y$ has length $x_R(y) - x_L(y)$, right minus left, and
+Some regions are easier to slice the other way: choose the direction in which every strip runs between the same two curves. Figure 12.1 shows the region between the parabola $x = y^2$ and the line $y = x - 2$. A vertical strip runs from the lower half of the parabola, $y = -\sqrt x$, to its upper half when $0 \le x \le 1$, but from the line to the upper half when $1 \le x \le 4$: two formulas, so two integrals. Every horizontal strip runs from the parabola on the left to the line on the right. For a region between a left boundary $x = x_L(y)$ and a right boundary $x = x_R(y)$, for $c \le y \le d$, a horizontal strip of height $\Delta y$ has length $x_R(y) - x_L(y)$, right minus left, and
 
 $$A = \int_c^d \big(x_R(y) - x_L(y)\big)\,dy.$$
 
@@ -177,10 +177,6 @@ same(Rational(4, 3) + Rational(19, 6), Rational(9, 2))
 
 ::: pitfall
 In an integral with respect to $y$, everything is written in terms of $y$: the boundaries as $x = \dots$, the length of a strip as right minus left (not top minus bottom), and the limits as values of $y$. In Example 12.3 the limits are $-1$ and $2$, the $y$-coordinates of the meeting points, not their $x$-coordinates 1 and 4.
-:::
-
-::: tip
-Choose the direction in which every strip runs between the same two curves. If neither direction does, split the region where a boundary changes, as the vertical strips of Example 12.3 do at $x = 1$.
 :::
 
 ## Volumes by slicing {#volumes}
@@ -697,7 +693,7 @@ same(6/Rational(14, 3), Rational(9, 7)); rounds(Rational(9, 7), '1.29'); holds(R
 ```
 :::
 
-**A thin plate.** A thin flat plate of uniform density, mass per unit area, is called a **lamina**. Its centre of mass is a point $(\bar x, \bar y)$ in its plane. Let the plate occupy the region between $y = g(x)$ and $y = f(x)$, $a \le x \le b$, and slice it into vertical strips. The strip at $x$ is nearly a rectangle of width $\Delta x$ and height $f(x) - g(x)$, and a uniform rectangle balances at its centre, by symmetry: at $\big(x, \tfrac12(f(x) + g(x))\big)$. Its mass is the density times its area, $\big(f(x) - g(x)\big)\Delta x$. Weight each strip's coordinates by its mass, add and take limits; the density then cancels from the top and the bottom of each fraction, so the centre of mass depends only on the shape. The height of the strip's centre times the strip's area is $\tfrac12(f + g)(f - g)\,\Delta x = \tfrac12\big(f^2 - g^2\big)\,\Delta x$, which explains the second formula below.
+**A thin plate.** A thin flat plate of uniform density (mass per unit area) is called a **lamina**; its centre of mass is a point $(\bar x, \bar y)$ in its plane. Let the plate occupy the region between $y = g(x)$ and $y = f(x)$, $a \le x \le b$, and slice it into vertical strips. The strip at $x$ is nearly a rectangle of width $\Delta x$ and height $f(x) - g(x)$, which balances at its centre, $\big(x, \tfrac12(f(x) + g(x))\big)$, by symmetry; its mass is the density times its area. Weighting each strip's coordinates by its mass and taking limits gives the formulas below. The density cancels, so the centre of mass depends only on the shape. For $\bar y$, the height of a strip's centre times its area is $\tfrac12(f + g)(f - g)\,\Delta x = \tfrac12\big(f^2 - g^2\big)\,\Delta x$.
 
 ::: definition Centroid of a plate
 Let $f$ and $g$ be continuous on $[a, b]$ with $g \le f$, and let $A$ be the area of the region between their graphs. The **centroid** of the region is the point $(\bar x, \bar y)$ with
@@ -943,7 +939,7 @@ Let $f$ and $g$ be continuous and positive on $[a, \infty)$, with $f(x)/g(x) \to
 :::
 
 ::: proof
-Since $f(x)/g(x) \to L$, the ratio lies between $\tfrac{L}{2}$ and $\tfrac{3L}{2}$ for all large enough $x$, say for $x \ge N$, where $N \ge a$. Then $\tfrac{L}{2}g(x) \le f(x) \le \tfrac{3L}{2}g(x)$ for $x \ge N$. If $\int_a^\infty g$ converges, so does $\int_N^\infty \tfrac{3L}{2}g$, so $\int_N^\infty f$ converges by comparison, and adding the ordinary integral $\int_a^N f$ shows that $\int_a^\infty f$ converges. If $\int_a^\infty g$ diverges, so does $\int_N^\infty \tfrac{L}{2}g$ (the part over $[a, N]$ is finite), so $\int_N^\infty f$ diverges by comparison, and so does $\int_a^\infty f$.
+Since $f(x)/g(x) \to L > 0$, the ratio lies between $\tfrac{L}{2}$ and $\tfrac{3L}{2}$ for all large enough $x$, say for $x \ge N$, where $N \ge a$; so $\tfrac{L}{2}g(x) \le f(x) \le \tfrac{3L}{2}g(x)$ there. If $\int_a^\infty g$ converges, then $\int_N^\infty f$ converges by comparison with $\tfrac{3L}{2}g$. If $\int_a^\infty g$ diverges, so does $\int_N^\infty g$, and then $\int_N^\infty f$ diverges by comparison with $\tfrac{L}{2}g$. Adding the ordinary integral $\int_a^N f$ does not change whether the integral converges.
 :::
 
 For the pitfall above, $\dfrac{1/(\sqrt x + 1)}{1/\sqrt x} = \dfrac{\sqrt x}{\sqrt x + 1} \to 1$, so $\int_1^\infty \frac{dx}{\sqrt x + 1}$ diverges with $\int_1^\infty \frac{dx}{\sqrt x}$, with no inequality to find.
@@ -980,7 +976,7 @@ For the horn, $f(x) = 1/x$ and $f'(x) = -1/x^2$, so the integrand is
 
 $$\frac{2\pi}{x}\sqrt{1 + \frac{1}{x^4}} \ge \frac{2\pi}{x},$$
 
-and $\int_1^\infty 2\pi\,dx/x$ diverges. By the comparison test, the horn's surface area is infinite. So the horn can be filled with $\pi$ cubic units of paint, while no finite amount of paint can cover its inside surface with a coat of fixed thickness $d$: that coat would need about $S\,d$ of paint. There is no contradiction. Far along the horn, the paint that fills it forms a layer thinner than any fixed $d$.
+and $\int_1^\infty 2\pi\,dx/x$ diverges, so by the comparison test the horn's surface area is infinite. The horn holds $\pi$ cubic units of paint, yet no finite amount of paint could cover its inside with a coat of a fixed thickness $d$, which would need about $S\,d$ of paint. There is no contradiction: far along the horn, the paint that fills it forms a layer thinner than any fixed $d$.
 
 ```check
 fsph = sqrt(aq**2 - x**2)
@@ -1042,7 +1038,7 @@ A `Piecewise` result reads like a definition by cases: $1/(p - 1)$ when $p > 1$,
 
 ### Probability densities {#densities}
 
-Some quantities are random: the time until the next request reaches a web server, the lifetime of a component, the error of a measurement. Their values cannot be predicted, but their probabilities can. The **probability** of an event, $P(\text{event})$, is a number from 0 to 1: the fraction of the time the event happens in a long run of repetitions. Probability 1 means certain, 0 means that it (practically) never happens. A **random variable** $X$ is a quantity whose value is decided by chance; it is **continuous** if it can take any value in an interval.
+Some quantities are random: the time until the next request reaches a web server, the lifetime of a component, the error of a measurement. Their values cannot be predicted, but their probabilities can. The **probability** of an event, $P(\text{event})$, is a number from 0 to 1, the fraction of the time the event happens in a long run of repetitions; 1 means certain. A **random variable** $X$ is a quantity whose value is decided by chance; it is **continuous** if it can take any value in an interval.
 
 Measure such an $X$ many times and draw a histogram in which the area of each bar is the fraction of the measurements in its bin. With more measurements and narrower bins, the tops of the bars settle onto a curve $y = f(x)$, and the fraction of the values between $a$ and $b$ settles onto the area under the curve from $a$ to $b$.
 
@@ -1056,7 +1052,7 @@ A random variable $X$ has density $f$ if, for all numbers $a \le b$,
 $$P(a \le X \le b) = \int_a^b f(x)\,dx.$$
 :::
 
-The total area 1 says that $X$ is certain to take some value. A density may jump, as the exponential density below does at 0; split the integrals at the jumps. Two consequences of the definition are worth stating. First, $P(X = a) = \int_a^a f(x)\,dx = 0$: a single value has probability 0, so it does not matter whether the inequalities are strict ($<$) or not ($\le$). Second, $f(x)$ is not a probability but a probability per unit length: for a small $\Delta x$, $P(x \le X \le x + \Delta x) \approx f(x)\,\Delta x$, and $f(x)$ can be larger than 1.
+The total area 1 says that $X$ is certain to take some value. A density may jump, as the exponential density below does at 0; split the integrals at the jumps. Two consequences: a single value has probability $P(X = a) = \int_a^a f(x)\,dx = 0$, so it does not matter whether the inequalities are strict ($<$) or not ($\le$); and $f(x)$ is not a probability but a probability per unit length, $P(x \le X \le x + \Delta x) \approx f(x)\,\Delta x$ for a small $\Delta x$, so $f(x)$ can be larger than 1.
 
 The simplest density is the **uniform** density on $[0, 1]$, equal to 1 there and 0 elsewhere: for $0 \le a \le b \le 1$, $P(a \le X \le b) = b - a$, the length of the interval. A computer's random-number generator, such as Python's `random.random()`, imitates it.
 
@@ -1501,7 +1497,7 @@ Let $y$ be the height above the bottom. The layer of water between heights $y$ a
 
 $$\begin{aligned} W &= \int_0^2 9800\pi(3 - y)\,dy \\ &= 9800\pi\Big[3y - \frac{y^2}{2}\Big]_0^2 \\ &= 9800\pi(6 - 2) = 39\,200\pi \\ &\approx 1.23 \times 10^5 \text{ J}. \end{aligned}$$
 
-A check with the centre of mass: the water has mass $2000\pi$ kg and its centre of mass is 1 m above the bottom; emptying the tank raises it, on average, to the top, 2 m higher, and $2000\pi \times 9.8 \times 2 = 39\,200\pi$ J. Two slips to avoid: the distance is $3 - y$, to the top of the tank, not $2 - y$, to the surface of the water; and the limits are 0 and 2, where the water is, not 0 and 3.
+A check with the centre of mass: the water has mass $2000\pi$ kg, and its centre of mass is 1 m above the bottom. Every layer ends up at the top, 3 m up, so on average the water rises 2 m, and $2000\pi \times 9.8 \times 2 = 39\,200\pi$ J. Two slips to avoid: the distance is $3 - y$, to the top of the tank, not $2 - y$, to the surface of the water; and the limits are 0 and 2, where the water is, not 0 and 3.
 
 ```check
 same(1000*pi*Rational(98, 10), 9800*pi); antideriv(3*y - y**2/2, 3 - y, y)

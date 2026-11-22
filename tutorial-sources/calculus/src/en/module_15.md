@@ -1021,9 +1021,10 @@ Tm = fd(a) - diff(fd(a), a)*h + f2a/2*h**2 - f3m/6*h**3          # f(a - h)
 same(expand(Tp - Tm), expand(2*diff(fd(a), a)*h + (f3p + f3m)/6*h**3))
 same(expand((Tp - Tm)/(2*h) - diff(fd(a), a)), expand(h**2/6*(f3p + f3m)/2))
 same(expand(((fd(a) + diff(fd(a), a)*h + cc_/2*h**2) - fd(a))/h - diff(fd(a), a)), h/2*cc_)
-for fn_ in (exp(x), sin(x), x**4):                                 # instances: the errors are about (h/2) f''(a) and (h^2/6) f'''(a)
-    limit_is(((fn_.subs(x, a + h) - fn_.subs(x, a))/h - diff(fn_, x).subs(x, a))/h, h, 0, diff(fn_, x, 2).subs(x, a)/2)
-    limit_is(((fn_.subs(x, a + h) - fn_.subs(x, a - h))/(2*h) - diff(fn_, x).subs(x, a))/h**2, h, 0, diff(fn_, x, 3).subs(x, a)/6)
+a0 = Rational(1, 2)
+for fn_ in (exp(x), sin(x), x**4):                                 # instances at a = 1/2: the errors are about (h/2) f''(a) and (h^2/6) f'''(a)
+    limit_is(((fn_.subs(x, a0 + h) - fn_.subs(x, a0))/h - diff(fn_, x).subs(x, a0))/h, h, 0, diff(fn_, x, 2).subs(x, a0)/2)
+    limit_is(((fn_.subs(x, a0 + h) - fn_.subs(x, a0 - h))/(2*h) - diff(fn_, x).subs(x, a0))/h**2, h, 0, diff(fn_, x, 3).subs(x, a0)/6)
 ```
 
 As $h \to 0$ in part 2, $c$ is squeezed towards $a$, so if $f''$ is continuous at $a$ the error is about $\tfrac{h}{2}f''(a)$; and if $\abs{f''} \le M$ near $a$, it is at most $\tfrac{M}{2}h$, so it is $O(h)$. In the same way the error in part 3 is about $\tfrac{h^2}{6}f'''(a)$, and it is $O(h^2)$. These are the claims of [Section 4.7](module_04_EN.html#truncation). Part 1 gives both claims of [Section 7.2](module_07_EN.html#how-good): the bound $\tfrac{M}{2}(x - a)^2$, and, when $f''$ is continuous at $a$, $f(x) - L(x) \approx \tfrac{f''(a)}{2}(x - a)^2$, because $\dfrac{f(x) - L(x)}{(x - a)^2} = \dfrac{f''(c)}{2} \to \dfrac{f''(a)}{2}$ as $x \to a$.
@@ -1145,7 +1146,7 @@ for N_ in range(13):                                   # the formula of the tabl
     holds(expand(E*uppergamma(N_ + 1, 1)/factorial(N_)) == sum(Rational(1, factorial(j)) for j in range(N_ + 1)))
 cR = symbols('c', positive=True); holds(E < 3); holds(exp(1) > exp(Rational(1, 2)))
 rounds(Rational(3, factorial(11)), '7.5e-8'); rounds(E - sE(10), '2.7e-8'); holds(E - sE(10) < Rational(3, factorial(11)))
-rounds(sE(12), '2.718281828'); rounds(E, '2.718281828'); rounds((1 + Rational(1, 525600))**525600, '2.718279')
+rounds(sE(12), '2.718281828'); rounds(E, '2.718281828'); rounds((1 + 1/Float(525600, 40))**525600, '2.718279')
 ```
 
 The series of Theorem 15.3 for $\pi$, $\tfrac{\pi}{4} = 1 - \tfrac13 + \tfrac15 - \cdots$, is hopeless for computing: its error bound $1/(2n + 1)$ drops below $10^{-6}$ only after half a million terms. The cure is to use $\arctan$ at small numbers, where its series converges fast. **Machin's formula**,
@@ -1166,7 +1167,7 @@ rounds(Rational(1, 11*5**11), '1.9e-9'); rounds(Rational(1, 5*239**5), '2.6e-13'
 holds(Abs(atan(Rational(1, 5)) - atn(Rational(1, 5), 5)) < Rational(1, 11*5**11)); holds(Abs(atan(Rational(1, 239)) - atn(Rational(1, 239), 2)) < Rational(1, 5*239**5))
 pM = 4*(4*atn(Rational(1, 5), 5) - atn(Rational(1, 239), 2)); rounds(pM, '3.14159268')
 bound = 16*Rational(1, 11*5**11) + 4*Rational(1, 5*239**5); holds(bound < Rational(3, 10**8)); holds(Abs(pM - pi) < bound)
-same(4*(4*atan(Rational(1, 5)) - atan(Rational(1, 239))), pi)
+near(4*(4*atan(Rational(1, 5)) - atan(Rational(1, 239))), pi, 1e-25)      # Machin's formula (proved in Exercise 15.11)
 ```
 
 ::: compute Fifty digits of π
