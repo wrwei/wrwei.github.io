@@ -134,7 +134,8 @@ tables, all outputs match, no problems. `node tools/check.mjs --lang en`: 0 erro
   $r - x_n$ there alone would make Exercise 15.12 prove a different statement from Theorem 7.3.
 - **Formula sheet** (`src/en/formulas.md`): it has none of Module 7's formulas apart from three limits:
   no L'Hôpital's rule (with its hypotheses), no linearisation $L(x) = f(a) + f'(a)(x - a)$ or differential
-  $dy = f'(x)\,dx$, no relative-error rule $dy/y = k\,dx/x$, no Newton step. Worth adding.
+  $dy = f'(x)\,dx$, no relative-error rule $dy/y = k\,dx/x$, no Newton step. Worth adding (for the
+  coordinator, with the formula-sheet items already in `cross-module.md`).
 - Module 13, line 338: "Section 7.2 showed that ... the tangent line misses the curve by about
   $\tfrac{h^2}{2}y''$": Section 7.2 states this and leaves the proof to Module 15 (Module 13's own line 353 says
   so). Harmless; "stated" would be exact.
