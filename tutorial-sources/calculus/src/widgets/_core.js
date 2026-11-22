@@ -264,6 +264,11 @@
    * In draw, use: P.axes() P.curve(f, o) P.param(fx, fy, t0, t1, o) P.line(x1, y1, x2, y2, o)
    * P.infline(x0, y0, slope, o) P.point(x, y, o) P.rect(x0, y0, x1, y1, o) P.poly(pts, o)
    * P.area(f, a, b, o) P.text(x, y, s, o) P.arrow(x0, y0, x1, y1, o) P.vline(x, o) P.hline(y, o)
+   * P.contour(f, levels, o)  level curves of f(x, y) for each value in levels (marching squares;
+   *                          o.n: grid cells across, default 70; o.colors: one colour per level)
+   * P.field(F, o)            arrows of a vector field F(x, y) -> [u, v] on a grid (o.n arrows across,
+   *                          default 15); o.segments: true draws short line segments without heads
+   *                          (direction fields); o.normalize: true draws every arrow the same length
    * Options o: color, width, dash (true or "6 4"), opacity, fill, r, hollow, size, anchor, dx, dy, bold.
    * P.X(x) P.Y(y) map data to pixels; P.data(px, py) maps back; P.view [xmin, xmax, ymin, ymax];
    * P.setView(v); P.onDrag(function (x, y, phase) {...}) with phase 'start' | 'move' | 'end'.
@@ -394,6 +399,64 @@
       g.appendChild(h('line', Object.assign(style(o, col), { x1: X0, y1: Y0, x2: X1 - Math.cos(ang) * s * 0.8, y2: Y1 - Math.sin(ang) * s * 0.8 })))
       g.appendChild(h('path', { d: 'M' + X1 + ' ' + Y1 + 'L' + (X1 - s * Math.cos(ang - 0.4)) + ' ' + (Y1 - s * Math.sin(ang - 0.4)) + 'L' + (X1 - s * Math.cos(ang + 0.4)) + ' ' + (Y1 - s * Math.sin(ang + 0.4)) + 'Z', fill: col }))
       return add(o.layer || 'front', g)
+    }
+    P.contour = function (f, levels, o) {
+      o = o || {}
+      var v = P.view, nx = o.n || 70, ny = Math.max(10, Math.round(nx * (P.H / P.W))), i, j, k
+      var dx = (v[1] - v[0]) / nx, dy = (v[3] - v[2]) / ny, val = []
+      for (j = 0; j <= ny; j++) { val.push([]); for (i = 0; i <= nx; i++) { var z; try { z = f(v[0] + i * dx, v[2] + j * dy) } catch (e) { z = NaN } val[j].push(z) } }
+      var g = h('g')
+      levels.forEach(function (L, li) {
+        var d = ''
+        for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) {
+          var c = [val[j][i], val[j][i + 1], val[j + 1][i + 1], val[j + 1][i]]
+          if (c.some(function (q) { return !isFinite(q) })) continue
+          var x0 = v[0] + i * dx, y0 = v[2] + j * dy
+          var corners = [[x0, y0], [x0 + dx, y0], [x0 + dx, y0 + dy], [x0, y0 + dy]], pts = []
+          for (k = 0; k < 4; k++) {
+            var a = c[k], b = c[(k + 1) % 4]
+            if ((a < L) !== (b < L)) {
+              var tt = (L - a) / (b - a), p = corners[k], q = corners[(k + 1) % 4]
+              pts.push([p[0] + tt * (q[0] - p[0]), p[1] + tt * (q[1] - p[1])])
+            }
+          }
+          for (k = 0; k + 1 < pts.length; k += 2) d += 'M' + P.X(pts[k][0]).toFixed(1) + ' ' + P.Y(pts[k][1]).toFixed(1) + 'L' + P.X(pts[k + 1][0]).toFixed(1) + ' ' + P.Y(pts[k + 1][1]).toFixed(1)
+        }
+        var col = (o.colors && o.colors[li % o.colors.length]) || o.color || 'var(--slate)'
+        g.appendChild(h('path', Object.assign(style({ color: col, width: o.width || 1.3, dash: o.dash, opacity: o.opacity }), { d: d })))
+      })
+      return add(o.layer, g)
+    }
+    P.field = function (F, o) {
+      o = o || {}
+      var v = P.view, nx = o.n || 15, cell = (v[1] - v[0]) / nx, ny = Math.max(2, Math.round((v[3] - v[2]) / cell))
+      var vecs = [], maxLen = 0, i, j
+      for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) {
+        var x = v[0] + (i + 0.5) * cell, y = v[2] + (j + 0.5) * (v[3] - v[2]) / ny, w
+        try { w = F(x, y) } catch (e) { w = [NaN, NaN] }
+        if (!w || !isFinite(w[0]) || !isFinite(w[1])) continue
+        var len = Math.hypot(w[0], w[1])
+        maxLen = Math.max(maxLen, len)
+        vecs.push([x, y, w[0], w[1], len])
+      }
+      var g = h('g'), px = (P.W - 16) / nx * 0.8
+      vecs.forEach(function (q) {
+        if (q[4] === 0) return
+        // lengths in pixels: equal (normalize) or proportional to |F| (the longest fills 80% of a cell)
+        var Lpx = o.normalize || o.segments ? px : px * q[4] / maxLen
+        var ux = q[2] / q[4], uy = q[3] / q[4]
+        var sx = (P.X(1) - P.X(0)), sy = (P.Y(1) - P.Y(0))
+        var dxp = ux * Math.abs(sx), dyp = uy * sy, n2 = Math.hypot(dxp, dyp)
+        dxp = dxp / n2 * Lpx; dyp = dyp / n2 * Lpx
+        var cx = P.X(q[0]), cy = P.Y(q[1]), x0 = cx - dxp / 2, y0 = cy - dyp / 2, x1 = cx + dxp / 2, y1 = cy + dyp / 2
+        var col = o.color || 'var(--slate)'
+        g.appendChild(h('line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: col, 'stroke-width': o.width || 1.4, 'stroke-linecap': 'round' }))
+        if (!o.segments && Lpx > 4) {
+          var ang = Math.atan2(y1 - y0, x1 - x0), s2 = Math.min(6, Lpx * 0.45)
+          g.appendChild(h('path', { d: 'M' + x1 + ' ' + y1 + 'L' + (x1 - s2 * Math.cos(ang - 0.45)) + ' ' + (y1 - s2 * Math.sin(ang - 0.45)) + 'L' + (x1 - s2 * Math.cos(ang + 0.45)) + ' ' + (y1 - s2 * Math.sin(ang + 0.45)) + 'Z', fill: col }))
+        }
+      })
+      return add(o.layer, g)
     }
     P.setView = function (v) { P.view = v.slice(); P.redraw() }
     P.redraw = function () { size(); P.clear(); if (opts.draw) opts.draw(P) }
