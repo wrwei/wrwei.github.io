@@ -16,6 +16,10 @@ coordinator). Struck through when done.
   review). The riemann-sums widget is shared with Module 11: run its test after any change, and keep
   Module 11's widget paragraph true.
 - **Module 11:** links to Exercise 6.10 (`ex-6-10`), which keeps its id.
+- **Module 15:** the theorem on difference quotients (about lines 1002–1035) states the errors of the
+  forward and central differences as (h/2)f″(c) and (h²/6)f‴(c), the opposite sign to Section 4.7, which
+  now uses error = f′(a) − estimate (Module 4 review): flip the theorem, its proof and its checks so that
+  "these are the claims of Section 4.7" stays true.
 - **Module 14:** line 292 says Module 6 "shows" that the slope of 2^x at 0 exists; Module 6 only
   sketches why (Module 6 review). Module 3's Intermediate Value Theorem is now proved from the
   completeness axiom, with a link to Module 14 (Module 3 review): check that Module 14's account of

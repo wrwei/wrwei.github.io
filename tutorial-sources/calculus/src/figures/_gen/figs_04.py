@@ -171,9 +171,9 @@ def fig_04_5(L):
     f = lambda x: x**3
     a, exact = 1.0, 3.0
     hs = np.logspace(-16, 0, 481)
-    with np.errstate(all='ignore'):
-        fwd = np.abs((f(a + hs) - f(a)) / hs - exact)
-        cen = np.abs((f(a + hs) - f(a - hs)) / (2 * hs) - exact)
+    with np.errstate(all='ignore'):     # the sizes of the errors, exact value minus estimate
+        fwd = np.abs(exact - (f(a + hs) - f(a)) / hs)
+        cen = np.abs(exact - (f(a + hs) - f(a - hs)) / (2 * hs))
     fwd[fwd == 0] = np.nan
     cen[cen == 0] = np.nan
     eps = np.finfo(float).eps
@@ -195,7 +195,7 @@ def fig_04_5(L):
     ax.minorticks_off()
     ax.tick_params(labelsize=11)
     ax.set_xlabel(r'step $h$', fontsize=11.5, color=C['navy'])
-    ax.set_ylabel('error', fontsize=11.5, color=C['navy'])
+    ax.set_ylabel('size of the error', fontsize=11.5, color=C['navy'])
 
     ref = np.logspace(-16, 0, 50)
     ax.plot(ref, 3 * ref, color=CURVES[0], lw=1.1, ls=(0, (4, 3)), zorder=3)
@@ -204,9 +204,9 @@ def fig_04_5(L):
     ax.plot(hs, fwd, color=CURVES[0], lw=1.7, zorder=4)
     ax.plot(hs, cen, color=CURVES[1], lw=1.7, zorder=4)
 
-    along(ax, 1e-7, 1e-3, 3e-7, 3e-3, r'forward difference: error $\approx 3h$', CURVES[0])
-    along(ax, 3e-4, 2e-1, 9e-8, 4e-2, r'central: error $\approx h^2$', CURVES[1], offset=-22)
-    along(ax, 1e-15, 1e-11, eps / 1e-15, eps / 1e-11, r'rounding error $\approx \varepsilon/h$', C['slate'], offset=13)
+    along(ax, 1e-7, 1e-3, 3e-7, 3e-3, r'forward difference: size $\approx 3h$', CURVES[0])
+    along(ax, 3e-4, 2e-1, 9e-8, 4e-2, r'central: size $\approx h^2$', CURVES[1], offset=-22)
+    along(ax, 1e-15, 1e-11, eps / 1e-15, eps / 1e-11, r'rounding error: size $\approx \varepsilon/h$', C['slate'], offset=13)
     for hstar, col, txt in ((np.sqrt(eps / 3), CURVES[0], r'best $h$' + '\nforward'),
                             ((eps / 2)**(1 / 3), CURVES[1], r'best $h$' + '\ncentral')):
         ax.plot([hstar, hstar], [1e-12, 1e2], color=col, lw=1.0, ls=(0, (1, 2.5)), zorder=2)

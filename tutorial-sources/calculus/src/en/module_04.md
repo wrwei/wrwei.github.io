@@ -833,7 +833,7 @@ For a step $h > 0$, the **forward difference** and the **central difference** of
 
 $$\begin{aligned} &\text{forward:} && \frac{f(a + h) - f(a)}{h}, \\ &\text{central:} && \frac{f(a + h) - f(a - h)}{2h}. \end{aligned}$$
 
-The amount by which such an estimate differs from $f'(a)$ is its **error**.
+The **error** of such an estimate is $f'(a)$ minus the estimate: the exact value minus the approximation, as for every approximation in this series. It is positive when the estimate is too small, and negative when it is too large.
 :::
 
 The forward difference is the difference quotient itself, the slope of the secant from $a$ to $a + h$. The central difference is the slope of the secant from $a - h$ to $a + h$, over an interval centred on $a$. It is the average of the forward difference and the **backward difference** $\dfrac{f(a) - f(a - h)}{h}$, the quotient with $-h$ in place of $h$. If $f$ is differentiable at $a$, the forward and backward differences both tend to $f'(a)$ as $h \to 0$, and so does their average.
@@ -850,16 +850,18 @@ By the expansion in Example 4.6, $(a + h)^3 = a^3 + 3a^2h + 3ah^2 + h^3$, and wi
 
 $$\begin{aligned} \frac{(a + h)^3 - a^3}{h} &= 3a^2 + 3ah + h^2, \\ \frac{(a + h)^3 - (a - h)^3}{2h} &= \frac{6a^2h + 2h^3}{2h} \\ &= 3a^2 + h^2. \end{aligned}$$
 
-Since $f'(a) = 3a^2$, the errors are exactly $3ah + h^2$ and $h^2$. At $a = 1$ with $h = 0.1$ the forward difference is 3.31 and the central difference 3.01; with $h = 0.01$ they are 3.0301 and 3.0001. A tenfold cut in $h$ cuts the forward error about tenfold but the central error a hundredfold. In the central difference the terms $3ah^2$, which do not change sign with $h$, cancel: that is why centring pays.
+Since $f'(a) = 3a^2$, the errors, $f'(a)$ minus the estimates, are exactly $-3ah - h^2$ and $-h^2$. At $a = 1$ with $h = 0.1$ the forward difference is 3.31 and the central difference 3.01; with $h = 0.01$ they are 3.0301 and 3.0001. Both estimates are too large, so both errors are negative. A tenfold cut in $h$ cuts the forward error about tenfold in size, but the central error a hundredfold. In the central difference the terms $3ah^2$, which do not change sign with $h$, cancel: that is why centring pays.
 
 ```check
 steps((a + h)**3, a**3 + 3*a**2*h + 3*a*h**2 + h**3); same(expand((a - h)**3), a**3 - 3*a**2*h + 3*a*h**2 - h**3)
 same(cancel(((a + h)**3 - a**3)/h), 3*a**2 + 3*a*h + h**2)
 steps(((a + h)**3 - (a - h)**3)/(2*h), (6*a**2*h + 2*h**3)/(2*h), 3*a**2 + h**2)
-same(diff(x**3, x).subs(x, a), 3*a**2); same(3*a**2 + 3*a*h + h**2 - 3*a**2, 3*a*h + h**2)
+same(diff(x**3, x).subs(x, a), 3*a**2)
+same(3*a**2 - (3*a**2 + 3*a*h + h**2), -3*a*h - h**2); same(3*a**2 - (3*a**2 + h**2), -h**2)   # error = f'(a) - estimate
 fw_ = lambda hv: 3 + 3*hv + hv**2; cw_ = lambda hv: 3 + hv**2
 same(fw_(Rational(1, 10)), Rational(331, 100)); same(cw_(Rational(1, 10)), Rational(301, 100))
 same(fw_(Rational(1, 100)), Rational(30301, 10000)); same(cw_(Rational(1, 100)), Rational(30001, 10000))
+holds(all(3 - est_ < 0 for est_ in (fw_(Rational(1, 10)), cw_(Rational(1, 10)), fw_(Rational(1, 100)), cw_(Rational(1, 100)))))   # too large: negative errors
 ```
 :::
 
@@ -867,18 +869,18 @@ The pattern holds for other functions. The table shows the two errors for $\sqrt
 
 ```valuetable
 h = 0.1, 0.01, 0.001, 0.0001
-$\text{forward} - \tfrac14$ = (sqrt(4 + h) - 2)/h - 1/4
-$\text{central} - \tfrac14$ = (sqrt(4 + h) - sqrt(4 - h))/(2*h) - 1/4
+$\tfrac14 - \text{forward}$ = 1/4 - (sqrt(4 + h) - 2)/h
+$\tfrac14 - \text{central}$ = 1/4 - (sqrt(4 + h) - sqrt(4 - h))/(2*h)
 digits = 4
 ---
-h | \text{forward} - \tfrac14 | \text{central} - \tfrac14
-0.1 | -0.001543 | 1.954\times10^{-5}
-0.01 | -0.0001561 | 1.953\times10^{-7}
-0.001 | -1.562\times10^{-5} | 1.953\times10^{-9}
-0.0001 | -1.562\times10^{-6} | 1.953\times10^{-11}
+h | \tfrac14 - \text{forward} | \tfrac14 - \text{central}
+0.1 | 0.001543 | -1.954\times10^{-5}
+0.01 | 0.0001561 | -1.953\times10^{-7}
+0.001 | 1.562\times10^{-5} | -1.953\times10^{-9}
+0.0001 | 1.562\times10^{-6} | -1.953\times10^{-11}
 ```
 
-Each row divides $h$ by 10; the forward error shrinks by a factor of 10 and the central error by a factor of 100.
+Each row divides $h$ by 10; the forward error shrinks by a factor of 10 and the central error by a factor of 100. The signs differ: the forward difference is too small here and the central difference too large.
 
 Central differences are also the natural choice for data measured at equally spaced times: the estimate at each inner time uses the measurements on both sides of it. And [Exercise 1.11](module_01_EN.html#ex-1-11) showed that for a quadratic, such as the falling ball's $s(t) = 4.9t^2$, the central difference is exact for every $h$.
 
@@ -902,12 +904,16 @@ print(9.8*t)                          # the exact velocities
 [ 0.   4.9  9.8 14.7 19.6 24.5 29.4]
 ```
 
-`s[2:] - s[:-2]` subtracts from each position the one two places before it. The central differences are exact, as Exercise 1.11 predicts. The estimates at the ends, 2.45 and 26.95 m/s, are each off by 2.45 m/s: one-sided differences with $h = 0.5$ have error $4.9h$ here, as the quotient $9.8a + 4.9h$ of Module 2 shows.
+`s[2:] - s[:-2]` subtracts from each position the one two places before it. The central differences are exact, as Exercise 1.11 predicts. The estimates at the ends, 2.45 and 26.95 m/s, are each off by 2.45 m/s. They are the one-sided quotients $9.8a + 4.9h$ of Module 2, with $h = 0.5$ at $t = 0$ and $h = -0.5$ at $t = 3$, so their errors are $9.8a - (9.8a + 4.9h) = -4.9h$: $-2.45$ m/s at the start and $2.45$ m/s at the end.
 :::
 
 ```check
 same(Rational(98, 10)*0 + Rational(49, 10)*Rational(1, 2), Rational(245, 100))
 same((s49.subs(t, 3) - s49.subs(t, Rational(5, 2)))/Rational(1, 2), Rational(2695, 100)); same(Rational(294, 10) - Rational(2695, 100), Rational(245, 100))
+same(Rational(98, 10)*a - (Rational(98, 10)*a + Rational(49, 10)*h), -Rational(49, 10)*h)
+same((Rational(98, 10)*3 + Rational(49, 10)*(-Rational(1, 2))), Rational(2695, 100))          # the end value: the quotient with h = -0.5 at t = 3
+same([-Rational(49, 10)*hv_ for hv_ in (Rational(1, 2), -Rational(1, 2))], [-Rational(245, 100), Rational(245, 100)])
+same(0 - Rational(245, 100), -Rational(245, 100))                                            # error at t = 0: exact 0 minus 2.45
 same((s49.subs(t, Rational(3, 2)) - s49.subs(t, Rational(1, 2)))/1, Rational(98, 10))
 ```
 
@@ -919,10 +925,11 @@ The error that remains when the arithmetic is exact comes from stopping at a ste
 An error $E(h)$ is $O(h^p)$ as $h \to 0$, read "big O of h to the p", if there are constants $C$ and $\delta > 0$ such that $\abs{E(h)} \le C\abs{h}^p$ whenever $0 < \abs{h} < \delta$.
 :::
 
-For $x^3$ at $a$, the forward error $3ah + h^2$ is $O(h)$, because for $0 < h < 1$, $h^2 \le h$ and so $\abs{3ah + h^2} \le (3\abs{a} + 1)h$; the central error $h^2$ is $O(h^2)$. A method whose error is $O(h^p)$, and no better, has **order** $p$: the forward difference has order 1 and the central difference order 2. Halving $h$ roughly halves an error of order 1, and quarters an error of order 2.
+For $x^3$ at $a$, the forward error $-3ah - h^2$ is $O(h)$, because for $0 < h < 1$, $h^2 \le h$ and so $\abs{3ah + h^2} \le (3\abs{a} + 1)h$; the central error $-h^2$ is $O(h^2)$. A method whose error is $O(h^p)$, and no better, has **order** $p$: the forward difference has order 1 and the central difference order 2. Halving $h$ roughly halves an error of order 1, and quarters an error of order 2.
 
 ```check
 hq = symbols('h', positive=True)
+same(3*a**2 - (3*a**2 + 3*a*hq + hq**2), -3*a*hq - hq**2); same(Abs(-3*a*hq - hq**2), Abs(3*a*hq + hq**2))
 same(expand((3*Abs(a) + 1)*hq - (3*Abs(a)*hq + hq**2)), hq*(1 - hq))
 holds(Abs(3*a*hq + hq**2).subs({a: -2, hq: Rational(1, 2)}) <= ((3*Abs(a) + 1)*hq).subs({a: -2, hq: Rational(1, 2)}))
 same((h/2)**2/h**2, Rational(1, 4))
@@ -931,19 +938,21 @@ same((h/2)**2/h**2, Rational(1, 4))
 This is not special to $x^3$:
 
 ::: keyidea
-If $f''$ is continuous near $a$, the forward difference has error about $\tfrac{h}{2}f''(a)$, which is $O(h)$. If $f'''$ is continuous near $a$, the central difference has error about $\tfrac{h^2}{6}f'''(a)$, which is $O(h^2)$. Module 15 proves both, with Taylor's theorem.
+If $f''$ is continuous near $a$, the forward difference has error about $-\tfrac{h}{2}f''(a)$, which is $O(h)$. If $f'''$ is continuous near $a$, the central difference has error about $-\tfrac{h^2}{6}f'''(a)$, which is $O(h^2)$. Module 15 proves both, with Taylor's theorem.
 :::
 
-For $x^3$, with $f''(a) = 6a$ and $f'''(a) = 6$, these give $3ah$ and $h^2$, the leading parts of the errors of Example 4.11. For $\sqrt x$ at 4, where $f''(4) = -\tfrac{1}{32}$ and $f'''(4) = \tfrac{3}{256}$ (by the power rule for fractional exponents, which Module 6 proves), they predict $-\tfrac{h}{64}$ and $\tfrac{h^2}{512}$; for $h = 0.1$ that is $-0.00156$ and $0.0000195$, close to the first row of the table above.
+For $x^3$, with $f''(a) = 6a$ and $f'''(a) = 6$, these give $-3ah$ and $-h^2$, the leading parts of the errors of Example 4.11. For $\sqrt x$ at 4, where $f''(4) = -\tfrac{1}{32}$ and $f'''(4) = \tfrac{3}{256}$ (by the power rule for fractional exponents, which Module 6 proves), they predict $\tfrac{h}{64}$ and $-\tfrac{h^2}{512}$; for $h = 0.1$ that is $0.00156$ and $-0.0000195$, close to the first row of the table above.
 
 ```check
 same(diff(x**3, x, 2).subs(x, a), 6*a); same(diff(x**3, x, 3), 6)
-same(diff(x**3, x, 2).subs(x, a)*h/2, 3*a*h); same(diff(x**3, x, 3)*h**2/6, h**2)
+same(-diff(x**3, x, 2).subs(x, a)*h/2, -3*a*h); same(-diff(x**3, x, 3)*h**2/6, -h**2)              # -(h/2) f''(a), -(h^2/6) f'''(a)
 same(diff(sqrt(x), x, 2).subs(x, 4), -Rational(1, 32)); same(diff(sqrt(x), x, 3).subs(x, 4), Rational(3, 256))
-same(diff(sqrt(x), x, 2).subs(x, 4)*h/2, -h/64); same(diff(sqrt(x), x, 3).subs(x, 4)*h**2/6, h**2/512)
-rounds(-Rational(1, 640), '-0.00156'); rounds(Rational(1, 51200), '0.0000195')
-holds(Abs((sqrt(Rational(41, 10)) - 2)/Rational(1, 10) - Rational(1, 4) + Rational(1, 640)) < Rational(2, 10**5))
-holds(Abs((sqrt(Rational(41, 10)) - sqrt(Rational(39, 10)))/Rational(2, 10) - Rational(1, 4) - Rational(1, 51200)) < Rational(1, 10**7))
+same(-diff(sqrt(x), x, 2).subs(x, 4)*h/2, h/64); same(-diff(sqrt(x), x, 3).subs(x, 4)*h**2/6, -h**2/512)
+rounds(Rational(1, 640), '0.00156'); rounds(-Rational(1, 51200), '-0.0000195')
+err_fw4 = Rational(1, 4) - (sqrt(Rational(41, 10)) - 2)/Rational(1, 10)                          # the table's first row
+err_ce4 = Rational(1, 4) - (sqrt(Rational(41, 10)) - sqrt(Rational(39, 10)))/Rational(2, 10)
+holds(Abs(err_fw4 - Rational(1, 640)) < Rational(2, 10**5)); holds(Abs(err_ce4 + Rational(1, 51200)) < Rational(1, 10**7))
+holds(err_fw4 > 0); holds(err_ce4 < 0)                                                              # forward too small, central too large
 ```
 
 ### Rounding error and the best step {#rounding}
@@ -952,17 +961,17 @@ On paper, the smaller $h$, the better. On a computer, not so. Floating-point num
 
 $$\varepsilon = 2^{-52} \approx 2.2 \times 10^{-16},$$
 
-and a computed value of $f$ may be off by a few units of $\varepsilon\abs{f(a)}$. In the forward difference, $f(a + h)$ and $f(a)$ are nearly equal when $h$ is small, so their difference keeps only the few digits in which they differ: cancellation, as in Module 2. Dividing by the small $h$ then magnifies what is left of the rounding. The **rounding error** of the quotient is about $\varepsilon\abs{f(a)}/h$, and it grows as $h$ shrinks.
+and a computed value of $f$ may be off by a few units of $\varepsilon\abs{f(a)}$. In the forward difference, $f(a + h)$ and $f(a)$ are nearly equal when $h$ is small, so their difference keeps only the few digits in which they differ: cancellation, as in Module 2. Dividing by the small $h$ then magnifies what is left of the rounding. The part of the error of the quotient that rounding causes, its **rounding error**, can have either sign; its size is about $\varepsilon\abs{f(a)}/h$, and it grows as $h$ shrinks.
 
 ```check
 rounds(Integer(2)**-52, '2.2e-16'); same(Integer(2)**-52, Rational(1, 4503599627370496))
 ```
 
-So the total error has two parts pulling in opposite directions. For the forward difference of $x^3$ at 1, where $\abs{f(1)} = 1$, it is about
+So the total error has two parts, which behave in opposite ways as $h$ shrinks. For the forward difference of $x^3$ at 1, where $\abs{f(1)} = 1$, its size is at most about
 
 $$3h + \frac{\varepsilon}{h}.$$
 
-The first part is large when $h$ is large, the second when $h$ is small.
+The first part, the size of the truncation error, is large when $h$ is large; the second, the size of the rounding error, is large when $h$ is small.
 
 ::: compute Rounding error in action
 Python's floats are the 16-digit numbers described above. The machine epsilon, and what it means:
@@ -978,7 +987,7 @@ print(1.0 + 1e-16 == 1.0, 1.0 + 1e-15 == 1.0)
 True False
 ```
 
-Adding $10^{-16}$ to 1 changes nothing: the result rounds back to 1. Now the errors of the two differences of $f(x) = x^3$ at $a = 1$, where $f'(1) = 3$, as $h$ shrinks from $10^{-1}$ to $10^{-15}$:
+Adding $10^{-16}$ to 1 changes nothing: the result rounds back to 1. Now the errors, exact value minus estimate, of the two differences of $f(x) = x^3$ at $a = 1$, where $f'(1) = 3$, as $h$ shrinks from $10^{-1}$ to $10^{-15}$:
 
 ```python
 def f(x):
@@ -990,40 +999,45 @@ for k in range(1, 16):
     h = 10.0**(-k)
     forward = (f(a + h) - f(a))/h
     central = (f(a + h) - f(a - h))/(2*h)
-    print(f"{h:7.0e}  {abs(forward - exact):13.2e}  {abs(central - exact):13.2e}")
+    print(f"{h:7.0e}  {exact - forward:13.2e}  {exact - central:13.2e}")
 ```
 
 ```output
       h  forward error  central error
-  1e-01       3.10e-01       1.00e-02
-  1e-02       3.01e-02       1.00e-04
-  1e-03       3.00e-03       1.00e-06
-  1e-04       3.00e-04       1.00e-08
-  1e-05       3.00e-05       9.74e-11
-  1e-06       3.00e-06       8.03e-11
-  1e-07       3.02e-07       8.63e-11
-  1e-08       3.97e-09       7.13e-09
-  1e-09       2.48e-07       8.17e-08
-  1e-10       2.48e-07       2.48e-07
-  1e-11       2.48e-07       2.48e-07
-  1e-12       2.67e-04       1.00e-04
+  1e-01      -3.10e-01      -1.00e-02
+  1e-02      -3.01e-02      -1.00e-04
+  1e-03      -3.00e-03      -1.00e-06
+  1e-04      -3.00e-04      -1.00e-08
+  1e-05      -3.00e-05      -9.74e-11
+  1e-06      -3.00e-06       8.03e-11
+  1e-07      -3.02e-07      -8.63e-11
+  1e-08      -3.97e-09       7.13e-09
+  1e-09      -2.48e-07      -8.17e-08
+  1e-10      -2.48e-07      -2.48e-07
+  1e-11      -2.48e-07      -2.48e-07
+  1e-12      -2.67e-04      -1.00e-04
   1e-13       2.40e-03       7.32e-04
   1e-14       2.40e-03       2.40e-03
-  1e-15       3.31e-01       1.64e-01
+  1e-15      -3.31e-01      -1.64e-01
 ```
 
-Read down the columns. The forward error shrinks tenfold per row, as $3h$ predicts, down to about $3 \times 10^{-7}$ at $h = 10^{-7}$. At $h = 10^{-8}$ it is smaller still, about $4 \times 10^{-9}$, but by luck: there the rounding error is about as large as the truncation error $3h = 3 \times 10^{-8}$, with the opposite sign, and the two nearly cancel. For smaller $h$ the rounding error takes over, and the error grows again. The central error shrinks a hundredfold per row, to about $10^{-10}$ at $h = 10^{-5}$, stays there down to $h = 10^{-7}$, and then grows too. At $h = 10^{-15}$ both estimates are wrong in the first decimal place.
+Read down the columns. In the first rows both errors are negative, close to the truncation errors $-3h - h^2$ and $-h^2$ of Example 4.11: both estimates are too large. The forward error shrinks tenfold per row in size, as $3h$ predicts, down to about $-3 \times 10^{-7}$ at $h = 10^{-7}$. At $h = 10^{-8}$ it is smaller still, about $-4 \times 10^{-9}$, but by luck: there the truncation error, $-3h - h^2 \approx -3.0 \times 10^{-8}$, and the rounding error, about $+2.6 \times 10^{-8}$, nearly cancel. For smaller $h$ the rounding error takes over, and the error grows again, with either sign. The central error shrinks a hundredfold per row in size, to about $10^{-10}$ at $h = 10^{-5}$, stays near that size down to $h = 10^{-7}$, and then grows too. At $h = 10^{-15}$ both estimates are wrong in the first decimal place.
 :::
 
 ```check
-fwd_f = lambda hv: abs(((1.0 + hv)**3 - 1.0)/hv - 3.0)                       # the table above, in floating point
-cen_f = lambda hv: abs(((1.0 + hv)**3 - (1.0 - hv)**3)/(2*hv) - 3.0)
-rounds(fwd_f(1e-8), '4e-9'); holds(fwd_f(1e-8) < min(fwd_f(10.0**-k_) for k_ in range(1, 16) if k_ != 8))
+err_f = lambda hv: 3.0 - ((1.0 + hv)**3 - 1.0)/hv                            # the table above: exact minus estimate,
+err_c = lambda hv: 3.0 - ((1.0 + hv)**3 - (1.0 - hv)**3)/(2*hv)               # in floating point
+fwd_f = lambda hv: abs(err_f(hv)); cen_f = lambda hv: abs(err_c(hv))           # their sizes
+for k_ in range(1, 5):                                                         # first rows: negative, close to -3h - h^2 and -h^2
+    holds(err_f(10.0**-k_) < 0); holds(err_c(10.0**-k_) < 0)
+    near(err_f(10.0**-k_)/(-(3*10.0**-k_ + 10.0**(-2*k_))), 1, 1e-3); near(err_c(10.0**-k_)/(-10.0**(-2*k_)), 1, 1e-3)
+rounds(err_f(1e-8), '-4e-9'); holds(fwd_f(1e-8) < min(fwd_f(10.0**-k_) for k_ in range(1, 16) if k_ != 8))
 for k_ in range(1, 8):
-    holds(Rational(8, 100) < fwd_f(10.0**-k_)/10.0**-k_/3 < 2)              # about 3h: tenfold per row
-rounds(fwd_f(1e-7), '3e-7'); holds(fwd_f(1e-8) < Rational(3, 10**8)/5)      # at 1e-8 far below 3h = 3e-8
-rnd8 = (((1.0 + 1e-8)**3 - 1.0)/1e-8 - 3.0) - (3*Rational(1, 10**8) + Rational(1, 10**16))   # its rounding part
-holds(rnd8 < 0); holds(-rnd8 > Rational(3, 10**8)/2); holds(-rnd8 < 2*Rational(3, 10**8))    # opposite sign, about 3h in size
+    holds(Rational(8, 100) < fwd_f(10.0**-k_)/10.0**-k_/3 < 2)              # about 3h in size: tenfold per row
+rounds(err_f(1e-7), '-3e-7'); holds(fwd_f(1e-8) < Rational(3, 10**8)/5)      # at 1e-8 far below 3h = 3e-8 in size
+tr8 = -(3*Rational(1, 10**8) + Rational(1, 10**16)); rounds(tr8, '-3.0e-8')    # the truncation error at 1e-8
+rnd8 = err_f(1e-8) - tr8; rounds(rnd8, '2.6e-8'); holds(rnd8 > 0)            # the rounding error: opposite sign, about as large
+holds(err_f(1e-9) < 0); holds(err_f(1e-13) > 0); holds(err_c(1e-6) > 0)       # rounding-dominated rows: either sign
 for k_ in range(1, 5):
     near(cen_f(10.0**-k_)/10.0**(-2*k_), 1, 1e-3)                           # h^2: a hundredfold per row
 for k_ in (5, 6, 7):
@@ -1033,13 +1047,13 @@ holds(Abs(((1.0 + 1e-15)**3 - 1.0)/1e-15 - 3.0) > 0.1); holds(Abs(((1.0 + 1e-15)
 same(1.0 + 1e-16 == 1.0, True); same(1.0 + 1e-15 == 1.0, False)
 ```
 
-Figure 4.5 plots the same errors for 481 values of $h$. On logarithmic axes a power $Ch^p$ appears as a straight line of slope $p$, because $\log\big(Ch^p\big) = \log C + p\log h$: the truncation errors are lines of slopes 1 and 2, and the rounding error a ragged band along $\varepsilon/h$, of slope $-1$.
+Figure 4.5 plots the sizes of the same errors for 481 values of $h$. On logarithmic axes a power $Ch^p$ appears as a straight line of slope $p$, because $\log\big(Ch^p\big) = \log C + p\log h$: the sizes of the truncation errors are lines of slopes 1 and 2, and the size of the rounding error a ragged band along $\varepsilon/h$, of slope $-1$.
 
 ::: figure id=fig-04-5
-The errors of the forward (blue) and central (orange) differences of $f(x) = x^3$ at $a = 1$, computed in floating point for 481 steps $h$ between $10^{-16}$ and 1, on logarithmic scales. On the right, truncation error dominates, along the dashed lines $3h$ and $h^2$. On the left, rounding error dominates, ragged and close to $\varepsilon/h$ (dashed grey). The dotted lines mark the best steps, about $10^{-8}$ for the forward difference and $5 \times 10^{-6}$ for the central one.
+The sizes of the errors of the forward (blue) and central (orange) differences of $f(x) = x^3$ at $a = 1$, computed in floating point for 481 steps $h$ between $10^{-16}$ and 1, on logarithmic scales. On the right, truncation error dominates, along the dashed lines $3h$ and $h^2$. On the left, rounding error dominates, ragged and close to $\varepsilon/h$ (dashed grey). The dotted lines mark the best steps, about $10^{-8}$ for the forward difference and $5 \times 10^{-6}$ for the central one.
 :::
 
-The best step is where the two kinds of error balance. For the forward difference, $3h + \varepsilon/h$ is smallest when its two parts are equal (Exercise 4.12 proves it), at $h = \sqrt{\varepsilon/3} \approx 9 \times 10^{-9}$, where the error is about $2\sqrt{3\varepsilon} \approx 5 \times 10^{-8}$. For the central difference, $h^2 + \varepsilon/h$ is smallest at $h = (\varepsilon/2)^{1/3} \approx 5 \times 10^{-6}$ (Module 8 shows how to find such minima), where the error is about $7 \times 10^{-11}$. The table agrees: its smallest errors lie near those steps. The central ones, about $10^{-10}$, match the estimate; the forward one, $4 \times 10^{-9}$ at $h = 10^{-8}$, beats it, thanks to the lucky cancellation (Exercise 4.12 looks at the rows near the best step).
+The best step is where the two kinds of error balance. For the forward difference, the bound $3h + \varepsilon/h$ is smallest when its two parts are equal (Exercise 4.12 proves it), at $h = \sqrt{\varepsilon/3} \approx 9 \times 10^{-9}$, where it is about $2\sqrt{3\varepsilon} \approx 5 \times 10^{-8}$. For the central difference, the size of the error is at most about $h^2 + \varepsilon/h$, which is smallest at $h = (\varepsilon/2)^{1/3} \approx 5 \times 10^{-6}$ (Module 8 shows how to find such minima), where it is about $7 \times 10^{-11}$. The table agrees: its smallest errors, in size, lie near those steps. The central ones, about $10^{-10}$, match the estimate; the forward one, $-4 \times 10^{-9}$ at $h = 10^{-8}$, beats it, thanks to the lucky cancellation (Exercise 4.12 looks at the rows near the best step).
 
 ```check
 eps_ = Integer(2)**-52
@@ -1320,7 +1334,7 @@ Let $f(x) = \dfrac1x$ and $a = 1$, so that $f'(1) = -1$ (the method of Example 4
 
 - (a) Show that, for $0 < h < 1$, the forward difference equals $-\dfrac{1}{1 + h}$ and the central difference equals $-\dfrac{1}{1 - h^2}$.
 - (b) Compute both, and their errors, for $h = 0.1$ and $h = 0.01$, to six decimal places.
-- (c) In exact arithmetic, roughly how small must $h$ be for each error to be below $10^{-6}$?
+- (c) In exact arithmetic, roughly how small must $h$ be for each error to be less than $10^{-6}$ in size?
 
 ::: solution
 **(a)** Forward: put the two terms over the common denominator $1 + h$,
@@ -1333,29 +1347,32 @@ $$\begin{aligned} &\frac{1}{1 + h} - \frac{1}{1 - h} \\ &\quad= \frac{(1 - h) - 
 
 and dividing by $2h$ gives $-\dfrac{1}{1 - h^2}$.
 
-**(b)** The errors are the estimates minus $f'(1) = -1$:
+**(b)** The errors are $f'(1) = -1$ minus the estimates:
 
-$$\begin{aligned} -\frac{1}{1 + h} + 1 &= \frac{h}{1 + h}, \\ -\frac{1}{1 - h^2} + 1 &= -\frac{h^2}{1 - h^2}. \end{aligned}$$
+$$\begin{aligned} -1 + \frac{1}{1 + h} &= -\frac{h}{1 + h}, \\[6pt] -1 + \frac{1}{1 - h^2} &= \frac{h^2}{1 - h^2}. \end{aligned}$$
 
 At the two steps:
 
-- $h = 0.1$: forward $-0.909091$, error $0.090909$; central $-1.010101$, error $-0.010101$.
-- $h = 0.01$: forward $-0.990099$, error $0.009901$; central $-1.000100$, error $-0.000100$.
+- $h = 0.1$: forward $-0.909091$, error $-0.090909$; central $-1.010101$, error $0.010101$.
+- $h = 0.01$: forward $-0.990099$, error $-0.009901$; central $-1.000100$, error $0.000100$.
+
+The forward difference is too large and the central difference too small, so their errors have opposite signs.
 
 **(c)** The sizes of the errors are
 
 $$\begin{aligned} \frac{h}{1 + h} &< h, \\[6pt] \frac{h^2}{1 - h^2} &> h^2. \end{aligned}$$
 
-The forward error is a little less than $h$, so it falls below $10^{-6}$ when $h$ is about $10^{-6}$; at $h = 10^{-6}$ it is $10^{-6}/(1 + 10^{-6}) < 10^{-6}$. The central error is a little more than $h^2$, so $h$ about $10^{-3}$ suffices: $h = 0.000999$ gives about $9.98 \times 10^{-7}$. The central difference reaches the same accuracy with a step a thousand times larger; in floating point that matters, because larger steps suffer less rounding error.
+The forward error is a little less than $h$ in size, so its size falls below $10^{-6}$ when $h$ is about $10^{-6}$; at $h = 10^{-6}$ it is $10^{-6}/(1 + 10^{-6}) < 10^{-6}$. The central error is a little more than $h^2$, so $h$ about $10^{-3}$ suffices: $h = 0.000999$ gives about $9.98 \times 10^{-7}$. The central difference reaches the same accuracy with a step a thousand times larger; in floating point that matters, because larger steps suffer less rounding error.
 
 ```check
 same(cancel((1/x - 1/a)/(x - a)), -1/(a*x)); limit_is((1/x - 1/a)/(x - a), x, a, -1/a**2); same((-1/a**2).subs(a, 1), -1)
 steps((1/(1 + h) - 1)/h, ((1 - (1 + h))/(1 + h))/h, -1/(1 + h))
 steps(1/(1 + h) - 1/(1 - h), ((1 - h) - (1 + h))/(1 - h**2), -2*h/(1 - h**2)); same((-2*h/(1 - h**2))/(2*h), -1/(1 - h**2))
-same(-1/(1 + h) + 1, h/(1 + h)); same(-1/(1 - h**2) + 1, -h**2/(1 - h**2))
+same(-1 - (-1/(1 + h)), -h/(1 + h)); same(-1 - (-1/(1 - h**2)), h**2/(1 - h**2))          # error = f'(1) - estimate
 fwd9 = lambda hv: -1/(1 + hv); cen9 = lambda hv: -1/(1 - hv**2)
-rounds(fwd9(Rational(1, 10)), '-0.909091'); rounds(fwd9(Rational(1, 10)) + 1, '0.090909'); rounds(cen9(Rational(1, 10)), '-1.010101'); rounds(cen9(Rational(1, 10)) + 1, '-0.010101')
-rounds(fwd9(Rational(1, 100)), '-0.990099'); rounds(fwd9(Rational(1, 100)) + 1, '0.009901'); rounds(cen9(Rational(1, 100)), '-1.000100'); rounds(cen9(Rational(1, 100)) + 1, '-0.000100')
+rounds(fwd9(Rational(1, 10)), '-0.909091'); rounds(-1 - fwd9(Rational(1, 10)), '-0.090909'); rounds(cen9(Rational(1, 10)), '-1.010101'); rounds(-1 - cen9(Rational(1, 10)), '0.010101')
+rounds(fwd9(Rational(1, 100)), '-0.990099'); rounds(-1 - fwd9(Rational(1, 100)), '-0.009901'); rounds(cen9(Rational(1, 100)), '-1.000100'); rounds(-1 - cen9(Rational(1, 100)), '0.000100')
+holds(all(fwd9(hv_) > -1 and cen9(hv_) < -1 for hv_ in (Rational(1, 10), Rational(1, 100))))   # forward too large, central too small
 holds(Rational(1, 10**6)/(1 + Rational(1, 10**6)) < Rational(1, 10**6))
 hh9 = Rational(999, 10**6)
 holds(hh9**2/(1 - hh9**2) < Rational(1, 10**6)); rounds(hh9**2/(1 - hh9**2), '9.98e-7')
@@ -1430,11 +1447,11 @@ limit_is(h*sin(1/h), h, 0, 0); limit_is(x**2, x, 0, 0); same(diff(x**2, x).subs(
 ::::
 
 :::: exercise The best step size {#ex-4-12} ★★★
-Section 4.7 modelled the error of the forward difference of $x^3$ at 1 as $3h + \varepsilon/h$. More generally, let $E(h) = Ch + \dfrac{K}{h}$, with positive constants $C$ and $K$.
+Section 4.7 bounded the size of the error of the forward difference of $x^3$ at 1 by about $3h + \varepsilon/h$. More generally, let $E(h) = Ch + \dfrac{K}{h}$, with positive constants $C$ and $K$.
 
 - (a) Show that $E(h) \ge 2\sqrt{CK}$ for every $h > 0$, with equality exactly when $h = \sqrt{K/C}$. (Expand $\big(\sqrt{Ch} - \sqrt{K/h}\big)^2 \ge 0$.)
-- (b) So the best step is $h^* = \sqrt{K/C}$, where the two parts of the error are equal. Find $h^*$ and $E(h^*)$ for $C = 3$ and $K = \varepsilon \approx 2.2 \times 10^{-16}$, and compare with the table in Section 4.7.
-- (c) Suppose the values of $f$ carried only about 8 correct digits, as with noisy measurements, so that $K = 10^{-8}$. What are the best step and the smallest error now?
+- (b) So the best step is $h^* = \sqrt{K/C}$, where the two parts of $E$ are equal. Find $h^*$ and $E(h^*)$ for $C = 3$ and $K = \varepsilon \approx 2.2 \times 10^{-16}$, and compare with the table in Section 4.7.
+- (c) Suppose the values of $f$ carried only about 8 correct digits, as with noisy measurements, so that $K = 10^{-8}$. What are the best step and the smallest value of $E$ now?
 
 ::: solution
 **(a)** For $h > 0$ both square roots are defined, and
@@ -1443,7 +1460,7 @@ $$\begin{aligned} &\Big(\sqrt{Ch} - \sqrt{K/h}\Big)^2 \\ &\quad= Ch - 2\sqrt{Ch 
 
 A square is never negative, so $Ch + \dfrac{K}{h} \ge 2\sqrt{CK}$. Equality holds exactly when the square is 0, that is, when $\sqrt{Ch} = \sqrt{K/h}$, which means $Ch = K/h$, or $h^2 = K/C$, or (since $h > 0$) $h = \sqrt{K/C}$. At that $h$ the two parts $Ch$ and $K/h$ are equal.
 
-**(b)** $h^* = \sqrt{\varepsilon/3} \approx 8.6 \times 10^{-9}$ and $E(h^*) = 2\sqrt{3\varepsilon} \approx 5.2 \times 10^{-8}$. The table in Section 4.7 has its smallest forward error at $h = 10^{-8}$, the step nearest $h^*$, as predicted. The error there, about $4 \times 10^{-9}$, is smaller than the model's $5.2 \times 10^{-8}$, because by luck the rounding error had the opposite sign to the truncation error and cancelled most of it; at the neighbouring steps $10^{-7}$ and $10^{-9}$ the errors, about $3 \times 10^{-7}$ and $2.5 \times 10^{-7}$, are what the model predicts ($3.0 \times 10^{-7}$ and $2.3 \times 10^{-7}$).
+**(b)** $h^* = \sqrt{\varepsilon/3} \approx 8.6 \times 10^{-9}$ and $E(h^*) = 2\sqrt{3\varepsilon} \approx 5.2 \times 10^{-8}$. The table in Section 4.7 has its smallest forward error, in size, at $h = 10^{-8}$, the step nearest $h^*$, as predicted. The error there, about $-4 \times 10^{-9}$, is much smaller in size than the model's $5.2 \times 10^{-8}$, because by luck the rounding error had the opposite sign to the truncation error and cancelled most of it. At the neighbouring steps $10^{-7}$ and $10^{-9}$ the errors, about $-3 \times 10^{-7}$ and $-2.5 \times 10^{-7}$, have the sizes that the model predicts ($3.0 \times 10^{-7}$ and $2.3 \times 10^{-7}$).
 
 **(c)** $h^* = \sqrt{10^{-8}/3} \approx 5.8 \times 10^{-5}$, and $E(h^*) = 2\sqrt{3 \times 10^{-8}} \approx 3.5 \times 10^{-4}$. With values good to 8 digits, a forward difference gives only about 4 correct digits, and it needs a much larger step. Noisy data give rough derivatives.
 
@@ -1455,8 +1472,10 @@ eps_ = Integer(2)**-52
 rounds(sqrt(eps_/3), '8.6e-9'); rounds(2*sqrt(3*eps_), '5.2e-8')
 E12 = lambda hv: 3*hv + eps_/hv
 rounds(E12(Rational(1, 10**7)), '3.0e-7'); rounds(E12(Rational(1, 10**9)), '2.3e-7')
-fwd_float = lambda hv: abs(((1.0 + hv)**3 - 1.0)/hv - 3.0)          # the table of Section 4.7, in floating point
-rounds(fwd_float(1e-8), '4e-9'); rounds(fwd_float(1e-7), '3e-7'); rounds(fwd_float(1e-9), '2.5e-7')
+err_float = lambda hv: 3.0 - ((1.0 + hv)**3 - 1.0)/hv            # the table of Section 4.7: exact minus estimate, in floating point
+fwd_float = lambda hv: abs(err_float(hv))
+rounds(err_float(1e-8), '-4e-9'); rounds(err_float(1e-7), '-3e-7'); rounds(err_float(1e-9), '-2.5e-7')
+holds(-err_float(1e-8) < Rational(52, 10)*Rational(1, 10**8)/10)    # much smaller in size than 5.2e-8
 holds(fwd_float(1e-8) < min(fwd_float(10.0**-k_) for k_ in range(1, 16) if k_ != 8))
 rounds(sqrt(Rational(1, 10**8)/3), '5.8e-5'); rounds(2*sqrt(3*Rational(1, 10**8)), '3.5e-4')
 ```
@@ -1520,7 +1539,7 @@ rounds(sqrt(Rational(1, 10**8)/3), '5.8e-5'); rounds(2*sqrt(3*Rational(1, 10**8)
 - [ ] $x^3$ is not differentiable at 1
 - [ ] Python cannot store the number $10^{-14}$
 - [x] Rounding error, about $\varepsilon/h$, grows as $h$ shrinks
-> $f(1 + h)$ and $f(1)$ agree in almost all their digits, so their difference loses most of its accuracy, and dividing by the tiny $h$ magnifies the rounding error, about $\varepsilon/h$ with $\varepsilon \approx 2.2 \times 10^{-16}$. The truncation error $3h + h^2$ shrinks with $h$; $x^3$ is differentiable everywhere; and $10^{-14}$ is stored without trouble, to about 16 significant digits.
+> $f(1 + h)$ and $f(1)$ agree in almost all their digits, so their difference loses most of its accuracy, and dividing by the tiny $h$ magnifies the rounding error, about $\varepsilon/h$ with $\varepsilon \approx 2.2 \times 10^{-16}$. The truncation error, $-3h - h^2$, shrinks in size with $h$; $x^3$ is differentiable everywhere; and $10^{-14}$ is stored without trouble, to about 16 significant digits.
 ```
 
 ```check
@@ -1531,5 +1550,5 @@ same(diff(5*x**4 - 2*x + 7, x), 20*x**3 - 2)
 same(diff(x**3, x).subs(x, 2), 12); same((x**3).subs(x, 2), 8)
 sq = t**3 - 3*t
 same(diff(sq, t).subs(t, 2), 9); same(sq.subs(t, 2), 2); same(diff(sq, t, 2).subs(t, 2), 12); same(diff(sq, t, 3), 6)
-same(expand(((1 + h)**3 - 1)/h - 3), 3*h + h**2)
+same(expand(3 - ((1 + h)**3 - 1)/h), -3*h - h**2)
 ```

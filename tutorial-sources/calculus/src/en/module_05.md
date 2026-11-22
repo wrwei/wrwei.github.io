@@ -524,7 +524,7 @@ The way round the division by $\Delta u$ is to describe the differentiability of
 
 $$E(k) = \frac{f(u + k) - f(u)}{k} - f'(u),$$
 
-the error of the difference quotient, and let $E(0) = 0$. That $f$ is differentiable at $u$ says exactly that $E(k) \to 0$ as $k \to 0$; since $E(0) = 0$, $E$ is continuous at 0. Multiplying by $k$,
+the amount by which the difference quotient exceeds $f'(u)$, and let $E(0) = 0$. That $f$ is differentiable at $u$ says exactly that $E(k) \to 0$ as $k \to 0$; since $E(0) = 0$, $E$ is continuous at 0. Multiplying by $k$,
 
 $$f(u + k) - f(u) = \big(f'(u) + E(k)\big)\,k,$$
 
