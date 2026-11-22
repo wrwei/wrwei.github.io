@@ -430,7 +430,7 @@ $$\begin{aligned} &s(a + h) - s(a) \\ &\quad= 4.9(a^2 + 2ah + h^2) - 4.9a^2 \\ &
 
 For $h \ne 0$ the factor $h$ cancels:
 
-$$\frac{s(a + h) - s(a)}{h} = 9.8a + 4.9h \qquad (h \ne 0).$$
+$$\frac{s(a + h) - s(a)}{h} = 9.8a + 4.9h.$$
 
 By Theorem 2.3 and direct substitution (in the variable $h$),
 
@@ -1463,7 +1463,7 @@ Prove from Definition 2.3 that $\lim_{x\to0}\sin(1/x)$ does not exist. (Use the 
 ::: solution
 Let $L$ be any number; the challenge $\varepsilon = 1$ will defeat it. Let $\delta > 0$ be any response, and choose a whole number $k \ge 1$ with $k \ge 1/\delta$. The points
 
-$$x_1 = \frac{2}{(4k + 1)\pi}, \quad x_2 = \frac{2}{(4k + 3)\pi}$$
+$$\begin{aligned} x_1 &= \frac{2}{(4k + 1)\pi}, \\ x_2 &= \frac{2}{(4k + 3)\pi} \end{aligned}$$
 
 are positive, and
 
