@@ -1,0 +1,1108 @@
+---
+title: Power series and Taylor series
+part: 4
+lead: Turn functions into polynomials that never end. You will find where a power series converges, build the series of the standard functions, bound the error of every approximation with Taylor's theorem, and use series to compute e, π and ln 2, evaluate limits, simplify formulas of physics and see how a computer evaluates a sine. At the end, the series of the exponential, the sine and the cosine combine into Euler's formula.
+minutes: 270
+needs: Modules 1 to 14, especially the rules of differentiation (Modules 4 to 7), the Mean Value Theorem (Module 8) and series with the ratio test (Module 14)
+goals:
+  - Find the radius and the interval of convergence of a power series with the ratio test, checking the endpoints separately
+  - Build power series from the geometric series, and differentiate and integrate them term by term
+  - Find Taylor and Maclaurin series from derivatives, and know the standard series and where they converge
+  - Bound the error of a Taylor polynomial with Taylor's theorem, and prove that $e^x$, $\sin x$ and $\cos x$ equal their series
+  - Use series to compute constants and limits, and to make the approximations of physics and of mathematics libraries
+  - Derive Euler's formula $e^{i\theta} = \cos\theta + i\sin\theta$ from the series, and use it to explain oscillating solutions of differential equations
+---
+
+## Power series {#power-series}
+
+Module 14 summed the geometric series: for every $x$ with $\abs{x} < 1$,
+
+$$1 + x + x^2 + x^3 + \cdots = \frac{1}{1 - x}.$$
+
+Read as a function of $x$, the left side is a polynomial that never ends. Its partial sums
+
+$$S_n(x) = 1 + x + x^2 + \cdots + x^n = \frac{1 - x^{n+1}}{1 - x} \qquad (x \ne 1)$$
+
+are ordinary polynomials, and for each $x$ between $-1$ and 1 they approach $1/(1 - x)$ as $n$ grows. Figure 15.1 (left) shows them: inside the interval $(-1, 1)$ the polynomials hug the curve more and more closely; outside it they peel away. The table follows three values of $x$:
+
+```valuetable
+n = 1, 2, 5, 10, 20, 50
+$S_n(0.5)$ = (1 - (1/2)**(n + 1))/(1 - 1/2)
+$S_n(-0.9)$ = (1 - (-9/10)**(n + 1))/(1 + 9/10)
+$S_n(1.1)$ = (1 - (11/10)**(n + 1))/(1 - 11/10)
+digits = 6
+---
+n | S_n(0.5) | S_n(-0.9) | S_n(1.1)
+1 | 1.5 | 0.1 | 2.1
+2 | 1.75 | 0.91 | 3.31
+5 | 1.96875 | 0.24661 | 7.71561
+10 | 1.99902 | 0.691479 | 18.5312
+20 | 2.00000 | 0.583905 | 64.0025
+50 | 2.00000 | 0.528757 | 1281.30
+```
+
+At $x = 0.5$ the partial sums close in on $1/(1 - 0.5) = 2$ quickly. At $x = -0.9$ they swing above and below $1/1.9 \approx 0.526316$ and close in slowly. At $x = 1.1$ they grow without bound, although $1/(1 - 1.1) = -10$ is a perfectly good number: there the series and the function part company.
+
+```check
+S_geo = lambda X, N: sum(X**j for j in range(N + 1))
+for N_ in range(8):
+    same(S_geo(x, N_), (1 - x**(N_ + 1))/(1 - x))
+same(1/(1 - Rational(1, 2)), 2); rounds(1/Rational(19, 10), '0.526316'); same(1/(1 - Rational(11, 10)), -10)
+holds(S_geo(Rational(-9, 10), 20) > Rational(10, 19)); holds(S_geo(Rational(-9, 10), 21) < Rational(10, 19))   # above, then below
+holds(S_geo(Rational(11, 10), 50) > 1000)
+```
+
+::: figure id=fig-15-1
+Left: the partial sums $S_n(x) = 1 + x + \cdots + x^n$ for $n = 1$, 2, 5 and 10, with $y = 1/(1 - x)$ (blue). In the green band, $-1 < x < 1$, they close in on the curve; outside it they do not. Right: the partial sums $1 - x^2 + x^4 - \cdots \pm x^{2m}$ for $m = 1$, 2, 5 and 20 close in on $y = 1/(1 + x^2)$ only for $-1 < x < 1$, although this function is smooth on the whole line (Section 15.2).
+:::
+
+::: definition Power series
+A **power series centred at $a$** (or **about $a$**) is a series of the form
+
+$$\sum_{n=0}^{\infty} c_n (x - a)^n = c_0 + c_1(x - a) + c_2(x - a)^2 + \cdots,$$
+
+where $x$ is a variable and the **coefficients** $c_0, c_1, c_2, \dots$ are constants. For each number $x$ it is a series of numbers, which converges or diverges; where it converges, its sum is a function of $x$.
+:::
+
+The sum reads "the sum from $n = 0$ to infinity of $c_n$ times $x$ minus $a$, to the $n$". Its first term is $c_0(x - a)^0$, where $(x - a)^0$ means 1 even when $x = a$. So every power series converges at its centre, to $c_0$, because all its other terms are 0 there. The geometric series is the power series with centre 0 and every $c_n = 1$; a polynomial is a power series whose coefficients are 0 from some point on.
+
+### Where a power series converges {#convergence}
+
+The geometric series converges on an interval around its centre and diverges outside it. Every power series behaves in this way.
+
+::: theorem Where a power series converges
+For a power series $\sum c_n(x - a)^n$, exactly one of the following holds:
+
+1. it converges only at $x = a$;
+2. it converges absolutely for every real number $x$;
+3. there is a number $R > 0$ such that the series converges absolutely when $\abs{x - a} < R$ and diverges when $\abs{x - a} > R$.
+:::
+
+::: proof
+The heart of the proof is a comparison with a geometric series. Suppose the series converges at some $x_1 \ne a$, and let $x$ be closer to $a$: $\abs{x - a} < \abs{x_1 - a}$. The terms $c_n(x_1 - a)^n$ tend to 0, by the divergence test of Module 14, so they are bounded: from some $n$ on they lie between $-1$ and 1, and the finitely many before are no larger in size than the largest of them. So there is a number $M$ with $\abs{c_n (x_1 - a)^n} \le M$ for every $n$. With $q = \abs{x - a}/\abs{x_1 - a}$, which is less than 1,
+
+$$\abs{c_n (x - a)^n} = \abs{c_n (x_1 - a)^n}\, q^n \le M q^n.$$
+
+The geometric series $\sum Mq^n$ converges, so by the comparison test $\sum \abs{c_n (x - a)^n}$ converges: the series converges absolutely at $x$. Turned round, if the series diverges at some $x_2$, it diverges at every $x$ farther from $a$ than $x_2$, since convergence there would force convergence at $x_2$.
+
+Now consider the distances $\abs{x_1 - a}$ of all the points $x_1$ at which the series converges. If 0 is the only one, case 1 holds. If they include numbers as large as you please, then every $x$ is closer to $a$ than some point of convergence, and case 2 holds. Otherwise these distances are bounded, and they have a **least upper bound** $R$: the smallest number that is at least as large as each of them. That such a number exists is the completeness of the real numbers, the property behind the monotone convergence theorem of Module 14. $R > 0$, because the series converges at some $x_1 \ne a$. If $\abs{x - a} < R$, then $\abs{x - a}$ is not an upper bound, so there is a point of convergence $x_1$ with $\abs{x - a} < \abs{x_1 - a}$, and the series converges absolutely at $x$. If $\abs{x - a} > R$, the series diverges at $x$, because $\abs{x - a}$ is larger than every distance at which it converges.
+:::
+
+```check
+cA, dA, d1A = symbols('C d d_1', positive=True)        # |c_n|, |x - a| and |x_1 - a|
+same(cA*d1A**n*(dA/d1A)**n, cA*dA**n)                  # |c_n (x1 - a)^n| q^n = |c_n (x - a)^n|
+qA = symbols('q', positive=True)
+same(summation(qA**n, (n, 0, oo)).args[0][0], 1/(1 - qA))   # the geometric series sum M q^n converges for q < 1
+```
+
+::: definition Radius and interval of convergence
+The number $R$ of Theorem 15.1 is the **radius of convergence** of the series. In case 1 the radius is $R = 0$, and in case 2 it is $R = \infty$. The set of all $x$ at which the series converges is its **interval of convergence**.
+:::
+
+When $0 < R < \infty$, the interval of convergence runs from $a - R$ to $a + R$. Theorem 15.1 says nothing about the two **endpoints** $x = a - R$ and $x = a + R$: at each of them the series may converge or diverge. So the interval of convergence is one of $(a - R, a + R)$, $[a - R, a + R)$, $(a - R, a + R]$ and $[a - R, a + R]$, and the examples below meet all four.
+
+### Finding the radius {#radius}
+
+The ratio test of Module 14 usually finds $R$. For the terms $c_n(x - a)^n$, with every $c_n \ne 0$ and $x \ne a$, the ratio of consecutive terms is
+
+$$\abs{\frac{c_{n+1}(x - a)^{n+1}}{c_n (x - a)^n}} = \abs{\frac{c_{n+1}}{c_n}}\,\abs{x - a}.$$
+
+If $\abs{c_{n+1}/c_n}$ approaches a limit $L$, this ratio approaches $L\abs{x - a}$, and the ratio test gives absolute convergence where $L\abs{x - a} < 1$ and divergence where $L\abs{x - a} > 1$. So $R = 1/L$, with $R = \infty$ if $L = 0$, and $R = 0$ if $\abs{c_{n+1}/c_n} \to \infty$. At the endpoints the limit of the ratio is exactly 1, where the ratio test says nothing: test them separately, with the other tests of Module 14.
+
+::: example Three intervals of convergence
+Find the radius and the interval of convergence of (a) $\displaystyle\sum_{n=1}^{\infty} \frac{x^n}{n}$ and (b) $\displaystyle\sum_{n=1}^{\infty} \frac{x^n}{n^2}$, and compare them with the geometric series $\sum x^n$.
+
+**(a)** Here $c_n = 1/n$, so
+
+$$\abs{\frac{c_{n+1}}{c_n}} = \frac{n}{n + 1} \to 1,$$
+
+and $R = 1$: the series converges absolutely for $\abs{x} < 1$ and diverges for $\abs{x} > 1$. At $x = 1$ it is the harmonic series $\sum 1/n$, which diverges. At $x = -1$ it is $\sum (-1)^n/n$, which converges by the alternating series test, since the sizes $1/n$ decrease to 0. The interval of convergence is $[-1, 1)$.
+
+**(b)** Now $\abs{c_{n+1}/c_n} = n^2/(n + 1)^2 \to 1$, so again $R = 1$. At $x = \pm 1$ the series of absolute values is $\sum 1/n^2$, a convergent $p$-series, so the series converges absolutely at both endpoints. The interval is $[-1, 1]$.
+
+The geometric series also has radius 1, and at $x = \pm 1$ its terms, 1 or $(-1)^n$, do not tend to 0, so its interval is $(-1, 1)$. Three series with the same radius have three different intervals: the endpoints must always be checked.
+
+```check
+limit_is((1/(n + 1))/(1/n), n, oo, 1); same((1/(n + 1))/(1/n), n/(n + 1))
+holds(Sum(1/n, (n, 1, oo)).is_convergent() == False); holds(Sum((-1)**n/n, (n, 1, oo)).is_convergent())
+same((1/(n + 1)**2)/(1/n**2), n**2/(n + 1)**2); limit_is(n**2/(n + 1)**2, n, oo, 1)
+holds(Sum(1/n**2, (n, 1, oo)).is_convergent())
+nI = symbols('n', integer=True, nonnegative=True)
+same(Abs((-1)**nI), 1); holds(Sum((-1)**n, (n, 0, oo)).is_convergent() == False)
+```
+:::
+
+::: example Radius $\infty$ and radius 0
+Find the radius of convergence of $\displaystyle\sum_{n=0}^{\infty} \frac{x^n}{n!}$ and of $\displaystyle\sum_{n=0}^{\infty} n!\,x^n$, where $0! = 1$.
+
+For the first, $c_n = 1/n!$, and since $(n + 1)! = (n + 1)\,n!$,
+
+$$\abs{\frac{c_{n+1}}{c_n}} = \frac{n!}{(n + 1)!} = \frac{1}{n + 1} \to 0.$$
+
+The ratio of the terms tends to $0 \cdot \abs{x} = 0 < 1$ for every $x$: the series converges absolutely for every $x$, and $R = \infty$. For the second, $\abs{c_{n+1}/c_n} = (n + 1)!/n! = n + 1 \to \infty$. For every $x \ne 0$ the ratio of the terms, $(n + 1)\abs{x}$, grows without bound, so the series diverges, and $R = 0$: it converges only at its centre. The first series returns in Section 15.4 as the series of $e^x$.
+
+```check
+nP = symbols('n', integer=True, nonnegative=True)
+same(factorial(nP + 1), (nP + 1)*factorial(nP)); same(factorial(0), 1)
+same(factorial(nP)/factorial(nP + 1), 1/(nP + 1)); limit_is(1/(n + 1), n, oo, 0)
+same(factorial(nP + 1)/factorial(nP), nP + 1); limit_is((n + 1)*Rational(1, 1000), n, oo, oo)   # even at x = 0.001
+holds(Sum(x**n/factorial(n), (n, 0, oo)).subs(x, 7).is_convergent())
+```
+:::
+
+::: example A series centred at 3
+Find the interval of convergence of $\displaystyle\sum_{n=1}^{\infty} \frac{(-1)^n (x - 3)^n}{n\,2^n}$.
+
+Here $c_n = \dfrac{(-1)^n}{n\,2^n}$, and
+
+$$\abs{\frac{c_{n+1}}{c_n}} = \frac{n\,2^n}{(n + 1)\,2^{n+1}} = \frac{n}{2(n + 1)} \to \frac12.$$
+
+So $R = 2$: the series converges absolutely when $\abs{x - 3} < 2$, that is, $1 < x < 5$, and diverges when $\abs{x - 3} > 2$. At $x = 5$, $(x - 3)^n = 2^n$, and the series is $\sum (-1)^n/n$, which converges by the alternating series test. At $x = 1$, $(x - 3)^n = (-2)^n = (-1)^n 2^n$, and the terms are $\dfrac{(-1)^n(-1)^n 2^n}{n\,2^n} = \dfrac1n$: the harmonic series, which diverges. The interval of convergence is $(1, 5]$, centred at 3 with radius 2.
+
+```check
+nQ = symbols('n', integer=True, positive=True)
+cq = lambda N: (-1)**N/(N*2**N)
+same(Abs(cq(nQ + 1)/cq(nQ)), nQ/(2*(nQ + 1))); limit_is(n/(2*(n + 1)), n, oo, Rational(1, 2))
+same(solve_univariate_inequality(Abs(x - 3) < 2, x, relational=False), Interval.open(1, 5))
+same(cq(nQ)*2**nQ, (-1)**nQ/nQ); holds(Sum((-1)**n/n, (n, 1, oo)).is_convergent())        # x = 5
+same(cq(nQ)*(-2)**nQ, 1/nQ); holds(Sum(1/n, (n, 1, oo)).is_convergent() == False)          # x = 1
+```
+:::
+
+::: pitfall
+Two slips with the ratio test. It works with absolute values: the condition in Example 15.3 is $\abs{x - 3} < 2$, an interval centred at 3, not $x - 3 < 2$, which would let in every $x < 5$. And at the endpoints the ratio tends to exactly 1, where the ratio test is silent. Declaring the endpoints in or out without testing them is the most common error with intervals of convergence.
+:::
+
+## Functions as power series {#functions-as-series}
+
+Section 15.1 started from a series and found its sum. Now turn the question round: given a function, find a power series whose sum it is. The geometric series is the source of many. For every number $u$ with $\abs{u} < 1$,
+
+$$\frac{1}{1 - u} = \sum_{n=0}^{\infty} u^n = 1 + u + u^2 + \cdots,$$
+
+and $u$ may be replaced by any expression in $x$, provided the condition $\abs{u} < 1$ is translated too. With $u = -x$, for $\abs{x} < 1$,
+
+$$\frac{1}{1 + x} = 1 - x + x^2 - x^3 + \cdots = \sum_{n=0}^\infty (-1)^n x^n.$$
+
+With $u = -x^2$, which satisfies $\abs{u} < 1$ exactly when $\abs{x} < 1$,
+
+$$\frac{1}{1 + x^2} = 1 - x^2 + x^4 - x^6 + \cdots = \sum_{n=0}^\infty (-1)^n x^{2n}.$$
+
+At $x = \pm 1$ the terms of both series have size 1 and do not tend to 0, so both intervals of convergence are $(-1, 1)$. The second is a surprise. The function $1/(1 + x^2)$ is defined and smooth on the whole real line, with nothing special at $\pm 1$, yet its series stops converging there (Figure 15.1, right). The reason lies off the real line, and Section 15.7 reveals it.
+
+```check
+same(series(1/(1 + x), x, 0, 9).removeO(), sum((-1)**j*x**j for j in range(9)))
+same(series(1/(1 + x**2), x, 0, 18).removeO(), sum((-1)**j*x**(2*j) for j in range(9)))
+g_u = Sum(u**n, (n, 0, oo)).doit()
+same(g_u.args[0][0], 1/(1 - u)); same(g_u.args[0][0].subs(u, -x), 1/(1 + x)); same(g_u.args[0][0].subs(u, -x**2), 1/(1 + x**2))
+same(solve_univariate_inequality(Abs(-x**2) < 1, x, relational=False), Interval.open(-1, 1))
+```
+
+::: example Series from the geometric series
+Find a power series for each function, centred where stated, with its interval of convergence:
+
+- (a) $\dfrac{1}{2 - x}$, centred at 0;
+- (b) $\dfrac{x}{1 - x^2}$, centred at 0;
+- (c) $\dfrac1x$, centred at 1.
+
+**(a)** Make the 1 of $1/(1 - u)$ appear by taking out the factor 2:
+
+$$\begin{aligned} \frac{1}{2 - x} &= \frac12\cdot\frac{1}{1 - x/2} = \frac12\sum_{n=0}^\infty \Big(\frac{x}{2}\Big)^n \\ &= \sum_{n=0}^\infty \frac{x^n}{2^{n+1}} = \frac12 + \frac{x}{4} + \frac{x^2}{8} + \cdots. \end{aligned}$$
+
+This needs $\abs{x/2} < 1$, that is, $\abs{x} < 2$. At $x = \pm 2$ the terms have size $\tfrac12$ and do not tend to 0, so the interval is $(-2, 2)$.
+
+**(b)** With $u = x^2$, $\dfrac{1}{1 - x^2} = \sum x^{2n}$ for $\abs{x} < 1$. Multiplying every term by $x$ multiplies the sum by $x$:
+
+$$\frac{x}{1 - x^2} = \sum_{n=0}^\infty x^{2n+1} = x + x^3 + x^5 + \cdots, \qquad \abs{x} < 1.$$
+
+At $x = \pm 1$ every term is $\pm 1$, so the interval is $(-1, 1)$.
+
+**(c)** A series centred at 1 is a series in powers of $x - 1$. Write $x = 1 + (x - 1)$ and use $u = -(x - 1)$:
+
+$$\frac1x = \frac{1}{1 + (x - 1)} = \sum_{n=0}^\infty (-1)^n (x - 1)^n,$$
+
+for $\abs{x - 1} < 1$, that is, $0 < x < 2$. At $x = 0$ and $x = 2$ the terms have size 1, so the interval is $(0, 2)$: centred at 1, with radius 1.
+
+```check
+steps(1/(2 - x), Rational(1, 2)*1/(1 - x/2))
+same(series(1/(2 - x), x, 0, 9).removeO(), sum(x**j/2**(j + 1) for j in range(9)))
+same([x**j/2**(j + 1) for j in range(3)], [Rational(1, 2), x/4, x**2/8])
+nR = symbols('n', integer=True, nonnegative=True)
+same(Abs((2)**nR/2**(nR + 1)), Rational(1, 2)); same(Abs((-2)**nR/2**(nR + 1)), Rational(1, 2))
+same(series(x/(1 - x**2), x, 0, 14).removeO(), sum(x**(2*j + 1) for j in range(7)))
+same(series(1/x, x, 1, 9).removeO(), sum((-1)**j*(x - 1)**j for j in range(9)))
+same(1/(1 + (x - 1)), 1/x); same(solve_univariate_inequality(Abs(x - 1) < 1, x, relational=False), Interval.open(0, 2))
+```
+:::
+
+One function can have different series about different centres. About 0, $\dfrac{1}{2 - x} = \sum x^n/2^{n+1}$; about 1, $\dfrac{1}{2 - x} = \dfrac{1}{1 - (x - 1)} = \sum (x - 1)^n$, for $\abs{x - 1} < 1$. Each series describes the function on its own interval.
+
+```check
+same(series(1/(2 - x), x, 1, 9).removeO(), sum((x - 1)**j for j in range(9))); same(1/(1 - (x - 1)), 1/(2 - x))
+```
+
+::: pitfall
+Two slips with substitution. Losing the factor in front: $\dfrac{1}{2 - x}$ is $\dfrac12\sum (x/2)^n$, and without the $\tfrac12$ the series is that of $\dfrac{2}{2 - x}$. And forgetting to translate the condition: $\sum (x/2)^n$ converges for $\abs{x} < 2$, not $\abs{x} < 1$. A quick test at one point catches both: at $x = 1$ the series of Example 15.4(a) is $\tfrac12 + \tfrac14 + \tfrac18 + \cdots = 1$, and indeed $\dfrac{1}{2 - 1} = 1$.
+
+```check
+same(summation(Rational(1, 2)**(n + 1), (n, 0, oo)), 1); same(1/(2 - 1), 1)
+same(summation(Rational(1, 2)**n, (n, 0, oo)), 2/(2 - 1))
+```
+:::
+
+## Differentiating and integrating series {#term-by-term}
+
+Inside its interval of convergence a power series can be treated like a polynomial: differentiated and integrated term by term.
+
+::: theorem Term-by-term differentiation and integration
+Let $\sum c_n(x - a)^n$ have radius of convergence $R > 0$ (possibly $R = \infty$), and let
+
+$$f(x) = \sum_{n=0}^\infty c_n (x - a)^n \qquad \text{for } \abs{x - a} < R.$$
+
+Then, for every $x$ with $\abs{x - a} < R$:
+
+1. $f$ is differentiable at $x$, and $\displaystyle f'(x) = \sum_{n=1}^\infty n\,c_n (x - a)^{n-1}$;
+2. $\displaystyle \int_a^x f(t)\,dt = \sum_{n=0}^\infty \frac{c_n}{n + 1}(x - a)^{n+1}$.
+
+Both new series have radius of convergence $R$.
+:::
+
+Applying part 1 again and again shows that a power series has derivatives of every order inside its interval of convergence, each found term by term. The radius never changes, but the endpoints can. The series $\sum x^n/n^2$ of Example 15.1 converges at both $x = 1$ and $x = -1$; its derivative $\sum x^{n-1}/n$ converges at $-1$ only; and the next derivative, $\sum (n - 1)x^{n-2}/n$, at neither, because its terms do not tend to 0 there.
+
+```check
+same(diff(x**n/n**2, x), x**(n - 1)/n); same(diff(x**(n - 1)/n, x), (n - 1)*x**(n - 2)/n)
+holds(Sum(1/n**2, (n, 1, oo)).is_convergent()); holds(Sum((-1)**n/n**2, (n, 1, oo)).is_convergent())
+holds(Sum(1/n, (n, 1, oo)).is_convergent() == False); holds(Sum((-1)**(n - 1)/n, (n, 1, oo)).is_convergent())
+limit_is((n - 1)/n, n, oo, 1)
+```
+
+The proof is in the Going deeper box below; its key step is the Mean Value Theorem of Module 8. A first reading may take the theorem on trust.
+
+::: pitfall
+Term-by-term differentiation is a theorem about power series inside their interval of convergence, not about every series of functions. The series $\displaystyle\sum_{n=1}^\infty \frac{\sin(n^2x)}{n^2}$ converges for every $x$, by comparison with $\sum 1/n^2$; but differentiating it term by term gives $\sum \cos(n^2x)$, which at $x = 0$ is $1 + 1 + 1 + \cdots$ and diverges.
+
+```check
+same(diff(sin(n**2*x)/n**2, x), cos(n**2*x)); same(cos(n**2*0), 1)
+xR = symbols('x', real=True); holds(Abs(sin(n**2*xR)/n**2).subs({xR: 3, n: 5}) <= Rational(1, 25))
+holds(Sum(1/n**2, (n, 1, oo)).is_convergent()); holds(Sum(1, (n, 1, oo)).is_convergent() == False)
+```
+:::
+
+::: deeper Why term-by-term differentiation works
+Take $a = 0$; for another centre, write $x - a$ for $x$ throughout.
+
+**The derived series has the same radius.** Let $\abs{x} < R$, and choose $r$ with $\abs{x} < r < R$. The series converges at $r$, so its terms are bounded, as in the proof of Theorem 15.1: $\abs{c_n} r^n \le M$ for every $n$. Then, with $q = \abs{x}/r < 1$,
+
+$$\abs{n c_n x^{n-1}} = \frac{n\,\abs{c_n} r^n\, q^{n-1}}{r} \le \frac{M}{r}\, n q^{n-1},$$
+
+and $\sum n q^{n-1}$ converges by the ratio test: $(n + 1)q^n/(n q^{n-1}) \to q < 1$. So the derived series converges absolutely for $\abs{x} < R$. It diverges for $\abs{x} > R$: otherwise, by Theorem 15.1, it would converge absolutely at some $y$ with $R < \abs{y} < \abs{x}$, and since $\abs{c_n y^n} \le \abs{y}\,\abs{n c_n y^{n-1}}$ for $n \ge 1$, so would the original series, which is impossible beyond its radius. The same argument, applied to the derived series, shows that the twice-derived series $\sum n(n - 1)c_n x^{n-2}$ has radius $R$ too.
+
+**The derivative.** Let $g(x) = \sum n c_n x^{n-1}$, fix $x$ with $\abs{x} < r < R$, and let $h \ne 0$ be so small that $\abs{x + h} < r$. For $n \ge 2$, the Mean Value Theorem gives $(x + h)^n - x^n = n\xi^{n-1}h$ for some $\xi$ between $x$ and $x + h$, and, applied again, $n\xi^{n-1} - nx^{n-1} = n(n - 1)\eta^{n-2}(\xi - x)$ for some $\eta$ between $x$ and $\xi$. Since $\abs{\xi}$ and $\abs{\eta}$ are less than $r$ and $\abs{\xi - x} \le \abs{h}$,
+
+$$\abs{\frac{(x + h)^n - x^n}{h} - n x^{n-1}} \le n(n - 1)\, r^{n-2}\,\abs{h},$$
+
+and for $n = 0$ and $n = 1$ the left side is 0. The three series for $f(x + h)$, $f(x)$ and $g(x)$ converge, so they may be combined term by term:
+
+$$\abs{\frac{f(x + h) - f(x)}{h} - g(x)} \le \abs{h} \sum_{n=2}^\infty n(n - 1)\abs{c_n} r^{n-2}.$$
+
+The last series converges, because the twice-derived series converges absolutely at $r < R$. So the left side tends to 0 as $h \to 0$: $f'(x) = g(x)$.
+
+**The integral.** The series $F(x) = \sum c_n x^{n+1}/(n + 1)$ has the original series as its derived series, so by the first step it has radius $R$, and by the second, $F' = f$ on $(-R, R)$. Since $F(0) = 0$, the Fundamental Theorem of Calculus (Module 10) gives $\displaystyle\int_0^x f(t)\,dt = F(x) - F(0) = F(x)$.
+:::
+
+```check
+qB = symbols('q', positive=True)
+limit_is((n + 1)*qB**n/(n*qB**(n - 1)), n, oo, qB)
+cB, rB, xB = symbols('C r x', positive=True)                       # |c_n|, r and |x|
+same(n*cB*xB**(n - 1), n*cB*rB**n*(xB/rB)**(n - 1)/rB)            # |n c_n x^(n-1)| = n |c_n| r^n q^(n-1)/r
+for N_ in (2, 3, 4, 6):    # |((x + h)^n - x^n)/h - n x^(n-1)| <= n(n - 1) r^(n-2) |h| when |x|, |x + h| <= r
+    for (xv, hv, rv) in ((Rational(1, 2), Rational(1, 5), Rational(7, 10)), (Rational(-3, 4), Rational(1, 10), Rational(9, 10)), (Rational(9, 10), Rational(-1, 2), 1)):
+        holds(Abs(((xv + hv)**N_ - xv**N_)/hv - N_*xv**(N_ - 1)) <= N_*(N_ - 1)*rv**(N_ - 2)*Abs(hv))
+same(diff(x**(n + 1)/(n + 1), x), x**n)
+```
+
+### The logarithm and the arctangent {#log-arctan}
+
+Integrating geometric series gives series for two functions that have nothing geometric about them.
+
+::: example Series for $\ln(1 + x)$ and $\arctan x$
+Find power series about 0 for $\ln(1 + x)$ and $\arctan x$, and use four terms of the first to estimate $\ln 1.1$.
+
+For $\abs{t} < 1$, $\dfrac{1}{1 + t} = \sum (-1)^n t^n$. Let $\abs{x} < 1$. The function $\ln(1 + t)$ is an antiderivative of $\dfrac{1}{1 + t}$, and $\ln 1 = 0$, so by the Fundamental Theorem of Calculus and Theorem 15.2,
+
+$$\begin{aligned} \ln(1 + x) &= \int_0^x \frac{dt}{1 + t} = \sum_{n=0}^\infty (-1)^n\frac{x^{n+1}}{n + 1} \\ &= x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + \cdots \end{aligned}$$
+
+In the same way, $\arctan x$ is an antiderivative of $\dfrac{1}{1 + x^2}$ (Module 6), with $\arctan 0 = 0$, so for $\abs{x} < 1$
+
+$$\arctan x = \int_0^x \frac{dt}{1 + t^2} = \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} = x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots$$
+
+Both series have radius 1, like the series that were integrated. At $x = 0.1$, four terms give
+
+$$\ln 1.1 \approx 0.1 - 0.005 + 0.000333 - 0.000025 = 0.095308,$$
+
+while a calculator gives $\ln 1.1 \approx 0.0953102$: both round to 0.09531. The terms alternate in sign and decrease in size, so by the alternating series bound of Module 14 the error is less than the first term left out, $0.1^5/5 = 0.000002$.
+
+```check
+tt = symbols('t')
+antideriv(log(1 + tt), 1/(1 + tt), tt); same(log(1), 0)
+same(integrate(sum((-1)**j*tt**j for j in range(7)), (tt, 0, x)), sum((-1)**j*x**(j + 1)/(j + 1) for j in range(7)))
+same(series(log(1 + x), x, 0, 10).removeO(), sum((-1)**j*x**(j + 1)/(j + 1) for j in range(9)))
+same(diff(atan(x), x), 1/(1 + x**2)); same(atan(0), 0)
+same(series(atan(x), x, 0, 14).removeO(), sum((-1)**j*x**(2*j + 1)/(2*j + 1) for j in range(7)))
+xv_ = Rational(1, 10); terms = [(-1)**(j - 1)*xv_**j/j for j in range(1, 5)]
+same(terms, [Rational(1, 10), -Rational(5, 1000), Rational(1, 3000), -Rational(25, 1000000)]); rounds(Rational(1, 3000), '0.000333')
+rounds(sum(terms), '0.095308'); rounds(log(Rational(11, 10)), '0.0953102')
+rounds(sum(terms), '0.09531'); rounds(log(Rational(11, 10)), '0.09531')
+same(xv_**5/5, Rational(2, 1000000)); holds(Abs(log(Rational(11, 10)) - sum(terms)) < xv_**5/5)
+```
+:::
+
+Differentiating a series is as useful as integrating it, for instance to find sums.
+
+::: example A sum found by differentiating
+Find the sum of $\displaystyle\sum_{n=1}^{\infty} n x^n$ for $\abs{x} < 1$, and the value of $\displaystyle\sum_{n=1}^{\infty} \frac{n}{2^n}$.
+
+Differentiate the geometric series term by term (Theorem 15.2): for $\abs{x} < 1$,
+
+$$\frac{1}{(1 - x)^2} = \frac{d}{dx}\Big(\frac{1}{1 - x}\Big) = \sum_{n=1}^{\infty} n x^{n-1} = 1 + 2x + 3x^2 + \cdots.$$
+
+Multiplying by $x$ gives $\displaystyle\sum_{n=1}^{\infty} n x^n = \frac{x}{(1 - x)^2}$. At $x = \tfrac12$,
+
+$$\sum_{n=1}^{\infty} \frac{n}{2^n} = \frac{1/2}{(1/2)^2} = 2.$$
+
+The sum has a meaning in probability. Toss a fair coin until it lands heads: the first head comes on toss $n$ with probability $1/2^n$, so the expected number of tosses, the sum of each possible number $n$ times its probability, is $\sum n/2^n = 2$.
+
+```check
+same(diff(1/(1 - x), x), 1/(1 - x)**2)
+same(series(1/(1 - x)**2, x, 0, 9).removeO(), sum((j + 1)*x**j for j in range(9)))
+same(series(x/(1 - x)**2, x, 0, 9).removeO(), sum(j*x**j for j in range(1, 9)))
+same((x/(1 - x)**2).subs(x, Rational(1, 2)), 2); same(summation(n/2**n, (n, 1, oo)), 2)
+same(summation(1/2**n, (n, 1, oo)), 1)                       # the probabilities add up to 1
+```
+:::
+
+### The ends of the interval {#endpoints}
+
+At $x = 1$ the series for $\ln(1 + x)$ becomes the alternating harmonic series $1 - \tfrac12 + \tfrac13 - \cdots$, which converges by the alternating series test; Module 14 stated that its sum is $\ln 2$. Example 15.5 does not prove it, because Theorem 15.2 integrates term by term only for $\abs{x} < 1$. Integrating a finite sum instead, which is always allowed, proves it, with an error bound.
+
+::: theorem Two sums at the ends of the interval
+For every whole number $n \ge 1$,
+
+$$\abs{\ln 2 - \Big(1 - \frac12 + \frac13 - \cdots + \frac{(-1)^{n-1}}{n}\Big)} \le \frac{1}{n + 1}$$
+
+and
+
+$$\abs{\frac{\pi}{4} - \Big(1 - \frac13 + \frac15 - \cdots + \frac{(-1)^{n-1}}{2n - 1}\Big)} \le \frac{1}{2n + 1}.$$
+
+Consequently $\ln 2 = 1 - \dfrac12 + \dfrac13 - \dfrac14 + \cdots$ and $\dfrac{\pi}{4} = 1 - \dfrac13 + \dfrac15 - \dfrac17 + \cdots$.
+:::
+
+::: proof
+The finite geometric sum of Module 14 gives, for $t \ne -1$, $1 - t + t^2 - \cdots + (-t)^{n-1} = \dfrac{1 - (-t)^n}{1 + t}$, that is,
+
+$$\frac{1}{1 + t} = \sum_{k=0}^{n-1} (-1)^k t^k + (-1)^n\frac{t^n}{1 + t}.$$
+
+Integrate from 0 to 1. The integral of a finite sum is the sum of the integrals, $\int_0^1 t^k\,dt = \dfrac{1}{k + 1}$, and $\int_0^1 \dfrac{dt}{1 + t} = \ln 2$, so
+
+$$\ln 2 = \sum_{k=0}^{n-1} \frac{(-1)^k}{k + 1} + (-1)^n \int_0^1 \frac{t^n}{1 + t}\,dt.$$
+
+The sum is $1 - \tfrac12 + \cdots + \tfrac{(-1)^{n-1}}{n}$. For $0 \le t \le 1$, $0 \le \dfrac{t^n}{1 + t} \le t^n$, so the last integral lies between 0 and $\int_0^1 t^n\,dt = \dfrac{1}{n + 1}$ (the bounds of Module 9). This is the first inequality, and since $\dfrac{1}{n + 1} \to 0$, the partial sums approach $\ln 2$. For $\dfrac{\pi}{4}$, put $t^2$ for $t$ in the identity:
+
+$$\frac{1}{1 + t^2} = \sum_{k=0}^{n-1} (-1)^k t^{2k} + (-1)^n\frac{t^{2n}}{1 + t^2}.$$
+
+Integrating from 0 to 1 gives $\arctan 1 = \dfrac{\pi}{4}$ on the left, and on the right the partial sum plus $\pm$ an integral that lies between 0 and $\int_0^1 t^{2n}\,dt = \dfrac{1}{2n + 1}$.
+:::
+
+```check
+for N_ in range(1, 7):
+    same(sum((-1)**k*tt**k for k in range(N_)) + (-1)**N_*tt**N_/(1 + tt), 1/(1 + tt))
+    same(sum((-1)**k*tt**(2*k) for k in range(N_)) + (-1)**N_*tt**(2*N_)/(1 + tt**2), 1/(1 + tt**2))
+same(integrate(1/(1 + tt), (tt, 0, 1)), log(2)); same(integrate(1/(1 + tt**2), (tt, 0, 1)), pi/4); same(atan(1), pi/4)
+nS = symbols('n', positive=True); same(integrate(tt**nS, (tt, 0, 1)), 1/(nS + 1)); same(integrate(tt**(2*nS), (tt, 0, 1)), 1/(2*nS + 1))
+for N_ in (1, 2, 5, 10, 20):
+    holds(Abs(log(2) - sum(Rational((-1)**(k - 1), k) for k in range(1, N_ + 1))) <= Rational(1, N_ + 1))
+    holds(Abs(pi/4 - sum(Rational((-1)**k, 2*k + 1) for k in range(N_))) <= Rational(1, 2*N_ + 1))
+    holds(0 <= integrate(tt**N_/(1 + tt), (tt, 0, 1))); holds(integrate(tt**N_/(1 + tt), (tt, 0, 1)) <= Rational(1, N_ + 1))
+```
+
+The bound also shows how slowly the alternating harmonic series converges. After 10, 100 and 1000 terms its partial sums are about 0.6456, 0.6882 and 0.6926, while $\ln 2 \approx 0.693147$: the errors are close to $1/(2n)$, so each extra correct decimal costs ten times as many terms. Section 15.6 finds much faster series for $\ln 2$ and $\pi$.
+
+```check
+alt = lambda N: harmonic(N) - harmonic(N // 2)               # 1 - 1/2 + ... - 1/N, for even N
+same(alt(10), sum(Rational((-1)**(k - 1), k) for k in range(1, 11)))
+rounds(alt(10), '0.6456'); rounds(alt(100), '0.6882'); rounds(alt(1000), '0.6926'); rounds(log(2), '0.693147')
+for N_ in (10, 100, 1000):
+    holds(Abs((log(2) - alt(N_))*2*N_ - 1) < Rational(1, 10))   # the error is within 10% of 1/(2n)
+```
+
+The proof used special features of $\ln(1 + x)$ and $\arctan x$. A general theorem covers every power series at an endpoint where it converges.
+
+::: theorem Abel's theorem
+Suppose that $\sum c_n (x - a)^n$ has radius of convergence $R$, with $0 < R < \infty$, and that it converges at the endpoint $x = a + R$. Then its sum there is the limit of its sums inside the interval:
+
+$$\sum_{n=0}^\infty c_n R^n = \lim_{x\to (a + R)^-}\, \sum_{n=0}^\infty c_n (x - a)^n.$$
+
+The same holds at $x = a - R$, with the limit from the right.
+:::
+
+This series does not prove Abel's theorem; books on real analysis do. Its use is this. Suppose $f(x)$ equals the sum of its series inside the interval, $f$ is continuous at an endpoint, and the series converges there. Then the series equals $f$ at that endpoint too, because both are the limit of $f(x)$ as $x$ approaches the endpoint from inside. So, with no new work, $\ln(1 + x) = x - \tfrac{x^2}{2} + \cdots$ on $(-1, 1]$, and $\arctan x = x - \tfrac{x^3}{3} + \cdots$ on $[-1, 1]$; at $x = -1$ the series of $\arctan$ is $-\big(1 - \tfrac13 + \tfrac15 - \cdots\big)$, which converges by the alternating series test.
+
+```check
+holds(Sum((-1)**n/(2*n + 1), (n, 0, oo)).is_convergent()); same(atan(-1), -pi/4)
+same(summation((-1)**n*(-1)**(2*n + 1)/(2*n + 1), (n, 0, oo)), -pi/4)
+limit_is(log(1 + x), x, 1, log(2), '-'); limit_is(atan(x), x, -1, -pi/4, '+')
+```
+
+::: pitfall
+The interval of convergence of a series for $f$ is not the domain of $f$. $\ln(1 + x)$ is defined for every $x > -1$, but its series converges only on $(-1, 1]$: at $x = 2$ its terms $\pm 2^n/n$ grow without bound, although $\ln 3$ exists. Outside its interval of convergence a series tells you nothing about the function.
+
+```check
+limit_is(2**n/n, n, oo, oo); same(log(1 + 2), log(3))
+```
+:::
+
+## Taylor series {#taylor-series}
+
+So far every series has come from the geometric series. Most functions have nothing to do with it: $e^x$, for instance. Does $e^x$ have a power series, and how would you find it? If a function has a power series, its derivatives fix the coefficients. Take $f(x) = \sum c_n(x - a)^n$, with radius $R > 0$, and differentiate term by term, again and again (Theorem 15.2):
+
+$$\begin{aligned} f(x) &= c_0 + c_1(x - a) + c_2(x - a)^2 + c_3(x - a)^3 + \cdots \\ f'(x) &= c_1 + 2c_2(x - a) + 3c_3(x - a)^2 + \cdots \\ f''(x) &= 2c_2 + 3\cdot2\,c_3(x - a) + \cdots \\ f'''(x) &= 3\cdot2\cdot1\,c_3 + \cdots \end{aligned}$$
+
+At $x = a$ every term that contains $x - a$ is 0, so $f(a) = c_0$, $f'(a) = c_1$, $f''(a) = 2c_2$ and $f'''(a) = 3!\,c_3$.
+
+```check
+cs = symbols('c0:7')
+pa = sum(cs[j]*(x - a)**j for j in range(7))
+same(diff(pa, x), cs[1] + 2*cs[2]*(x - a) + 3*cs[3]*(x - a)**2 + 4*cs[4]*(x - a)**3 + 5*cs[5]*(x - a)**4 + 6*cs[6]*(x - a)**5)
+same(diff(pa, x, 2).subs(x, a), 2*cs[2]); same(diff(pa, x, 3), 6*cs[3] + 24*cs[4]*(x - a) + 60*cs[5]*(x - a)**2 + 120*cs[6]*(x - a)**3)
+same([diff(pa, x, j).subs(x, a) for j in range(4)], [cs[0], cs[1], 2*cs[2], factorial(3)*cs[3]])
+```
+
+::: theorem The coefficients of a power series
+If $f(x) = \sum c_n(x - a)^n$ for $\abs{x - a} < R$, with $R > 0$, then for every $n \ge 0$
+
+$$c_n = \frac{f^{(n)}(a)}{n!}.$$
+
+In particular, $f$ has only one power series centred at $a$.
+:::
+
+::: proof
+By Theorem 15.2, applied $n$ times, for $\abs{x - a} < R$
+
+$$f^{(n)}(x) = \sum_{k=n}^\infty k(k - 1)\cdots(k - n + 1)\,c_k (x - a)^{k-n}.$$
+
+At $x = a$ every term with $k > n$ is 0, and the term with $k = n$ is $n(n - 1)\cdots1\cdot c_n = n!\,c_n$. Since the coefficients are fixed by $f$, two power series for $f$ about $a$ have the same coefficients: they are the same series.
+:::
+
+```check
+for K_ in range(1, 7):
+    for N_ in range(0, K_ + 1):
+        same(diff((x - a)**K_, x, N_), ff(K_, N_)*(x - a)**(K_ - N_))
+same([diff(pa, x, j).subs(x, a) for j in range(7)], [factorial(j)*cs[j] for j in range(7)])
+```
+
+Here $f^{(0)}$ means $f$ itself and $0! = 1$, so the formula gives $c_0 = f(a)$ too. Uniqueness is useful in practice: however you find a power series for $f$ about $a$ (by substitution, by integration, from derivatives), you get the same series.
+
+::: definition Taylor series and Taylor polynomials
+Let $f$ have derivatives of every order at $a$. The **Taylor series** of $f$ about $a$ (or centred at $a$) is
+
+$$\sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x - a)^n = f(a) + f'(a)(x - a) + \frac{f''(a)}{2!}(x - a)^2 + \cdots.$$
+
+Its partial sum
+
+$$T_n(x) = \sum_{k=0}^{n} \frac{f^{(k)}(a)}{k!}(x - a)^k$$
+
+is the **Taylor polynomial** of degree $n$ of $f$ about $a$. When $a = 0$ they are called the **Maclaurin series** and the **Maclaurin polynomials** of $f$.
+:::
+
+$T_n(x)$ reads "T n of x". $T_1(x) = f(a) + f'(a)(x - a)$ is the linearisation of [Section 7.2](module_07_EN.html#linear-approximation), and $T_n$ is said to have degree $n$ even when its last coefficient happens to be 0. Theorem 15.5 says that if $f$ has a power series about $a$, it is the Taylor series. It does not say that the Taylor series converges, or that its sum is $f$: Section 15.5 settles both questions.
+
+### The standard series {#standard}
+
+::: example The series of $e^x$
+Find the Maclaurin series of $e^x$ and its radius of convergence.
+
+Every derivative of $e^x$ is $e^x$ (Module 6), so $f^{(n)}(0) = e^0 = 1$ for every $n$, and the Maclaurin series is
+
+$$\sum_{n=0}^\infty \frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots.$$
+
+By Example 15.2 it converges for every $x$: $R = \infty$. Its Taylor polynomials $T_1(x) = 1 + x$ and $T_2(x) = 1 + x + \tfrac12 x^2$ are the approximations of Example 7.13 ([Section 7.5](module_07_EN.html#the-rule)), where L'Hôpital's rule showed that $e^x - 1 - x \approx \tfrac12 x^2$ near 0. Section 15.5 proves that the series equals $e^x$ for every $x$; at $x = 1$ it gives $e = 1 + 1 + \tfrac{1}{2!} + \tfrac{1}{3!} + \cdots$.
+
+```check
+same([diff(exp(x), x, j).subs(x, 0) for j in range(8)], [1]*8)
+same(series(exp(x), x, 0, 10).removeO(), sum(x**j/factorial(j) for j in range(10)))
+same(sum(x**j/factorial(j) for j in range(3)), 1 + x + x**2/2); limit_is((exp(x) - 1 - x)/x**2, x, 0, Rational(1, 2))
+```
+:::
+
+::: example The series of $\sin x$ and $\cos x$
+Find the Maclaurin series of $\sin x$ and of $\cos x$, and their radii of convergence.
+
+The derivatives of $\sin x$ are $\cos x$, $-\sin x$, $-\cos x$, $\sin x$, and then the cycle of four repeats. At 0 the values of $\sin x$ and its derivatives are $0, 1, 0, -1, 0, 1, 0, -1, \dots$. So only odd powers appear, with alternating signs:
+
+$$\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \cdots = \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n + 1)!}.$$
+
+For $\cos x$ the values at 0 are $1, 0, -1, 0, 1, \dots$, and only even powers appear:
+
+$$\cos x = 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!}.$$
+
+(The equals signs anticipate Section 15.5, which proves them; so far these are the Maclaurin series.) For the sine series, the ratio of two consecutive nonzero terms is
+
+$$\abs{\frac{x^{2n+3}/(2n + 3)!}{x^{2n+1}/(2n + 1)!}} = \frac{x^2}{(2n + 2)(2n + 3)} \to 0,$$
+
+so it converges for every $x$, and the cosine series likewise: $R = \infty$ for both. Each series is the term-by-term derivative of the other, up to a sign, as $(\sin x)' = \cos x$ and $(\cos x)' = -\sin x$ require. And the odd function $\sin$ has only odd powers, the even function $\cos$ only even ones.
+
+```check
+same([diff(sin(x), x, j).subs(x, 0) for j in range(8)], [0, 1, 0, -1, 0, 1, 0, -1])
+same([diff(cos(x), x, j).subs(x, 0) for j in range(8)], [1, 0, -1, 0, 1, 0, -1, 0])
+same(series(sin(x), x, 0, 16).removeO(), sum((-1)**j*x**(2*j + 1)/factorial(2*j + 1) for j in range(8)))
+same(series(cos(x), x, 0, 16).removeO(), sum((-1)**j*x**(2*j)/factorial(2*j) for j in range(8)))
+nT = symbols('n', integer=True, nonnegative=True)
+same((x**(2*nT + 3)/factorial(2*nT + 3))/(x**(2*nT + 1)/factorial(2*nT + 1)), x**2/((2*nT + 2)*(2*nT + 3)))
+limit_is(x**2/((2*n + 2)*(2*n + 3)), n, oo, 0)
+sinser = sum((-1)**j*x**(2*j + 1)/factorial(2*j + 1) for j in range(8)); cosser = sum((-1)**j*x**(2*j)/factorial(2*j) for j in range(8))
+same(diff(sinser, x), cosser); same(expand(diff(cosser, x) + sinser), (-1)**7*x**15/factorial(15))   # up to the last term kept
+```
+:::
+
+::: example A Taylor polynomial about 4
+Find the Taylor polynomial $T_3$ of $\sqrt x$ about 4, and use $T_1$, $T_2$ and $T_3$ to estimate $\sqrt{4.1}$.
+
+The derivatives of $f(x) = x^{1/2}$ come from the power rule:
+
+$$\begin{aligned} f'(x) &= \tfrac12 x^{-1/2}, & f''(x) &= -\tfrac14 x^{-3/2}, \\ f'''(x) &= \tfrac38 x^{-5/2}. & & \end{aligned}$$
+
+At 4, since $4^{1/2} = 2$, $4^{3/2} = 8$ and $4^{5/2} = 32$, the values are $f(4) = 2$, $f'(4) = \tfrac14$, $f''(4) = -\tfrac{1}{32}$ and $f'''(4) = \tfrac{3}{256}$. Divide by $0!$, $1!$, $2!$ and $3!$:
+
+$$T_3(x) = 2 + \frac{x - 4}{4} - \frac{(x - 4)^2}{64} + \frac{(x - 4)^3}{512},$$
+
+and $T_1$ and $T_2$ are its first two and three terms. At $x = 4.1$, where $x - 4 = 0.1$,
+
+$$\begin{aligned} T_1(4.1) &= 2.025, \\ T_2(4.1) &= 2.025 - 0.00015625 = 2.02484375, \\ T_3(4.1) &= 2.02484375 + 0.000001953125 \approx 2.0248457. \end{aligned}$$
+
+A calculator gives $\sqrt{4.1} \approx 2.02484567$: the errors are about $-1.5 \times 10^{-4}$, $1.9 \times 10^{-6}$ and $-3.0 \times 10^{-8}$. Each new term gains about two correct digits here. $T_1$ is the linearisation of Example 7.5.
+
+```check
+fs_ = sqrt(x)
+same(diff(fs_, x), x**Rational(-1, 2)/2); same(diff(fs_, x, 2), -x**Rational(-3, 2)/4); same(diff(fs_, x, 3), Rational(3, 8)*x**Rational(-5, 2))
+same([diff(fs_, x, j).subs(x, 4) for j in range(4)], [2, Rational(1, 4), -Rational(1, 32), Rational(3, 256)])
+same(4**Rational(3, 2), 8); same(4**Rational(5, 2), 32)
+T3s = 2 + (x - 4)/4 - (x - 4)**2/64 + (x - 4)**3/512
+same(series(fs_, x, 4, 4).removeO(), T3s)
+same(sum(diff(fs_, x, j).subs(x, 4)/factorial(j)*(x - 4)**j for j in range(4)), T3s)
+v41 = Rational(41, 10)
+T1s, T2s = 2 + (x - 4)/4, 2 + (x - 4)/4 - (x - 4)**2/64
+same(T1s.subs(x, v41), Rational(2025, 1000)); same(Rational(1, 100)/64, Rational(15625, 10**8)); same(T2s.subs(x, v41), Rational(202484375, 10**8))
+same(Rational(1, 1000)/512, Rational(1953125, 10**12)); rounds(T3s.subs(x, v41), '2.0248457'); rounds(sqrt(v41), '2.02484567')
+rounds(sqrt(v41) - T1s.subs(x, v41), '-1.5e-4'); rounds(sqrt(v41) - T2s.subs(x, v41), '1.9e-6'); rounds(sqrt(v41) - T3s.subs(x, v41), '-3.0e-8')
+```
+:::
+
+**The binomial series.** For any real number $k$ and $x > -1$, the derivatives of $f(x) = (1 + x)^k$ follow from the power rule of Module 6:
+
+$$\begin{aligned} f'(x) &= k(1 + x)^{k-1}, \\ f''(x) &= k(k - 1)(1 + x)^{k-2}, \end{aligned}$$
+
+and in general $f^{(n)}(x) = k(k - 1)\cdots(k - n + 1)(1 + x)^{k-n}$. At 0, $f^{(n)}(0) = k(k - 1)\cdots(k - n + 1)$, so the Maclaurin coefficients are the **binomial coefficients**
+
+$$\binom{k}{n} = \frac{k(k - 1)\cdots(k - n + 1)}{n!}, \qquad \binom{k}{0} = 1,$$
+
+read "k choose n". The Maclaurin series of $(1 + x)^k$ is the **binomial series**
+
+$$\sum_{n=0}^\infty \binom{k}{n}x^n = 1 + kx + \frac{k(k - 1)}{2!}x^2 + \frac{k(k - 1)(k - 2)}{3!}x^3 + \cdots.$$
+
+When $k$ is a whole number, $k \ge 0$, every coefficient with $n > k$ contains the factor $k - k = 0$, so the series stops: it is the binomial theorem of algebra, as in $(1 + x)^3 = 1 + 3x + 3x^2 + x^3$. For every other $k$ no coefficient is 0, and the ratio test gives
+
+$$\abs{\frac{\binom{k}{n+1}x^{n+1}}{\binom{k}{n}x^n}} = \frac{\abs{k - n}}{n + 1}\,\abs{x} \to \abs{x},$$
+
+so the radius of convergence is 1.
+
+```check
+same(diff((1 + x)**k, x, 3), k*(k - 1)*(k - 2)*(1 + x)**(k - 3))
+same([expand_func(binomial(k, j)) for j in range(4)], [1, k, k*(k - 1)/2, k*(k - 1)*(k - 2)/6])
+same(series((1 + x)**k, x, 0, 6).removeO(), sum(binomial(k, j)*x**j for j in range(6)))
+same(expand((1 + x)**3), 1 + 3*x + 3*x**2 + x**3); same([binomial(3, j) for j in range(4, 8)], [0, 0, 0, 0])
+nB = symbols('n', integer=True, nonnegative=True)
+same(expand_func(binomial(k, nB + 1)/binomial(k, nB)), (k - nB)/(nB + 1))
+limit_is((k - n)/(n + 1), n, oo, -1)                        # the ratio's size tends to 1
+```
+
+::: theorem The binomial series
+For every real number $k$ and every $x$ with $\abs{x} < 1$,
+
+$$(1 + x)^k = \sum_{n=0}^\infty \binom{k}{n}x^n.$$
+:::
+
+::: proof
+Let $g(x)$ be the sum of the series for $\abs{x} < 1$. By Theorem 15.2, renaming $n - 1$ as $n$,
+
+$$g'(x) = \sum_{n=1}^\infty n\binom{k}{n}x^{n-1} = \sum_{n=0}^\infty (n + 1)\binom{k}{n+1}x^n.$$
+
+From the definition, $\binom{k}{n+1} = \binom{k}{n}\dfrac{k - n}{n + 1}$, so $(n + 1)\binom{k}{n+1} = (k - n)\binom{k}{n}$. Also $x\,g'(x) = \sum n\binom{k}{n}x^n$ (the term with $n = 0$ is 0). Adding,
+
+$$(1 + x)\,g'(x) = \sum_{n=0}^\infty \big[(k - n) + n\big]\binom{k}{n}x^n = k\,g(x).$$
+
+Now let $h(x) = g(x)(1 + x)^{-k}$. By the product rule,
+
+$$\begin{aligned} h'(x) &= g'(x)(1 + x)^{-k} - k\,g(x)(1 + x)^{-k-1} \\ &= (1 + x)^{-k-1}\big[(1 + x)g'(x) - k\,g(x)\big] = 0 \end{aligned}$$
+
+for $\abs{x} < 1$. A function whose derivative is 0 on an interval is constant (Module 8), so $h(x) = h(0) = g(0) = 1$, that is, $g(x) = (1 + x)^k$.
+:::
+
+```check
+same(expand_func(binomial(k, nB)*(k - nB)/(nB + 1)), expand_func(binomial(k, nB + 1)))
+wP = symbols('w', positive=True); gf = Function('g')          # w stands for 1 + x, positive for |x| < 1
+same(diff(gf(wP)*wP**(-k), wP), wP**(-k - 1)*(wP*diff(gf(wP), wP) - k*gf(wP)))
+Ncoef = 7    # the coefficients of (1 + x) g' and of k g agree, power by power
+gp = sum(binomial(k, j)*x**j for j in range(Ncoef + 2))
+lhs = expand((1 + x)*diff(gp, x)); rhs = expand(k*gp)
+same([expand_func(lhs.coeff(x, j)) for j in range(Ncoef)], [expand_func(rhs.coeff(x, j)) for j in range(Ncoef)])
+```
+
+Whether the binomial series converges at $x = \pm1$ depends on $k$: for $k = \tfrac12$ it converges at both ends, and for $k = -1$, where it is the geometric series of $1/(1 + x)$, at neither.
+
+```check
+same(series((1 + x)**-1, x, 0, 8).removeO(), sum((-1)**j*x**j for j in range(8)))
+same([binomial(-1, j) for j in range(6)], [1, -1, 1, -1, 1, -1])            # k = -1: terms of size 1 at x = 1 and x = -1
+for N_ in (1, 2, 5, 10, 20):                                                    # k = 1/2:
+    same(binomial(Rational(1, 2), N_), (-1)**(N_ - 1)*binomial(2*N_, N_)/(4**N_*(2*N_ - 1)))   # so |C(1/2, n)| <= 1/(2n - 1) -> 0
+    same(sum(binomial(Rational(1, 2), j)*(-1)**j for j in range(N_ + 1)), binomial(2*N_, N_)/4**N_)   # x = -1: partial sums positive
+holds(all(binomial(Rational(1, 2), j)*(-1)**j < 0 for j in range(1, 30)))     # ... and decreasing: they converge (monotone convergence)
+holds(all(Abs(binomial(Rational(1, 2), j + 1)) < Abs(binomial(Rational(1, 2), j)) for j in range(1, 30)))   # x = 1: alternating, decreasing
+```
+
+::: example Two binomial series
+Find the first four terms of the binomial series of (a) $\sqrt{1 + x}$ and (b) $\dfrac{1}{\sqrt{1 - x}}$.
+
+**(a)** Here $k = \tfrac12$:
+
+$$\binom{1/2}{1} = \frac12, \quad \binom{1/2}{2} = \frac{\tfrac12\cdot\big(-\tfrac12\big)}{2} = -\frac18, \quad \binom{1/2}{3} = \frac{\tfrac12\cdot\big(-\tfrac12\big)\cdot\big(-\tfrac32\big)}{6} = \frac{1}{16},$$
+
+so for $\abs{x} < 1$
+
+$$\sqrt{1 + x} = 1 + \frac{x}{2} - \frac{x^2}{8} + \frac{x^3}{16} - \cdots.$$
+
+**(b)** Now $k = -\tfrac12$, with $-x$ in place of $x$. The coefficients are $\binom{-1/2}{1} = -\tfrac12$, $\binom{-1/2}{2} = \tfrac{(-1/2)(-3/2)}{2} = \tfrac38$ and $\binom{-1/2}{3} = \tfrac{(-1/2)(-3/2)(-5/2)}{6} = -\tfrac{5}{16}$, and multiplying by $(-x)^n$ makes every sign positive:
+
+$$\frac{1}{\sqrt{1 - x}} = 1 + \frac{x}{2} + \frac{3x^2}{8} + \frac{5x^3}{16} + \cdots, \qquad \abs{x} < 1.$$
+
+The first two terms of (a) are the linearisation $\sqrt{1 + x} \approx 1 + \tfrac12 x$; the third term shows that it is slightly too large, by about $\tfrac18 x^2$. Series (b) returns in Section 15.6, in Einstein's formula for kinetic energy.
+
+```check
+same([binomial(Rational(1, 2), j) for j in range(4)], [1, Rational(1, 2), -Rational(1, 8), Rational(1, 16)])
+same(series(sqrt(1 + x), x, 0, 4).removeO(), 1 + x/2 - x**2/8 + x**3/16)
+same([binomial(-Rational(1, 2), j) for j in range(4)], [1, -Rational(1, 2), Rational(3, 8), -Rational(5, 16)])
+same([binomial(-Rational(1, 2), j)*(-1)**j for j in range(4)], [1, Rational(1, 2), Rational(3, 8), Rational(5, 16)])
+same(series(1/sqrt(1 - x), x, 0, 4).removeO(), 1 + x/2 + 3*x**2/8 + 5*x**3/16)
+holds(series(sqrt(1 + x) - (1 + x/2), x, 0, 3).removeO() == -x**2/8)
+```
+:::
+
+The series of this section and the last make a short list worth knowing by heart:
+
+| Function | Maclaurin series | Equals the function for |
+|---|---|---|
+| $\dfrac{1}{1 - x}$ | $\displaystyle\sum_{n=0}^\infty x^n = 1 + x + x^2 + \cdots$ | $-1 < x < 1$ |
+| $\ln(1 + x)$ | $\displaystyle\sum_{n=1}^\infty (-1)^{n-1}\frac{x^n}{n} = x - \frac{x^2}{2} + \frac{x^3}{3} - \cdots$ | $-1 < x \le 1$ |
+| $\arctan x$ | $\displaystyle\sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} = x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots$ | $-1 \le x \le 1$ |
+| $e^x$ | $\displaystyle\sum_{n=0}^\infty \frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \cdots$ | every $x$ |
+| $\sin x$ | $\displaystyle\sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{(2n + 1)!} = x - \frac{x^3}{3!} + \cdots$ | every $x$ |
+| $\cos x$ | $\displaystyle\sum_{n=0}^\infty (-1)^n\frac{x^{2n}}{(2n)!} = 1 - \frac{x^2}{2!} + \cdots$ | every $x$ |
+| $(1 + x)^k$ | $\displaystyle\sum_{n=0}^\infty \binom{k}{n}x^n = 1 + kx + \cdots$ | $-1 < x < 1$, and for some $k$ also at $\pm1$ |
+
+The last column for $e^x$, $\sin x$ and $\cos x$ is proved in Section 15.5 (Theorem 15.9).
+
+```check
+for f_, ser_ in ((1/(1 - x), sum(x**j for j in range(12))), (log(1 + x), sum((-1)**(j - 1)*x**j/j for j in range(1, 12))),
+                 (atan(x), sum((-1)**j*x**(2*j + 1)/(2*j + 1) for j in range(6))), (exp(x), sum(x**j/factorial(j) for j in range(12))),
+                 (sin(x), sum((-1)**j*x**(2*j + 1)/factorial(2*j + 1) for j in range(6))), (cos(x), sum((-1)**j*x**(2*j)/factorial(2*j) for j in range(6)))):
+    same(series(f_, x, 0, 12).removeO(), ser_)
+inside = lambda cond, pts: [bool(cond.subs(x, p_)) for p_ in pts]
+pts_ = (-2, -1, 0, 1, 2)
+g1_ = summation(x**n, (n, 0, oo)); same(g1_.args[0][0], 1/(1 - x)); same(inside(g1_.args[0][1], pts_), [False, False, True, False, False])
+g3_ = summation((-1)**n*x**(2*n + 1)/(2*n + 1), (n, 0, oo)); same(g3_.args[0][0], atan(x)); same(inside(g3_.args[0][1], pts_), [False, True, True, True, False])
+```
+
+::: keyidea
+A handful of series generate almost all the others: the geometric series, the series of $e^x$, $\sin x$ and $\cos x$, and the binomial series. New series come from these by substituting, multiplying by a power of $x$, differentiating and integrating, which is usually far quicker than computing derivatives, and by uniqueness (Theorem 15.5) the result is the Taylor series.
+:::
+
+::: pitfall
+A Taylor series needs every derivative at its centre. $\sqrt x$ has no Maclaurin series, because $\sqrt x$ has no derivative at 0, and $\ln x$ has none either, because it is not defined at 0. Use another centre ($\sqrt x$ about 4, $\ln x$ about 1), or shift the function ($\sqrt{1 + x}$, $\ln(1 + x)$).
+:::
+
+Series give values of integrals that no antiderivative can: Module 11 met functions such as $e^{-x^2}$, whose antiderivatives are not elementary.
+
+::: example An integral with no elementary antiderivative
+Find $\displaystyle\int_0^1 e^{-x^2}\,dx$ to three decimal places.
+
+Substitute $u = -x^2$ in the series of $e^u$, which converges for every $u$:
+
+$$e^{-x^2} = \sum_{n=0}^\infty \frac{(-x^2)^n}{n!} = 1 - x^2 + \frac{x^4}{2!} - \frac{x^6}{3!} + \cdots.$$
+
+Integrate term by term from 0 to 1 (Theorem 15.2, with $R = \infty$):
+
+$$\int_0^1 e^{-x^2}\,dx = \sum_{n=0}^\infty \frac{(-1)^n}{(2n + 1)\,n!} = 1 - \frac13 + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} - \frac{1}{1320} + \frac{1}{9360} - \cdots.$$
+
+The terms alternate in sign and decrease in size to 0, so the alternating series bound applies: the sum of the first six terms, $0.746729$ to six places, differs from the integral by less than the seventh term, $1/9360 < 0.00011$. So the integral lies between 0.74672 and 0.74684, and to three decimal places it is 0.747. This integral is the area under the bell curve of the normal distribution (Module 12) between its centre and one unit to the right, apart from the scaling factors of the distribution.
+
+```check
+same(series(exp(-x**2), x, 0, 12).removeO(), sum((-x**2)**j/factorial(j) for j in range(6)))
+same(integrate(sum((-x**2)**j/factorial(j) for j in range(8)), (x, 0, 1)), sum(Rational((-1)**j, (2*j + 1)*factorial(j)) for j in range(8)))
+same([Rational(1, (2*j + 1)*factorial(j)) for j in range(7)], [1, Rational(1, 3), Rational(1, 10), Rational(1, 42), Rational(1, 216), Rational(1, 1320), Rational(1, 9360)])
+s6 = sum(Rational((-1)**j, (2*j + 1)*factorial(j)) for j in range(6)); rounds(s6, '0.746729')
+I01 = integrate(exp(-x**2), (x, 0, 1)); holds(Abs(I01 - s6) < Rational(1, 9360)); holds(Rational(1, 9360) < Rational(11, 100000))
+holds(Rational(74672, 100000) < s6); holds(s6 + Rational(1, 9360) < Rational(74684, 100000)); rounds(I01, '0.747')
+holds(all(Rational(1, (2*j + 3)*factorial(j + 1)) < Rational(1, (2*j + 1)*factorial(j)) for j in range(20)))
+```
+:::
+
+::: compute Taylor series with SymPy
+SymPy's `series` computes Taylor series. Its arguments are the expression, the variable, the centre and the order of the first term left out:
+
+```python
+import sympy as sp
+x = sp.symbols('x')
+print(sp.series(sp.exp(x), x, 0, 6))
+print(sp.series(sp.sin(x), x, 0, 8).removeO())
+print(sp.series(sp.sqrt(x), x, 4, 3))
+```
+
+```output
+1 + x + x**2/2 + x**3/6 + x**4/24 + x**5/120 + O(x**6)
+-x**7/5040 + x**5/120 - x**3/6 + x
+1 - (x - 4)**2/64 + x/4 + O((x - 4)**3, (x, 4))
+```
+
+`O(x**6)`, read "big O of x to the 6", stands for the terms of degree 6 and higher that were left out, as in the big-O notation of Module 4. `.removeO()` drops it and leaves a Taylor polynomial, here $T_7$ of $\sin x$, which SymPy prints with the highest power first. The third line is $T_2$ of $\sqrt x$ about 4, from Example 15.9, with the polynomial rearranged: $2 + \tfrac{x - 4}{4}$ is $1 + \tfrac{x}{4}$. SymPy also handles a symbolic exponent, and functions whose coefficients you would not want to compute by hand:
+
+```python
+k = sp.symbols('k')
+print(sp.series((1 + x)**k, x, 0, 4))
+print(sp.series(sp.tan(x), x, 0, 10))
+```
+
+```output
+1 + k*x + k*x**2*(k - 1)/2 + k*x**3*(k - 2)*(k - 1)/6 + O(x**4)
+x + x**3/3 + 2*x**5/15 + 17*x**7/315 + 62*x**9/2835 + O(x**10)
+```
+
+The first line is the binomial series. The coefficients of $\tan x$ follow no simple pattern, and its series converges only for $\abs{x} < \pi/2$. Mind the order of the arguments: the third is the centre, not the number of terms.
+
+```python
+print(sp.series(sp.exp(x), x, 4))
+```
+
+```output
+exp(4) + (x - 4)*exp(4) + (x - 4)**2*exp(4)/2 + (x - 4)**3*exp(4)/6 + (x - 4)**4*exp(4)/24 + (x - 4)**5*exp(4)/120 + O((x - 4)**6, (x, 4))
+```
+
+With no fourth argument, SymPy expands about the centre 4 with its default order 6, that is, up to $(x - 4)^5$. This is the Taylor series of $e^x$ about 4: every coefficient is $e^4/n!$, since every derivative of $e^x$ at 4 is $e^4$.
+:::
+
+```check
+same(series(tan(x), x, 0, 10).removeO(), x + x**3/3 + 2*x**5/15 + 17*x**7/315 + 62*x**9/2835)
+same(series(exp(x), x, 4, 6).removeO(), sum(E**4*(x - 4)**j/factorial(j) for j in range(6)))
+same(1 + x/4, 2 + (x - 4)/4); same(series(sqrt(x), x, 4, 3).removeO(), 2 + (x - 4)/4 - (x - 4)**2/64)
+```
+
+### Taylor polynomials {#taylor-polynomials}
+
+In practice nobody sums a whole series: you stop at some $T_n$. Figure 15.2 shows how the Maclaurin polynomials of $\sin x$,
+
+$$T_1(x) = x, \qquad T_3(x) = x - \frac{x^3}{6}, \qquad T_5(x) = x - \frac{x^3}{6} + \frac{x^5}{120},$$
+
+approximate it. (Since every even coefficient is 0, $T_2 = T_1$ and $T_4 = T_3$.) Each hugs the curve around 0, and the higher the degree, the wider the stretch on which it does.
+
+::: figure id=fig-15-2
+Left: $\sin x$ (blue) and its Maclaurin polynomials $T_1$, $T_3$ and $T_5$. Each hugs the curve near 0, over a wider stretch as the degree grows, and then turns away. Right: the errors $\abs{\sin x - T_n(x)}$ for $0.01 \le x \le 2$, on logarithmic scales. They lie close to straight lines of slopes 3, 5 and 7: halving $x$ divides the error of $T_n$ by about $2^{n+2}$.
+:::
+
+```valuetable
+x = 0.1, 0.5, 1, 2, 3
+$\sin x$ = sin(x)
+$T_1(x)$ = x
+$T_3(x)$ = x - x**3/6
+$T_5(x)$ = x - x**3/6 + x**5/120
+digits = 6
+---
+x | \sin x | T_1(x) | T_3(x) | T_5(x)
+0.1 | 0.0998334 | 0.1 | 0.0998333 | 0.0998334
+0.5 | 0.479426 | 0.5 | 0.479167 | 0.479427
+1 | 0.841471 | 1 | 0.833333 | 0.841667
+2 | 0.909297 | 2 | 0.666667 | 0.933333
+3 | 0.141120 | 3 | -1.5 | 0.525
+```
+
+At $x = 0.1$, $T_5$ agrees with $\sin x$ in all six digits shown, and $T_3$ in five. Farther from 0 more terms are needed: at $x = 2$, $T_5$ is off by 0.024, and at $x = 3$ by 0.38, while $T_1$ is off by almost 3.
+
+```check
+same(series(sin(x), x, 0, 6).removeO(), x - x**3/6 + x**5/120)
+rounds(Rational(1, 10) - Rational(1, 10)**3/6 + Rational(1, 10)**5/120 - sin(Rational(1, 10)), '0.0000000')
+rounds(sin(Rational(1, 10)), '0.0998334'); rounds(Rational(1, 10) - Rational(1, 10)**3/6, '0.0998333')
+T5_ = lambda v: v - v**3/6 + v**5/120
+rounds(T5_(2) - sin(2), '0.024'); rounds(T5_(3) - sin(3), '0.38'); holds(Rational(28, 10) < 3 - sin(3)); holds(3 - sin(3) < 3)
+for n_, slope_ in ((1, 3), (3, 5), (5, 7)):                   # the error of T_n near 0 is about x^(n+2)/(n+2)!
+    Tn_ = series(sin(x), x, 0, n_ + 1).removeO()
+    limit_is((sin(x) - Tn_)/x**slope_, x, 0, (-1)**((n_ + 1)//2)/factorial(slope_))
+    same(Rational(2)**slope_, 2**(n_ + 2))
+```
+
+Why do Taylor polynomials fit so well? Because $T_n$ has the same value and the same first $n$ derivatives at $a$ as $f$: differentiating $T_n$ $k$ times and putting $x = a$ leaves $k!$ times its $k$th coefficient, which is $f^{(k)}(a)$, for every $k \le n$. $T_1$ matches the value and the slope, so it is the tangent line; $T_2$ matches the second derivative too, which decides how the graph bends (Module 8); and so on. No other polynomial of degree at most $n$ does this, because the derivatives of a polynomial at $a$ fix its coefficients (Theorem 15.5 holds for polynomials, whose series stop).
+
+```check
+for n_ in (1, 3, 5):
+    Tn_ = series(sin(x), x, 0, n_ + 1).removeO()
+    same([diff(Tn_, x, j).subs(x, 0) for j in range(n_ + 1)], [diff(sin(x), x, j).subs(x, 0) for j in range(n_ + 1)])
+same([diff(T3s, x, j).subs(x, 4) for j in range(4)], [diff(sqrt(x), x, j).subs(x, 4) for j in range(4)])
+```
+
+::: widget name=taylor-explorer
+Choose a function, then raise the degree $n$ from 0 and watch $T_n$ (orange) close in on $f$ (blue) over a wider and wider stretch around the centre $a$. The readout compares $T_n(x_0)$ with $f(x_0)$ at the probe point $x_0$. For $e^x$, $\sin x$ and $\cos x$ the error at any $x_0$ shrinks to 0 as $n$ grows; move the centre too. For the other four functions, the green band is the interval of convergence: put $x_0$ outside it (try $\ln(1 + x)$ with $x_0 = 1.5$) and raise $n$, and the error grows instead of shrinking. Move the centre of $\arctan x$ away from 0 and note the radius $\sqrt{1 + a^2}$; Section 15.7 explains it.
+:::
+
+## Taylor's theorem {#taylor-theorem}
+
+A Taylor polynomial is useful only when you know how far it is from the function. The difference
+
+$$R_n(x) = f(x) - T_n(x)$$
+
+is the **remainder** of degree $n$ ($R_n(x)$ reads "R n of x"). Since $T_n(x)$ is a partial sum of the Taylor series, $f(x)$ equals the sum of its Taylor series exactly when $R_n(x) \to 0$ as $n \to \infty$. Taylor's theorem gives a formula for the remainder.
+
+::: theorem Taylor's theorem
+Let $n \ge 0$ be a whole number, and let $f$ have derivatives up to order $n + 1$ on an open interval $I$ that contains $a$. Then for every $x$ in $I$,
+
+$$f(x) = T_n(x) + R_n(x), \qquad R_n(x) = \frac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1},$$
+
+for some number $c$ between $a$ and $x$ (with $c = a$ if $x = a$).
+:::
+
+This form of $R_n$ is the **Lagrange form** of the remainder. For $n = 0$ the theorem says $f(x) = f(a) + f'(c)(x - a)$, the Mean Value Theorem: Taylor's theorem is the Mean Value Theorem with more terms. The remainder looks like the next term of the Taylor series, $\dfrac{f^{(n+1)}(a)}{(n + 1)!}(x - a)^{n+1}$, except that the derivative is taken at an unknown point $c$ instead of at $a$.
+
+::: proof
+If $x = a$, both sides equal $f(a)$. So let $x \ne a$, and let $K$ be the number for which
+
+$$f(x) = T_n(x) + \frac{K}{(n + 1)!}(x - a)^{n+1};$$
+
+it exists because $(x - a)^{n+1} \ne 0$. The task is to show that $K = f^{(n+1)}(c)$ for some $c$ between $a$ and $x$. Keep $x$ fixed, and define, for $t$ in the closed interval between $a$ and $x$,
+
+$$g(t) = f(x) - \sum_{k=0}^{n} \frac{f^{(k)}(t)}{k!}(x - t)^k - \frac{K}{(n + 1)!}(x - t)^{n+1}.$$
+
+At $t = x$ every term of the sum with $k \ge 1$ is 0, and the term with $k = 0$ is $f(x)$, so $g(x) = 0$; and $g(a) = 0$ by the choice of $K$. Now differentiate with respect to $t$. The term with $k = 0$, $f(t)$, has derivative $f'(t)$, and by the product rule the term with $k \ge 1$ has derivative
+
+$$\frac{f^{(k+1)}(t)}{k!}(x - t)^k - \frac{f^{(k)}(t)}{(k - 1)!}(x - t)^{k-1}.$$
+
+Added up, the second part of each of these cancels the first part of the one before: the sum **telescopes**, and only $\dfrac{f^{(n+1)}(t)}{n!}(x - t)^n$ survives. So
+
+$$g'(t) = -\frac{f^{(n+1)}(t)}{n!}(x - t)^n + \frac{K}{n!}(x - t)^n = \frac{(x - t)^n}{n!}\big(K - f^{(n+1)}(t)\big).$$
+
+The function $g$ is differentiable, and $g(a) = g(x) = 0$, so by Rolle's theorem (Module 8) $g'(c) = 0$ for some $c$ strictly between $a$ and $x$. There $(x - c)^n \ne 0$, so $K = f^{(n+1)}(c)$.
+:::
+
+```check
+Kc = symbols('K'); fT = Function('f')
+for N_ in range(5):
+    gT = fT(x) - sum(diff(fT(t), t, j)/factorial(j)*(x - t)**j for j in range(N_ + 1)) - Kc/factorial(N_ + 1)*(x - t)**(N_ + 1)
+    same(diff(gT, t), (x - t)**N_/factorial(N_)*(Kc - diff(fT(t), t, N_ + 1)))
+    same(gT.subs(t, x).doit(), 0)
+for J_ in range(1, 5):                     # the derivative of the k-th term, k >= 1
+    same(diff(diff(fT(t), t, J_)/factorial(J_)*(x - t)**J_, t), diff(fT(t), t, J_ + 1)/factorial(J_)*(x - t)**J_ - diff(fT(t), t, J_)/factorial(J_ - 1)*(x - t)**(J_ - 1))
+cE = log(24*(E - Rational(8, 3)))          # the point c for e^x, n = 3, x = 1
+same(exp(cE)/factorial(4), E - Rational(8, 3)); holds(0 < cE); holds(cE < 1); rounds(cE, '0.214'); rounds(E - Rational(8, 3), '0.0516')
+```
+
+For example, for $e^x$ with $a = 0$, $n = 3$ and $x = 1$, $R_3(1) = e - \tfrac83 \approx 0.0516$, and the theorem promises a $c$ between 0 and 1 with $e^c/4! = R_3(1)$: it is $c = \ln\big(24(e - \tfrac83)\big) \approx 0.214$. In practice $c$ is unknown, and a bound is all you need.
+
+::: keyidea
+**Taylor's inequality.** If $\abs{f^{(n+1)}(t)} \le M$ for every $t$ between $a$ and $x$, then
+
+$$\abs{f(x) - T_n(x)} \le \frac{M}{(n + 1)!}\,\abs{x - a}^{n+1}.$$
+:::
+
+Taylor's theorem also says how good $T_n$ is near $a$. Suppose $f^{(n+1)}$ is continuous on $I$. On a closed interval around $a$ inside $I$ it is bounded, say by $M$ (the Extreme Value Theorem of Module 3), and for $x \ne a$ in that interval
+
+$$\abs{\frac{f(x) - T_n(x)}{(x - a)^n}} \le \frac{M}{(n + 1)!}\,\abs{x - a} \to 0 \quad\text{as } x \to a.$$
+
+So the error of $T_n$ is small even compared with $(x - a)^n$; for $n = 1$ this is Theorem 7.1. In this sense $T_n$ is the best polynomial approximation of degree $n$ near $a$. No other polynomial $p$ of degree at most $n$ does as well: if $\big(f(x) - p(x)\big)/(x - a)^n$ also tended to 0, then so would $q(x)/(x - a)^n$, where $q = T_n - p$. Write $q(x) = d_0 + d_1(x - a) + \cdots + d_n(x - a)^n$. Then $q(x)$, $q(x)/(x - a)$, …, $q(x)/(x - a)^{n-1}$ tend to 0 as well, being $q(x)/(x - a)^n$ times a power of $x - a$. The first limit is $d_0$, so $d_0 = 0$; then the second is $d_1$, so $d_1 = 0$; and so on up to $d_n = 0$. So $p = T_n$.
+
+```check
+dq = symbols('d0:4')
+qq_ = sum(dq[j]*(x - a)**j for j in range(4))
+same(limit(qq_, x, a), dq[0]); same(limit((qq_.subs(dq[0], 0))/(x - a), x, a), dq[1]); same(limit((qq_.subs({dq[0]: 0, dq[1]: 0}))/(x - a)**2, x, a), dq[2])
+same(cancel((qq_.subs({dq[0]: 0, dq[1]: 0, dq[2]: 0}))/(x - a)**3), dq[3])
+```
+
+### Error bounds {#error-bounds}
+
+::: example Two error bounds
+(a) Bound the error of $T_5(0.5)$ as an estimate of $\sin 0.5$. (b) Bound the error of $T_2(4.1)$ as an estimate of $\sqrt{4.1}$ (Example 15.9), and decide whether $T_2(4.1)$ is too large or too small.
+
+**(a)** Every derivative of $\sin$ is $\pm\sin$ or $\pm\cos$, so $M = 1$ will do for every $n$. With $n = 5$, Taylor's inequality gives $\abs{R_5(0.5)} \le 0.5^6/6! \approx 2.2 \times 10^{-5}$. You can do better. The coefficient of $x^6$ in the series of $\sin x$ is 0, so $T_5 = T_6$, and with $n = 6$
+
+$$\abs{\sin 0.5 - T_5(0.5)} = \abs{R_6(0.5)} \le \frac{0.5^7}{7!} = \frac{0.0078125}{5040} \approx 1.55 \times 10^{-6}.$$
+
+Indeed $T_5(0.5) = 0.5 - 0.0208333 + 0.0002604 = 0.4794271$, while $\sin 0.5 \approx 0.4794255$: the error is about $-1.54 \times 10^{-6}$, very close to the bound.
+
+**(b)** Here $n = 2$ and $f'''(t) = \tfrac38 t^{-5/2}$, which decreases as $t$ grows, so on $[4, 4.1]$ it is largest at $t = 4$: $M = \tfrac38\cdot 4^{-5/2} = \tfrac{3}{256}$. So
+
+$$\abs{\sqrt{4.1} - T_2(4.1)} \le \frac{3/256}{3!}\,(0.1)^3 = \frac{1}{512\,000} \approx 1.95 \times 10^{-6}.$$
+
+The actual error is about $1.92 \times 10^{-6}$. The Lagrange form also gives the sign: $R_2(4.1) = \dfrac{f'''(c)}{3!}(0.1)^3$ with $f'''(c) > 0$, so the remainder is positive, and $T_2(4.1) = 2.02484375$ is slightly too small.
+
+```check
+rounds(Rational(1, 2)**6/factorial(6), '2.2e-5')
+same(series(sin(x), x, 0, 7).removeO(), x - x**3/6 + x**5/120)        # T_6 = T_5
+same(Rational(1, 2)**7, Rational(78125, 10**7)); same(factorial(7), 5040); rounds(Rational(1, 2)**7/factorial(7), '1.55e-6')
+rounds(Rational(1, 2)**3/6, '0.0208333'); rounds(Rational(1, 2)**5/120, '0.0002604'); rounds(T5_(Rational(1, 2)), '0.4794271')
+rounds(sin(Rational(1, 2)), '0.4794255'); rounds(sin(Rational(1, 2)) - T5_(Rational(1, 2)), '-1.54e-6')
+holds(Abs(sin(Rational(1, 2)) - T5_(Rational(1, 2))) <= Rational(1, 2)**7/factorial(7))
+f3 = diff(sqrt(x), x, 3); same(f3, Rational(3, 8)*x**Rational(-5, 2)); holds(diff(f3, x).subs(x, 4) < 0)
+same(f3.subs(x, 4), Rational(3, 256))
+same(Rational(3, 256)/factorial(3)*Rational(1, 10)**3, Rational(1, 512000)); rounds(Rational(1, 512000), '1.95e-6')
+rounds(sqrt(v41) - T2s.subs(x, v41), '1.92e-6'); holds(sqrt(v41) - T2s.subs(x, v41) > 0)
+holds(sqrt(v41) - T2s.subs(x, v41) <= Rational(1, 512000))
+```
+:::
+
+::: example A polynomial for $e^x$ on $[-1, 1]$
+Find a degree $n$ for which the Maclaurin polynomial $T_n$ of $e^x$ satisfies $\abs{e^x - T_n(x)} < 10^{-6}$ for every $x$ in $[-1, 1]$.
+
+Every derivative of $e^x$ is $e^x$, and for $t$ between 0 and $x$, with $\abs{x} \le 1$, $e^t \le e^1 < 3$. So $M = 3$ will do, and
+
+$$\abs{e^x - T_n(x)} \le \frac{3}{(n + 1)!}\abs{x}^{n+1} \le \frac{3}{(n + 1)!}.$$
+
+This is less than $10^{-6}$ when $(n + 1)! > 3\,000\,000$. Since $9! = 362\,880$ and $10! = 3\,628\,800$, $n + 1 = 10$ is enough: $T_9$ is within $10^{-6}$ of $e^x$ on the whole interval. The bound is not wasteful here. At $x = 1$ the error of $T_8$ is about $3.1 \times 10^{-6}$, too large, while that of $T_9$ is about $3.0 \times 10^{-7}$.
+
+```check
+holds(E < 3); same(factorial(9), 362880); same(factorial(10), 3628800)
+holds(Rational(3, factorial(10)) < Rational(1, 10**6)); holds(Rational(3, factorial(9)) > Rational(1, 10**6))
+sE = lambda N: sum(Rational(1, factorial(j)) for j in range(N + 1))
+rounds(E - sE(8), '3.1e-6'); rounds(E - sE(9), '3.0e-7'); holds(E - sE(8) > Rational(1, 10**6))
+for xv in (-1, Rational(-1, 2), Rational(1, 2), 1):
+    holds(Abs(exp(xv) - sum(Rational(xv)**j/factorial(j) for j in range(10))) < Rational(1, 10**6))
+```
+:::
+
+::: pitfall
+Taylor's inequality needs $M$ to bound $\abs{f^{(n+1)}}$ on the whole interval between $a$ and $x$, not only at $a$. For $e^x$ on $[0, 1]$, the bound $M = f^{(n+1)}(0) = 1$ is too small: at $x = 1$ it would promise $\abs{e - T_9(1)} \le 1/10! \approx 2.8 \times 10^{-7}$, but the error is $3.0 \times 10^{-7}$. Take the largest value of $\abs{f^{(n+1)}}$ on the interval, or any number above it.
+
+```check
+rounds(Rational(1, factorial(10)), '2.8e-7'); holds(E - sE(9) > Rational(1, factorial(10)))
+```
+:::
+
+### Errors of earlier approximations {#earlier-errors}
+
+Modules 4 and 7 stated how large the errors of three approximations are, and left the proofs to this module.
+
+::: theorem Errors of the linearisation and of difference quotients
+1. If $f''$ exists on an open interval containing $a$ and $x$, and $L$ is the linearisation of $f$ at $a$, then $f(x) - L(x) = \dfrac{f''(c)}{2}(x - a)^2$ for some $c$ between $a$ and $x$. If also $\abs{f''} \le M$ between $a$ and $x$, then $\abs{f(x) - L(x)} \le \dfrac{M}{2}(x - a)^2$.
+2. Let $h > 0$. If $f''$ exists on an open interval containing $a$ and $a + h$, the error of the forward difference is
+   $$\frac{f(a + h) - f(a)}{h} - f'(a) = \frac{h}{2}f''(c)$$
+   for some $c$ between $a$ and $a + h$.
+3. If $f'''$ exists and is continuous on an open interval containing $a - h$ and $a + h$, the error of the central difference is
+   $$\frac{f(a + h) - f(a - h)}{2h} - f'(a) = \frac{h^2}{6}f'''(c)$$
+   for some $c$ between $a - h$ and $a + h$.
+:::
+
+::: proof
+Part 1 is Taylor's theorem with $n = 1$, since $T_1 = L$. For part 2, apply part 1 with $x = a + h$: $f(a + h) = f(a) + f'(a)h + \tfrac12 f''(c)h^2$; subtract $f(a)$, divide by $h$ and subtract $f'(a)$. For part 3, Taylor's theorem with $n = 2$ at $x = a + h$ and at $x = a - h$ gives
+
+$$f(a \pm h) = f(a) \pm f'(a)h + \frac{f''(a)}{2}h^2 \pm \frac{f'''(c_\pm)}{6}h^3,$$
+
+with $c_+$ between $a$ and $a + h$ and $c_-$ between $a - h$ and $a$. Subtract: the terms $f(a)$ and $\tfrac12 f''(a)h^2$ cancel, and
+
+$$f(a + h) - f(a - h) = 2f'(a)h + \frac{f'''(c_+) + f'''(c_-)}{6}h^3.$$
+
+Divide by $2h$ and subtract $f'(a)$: the error is $\dfrac{h^2}{6}$ times $\tfrac12\big(f'''(c_+) + f'''(c_-)\big)$, the average of two values of $f'''$. The average lies between the two values, so, $f'''$ being continuous, the Intermediate Value Theorem (Module 3) gives a $c$ between $c_-$ and $c_+$ at which $f'''(c)$ equals it.
+:::
+
+```check
+fd = Function('f'); f2a, f3p, f3m, cc_ = symbols('f2a f3p f3m c')
+Tp = fd(a) + diff(fd(a), a)*h + f2a/2*h**2 + f3p/6*h**3          # f(a + h), Lagrange form, f''(a) = f2a, f'''(c+) = f3p
+Tm = fd(a) - diff(fd(a), a)*h + f2a/2*h**2 - f3m/6*h**3          # f(a - h)
+same(expand(Tp - Tm), expand(2*diff(fd(a), a)*h + (f3p + f3m)/6*h**3))
+same(expand((Tp - Tm)/(2*h) - diff(fd(a), a)), expand(h**2/6*(f3p + f3m)/2))
+same(expand(((fd(a) + diff(fd(a), a)*h + cc_/2*h**2) - fd(a))/h - diff(fd(a), a)), h/2*cc_)
+for fn_ in (exp(x), sin(x), x**4):                                 # instances: the errors are about (h/2) f''(a) and (h^2/6) f'''(a)
+    limit_is(((fn_.subs(x, a + h) - fn_.subs(x, a))/h - diff(fn_, x).subs(x, a))/h, h, 0, diff(fn_, x, 2).subs(x, a)/2)
+    limit_is(((fn_.subs(x, a + h) - fn_.subs(x, a - h))/(2*h) - diff(fn_, x).subs(x, a))/h**2, h, 0, diff(fn_, x, 3).subs(x, a)/6)
+```
+
+As $h \to 0$ in part 2, $c$ is squeezed towards $a$, so if $f''$ is continuous at $a$ the error is about $\tfrac{h}{2}f''(a)$; and if $\abs{f''} \le M$ near $a$, it is at most $\tfrac{M}{2}h$, so it is $O(h)$. In the same way the error in part 3 is about $\tfrac{h^2}{6}f'''(a)$, and it is $O(h^2)$. These are the claims of [Section 4.7](module_04_EN.html#truncation). Part 1 gives both claims of [Section 7.2](module_07_EN.html#how-good): the bound $\tfrac{M}{2}(x - a)^2$, and, when $f''$ is continuous at $a$, $f(x) - L(x) \approx \tfrac{f''(a)}{2}(x - a)^2$, because $\dfrac{f(x) - L(x)}{(x - a)^2} = \dfrac{f''(c)}{2} \to \dfrac{f''(a)}{2}$ as $x \to a$.
+
+Newton's method of Module 7 is a third beneficiary. Let $f(r) = 0$, and let $e_n = x_n - r$ be the error of the $n$th iterate. Taylor's theorem of degree 1 about $x_n$, evaluated at $r$, gives
+
+$$0 = f(r) = f(x_n) + f'(x_n)(r - x_n) + \frac{f''(c_n)}{2}(r - x_n)^2$$
+
+for some $c_n$ between $x_n$ and $r$. Divide by $f'(x_n)$, and use $x_{n+1} = x_n - f(x_n)/f'(x_n)$, so that $f(x_n)/f'(x_n) = x_n - x_{n+1}$:
+
+$$e_{n+1} = \frac{f''(c_n)}{2f'(x_n)}\,e_n^2.$$
+
+Module 7 found this relation approximately, with $x_n$ in place of $c_n$; here it is exact. Exercise 15.12 completes the proof of Theorem 7.3 from it.
+
+```check
+fN, f1N, f2N, xN, rN = symbols('f_n f1_n f2_n x_n r')            # f(x_n), f'(x_n), f''(c_n)
+eqn = Eq(0, fN + f1N*(rN - xN) + f2N/2*(rN - xN)**2)
+fsol = solve(eqn, fN)[0]
+same((xN - fsol/f1N) - rN, f2N/(2*f1N)*(xN - rN)**2)
+```
+
+### When the series equals the function {#series-equals-function}
+
+::: theorem $e^x$, $\sin x$ and $\cos x$ equal their series
+For every real number $x$,
+
+$$e^x = \sum_{n=0}^\infty \frac{x^n}{n!}, \qquad \sin x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n + 1)!}, \qquad \cos x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!}.$$
+:::
+
+::: proof
+Fix $x$; it is enough to show that $R_n(x) \to 0$ as $n \to \infty$. For $e^x$, every derivative is $e^t$, and for $t$ between 0 and $x$, $e^t \le e^{\abs{x}}$. So Taylor's inequality gives
+
+$$\abs{R_n(x)} \le e^{\abs{x}}\,\frac{\abs{x}^{n+1}}{(n + 1)!}.$$
+
+For $\sin x$ and $\cos x$ every derivative lies between $-1$ and 1, so $\abs{R_n(x)} \le \abs{x}^{n+1}/(n + 1)!$. Finally, $\abs{x}^{m}/m! \to 0$ as $m \to \infty$, for every $x$: these are the terms of the series $\sum \abs{x}^m/m!$, which converges (Example 15.2), and the terms of a convergent series tend to 0. So $R_n(x) \to 0$ in all three cases.
+:::
+
+```check
+xa = symbols('x', positive=True)
+limit_is(exp(xa)*xa**(n + 1)/factorial(n + 1), n, oo, 0); limit_is(xa**(n + 1)/factorial(n + 1), n, oo, 0)
+same(summation(x**n/factorial(n), (n, 0, oo)), exp(x)); same(summation((-1)**n*x**(2*n + 1)/factorial(2*n + 1), (n, 0, oo)), sin(x))
+same(summation((-1)**n*x**(2*n)/factorial(2*n), (n, 0, oo)), cos(x))
+```
+
+The same argument works about any centre $a$, so $e^x$, $\sin x$ and $\cos x$ equal their Taylor series about every point, for every $x$. A function that equals the sum of its Taylor series on an interval around each point of an open interval is called **analytic** there; $e^x$, $\sin x$ and $\cos x$ are analytic on the whole line.
+
+::: deeper A Taylor series that converges to the wrong function
+Is the condition $R_n(x) \to 0$ really needed? If a Taylor series converges, must its sum be $f$? No. Let
+
+$$f(x) = \begin{cases} e^{-1/x^2} & \text{if } x \ne 0, \\ 0 & \text{if } x = 0. \end{cases}$$
+
+Figure 15.3 shows how flat its graph is near 0. In fact every derivative of $f$ at 0 is 0, so its Maclaurin series is $0 + 0x + 0x^2 + \cdots$, which converges for every $x$, to 0. But $f(x) > 0$ for every $x \ne 0$: the series equals $f$ only at 0, and the remainder $R_n(x) = f(x)$ never tends to 0.
+
+Why is every derivative at 0 equal to 0? First, for $x \ne 0$, $f^{(n)}(x) = p_n(1/x)\,e^{-1/x^2}$ for some polynomial $p_n$. This holds for $n = 0$ with $p_0 = 1$, and if it holds for $n$, the chain and product rules give
+
+$$f^{(n+1)}(x) = \Big[\frac{2}{x^3}\,p_n\Big(\frac1x\Big) - \frac{1}{x^2}\,p_n'\Big(\frac1x\Big)\Big]e^{-1/x^2},$$
+
+which has the same form, with $p_{n+1}(u) = 2u^3p_n(u) - u^2p_n'(u)$. Second, for every whole number $m \ge 0$, $u^me^{-u^2} \to 0$ as $u \to \infty$ and as $u \to -\infty$, because exponentials grow faster than powers ([Section 7.7](module_07_EN.html#growth)): for $\abs{u} \ge 1$, $u^2 \ge \abs{u}$, so $\abs{u}^me^{-u^2} \le \abs{u}^me^{-\abs{u}}$. Now suppose $f^{(n)}(0) = 0$, as is true for $n = 0$. By the definition of the derivative, with $u = 1/x$,
+
+$$\begin{aligned} f^{(n+1)}(0) &= \lim_{x\to0}\frac{f^{(n)}(x) - 0}{x} = \lim_{x\to0}\frac1x\,p_n\Big(\frac1x\Big)e^{-1/x^2} \\ &= \lim_{u\to\pm\infty} u\,p_n(u)\,e^{-u^2} = 0, \end{aligned}$$
+
+because $u\,p_n(u)$ is a sum of constant multiples of powers of $u$. By induction, $f^{(n)}(0) = 0$ for every $n$. So this $f$ has derivatives of every order everywhere, yet it is not analytic at 0: no power series centred at 0 equals it on any interval around 0, since by Theorem 15.5 that series would have to be its Maclaurin series, 0.
+:::
+
+::: figure id=fig-15-3
+Left: the graph of $f(x) = e^{-1/x^2}$, with $f(0) = 0$, rises from the origin towards the line $y = 1$ (dashed). Its Maclaurin series is 0 (orange): it converges everywhere, but equals $f$ only at $x = 0$. Right: near 0, with the vertical scale stretched about fifteen times, the graph is still flat: $f(0.25) = e^{-16} \approx 1.1 \times 10^{-7}$.
+:::
+
+```check
+fE = exp(-1/x**2); uu = symbols('u')
+pE = [Integer(1)]
+for N_ in range(1, 5):
+    pE.append(expand(2*uu**3*pE[-1] - uu**2*diff(pE[-1], uu)))
+for N_ in range(5):
+    same(diff(fE, x, N_), pE[N_].subs(uu, 1/x)*fE)
+for N_ in range(4):
+    limit_is(diff(fE, x, N_)/x, x, 0, 0)
+for m_ in range(6):
+    limit_is(uu**m_*exp(-uu**2), uu, oo, 0); limit_is(uu**m_*exp(-uu**2), uu, -oo, 0)
+same(series(fE, x, 0, 10), O(x**10)); holds(fE.subs(x, Rational(1, 10)) > 0)
+rounds(exp(-16), '1.1e-7'); same(fE.subs(x, Rational(1, 4)), exp(-16))
+```
