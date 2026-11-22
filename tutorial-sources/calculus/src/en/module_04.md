@@ -176,9 +176,9 @@ The derivative $f'(a)$ is
 ::: example A derivative from the definition
 Let $f(x) = 2x^2 - 5x + 1$. Find $f'(2)$ and the tangent line to the graph at $x = 2$.
 
-First, $f(2) = 8 - 10 + 1 = -1$. Next substitute $2 + h$, keeping the brackets, and expand:
+First, $f(2) = 8 - 10 + 1 = -1$. Next substitute $2 + h$, keeping the brackets, and expand, with $(2 + h)^2 = 4 + 4h + h^2$:
 
-$$\begin{aligned} f(2 + h) &= 2(2 + h)^2 - 5(2 + h) + 1 \\ &= 8 + 8h + 2h^2 - 10 - 5h + 1 \\ &= -1 + 3h + 2h^2. \end{aligned}$$
+$$\begin{aligned} f(2 + h) &= 2(2 + h)^2 - 5(2 + h) + 1 \\ &= 2(4 + 4h + h^2) - 10 - 5h + 1 \\ &= 8 + 8h + 2h^2 - 10 - 5h + 1 \\ &= -1 + 3h + 2h^2. \end{aligned}$$
 
 So $f(2 + h) - f(2) = 3h + 2h^2$, and
 
@@ -189,7 +189,8 @@ The tangent line is $y = -1 + 3(x - 2)$, that is, $y = 3x - 7$. Check that it pa
 ```check
 f43 = 2*x**2 - 5*x + 1
 same(f43.subs(x, 2), -1); same(8 - 10 + 1, -1)
-steps(f43.subs(x, 2 + h), 8 + 8*h + 2*h**2 - 10 - 5*h + 1, -1 + 3*h + 2*h**2)
+same(expand((2 + h)**2), 4 + 4*h + h**2)
+steps(f43.subs(x, 2 + h), 2*(4 + 4*h + h**2) - 10 - 5*h + 1, 8 + 8*h + 2*h**2 - 10 - 5*h + 1, -1 + 3*h + 2*h**2)
 same(f43.subs(x, 2 + h) - f43.subs(x, 2), 3*h + 2*h**2)
 steps(Limit((3*h + 2*h**2)/h, h, 0, '+-'), Limit(3 + 2*h, h, 0, '+-'), 3); same((3*h + 2*h**2)/h, 3 + 2*h)
 limit_is((f43.subs(x, 2 + h) - f43.subs(x, 2))/h, h, 0, 3)

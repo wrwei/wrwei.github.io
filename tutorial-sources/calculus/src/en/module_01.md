@@ -992,16 +992,16 @@ The outputs on these pages were produced with Python 3.11.18, SymPy 1.14.0, mpma
 :::: tabs
 ::: tab Windows
 1. In a web browser, open python.org/downloads and click **Download Python install manager**. (The **Python install manager** is also in the Microsoft Store; the two versions are identical.)
-2. Double-click the downloaded file and select **Install**.
-3. Open PowerShell from the Start menu and type `python`. No Python runtime is installed yet, so the install manager installs the latest release automatically. When Python starts, it shows its prompt `>>>`; type `exit()` and press Enter to leave it.
+2. Double-click the downloaded file and select **Install**. This gives you the commands `python`, `py` and `pymanager`.
+3. Open PowerShell from the Start menu and type `python`. If no Python runtime is installed yet, the install manager installs the latest release automatically. When Python starts, it shows its prompt `>>>`; type `exit()` and press Enter to leave it.
 
    ```terminal
    PS> python
    ```
 
-When you first install a runtime, you will probably be asked whether to add a folder, `%LocalAppData%\Python\bin`, to your PATH. This is optional, because this series uses the `py` command, which works either way. After installation the commands `python`, `py` and `pymanager` are available.
+When you first install a runtime, you will probably be asked whether to add a folder, `%LocalAppData%\Python\bin`, to your PATH. This is optional, because this series uses the `py` command, which works either way.
 
-Guides that describe the traditional full installer are out of date: it has been deprecated since Python 3.14, and it will not be produced for Python 3.16 or later.
+Many guides still describe the traditional full installer. It has been deprecated since Python 3.14 and will not be produced for Python 3.16 or later, so this page uses the install manager.
 :::
 ::: tab macOS
 1. In a web browser, open python.org/downloads and download the macOS installer package (`.pkg`) of the latest release. It is a universal2 build, for both Apple Silicon and Intel Macs.
@@ -1029,7 +1029,7 @@ On Fedora, `sudo dnf install python3-pip python3-wheel`; on Arch, `sudo pacman -
 $ python3 --version
 ```
 
-Python 3.12 or later lets pip install the current versions of all three packages.
+Python 3.12 or later lets pip install the current versions of all three packages; Python 3.11, which produced the outputs on these pages, works too.
 :::
 ::::
 
