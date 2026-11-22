@@ -680,7 +680,7 @@ same(2*(13*n**2 + 12*n + 2)/(3*n**2), R96)
 ```
 
 ::: deeper Functions that are not integrable
-Theorem 9.3 asks for boundedness and for only finitely many discontinuities, and Theorem 9.4 asks for integrability. Two examples show why.
+A first reading may skip this box. Theorem 9.3 asks for boundedness and for only finitely many discontinuities, and Theorem 9.4 asks for integrability. Two examples show why.
 
 **Too many discontinuities.** On $[0, 1]$, let $D(x) = 1$ when $x$ is rational and $D(x) = 0$ when $x$ is irrational. Every subinterval of every partition, however narrow, contains both rational and irrational numbers. Choose all the sample points rational, and every term is $1 \cdot \Delta x_i$, so the Riemann sum is the total width of the subintervals, 1; choose them all irrational, and it is 0. However small $\norm{P}$ is, some Riemann sums are 1 and others are 0, so no number $I$ is within $\varepsilon = \tfrac12$ of all of them: $D$ is not integrable on $[0, 1]$. Yet its right sums are all 1, because the right ends $\tfrac{i}{n}$ are rational, so $\lim_{n\to\infty} R_n = 1$ exists. A limit of equal-width sums alone does not make a function integrable. ($D$ is discontinuous at every point of $[0, 1]$.)
 
@@ -834,6 +834,18 @@ Let $f$ and $g$ be integrable on $[a, b]$, where $a < b$.
 :::
 
 When $f \ge 0$ is continuous, take for $m$ and $M$ its smallest and largest values on $[a, b]$, which exist by the Extreme Value Theorem (Module 3). Then part (c) says that the area under the graph lies between the areas of two rectangles on $[a, b]$, one as high as the lowest point of the graph and one as high as the highest.
+
+Part (b) also compares the net area with the total area of Section 9.4. Let $f$ be continuous, or bounded with finitely many discontinuities, so that $\abs{f}$ is too, and both are integrable. Since $-\abs{f(x)} \le f(x) \le \abs{f(x)}$, part (b) and linearity give $-\int_a^b \abs{f(x)}\,dx \le \int_a^b f(x)\,dx \le \int_a^b \abs{f(x)}\,dx$, that is,
+
+$$\Big|\int_a^b f(x)\,dx\Big| \le \int_a^b \abs{f(x)}\,dx.$$
+
+In size, the net area is never more than the total area: for $x^2 - 2x$ on $[0, 3]$, 0 against $\tfrac83$.
+
+```check
+same(Abs(integrate(x**2 - 2*x, (x, 0, 3))), 0); holds(0 <= Rational(8, 3))
+for F_, A_, B_ in ((x**2 - 2*x, 0, 3), (sin(x), 0, 5), (x**3 - x, -2, 1)):
+    holds(Abs(Integral(F_, (x, A_, B_)).evalf(30)) <= Integral(Abs(F_), (x, A_, B_)).evalf(30))
+```
 
 ::: example Bounding an integral with no formula
 Show that $\displaystyle\int_0^1 e^{-x^2}\,dx$ lies between 0.36 and 1, and then that it lies between 0.57 and 0.89.

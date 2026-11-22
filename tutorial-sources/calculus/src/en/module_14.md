@@ -6,7 +6,7 @@ minutes: 270
 needs: Modules 1 to 13, especially limits (Modules 2 and 3), L'Hôpital's rule (Module 7) and improper integrals (Module 12)
 goals:
   - Find limits of sequences with the limit laws, the squeeze theorem and limits of functions, and prove simple limits with ε and N
-  - Show that a monotone bounded sequence converges, and find the limit of a recursive sequence
+  - Use the Monotone Convergence Theorem to show that a sequence converges, and find the limit of a recursive sequence
   - Sum geometric and telescoping series, and explain why the harmonic series diverges although its terms tend to 0
   - Decide whether a series converges with the divergence, integral, comparison, alternating series, ratio and root tests, choosing the test by strategy
   - Estimate the sum of a series with a guaranteed error bound, from the integral test or the alternating series test
@@ -271,7 +271,7 @@ holds(all(sqrt(2) - floor(sqrt(2)*10**j)/Integer(10)**j < Rational(1, 10**j) for
 A sequence $(a_n)$ is **increasing** if $a_n \le a_{n+1}$ for every $n$, and **decreasing** if $a_n \ge a_{n+1}$ for every $n$; it is **monotone** if it is one or the other. It is **bounded above** if there is a number $M$, an **upper bound**, with $a_n \le M$ for every $n$; **bounded below** if there is a number $m$, a **lower bound**, with $a_n \ge m$ for every $n$; and **bounded** if it is both.
 :::
 
-An increasing sequence may repeat a term; one with $a_n < a_{n+1}$ for every $n$ is **strictly increasing**, and strictly decreasing is defined in the same way. Some books call the sequences of the definition "non-decreasing" and "non-increasing" instead. Note the difference from Modules 4 and 8, where an increasing function is one that rises strictly: for sequences, this module allows equal neighbours.
+An increasing sequence may repeat a term; one with $a_n < a_{n+1}$ for every $n$ is **strictly increasing**, and strictly decreasing is defined in the same way. Some books call the sequences of the definition "non-decreasing" and "non-increasing" instead. Note the difference from Module 4 and [Section 8.3](module_08_EN.html#monotonic), where an increasing function is one that rises strictly: for sequences, this module allows equal neighbours.
 
 ### The Monotone Convergence Theorem {#mct}
 
@@ -292,7 +292,7 @@ same(LL_ + (MM_ - LL_), MM_)           # and if L < c = M, the challenge eps = c
 Module 3's proof of the Intermediate Value Theorem ([Section 3.3](module_03_EN.html#ivt)) used completeness in another form: if each of the intervals $[a_0, b_0], [a_1, b_1], [a_2, b_2], \dots$ lies inside the one before, then some number $c$ lies in all of them. The Monotone Convergence Theorem proves it. The left ends increase, $a_0 \le a_1 \le a_2 \le \cdots$, and every right end $b_m$ is an upper bound for them: $a_n \le b_n \le b_m$ when $n \ge m$, and $a_n \le a_m \le b_m$ when $n < m$. So the $a_n$ converge to a number $c$ that is at least every $a_n$ and at most every $b_m$, and $c$ lies in every interval, as Module 3 needed.
 
 ::: keyidea
-The Monotone Convergence Theorem proves that a limit exists without saying what it is. That is its role. Module 3 used it to prove the Intermediate Value Theorem. Modules 6 and 12 used the same property for functions, to sketch why the slope of $2^x$ at 0 exists ([Section 6.1](module_06_EN.html#base-e)) and to compare improper integrals ([Section 12.8](module_12_EN.html#comparison)). Above all, the partial sums of a series with positive terms increase, so such a series converges exactly when its partial sums are bounded: every convergence test for positive terms in Sections 14.5 and 14.6 rests on this.
+The Monotone Convergence Theorem proves that a limit exists without saying what it is. That is its role. Module 3 used it to prove the Intermediate Value Theorem. Modules 6, 12 and 13 used the same property for functions (one that increases and is bounded above has a limit), to sketch why the slope of $2^x$ at 0 exists ([Section 6.1](module_06_EN.html#base-e)), to compare improper integrals ([Section 12.8](module_12_EN.html#comparison)) and to explain why solutions approach a stable equilibrium ([Section 13.3](module_13_EN.html#equilibria)). Above all, the partial sums of a series with positive terms increase, so such a series converges exactly when its partial sums are bounded: every convergence test for positive terms in Sections 14.5 and 14.6 rests on this.
 :::
 
 ::: deeper Completeness and least upper bounds
@@ -455,7 +455,7 @@ print(sp.sin(sp.pi*k))
 
 ## Series {#series}
 
-To walk to a door, you must first cover half the distance, then half of what is left, then half of that, and so on for ever. One of the paradoxes of motion posed by the ancient Greek philosopher Zeno asks how anyone can complete infinitely many stages. As fractions of the whole distance, the stages measure $\tfrac12, \tfrac14, \tfrac18, \dots$, and the paradox dissolves once you can say what their total is.
+To walk to a door, you must first cover half the distance, then half of what is left, then half of that, and so on for ever. One of the paradoxes of motion posed by the Greek philosopher Zeno of Elea, in the 5th century BC, asks how anyone can complete infinitely many stages. As fractions of the whole distance, the stages measure $\tfrac12, \tfrac14, \tfrac18, \dots$, and the paradox dissolves once you can say what their total is.
 
 Figure 14.3 shows the same total as areas. Cut a square of area 1 in half; cut the remaining half in half; cut the remaining quarter in half, and so on. After $N$ cuts the pieces have total area
 
@@ -1025,7 +1025,8 @@ for N in [10, 100, 1000, 10**4, 10**5, 10**6]:
         n += 1
         H += 1/n                      # the harmonic series
         S += 1/n**2                   # the series of 1/n^2
-    print(f"N = {N:>7}:  H_N = {H:9.6f}   ln N + gamma = {math.log(N) + gamma:9.6f}"
+    L = math.log(N) + gamma
+    print(f"N = {N:>7}:  H_N = {H:9.6f}   ln N + gamma = {L:9.6f}"
           f"   pi^2/6 - S_N = {math.pi**2/6 - S:.3e}")
 ```
 

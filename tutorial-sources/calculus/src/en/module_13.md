@@ -567,6 +567,7 @@ for sol_, y0_ in ((ya, 1), (yb, -1)):
 holds(checkodesol(Eq(yf(t).diff(t), 2*t*yf(t)**2), Eq(yf(t), ya))[0])
 limit_is(ya, t, 1, oo, '-'); limit_is(ya, t, -1, oo, '+')
 same(diff(2*t*y**2, y), 4*t*y); same(solve(-1/(t**2 + c), t), [])
+same(diff(0*t, t), 2*t*(0*t)**2)                    # (c): the constant solution y = 0
 ```
 :::
 
