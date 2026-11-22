@@ -184,57 +184,9 @@ limit_is(sin(x)/x, x, 0, 1)
 A zero in the denominator does not always mean an infinite discontinuity. The denominator of $r$ is 0 at 2, yet the discontinuity there is removable, because the numerator is 0 there too and the factor $x - 2$ cancels. Factor and cancel first, then decide. And the kind of discontinuity depends on the limits near $a$, not on whether $f(a)$ is defined: $s$ and $q$ are both undefined at 0, but differ in kind.
 :::
 
-::: compute Continuity and one-sided limits with SymPy
-SymPy's `limit` takes a direction: `'+'` for the limit from the right, `'-'` from the left, and `'+-'` for the two-sided limit. One-sided limits classify the discontinuities of Example 3.2 and of the floor function:
-
-```python
-import sympy as sp
-x = sp.symbols('x')
-r = (x**2 - 4)/(x**2 - x - 2)
-print(sp.limit(r, x, 2, '+-'))                    # at the hole
-print(sp.limit(r, x, -1, '-'), sp.limit(r, x, -1, '+'))
-print(sp.limit(sp.Abs(x)/x, x, 0, '-'), sp.limit(sp.Abs(x)/x, x, 0, '+'))
-print(sp.limit(sp.floor(x), x, 3, '-'), sp.limit(sp.floor(x), x, 3, '+'))
-```
-
-```output
-4/3
--oo oo
--1 1
-2 3
-```
-
-The removable discontinuity has a limit, $\tfrac43$. At $-1$ the answers are `-oo` and `oo`: SymPy writes $\infty$ as two letters o. The jumps show different one-sided limits. An oscillating discontinuity gets a different kind of answer:
-
-```python
-print(sp.limit(sp.sin(1/x), x, 0, '+'))
-```
-
-```output
-AccumBounds(-1, 1)
-```
-
-`AccumBounds(-1, 1)` means that however close $x$ is to 0, the values of $\sin(1/x)$ still fill the whole interval $[-1, 1]$: they approach no single number. Finally, `continuous_domain` lists where a function is continuous:
-
-```python
-from sympy.calculus.util import continuous_domain
-print(continuous_domain(r, x, sp.S.Reals))
-```
-
-```output
-Union(Interval.open(-oo, -1), Interval.open(-1, 2), Interval.open(2, oo))
-```
-
-`Interval.open(-oo, -1)` is the open interval $(-\infty, -1)$, so $r$ is continuous everywhere except at $-1$ and 2. `continuous_domain` does not say what kind of discontinuity each point is, and for complicated formulas it can be wrong; check its answers against your own reasoning.
-:::
-
-```check
-limit_is(rr, x, 2, Rational(4, 3)); limit_is(floor(x), x, 3, 2, '-')
-```
-
 ## Which functions are continuous {#continuous-functions}
 
-Checking three conditions at every point would never end. Instead, a few theorems settle continuity at once for every function built from the catalogue of Module 1.
+Checking three conditions at every point would never end. A few theorems settle continuity at once for every function built from the catalogue of Module 1.
 
 ### Sums, products and quotients {#laws}
 
@@ -251,7 +203,7 @@ Each statement is a limit law of Module 2 in disguise. For the product: since $\
 
 $$\lim_{x\to a} f(x)\,g(x) = \lim_{x\to a} f(x) \cdot \lim_{x\to a} g(x) = f(a)\,g(a),$$
 
-which says that $fg$ is continuous at $a$. Sums, differences and constant multiples work the same way, with the sum, difference and constant multiple laws. For the quotient, the quotient law needs the limit of the denominator to be non-zero, and it is: $\lim_{x\to a} g(x) = g(a) \ne 0$. (Because $g(x)$ is close to $g(a) \ne 0$ when $x$ is close to $a$, $g(x) \ne 0$ there, so $f/g$ is defined on an open interval around $a$.) One-sided limits obey the same laws, which gives the one-sided statements.
+which says that $fg$ is continuous at $a$. Sums, differences and constant multiples work the same way. The quotient law needs the limit of the denominator to be non-zero, and it is: $\lim_{x\to a} g(x) = g(a) \ne 0$. (So $g(x) \ne 0$ for $x$ close to $a$, and $f/g$ is defined on an open interval around $a$.) One-sided limits obey the same laws, which gives the one-sided statements.
 :::
 
 ::: theorem Polynomials and rational functions
@@ -259,10 +211,10 @@ Every polynomial is continuous on $\R$. Every rational function is continuous at
 :::
 
 ::: proof
-The constant function $c$ and the function $x$ are continuous everywhere, because $\lim_{x\to a} c = c$ and $\lim_{x\to a} x = a$ (Module 2). By the product law of Theorem 3.1, so are $x^2 = x \cdot x$, $x^3 = x^2 \cdot x$, and every power $x^n$; by the constant multiple and sum laws, so is every polynomial $a_nx^n + \dots + a_1x + a_0$. A rational function $p/q$ is a quotient of two polynomials, so by the quotient law it is continuous at every $a$ with $q(a) \ne 0$, which is every number of its domain.
+This is the direct substitution theorem of Module 2 in new words. For a polynomial $p$ and every number $a$, $\lim_{x\to a} p(x) = p(a)$. For a rational function $p/q$ and a number $a$ of its domain, $q(a) \ne 0$, and $\lim_{x\to a} p(x)/q(x) = p(a)/q(a)$. Each statement says that the limit is the value: continuity at $a$.
 :::
 
-This is the direct substitution property of Module 2 in new words: if $f$ is a polynomial or a rational function and $a$ is in its domain, then $\lim_{x\to a} f(x) = f(a)$. It also completes Example 3.2: $r$ is continuous at every number except 2 and $-1$.
+This completes Example 3.2: $r$ is continuous at every number except 2 and $-1$.
 
 ### The catalogue is continuous {#catalogue}
 
@@ -275,38 +227,29 @@ Each of these functions is continuous at every number of its domain (at 0, the e
 - logarithms $\log_a x$, for $a > 0$ with $a \ne 1$; in particular $\ln x$.
 :::
 
-Here is why, family by family. The arguments for sine, cosine and the square root are proofs; for exponentials and logarithms they are the idea of the proof. On a first reading you may take the theorem on trust and skip to the composition rule below.
+Here is why, family by family: proofs for sine, cosine and roots, and the idea of the proof for exponentials and logarithms. On a first reading you may take the theorem on trust.
 
-**Sine and cosine.** Module 2 proved that $\dfrac{\sin\theta}{\theta} \to 1$ and $\dfrac{1 - \cos\theta}{\theta} \to 0$ as $\theta \to 0$. Multiply each by $\theta$, which tends to 0, and use the product law:
-
-$$\lim_{h\to0}\sin h = 1 \cdot 0 = 0, \qquad \lim_{h\to0}\,(1 - \cos h) = 0 \cdot 0 = 0.$$
-
-So $\sin h \to 0 = \sin 0$ and $\cos h \to 1 = \cos 0$: sine and cosine are continuous at 0. For any other number $a$, write $x = a + h$, so that $h \to 0$ as $x \to a$. The addition formula of [Section 1.4](module_01_EN.html#trig) and the two limits above give
+**Sine and cosine.** Module 2 proved that $\sin h \to 0 = \sin 0$ and $\cos h \to 1 = \cos 0$ as $h \to 0$: sine and cosine are continuous at 0. For any other number $a$, write $x = a + h$, so that $h \to 0$ as $x \to a$. The addition formula of [Section 1.4](module_01_EN.html#trig) and those two limits give
 
 $$\begin{aligned} \sin(a + h) &= \sin a\cos h + \cos a\sin h \\ &\to \sin a \cdot 1 + \cos a \cdot 0 = \sin a. \end{aligned}$$
 
-In the same way $\cos(a + h) = \cos a\cos h - \sin a\sin h \to \cos a$. So sine and cosine are continuous on $\R$, and the other four, quotients of these two, are continuous wherever their denominators are not 0 (Theorem 3.1), which is exactly on their domains.
+In the same way $\cos(a + h) = \cos a\cos h - \sin a\sin h \to \cos a$. So sine and cosine are continuous on $\R$, and the other four, quotients of these two, are continuous wherever their denominators are not 0 (Theorem 3.1): on their domains.
 
 ```check
-limit_is(sin(h), h, 0, 0); limit_is(1 - cos(h), h, 0, 0); limit_is(sin(h)/h, h, 0, 1); limit_is((1 - cos(h))/h, h, 0, 0)
+limit_is(sin(h), h, 0, 0); limit_is(cos(h), h, 0, 1); same(sin(0), 0); same(cos(0), 1)
 same(expand_trig(sin(a + h)), sin(a)*cos(h) + cos(a)*sin(h)); same(expand_trig(cos(a + h)), cos(a)*cos(h) - sin(a)*sin(h))
 same((sin(a)*cos(h) + cos(a)*sin(h)).subs(h, 0), sin(a)); same((cos(a)*cos(h) - sin(a)*sin(h)).subs(h, 0), cos(a))
 ```
 
-**Square roots.** Let $a > 0$. For $x \ge 0$, multiply and divide by $\sqrt x + \sqrt a$, as when you rationalise in Module 2:
-
-$$\abs{\sqrt x - \sqrt a} = \frac{\abs{x - a}}{\sqrt x + \sqrt a} \le \frac{\abs{x - a}}{\sqrt a},$$
-
-since the denominator is at least $\sqrt a$. As $x \to a$ the right side tends to 0, so by the squeeze theorem $\sqrt x - \sqrt a \to 0$: $\sqrt x$ is continuous at $a$. At 0, from the right: $\sqrt x < \varepsilon$ whenever $0 \le x < \varepsilon^2$, which is the ε–δ condition with $\delta = \varepsilon^2$. Other roots can be handled in the same spirit, or by the idea for logarithms below, since $\sqrt[n]{x}$ is the inverse of $x^n$.
+**Roots.** By the root law of Module 2, $\lim_{x\to a}\sqrt[n]{x} = \sqrt[n]{a}$ for every $a > 0$, and for every $a$ when $n$ is odd. At 0 an even root is continuous from the right: $\sqrt[n]{x} < \varepsilon$ whenever $0 \le x < \varepsilon^n$, which is the ε–δ condition with $\delta = \varepsilon^n$.
 
 ```check
-xp, ap = symbols('x a', positive=True)
-same((sqrt(xp) - sqrt(ap))*(sqrt(xp) + sqrt(ap)), xp - ap)
-holds(sqrt(xp) + sqrt(ap) > sqrt(ap))
-ep = symbols('epsilon', positive=True); same(sqrt(ep**2), ep)
+ap = symbols('a', positive=True); nr = symbols('n', positive=True, integer=True); ep = symbols('epsilon', positive=True)
+limit_is(sqrt(x), x, ap, sqrt(ap)); limit_is(real_root(x, 3), x, -8, -2); limit_is(sqrt(x), x, 0, 0, '+')
+same((ep**nr)**(1/nr), ep)                      # x < epsilon^n gives x^(1/n) < epsilon
 ```
 
-**Exponentials and logarithms.** For whole and fractional $x$, $a^x$ is built from products and roots of $a$; for an irrational $x$ such as $\sqrt2$, Module 1 defined $a^x$ as the number that $a^{1.4}, a^{1.41}, a^{1.414}, \dots$ approach. Making that definition precise is exactly what shows $a^x$ to be continuous, and it belongs to a course in analysis; this series takes the continuity of $a^x$ as known. The logarithm $\log_a$ is the inverse of $a^x$, and its graph is the mirror image of the graph of $a^x$ in the line $y = x$ ([Theorem 1.2](module_01_EN.html#inverse)). The mirror image of an unbroken curve is unbroken. That is the idea behind a general fact, proved in analysis courses: the inverse of a continuous function that is strictly increasing (or strictly decreasing) on an interval is continuous. ([Exercise 1.10](module_01_EN.html#ex-1-10) defined "strictly increasing".)
+**Exponentials and logarithms.** For an irrational $x$ such as $\sqrt2$, Module 1 defined $a^x$ as the number that $a^{1.4}, a^{1.41}, a^{1.414}, \dots$ approach. Making that precise is what shows $a^x$ to be continuous; it belongs to a course in analysis, and this series takes it as known. The logarithm $\log_a$ is the inverse of $a^x$, so its graph is the mirror image of the graph of $a^x$ in the line $y = x$ ([Theorem 1.2](module_01_EN.html#inverse)), and the mirror image of an unbroken curve is unbroken. That is the idea behind a fact proved in analysis courses: the inverse of a continuous function that is strictly increasing or strictly decreasing on an interval ([Exercise 1.10](module_01_EN.html#ex-1-10)) is continuous.
 
 ::: keyidea
 Every function built from the catalogue of Module 1 with $+$, $-$, $\times$, $\div$ and composition (below) is continuous on every interval that lies in its domain. A discontinuity can only occur where a formula breaks down (a zero denominator, the logarithm of 0) or where a piecewise definition changes formula.
@@ -328,7 +271,7 @@ $$\lim_{x\to a} f\big(g(x)\big) = f(b) = f\Big(\lim_{x\to a} g(x)\Big).$$
 The same holds for one-sided limits, and for limits as $x \to \infty$ or $x \to -\infty$ (Section 3.7).
 :::
 
-In words: if the inner function heads for $b$, and the outer function is continuous at $b$, then the composition heads for $f(b)$. The proof, with ε and δ, is in the Going deeper box below. Applied with $b = g(a)$, the theorem gives the composition rule for continuity:
+In words: if the inner function heads for $b$ and the outer function is continuous at $b$, the composition heads for $f(b)$. The proof is in the Going deeper box below. With $b = g(a)$, the theorem gives the composition rule:
 
 ::: theorem Continuity of compositions
 If $g$ is continuous at $a$ and $f$ is continuous at $g(a)$, then $f \circ g$ is continuous at $a$.
@@ -341,6 +284,12 @@ $$\lim_{x\to a} f\big(g(x)\big) = f\big(g(a)\big),$$
 
 which says that $f \circ g$ is continuous at $a$.
 :::
+
+For example, $\abs{x} = \sqrt{x^2}$ is continuous on $\R$, as the composition of $x^2$ with the square root.
+
+```check
+xr2 = symbols('x', real=True); same(sqrt(xr2**2), Abs(xr2)); limit_is(Abs(x), x, 0, 0)
+```
 
 ::: deeper Why limits pass inside continuous functions
 Here is the proof of Theorem 3.4, with the ε–δ definition of Module 2. Let $\varepsilon > 0$. Because $f$ is continuous at $b$, there is a number $\eta > 0$ ($\eta$ is the Greek letter eta) such that
@@ -365,9 +314,9 @@ Find the intervals on which each function is continuous.
 
 **(a)** $\sin x$ is continuous on $\R$ (Theorem 3.3), and so is the polynomial $x^2 + 1$, which is never 0, because $x^2 + 1 \ge 1$. By the quotient law, $f$ is continuous on $\R$.
 
-**(b)** $g$ is the square root $\sqrt u$ composed with $u = 9 - x^2$. Its domain is where $9 - x^2 \ge 0$, that is, $-3 \le x \le 3$. For $-3 < x < 3$, $u = 9 - x^2$ is positive, and $\sqrt u$ is continuous at every positive $u$, so $g$ is continuous at $x$ by Theorem 3.5. At the endpoint 3: as $x \to 3^-$, $u = 9 - x^2$ approaches 0 through positive values, and $\sqrt u \to 0$ as $u \to 0^+$, so $g(x) \to 0 = g(3)$; $g$ is continuous from the left at 3, and in the same way from the right at $-3$. So $g$ is continuous on $[-3, 3]$. Its graph is the upper half of the circle $x^2 + y^2 = 9$, like the semicircle of [Example 1.2](module_01_EN.html#domains).
+**(b)** $g$ is the square root $\sqrt u$ composed with $u = 9 - x^2$, and its domain is where $9 - x^2 \ge 0$: $-3 \le x \le 3$. For $-3 < x < 3$, $u$ is positive, and $\sqrt u$ is continuous at every positive $u$, so $g$ is continuous at $x$ by Theorem 3.5. At the endpoint 3: as $x \to 3^-$, $u = 9 - x^2$ approaches 0 through positive values, and $\sqrt u \to 0$ as $u \to 0^+$, so $g(x) \to 0 = g(3)$. So $g$ is continuous from the left at 3, in the same way from the right at $-3$, and therefore continuous on $[-3, 3]$. Its graph is the upper half of the circle $x^2 + y^2 = 9$ (compare [Example 1.2](module_01_EN.html#domains)).
 
-**(c)** $\ln u$ is continuous for $u > 0$ and $u = 1 + \cos x$ is continuous everywhere, so $h$ is continuous wherever $1 + \cos x > 0$. Since $\cos x \ge -1$, $1 + \cos x \ge 0$, with equality exactly where $\cos x = -1$: at the odd multiples of $\pi$, $x = \pm\pi, \pm3\pi, \pm5\pi, \dots$. So $h$ is continuous on every interval between consecutive odd multiples of $\pi$: on $(-\pi, \pi)$, on $(\pi, 3\pi)$, on $(-3\pi, -\pi)$, and so on. At the odd multiples of $\pi$, $h$ is not defined, and its values plunge without bound (Section 3.6).
+**(c)** $\ln u$ is continuous for $u > 0$ and $1 + \cos x$ is continuous everywhere, so $h$ is continuous wherever $1 + \cos x > 0$. Since $\cos x \ge -1$, $1 + \cos x \ge 0$, with equality exactly where $\cos x = -1$: at the odd multiples of $\pi$, $x = \pm\pi, \pm3\pi, \dots$. So $h$ is continuous on every interval between consecutive odd multiples of $\pi$: on $(-\pi, \pi)$, on $(\pi, 3\pi)$, and so on. At the odd multiples of $\pi$, $h$ is not defined, and its values plunge without bound (Section 3.6).
 
 ```check
 from sympy.calculus.util import continuous_domain, function_range
@@ -389,7 +338,7 @@ Find (a) $\displaystyle\lim_{x\to 1} \ln\frac{x^2 - 1}{x - 1}$ and (b) $\display
 
 $$\lim_{x\to 1} \ln\frac{x^2 - 1}{x - 1} = \ln\Big(\lim_{x\to1}\frac{x^2 - 1}{x - 1}\Big) = \ln 2 \approx 0.6931.$$
 
-The inner function has a removable discontinuity at 1, and the theorem does not mind: it needs the inner limit to exist, not the inner function to be continuous.
+The theorem needs the inner limit to exist, not the inner function to be continuous: here it has a removable discontinuity at 1.
 
 **(b)** As $x \to 0$, the exponent $\dfrac{\sin x}{x}$ tends to 1 (Module 2), and $e^u$ is continuous at 1, so
 
@@ -403,7 +352,7 @@ limit_is(sin(x)/x, x, 0, 1); limit_is(exp(sin(x)/x), x, 0, E); rounds(E, '2.718'
 :::
 
 ::: pitfall
-Moving a limit inside a function needs the function to be continuous at the inner limit. The floor function is not continuous at 1, and moving the limit inside it gives a wrong answer. As $x \to 0$, $\cos x \to 1$; but for $0 < \abs{x} < \pi/2$, $0 < \cos x < 1$, so $\lfloor\cos x\rfloor = 0$. Hence $\lim_{x\to0}\lfloor\cos x\rfloor = 0$, not $\lfloor 1\rfloor = 1$.
+A limit moves inside a function only if the function is continuous at the inner limit. The floor function is not continuous at 1: as $x \to 0$, $\cos x \to 1$, but for $0 < \abs{x} < \pi/2$, $0 < \cos x < 1$, so $\lfloor\cos x\rfloor = 0$. Hence $\lim_{x\to0}\lfloor\cos x\rfloor = 0$, not $\lfloor 1\rfloor = 1$.
 
 ```check
 limit_is(cos(x), x, 0, 1); limit_is(floor(cos(x)), x, 0, 0); same(floor(cos(0)), 1)
@@ -413,7 +362,7 @@ same(floor(cos(Rational(1, 10))), 0); same(floor(cos(-Rational(3, 2))), 0); hold
 
 ## The Intermediate Value Theorem {#ivt}
 
-Suppose you walk up a mountain path from a hut at 1200 m to a summit at 2100 m. However the path twists and dips, at some moment you were at exactly 1500 m: your height changed continuously, so it could not skip from below 1500 m to above it. The same holds for the graph of every continuous function: a horizontal line at a height $N$ between $f(a)$ and $f(b)$ must meet the graph somewhere between $a$ and $b$ (Figure 3.2).
+Walk up a mountain path from a hut at 1200 m to a summit at 2100 m. However the path twists and dips, at some moment you are at exactly 1500 m: your height changes continuously, so it cannot skip from below 1500 m to above it. In the same way, a horizontal line at any height $N$ between $f(a)$ and $f(b)$ must meet the graph of a continuous function somewhere between $a$ and $b$ (Figure 3.2).
 
 ::: figure id=fig-03-2
 The Intermediate Value Theorem. Left: $f$ is continuous on $[a, b]$ and $N$ lies between $f(a)$ and $f(b)$, so the line $y = N$ meets the graph, here at three points $c_1$, $c_2$ and $c_3$. Right: a graph with a jump can skip over the height $N$, and then no $c$ has $f(c) = N$.
@@ -439,7 +388,7 @@ Let $f(x) = x^3 - 2x - 5$. It is a polynomial, so it is continuous on $[2, 3]$ (
 
 $$f(2) = 8 - 4 - 5 = -1, \qquad f(3) = 27 - 6 - 5 = 16.$$
 
-Since $f(2) < 0 < f(3)$, the Intermediate Value Theorem with $N = 0$ gives a number $c$ in $(2, 3)$ with $f(c) = 0$. The theorem says nothing about where in $(2, 3)$ the solution is. Since $f(2) = -1$ is much closer to 0 than $f(3) = 16$, you may guess that $c$ is nearer 2 than 3; Section 3.4 finds $c \approx 2.0946$.
+Since $f(2) < 0 < f(3)$, the Intermediate Value Theorem with $N = 0$ gives a number $c$ in $(2, 3)$ with $f(c) = 0$. The theorem does not say where in $(2, 3)$; since $f(2) = -1$ is much closer to 0 than $f(3) = 16$, you may guess that $c$ is nearer 2. Section 3.4 finds $c \approx 2.0946$.
 
 ```check
 fcub = x**3 - 2*x - 5
@@ -553,7 +502,9 @@ $$b_n - a_n = \frac{b - a}{2^n}, \qquad \abs{m_n - r} \le \frac{b - a}{2^{n+1}}.
 :::
 
 ::: proof
-Step 3 of the method keeps a half of the bracket at whose ends $f$ has opposite signs: if $f(m_n)$ has the sign of $f(a_n)$, it has the sign opposite to $f(b_n)$, and the new bracket is $[m_n, b_n]$; otherwise $f(m_n)$, which is not 0, has the sign opposite to $f(a_n)$, and the new bracket is $[a_n, m_n]$. So $f(a_n)$ and $f(b_n)$ have opposite signs for every $n$. Since $f$ is continuous on $[a_n, b_n]$, a part of $[a, b]$, the Intermediate Value Theorem gives a root $r$ in $(a_n, b_n)$. Each step halves the width of the bracket, so after $n$ steps the width is $(b - a)/2^n$. Finally, the midpoint of an interval is within half the interval's width of every point of the interval, and in particular of $r$: $\abs{m_n - r} \le \tfrac12 \cdot \tfrac{b - a}{2^n} = \tfrac{b - a}{2^{n+1}}$.
+Step 3 of the method keeps a half of the bracket at whose ends $f$ has opposite signs: if $f(m_n)$ has the sign of $f(a_n)$, it has the sign opposite to $f(b_n)$, and the new bracket is $[m_n, b_n]$; otherwise $f(m_n)$, which is not 0, has the sign opposite to $f(a_n)$, and the new bracket is $[a_n, m_n]$. So $f(a_n)$ and $f(b_n)$ have opposite signs for every $n$. Since $f$ is continuous on $[a_n, b_n]$, a part of $[a, b]$, the Intermediate Value Theorem gives a root $r$ in $(a_n, b_n)$. Each step halves the width of the bracket, so after $n$ steps the width is $(b - a)/2^n$. Finally, the midpoint of an interval is within half the interval's width of every point of the interval, in particular of $r$:
+
+$$\abs{m_n - r} \le \frac12\cdot\frac{b - a}{2^n} = \frac{b - a}{2^{n+1}}.$$
 :::
 
 So the bisection method comes with a guarantee that most numerical methods lack: you know in advance how many steps give the accuracy you need. To make $\abs{m_n - r} \le \varepsilon$, it is enough that $(b - a)/2^{n+1} \le \varepsilon$, that is,
@@ -698,7 +649,7 @@ same(simplify(half(x) - x), (1 - x)/2)
 same(simplify(1 - x/(x + 1)), 1/(x + 1)); holds(1/(xs_ + 1) > 0); limit_is(x/(x + 1), x, oo, 1)
 ```
 
-The theorem says that extreme values exist, not where they are: at an end of the interval, as the maximum in Figure 3.4, or inside it, as the minimum. In optimisation, it is the guarantee that a best choice exists: a cost that depends continuously on a setting has a cheapest setting in every closed interval of settings, and Module 8 shows how to find it.
+The theorem says that extreme values exist, not where: at an end of the interval, like the maximum in Figure 3.4, or inside it, like the minimum. In optimisation it guarantees that a best choice exists: a cost that depends continuously on a setting has a cheapest setting in every closed interval of settings. Module 8 shows how to find it.
 
 ::: example Does the theorem apply?
 Decide whether the Extreme Value Theorem guarantees a maximum and a minimum value, and find them where you can.
@@ -750,7 +701,7 @@ x | \dfrac{1}{x} | \dfrac{1}{x^2}
 0.1 | 10 | 100
 ```
 
-As $x$ approaches 0 from either side, $1/x^2$ becomes as large as you like, and stays large: it passes 100, 10,000 and a million, and any bound $M$ you choose, once $x$ is close enough to 0. There is no number for it to approach, so the limit does not exist; but it fails to exist in such a definite way that it gets its own notation.
+As $x$ approaches 0 from either side, $1/x^2$ passes 100, 10,000, a million, and any bound $M$ you choose, and stays above it. Module 2 showed that no number is its limit; but the limit fails to exist in such a definite way that it gets its own notation.
 
 ::: definition Infinite limits and vertical asymptotes
 Let $f$ be defined on an open interval containing $a$, except perhaps at $a$ itself. Then
@@ -909,14 +860,14 @@ with $a_m \ne 0$ and $b_n \ne 0$, so that the numerator has degree $m$ and the d
 ::: proof
 For $x \ne 0$, take the leading term out of the numerator and out of the denominator:
 
-$$f(x) = \frac{a_m x^m}{b_n x^n} \cdot \frac{1 + \frac{a_{m-1}}{a_m x} + \dots + \frac{a_0}{a_m x^m}}{1 + \frac{b_{n-1}}{b_n x} + \dots + \frac{b_0}{b_n x^n}}.$$
+$$f(x) = \frac{a_m x^m}{b_n x^n} \cdot \frac{1 + c_1/x + \dots + c_m/x^m}{1 + d_1/x + \dots + d_n/x^n},$$
 
-As $x \to \pm\infty$, each term with a power of $x$ in its denominator tends to 0, so the second fraction tends to $\dfrac{1 + 0 + \dots + 0}{1 + 0 + \dots + 0} = 1$. The first fraction equals $\dfrac{a_m}{b_n}x^{m-n}$: it tends to 0 if $m < n$, it is the constant $\dfrac{a_m}{b_n}$ if $m = n$, and it tends to $\infty$ or $-\infty$ if $m > n$. In the last case the product of a factor that grows without bound and a factor that tends to 1 grows without bound, with the same sign.
+where $c_k = a_{m-k}/a_m$ and $d_k = b_{n-k}/b_n$ are constants. As $x \to \pm\infty$, every term $c_k/x^k$ and $d_k/x^k$ tends to 0, so the second fraction tends to $\dfrac{1 + 0 + \dots + 0}{1 + 0 + \dots + 0} = 1$. The first fraction equals $\dfrac{a_m}{b_n}x^{m-n}$: it tends to 0 if $m < n$, it is the constant $\dfrac{a_m}{b_n}$ if $m = n$, and it tends to $\infty$ or $-\infty$ if $m > n$. In the last case the product of a factor that grows without bound and a factor that tends to 1 grows without bound, with the same sign.
 :::
 
 ```check
-pr = (3*x**2 + 2*x + 1)/(5*x**2 - x + 4)
-same(pr, (3*x**2/(5*x**2))*(1 + 2/(3*x) + 1/(3*x**2))/(1 - 1/(5*x) + 4/(5*x**2)))
+pr = (3*x**2 + 2*x + 1)/(5*x**2 - x + 4)                      # m = n = 2: c1 = 2/3, c2 = 1/3, d1 = -1/5, d2 = 4/5
+same(pr, (3*x**2/(5*x**2))*(1 + Rational(2, 3)/x + Rational(1, 3)/x**2)/(1 - Rational(1, 5)/x + Rational(4, 5)/x**2))
 limit_is(pr, x, oo, Rational(3, 5)); limit_is(pr, x, -oo, Rational(3, 5))
 ```
 
@@ -929,13 +880,13 @@ Find
 
 **(a)** The degrees are equal, 3 and 3. Divide the numerator and the denominator by $x^3$:
 
-$$\frac{6x^3 - 5x + 1}{2x^3 + x^2} = \frac{6 - \frac{5}{x^2} + \frac{1}{x^3}}{2 + \frac1x} \to \frac{6 - 0 + 0}{2 + 0} = 3.$$
+$$\frac{6x^3 - 5x + 1}{2x^3 + x^2} = \frac{6 - 5/x^2 + 1/x^3}{2 + 1/x} \to \frac{6 - 0 + 0}{2 + 0} = 3.$$
 
 The line $y = 3$ is a horizontal asymptote, as Theorem 3.10 predicts: $3 = 6/2$, the ratio of the leading coefficients.
 
 **(b)** Degree 1 over degree 2: divide by $x^2$:
 
-$$\frac{4x - 7}{x^2 + 1} = \frac{\frac4x - \frac{7}{x^2}}{1 + \frac{1}{x^2}} \to \frac{0 - 0}{1 + 0} = 0.$$
+$$\frac{4x - 7}{x^2 + 1} = \frac{4/x - 7/x^2}{1 + 1/x^2} \to \frac{0 - 0}{1 + 0} = 0.$$
 
 The $x$-axis is a horizontal asymptote (at both ends, since the same computation works as $x \to \infty$).
 
@@ -1080,8 +1031,8 @@ limit_is(f13, x, 1, oo, '+'); limit_is(f13, x, 1, -oo, '-'); limit_is(f13, x, oo
 Asymptotes. Left: $r(x) = \dfrac{x^2 - 4}{x^2 - x - 2}$ of Examples 3.2 and 3.10, with the vertical asymptote $x = -1$, the horizontal asymptote $y = 1$ and the hole at $\big(2, \tfrac43\big)$. Right: $f(x) = \dfrac{x^2 + 1}{x - 1}$ of Example 3.13, with the vertical asymptote $x = 1$ and the oblique asymptote $y = x + 1$; the graph lies above the oblique asymptote for $x > 1$ and below it for $x < 1$.
 :::
 
-::: compute Limits at infinity and asymptotes with SymPy
-In SymPy, $\infty$ is `sp.oo`. The limits of Example 3.12:
+::: compute Asymptotes and continuity with SymPy
+In SymPy, $\infty$ is `sp.oo`. Here are the limits of Example 3.12 at both ends, and on both sides of 3:
 
 ```python
 import sympy as sp
@@ -1092,21 +1043,20 @@ print(sp.limit(f, x, 3, '+'), sp.limit(f, x, 3, '-'))
 ```
 
 ```output
-2 -2
-oo -oo
 ```
 
-Without a direction, `limit` approaches from the right, so remember to check the left as well:
+As Module 2 warned, a one-sided limit needs its direction: without one, `limit` approaches from the right. To see where a function is continuous, `continuous_domain` lists the intervals; here is the function $r$ of Example 3.2:
 
 ```python
-print(sp.limit(1/x, x, 0), sp.limit(1/x, x, 0, '-'))
+from sympy.calculus.util import continuous_domain
+r = (x**2 - 4)/(x**2 - x - 2)
+print(continuous_domain(r, x, sp.S.Reals))
 ```
 
 ```output
-oo -oo
 ```
 
-The first answer is only the limit from the right; $\lim_{x\to0} 1/x$ does not exist. For an oblique asymptote, `sp.div` divides one polynomial by another and returns the quotient and the remainder:
+`Interval.open(-oo, -1)` is the open interval $(-\infty, -1)$: $r$ is continuous everywhere except at $-1$ and 2. The answer does not say what kind of discontinuity each point is, and for complicated formulas `continuous_domain` can be wrong, so compare it with your own reasoning. For an oblique asymptote, `sp.div` divides one polynomial by another and returns the quotient and the remainder:
 
 ```python
 q, s = sp.div(x**2 + 1, x - 1)                  # Example 3.13

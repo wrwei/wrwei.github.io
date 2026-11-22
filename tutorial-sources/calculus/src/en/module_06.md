@@ -239,7 +239,7 @@ rounds(exp(2), '7.39'); same(diff(exp(2), x), 0)
 
 $$\ln x = \int_1^x \frac{dt}{t},$$
 
-the area under the curve $y = 1/t$ from 1 to $x$ (counted as negative when $x < 1$). The Fundamental Theorem of Calculus gives $(\ln x)' = 1/x$ at once; the laws of logarithms follow from it, with a theorem of Module 8; $\ln$ increases and takes every real value, so it has an inverse function, $\exp$; $e$ is $\exp(1)$, the number for which the area from 1 to $e$ is exactly 1; and for $a > 0$ and every real $x$ one *defines* $a^x = \exp(x\ln a)$, which also settles what irrational powers mean. Theorem 6.4 below then gives $\exp' = \exp$. The functions are the same as in this section; only the order of the proofs changes.
+the area under the curve $y = 1/t$ from 1 to $x$ (counted as negative when $x < 1$). The Fundamental Theorem of Calculus gives $(\ln x)' = 1/x$ at once; the laws of logarithms follow from it, with a theorem of Module 8; $\ln$ increases and takes every real value, so it has an inverse function, ${\exp}$; $e$ is $\exp(1)$, the number for which the area from 1 to $e$ is exactly 1; and for $a > 0$ and every real $x$ one *defines* $a^x = \exp(x\ln a)$, which also settles what irrational powers mean. Theorem 6.4 below then gives $\exp' = {\exp}$. The functions are the same as in this section; only the order of the proofs changes.
 
 ```check
 qd = lambda H: (2**H - 1)/H
@@ -400,7 +400,7 @@ $$\frac{d}{dx}\ln\abs{x} = \frac1x.$$
 :::
 
 ::: proof
-Apply Theorem 6.4 to $f(x) = e^x$ on the open interval $I = \R$. It is differentiable, hence continuous, and one-to-one (Module 1); its derivative $e^x$ is never 0; its values form $J = (0, \infty)$; and its inverse is $\ln$. For $b > 0$ let $a = \ln b$. Then
+Apply Theorem 6.4 to $f(x) = e^x$ on the open interval $I = \R$. It is differentiable, hence continuous, and one-to-one (Module 1); its derivative $e^x$ is never 0; its values form $J = (0, \infty)$; and its inverse is ${\ln}$. For $b > 0$ let $a = \ln b$. Then
 
 $$(\ln)'(b) = \frac{1}{f'(a)} = \frac{1}{e^{\ln b}} = \frac1b.$$
 
@@ -424,7 +424,7 @@ same(diff(log(uF(x)), x), diff(uF(x), x)/uF(x)); same(diff(log(-uF(x)), x), diff
 ```
 
 ::: example Derivatives with logarithms
-Differentiate (a) $\ln(x^2 + 1)$, (b) $\ln\abs{\cos x}$, where $\cos x \ne 0$, and (c) $\ln\dfrac{x^3}{\sqrt{x^2 + 1}}$, for $x > 0$.
+Differentiate (a) $\ln(x^2 + 1)$, (b) $\ln{\abs{\cos x}}$, where $\cos x \ne 0$, and (c) $\ln\dfrac{x^3}{\sqrt{x^2 + 1}}$, for $x > 0$.
 
 **(a)** Here $u = x^2 + 1 > 0$, so $\dfrac{d}{dx}\ln(x^2 + 1) = \dfrac{2x}{x^2 + 1}$.
 
@@ -461,7 +461,7 @@ For a base $a > 0$ with $a \ne 1$, $\log_a x = \dfrac{\ln x}{\ln a}$ (Module 1),
 
 $$\frac{d}{dx}\log_a x = \frac{1}{x\ln a}.$$
 
-For example $\dfrac{d}{dx}\log_{10} x = \dfrac{1}{x\ln 10} \approx \dfrac{0.4343}{x}$ and $\dfrac{d}{dx}\log_2 x = \dfrac{1}{x\ln 2} \approx \dfrac{1.4427}{x}$. Only the natural logarithm has the factor 1. That is why calculus uses $\ln$, as it uses $e^x$: the formulas $\dfrac{d}{dx}a^x = a^x\ln a$ and $\dfrac{d}{dx}\log_a x = \dfrac{1}{x\ln a}$ both lose their factor $\ln a$ exactly when $a = e$.
+For example $\dfrac{d}{dx}\log_{10} x = \dfrac{1}{x\ln 10} \approx \dfrac{0.4343}{x}$ and $\dfrac{d}{dx}\log_2 x = \dfrac{1}{x\ln 2} \approx \dfrac{1.4427}{x}$. Only the natural logarithm has the factor 1. That is why calculus uses ${\ln}$, as it uses $e^x$: the formulas $\dfrac{d}{dx}a^x = a^x\ln a$ and $\dfrac{d}{dx}\log_a x = \dfrac{1}{x\ln a}$ both lose their factor $\ln a$ exactly when $a = e$.
 
 ```check
 same(diff(log(xp, ap), xp), 1/(xp*log(ap)))
@@ -486,7 +486,7 @@ $$\lim_{n\to\infty}\Big(1 + \frac{x}{n}\Big)^n = e^x, \quad\text{and in particul
 :::
 
 ::: proof
-For $x = 0$ both sides are 1. Let $x \ne 0$, and take $n > \abs{x}$, so that $1 + x/n > 0$. Every positive number $p$ is $e^{\ln p}$, so $p^n = e^{n\ln p}$, and
+For $x = 0$ both sides are 1. Let $x \ne 0$, and take $n > {\abs{x}}$, so that $1 + x/n > 0$. Every positive number $p$ is $e^{\ln p}$, so $p^n = e^{n\ln p}$, and
 
 $$\Big(1 + \frac{x}{n}\Big)^n = e^{\,n\ln(1 + x/n)}.$$
 
@@ -544,13 +544,13 @@ same(solve(exp(Rational(5, 100)*tp) - 2, tp), [log(2)/Rational(5, 100)]); rounds
 
 The circle $x^2 + y^2 = 25$, of radius 5 centred at the origin, is not the graph of a function: it fails the vertical line test of Module 1. But near the point $(3, 4)$ it is one: the upper half of the circle is the graph of $y = \sqrt{25 - x^2}$, and the chain rule gives its slope,
 
-$$\frac{dy}{dx} = \frac{-2x}{2\sqrt{25 - x^2}} = -\frac{x}{\sqrt{25 - x^2}}, \quad\text{which at } x = 3 \text{ is } -\frac34.$$
+$$\frac{dy}{dx} = \frac{-2x}{2\sqrt{25 - x^2}} = -\frac{x}{\sqrt{25 - x^2}}, \quad\text{which at } x = 3 \text{ is } {-\frac34}.$$
 
 You can find this slope without solving for $y$. Near $(3, 4)$, think of $y$ as a function of $x$, $y = y(x)$, whose graph is that part of the circle. Then $x^2 + y(x)^2 = 25$ for every $x$ near 3: the two sides are the same function of $x$, so they have the same derivative. Differentiate both sides with respect to $x$, with the chain rule on $y^2$:
 
 $$2x + 2y\,\frac{dy}{dx} = 0, \quad\text{so}\quad \frac{dy}{dx} = -\frac{x}{y} \quad (y \ne 0).$$
 
-At $(3, 4)$ this gives $-\tfrac34$ again. The same formula works at every point of the circle with $y \ne 0$: at $(3, -4)$, on the lower half, the slope is $+\tfrac34$. This is **implicit differentiation**: the equation defines $y$ as a function of $x$ only *implicitly*, and you differentiate the equation as it stands. The answer has a geometric meaning (Figure 6.3, left): the radius from the origin to $(x, y)$ has slope $y/x$, and $\dfrac{y}{x}\cdot\Big(-\dfrac{x}{y}\Big) = -1$, so the tangent line is perpendicular to the radius, as school geometry says it must be.
+At $(3, 4)$ this gives $-\tfrac34$ again. The same formula works at every point of the circle with $y \ne 0$: at $(3, -4)$, on the lower half, the slope is $+\tfrac34$. This is **implicit differentiation**: the equation defines $y$ as a function of $x$ only *implicitly*, and you differentiate the equation as it stands. The answer has a geometric meaning (Figure 6.3, left): the radius from the origin to $(x, y)$ has slope $y/x$, and the product of the two slopes is $(y/x)(-x/y) = -1$, so the tangent line is perpendicular to the radius, as school geometry says it must be.
 
 ```check
 same(diff(sqrt(25 - x**2), x), -x/sqrt(25 - x**2)); same((-x/sqrt(25 - x**2)).subs(x, 3), -Rational(3, 4))
@@ -658,7 +658,7 @@ The inverse trigonometric functions. In each panel the part of the trigonometric
 :::
 
 ::: pitfall
-Many books and calculators write $\sin^{-1}x$ for $\arcsin x$ (and $\cos^{-1}x$, $\tan^{-1}x$). This $-1$ means "inverse function", as in $f^{-1}$; it is not an exponent, so $\sin^{-1}x$ is not $(\sin x)^{-1} = \dfrac{1}{\sin x}$. The notation clashes with $\sin^2 x$, which does mean $(\sin x)^2$. For $x = \tfrac12$: $\arcsin\tfrac12 = \tfrac{\pi}{6} \approx 0.524$, while $\dfrac{1}{\sin(1/2)} \approx 2.086$. This series writes $\arcsin$.
+Many books and calculators write $\sin^{-1}x$ for $\arcsin x$ (and $\cos^{-1}x$, $\tan^{-1}x$). This $-1$ means "inverse function", as in $f^{-1}$; it is not an exponent, so $\sin^{-1}x$ is not $(\sin x)^{-1} = \dfrac{1}{\sin x}$. The notation clashes with $\sin^2 x$, which does mean $(\sin x)^2$. For $x = \tfrac12$: $\arcsin\tfrac12 = \tfrac{\pi}{6} \approx 0.524$, while $\dfrac{1}{\sin(1/2)} \approx 2.086$. This series writes ${\arcsin}$.
 
 ```check
 same(asin(Rational(1, 2)), pi/6); rounds(pi/6, '0.524'); rounds(1/sin(Rational(1, 2)), '2.086')
@@ -685,7 +685,7 @@ same(sin(3*pi/4), sqrt(2)/2); same(asin(sin(3*pi/4)), pi/4); holds(3*pi/4 > pi/2
 :::
 
 ::: theorem Derivatives of the inverse trigonometric functions
-$$\begin{aligned} \frac{d}{dx}\arcsin x &= \frac{1}{\sqrt{1 - x^2}} \quad \text{for } -1 < x < 1, \\ \frac{d}{dx}\arccos x &= -\frac{1}{\sqrt{1 - x^2}} \quad \text{for } -1 < x < 1, \\ \frac{d}{dx}\arctan x &= \frac{1}{1 + x^2} \quad \text{for every real } x. \end{aligned}$$
+$$\begin{aligned} \frac{d}{dx}\arcsin x &= \frac{1}{\sqrt{1 - x^2}} \quad \text{for } {-1} < x < 1, \\ \frac{d}{dx}\arccos x &= -\frac{1}{\sqrt{1 - x^2}} \quad \text{for } {-1} < x < 1, \\ \frac{d}{dx}\arctan x &= \frac{1}{1 + x^2} \quad \text{for every real } x. \end{aligned}$$
 :::
 
 ::: proof
@@ -695,7 +695,7 @@ $$\frac{d}{dx}\arcsin x = \frac{1}{\cos y}.$$
 
 To write this in terms of $x$: $\cos^2 y = 1 - \sin^2 y = 1 - x^2$, and $\cos y > 0$ because $y$ is in $(-\pi/2, \pi/2)$, so $\cos y$ is the positive square root, $\sqrt{1 - x^2}$.
 
-For $\arccos$, use the cosine on $(0, \pi)$, with derivative $-\sin y < 0$; there $\sin y > 0$, so $\sin y = \sqrt{1 - \cos^2 y} = \sqrt{1 - x^2}$ and $(\arccos x)' = -1/\sqrt{1 - x^2}$. For $\arctan$, use the tangent on $(-\pi/2, \pi/2)$, with derivative $\sec^2 y$ (Module 5). Dividing $\cos^2 y + \sin^2 y = 1$ by $\cos^2 y$ gives $\sec^2 y = 1 + \tan^2 y = 1 + x^2$, so $(\arctan x)' = 1/(1 + x^2)$.
+For ${\arccos}$, use the cosine on $(0, \pi)$, with derivative $-\sin y < 0$; there $\sin y > 0$, so $\sin y = \sqrt{1 - \cos^2 y} = \sqrt{1 - x^2}$ and $(\arccos x)' = -1/\sqrt{1 - x^2}$. For ${\arctan}$, use the tangent on $(-\pi/2, \pi/2)$, with derivative $\sec^2 y$ (Module 5). Dividing $\cos^2 y + \sin^2 y = 1$ by $\cos^2 y$ gives $\sec^2 y = 1 + \tan^2 y = 1 + x^2$, so $(\arctan x)' = 1/(1 + x^2)$.
 :::
 
 ```check
@@ -732,7 +732,7 @@ same(th_.subs(Hh, 100), pi/4); rounds(Rational(5, 1000)*180/pi, '0.29')
 :::
 
 ::: note
-Three more inverse functions, $\arccot$, $\arcsec$ and $\arccsc$, are used less. Books disagree about their ranges: for $\arcsec$, some choose $[0, \pi/2) \cup (\pi/2, \pi]$ and others $[0, \pi/2) \cup [\pi, 3\pi/2)$, and the formula for the derivative changes with the choice. This series does not use them; when you meet one elsewhere, check which range the book uses.
+Three more inverse functions, ${\arccot}$, $\arcsec$ and ${\arccsc}$, are used less. Books disagree about their ranges: for ${\arcsec}$, some choose $[0, \pi/2) \cup (\pi/2, \pi]$ and others $[0, \pi/2) \cup [\pi, 3\pi/2)$, and the formula for the derivative changes with the choice. This series does not use them; when you meet one elsewhere, check which range the book uses.
 :::
 
 ```check
@@ -808,7 +808,7 @@ same((1/E)**(1/E), exp(-1/E)); rounds(exp(-1/E), '0.692')
 :::
 
 ::: keyidea
-**Logarithmic differentiation.** To differentiate a function $y$ built from products, quotients and powers, perhaps with the variable in an exponent: take $\ln\abs{y}$, expand it with the laws of logarithms, differentiate (the left side gives $y'/y$, by Theorem 6.5), and multiply by $y$. It works wherever $y \ne 0$; where $y > 0$, $\ln y$ will do.
+**Logarithmic differentiation.** To differentiate a function $y$ built from products, quotients and powers, perhaps with the variable in an exponent: take $\ln{\abs{y}}$, expand it with the laws of logarithms, differentiate (the left side gives $y'/y$, by Theorem 6.5), and multiply by $y$. It works wherever $y \ne 0$; where $y > 0$, $\ln y$ will do.
 :::
 
 ::: example A product and a quotient
@@ -836,7 +836,7 @@ same(diff(yq, xp).subs(xp, 1), 13)
 :::
 
 ::: pitfall
-$\dfrac{d}{dx}x^x$ is not $x \cdot x^{x-1}$ (the power rule, which needs a constant exponent), and not $x^x\ln x$ (the rule for exponentials, which needs a constant base). The right answer, $x^x\ln x + x^x$, is the sum of the two: each rule accounts for one of the places where $x$ appears. And take the logarithm only of a positive quantity: $\ln y$ needs $y > 0$; otherwise use $\ln\abs{y}$.
+$\dfrac{d}{dx}x^x$ is not $x \cdot x^{x-1}$ (the power rule, which needs a constant exponent), and not $x^x\ln x$ (the rule for exponentials, which needs a constant base). The right answer, $x^x\ln x + x^x$, is the sum of the two: each rule accounts for one of the places where $x$ appears. And take the logarithm only of a positive quantity: $\ln y$ needs $y > 0$; otherwise use $\ln{\abs{y}}$.
 
 ```check
 same(xp*xp**(xp - 1), xp**xp); same(xp**xp*log(xp) + xp*xp**(xp - 1), diff(xp**xp, xp))
@@ -862,7 +862,7 @@ asin(x)   ->   1/sqrt(1 - x**2)
 tanh(x)   ->   1 - tanh(x)**2
 ```
 
-SymPy writes `log` for $\ln$, `E` for $e$ and `asin` for $\arcsin$, and its forms can differ from the page's. It turns `log(x, 10)` into `log(x)/log(10)` before differentiating; `E*x**E/x` is $e\,x^{e-1}$; and `1 - tanh(x)**2` equals $1/\cosh^2 x$ (Section 6.7). `idiff` does implicit differentiation:
+SymPy writes `log` for ${\ln}$, `E` for $e$ and `asin` for ${\arcsin}$, and its forms can differ from the page's. It turns `log(x, 10)` into `log(x)/log(10)` before differentiating; `E*x**E/x` is $e\,x^{e-1}$; and `1 - tanh(x)**2` equals $1/\cosh^2 x$ (Section 6.7). `idiff` does implicit differentiation:
 
 ```python
 X, Y = sp.symbols('x y')
@@ -940,7 +940,7 @@ same(diff(sinh(x), x), cosh(x)); same(diff(cosh(x), x), sinh(x))
 steps(diff(tanh(x), x), (cosh(x)*cosh(x) - sinh(x)*sinh(x))/cosh(x)**2, 1/cosh(x)**2, 1 - tanh(x)**2)
 ```
 
-The identity explains the name. The point $(\cos t, \sin t)$ lies on the circle $x^2 + y^2 = 1$; the point $(\cosh t, \sinh t)$ lies on the **hyperbola** $x^2 - y^2 = 1$, on its right-hand branch, since $\cosh t \ge 1$. The formulas mirror those of trigonometry with changes of sign: $\cos' = -\sin$ but $\cosh' = \sinh$, and $\cos^2 + \sin^2 = 1$ but $\cosh^2 - \sinh^2 = 1$. The other three hyperbolic functions, $\sech x = 1/\cosh x$, $\csch x = 1/\sinh x$ and $\coth x = \cosh x/\sinh x$ (the last two for $x \ne 0$), are used less; with them, $(\tanh x)' = \sech^2 x$.
+The identity explains the name. The point $(\cos t, \sin t)$ lies on the circle $x^2 + y^2 = 1$; the point $(\cosh t, \sinh t)$ lies on the **hyperbola** $x^2 - y^2 = 1$, on its right-hand branch, since $\cosh t \ge 1$. The formulas mirror those of trigonometry with changes of sign: $\cos' = -\sin$ but $\cosh' = {\sinh}$, and $\cos^2 + \sin^2 = 1$ but $\cosh^2 - \sinh^2 = 1$. The other three hyperbolic functions, $\sech x = 1/\cosh x$, $\csch x = 1/\sinh x$ and $\coth x = \cosh x/\sinh x$ (the last two for $x \ne 0$), are used less; with them, $(\tanh x)' = \sech^2 x$.
 
 ```check
 same((cosh(t))**2 - (sinh(t))**2, 1); same(diff(tanh(x), x), sech(x)**2)
@@ -1123,10 +1123,10 @@ They are $k \approx -0.08664$, the fraction 0.0743 left after 30 days, and 53.15
 - If $f$ is continuous and one-to-one on an open interval and $f'(a) \ne 0$, then $(f^{-1})'\big(f(a)\big) = 1/f'(a)$: reflection in $y = x$ turns slope $m$ into slope $1/m$.
 - $(\ln x)' = 1/x$ for $x > 0$, $(\ln\abs{x})' = 1/x$ for $x \ne 0$, $(\ln u)' = u'/u$, and $(\log_a x)' = 1/(x\ln a)$.
 - Implicit differentiation: differentiate the equation of a curve with $y = y(x)$, using the chain rule on every term with $y$, then solve for $y'$.
-- $\arcsin$, $\arccos$ and $\arctan$ invert $\sin$ on $[-\pi/2, \pi/2]$, $\cos$ on $[0, \pi]$ and $\tan$ on $(-\pi/2, \pi/2)$. Their derivatives are $1/\sqrt{1 - x^2}$, $-1/\sqrt{1 - x^2}$ and $1/(1 + x^2)$. $\sin^{-1}x$ means $\arcsin x$, not $1/\sin x$.
+- ${\arcsin}$, $\arccos$ and $\arctan$ invert $\sin$ on $[-\pi/2, \pi/2]$, $\cos$ on $[0, \pi]$ and $\tan$ on $(-\pi/2, \pi/2)$. Their derivatives are $1/\sqrt{1 - x^2}$, $-1/\sqrt{1 - x^2}$ and $1/(1 + x^2)$. $\sin^{-1}x$ means $\arcsin x$, not $1/\sin x$.
 - Logarithmic differentiation handles products, quotients and variable exponents, as in $(x^x)' = x^x(\ln x + 1)$; the power rule $(x^r)' = rx^{r-1}$ holds for every real $r$ and $x > 0$.
-- $\cosh^2 x - \sinh^2 x = 1$, $\sinh' = \cosh$, $\cosh' = \sinh$, $\tanh' = 1/\cosh^2$; a hanging chain is a catenary, $y = a\cosh(x/a)$.
-- $y = Ce^{kt}$ solves $y' = ky$ with $y(0) = C$; the doubling time is $\ln 2/k$ and the half-life $\ln 2/\abs{k}$. Module 13 solves such equations.
+- $\cosh^2 x - \sinh^2 x = 1$, $\sinh' = {\cosh}$, $\cosh' = {\sinh}$, $\tanh' = 1/\cosh^2$; a hanging chain is a catenary, $y = a\cosh(x/a)$.
+- $y = Ce^{kt}$ solves $y' = ky$ with $y(0) = C$; the doubling time is $\ln 2/k$ and the half-life $\ln 2/{\abs{k}}$. Module 13 solves such equations.
 
 ## Exercises {#exercises}
 
@@ -1152,7 +1152,7 @@ $$3x^2e^{2x} + x^3\cdot 2e^{2x} = x^2e^{2x}(3 + 2x).$$
 
 **(e)** $\log_2 x = \dfrac{\ln x}{\ln 2}$, so its derivative is $\dfrac{1}{x\ln 2}$.
 
-**(f)** By the chain rule with the inner function $x^2$, and $\cosh' = \sinh$: $\sinh\big(x^2\big)\cdot 2x = 2x\sinh\big(x^2\big)$.
+**(f)** By the chain rule with the inner function $x^2$, and $\cosh' = {\sinh}$: $\sinh\big(x^2\big)\cdot 2x = 2x\sinh\big(x^2\big)$.
 
 ```check
 same(diff(exp(-4*x), x), -4*exp(-4*x))
@@ -1175,7 +1175,7 @@ same(diff(cosh(x**2), x), 2*x*sinh(x**2))
 
 **(b)** $\cos\Big(-\dfrac{\pi}{4}\Big) = \cos\dfrac{\pi}{4} = \dfrac{\sqrt2}{2}$, and $\arccos\dfrac{\sqrt2}{2} = \dfrac{\pi}{4}$. The answer is $\dfrac{\pi}{4}$, not $-\dfrac{\pi}{4}$: $\arccos$ returns angles in $[0, \pi]$ only.
 
-**(c)** $\sin^{-1}$ on the calculator is $\arcsin$: $\arcsin 0.5 = \dfrac{\pi}{6} \approx 0.5236$, the angle (in radians) whose sine is 0.5. The number $\dfrac{1}{\sin 0.5}$ is the reciprocal of the sine of the angle 0.5, that is, $\csc 0.5$: the $-1$ in $\sin^{-1}$ is not an exponent.
+**(c)** $\sin^{-1}$ on the calculator is ${\arcsin}$: $\arcsin 0.5 = \dfrac{\pi}{6} \approx 0.5236$, the angle (in radians) whose sine is 0.5. The number $\dfrac{1}{\sin 0.5}$ is the reciprocal of the sine of the angle 0.5, that is, $\csc 0.5$: the $-1$ in $\sin^{-1}$ is not an exponent.
 
 ```check
 same(asin(sqrt(3)/2), pi/3); same(cos(pi - pi/4), -sqrt(2)/2); same(acos(-sqrt(2)/2), 3*pi/4)
@@ -1387,7 +1387,7 @@ $$\operatorname{arsinh} x = \ln\big(x + \sqrt{x^2 + 1}\big).$$
 - (c) Differentiate $\ln\big(x + \sqrt{x^2 + 1}\big)$ directly, and check that you get the same answer.
 
 ::: solution
-**(a)** Let $x_1 < x_2$. Then $e^{x_1} < e^{x_2}$ and $e^{-x_1} > e^{-x_2}$, so $e^{x_1} - e^{-x_1} < e^{x_2} - e^{-x_2}$: $\sinh x_1 < \sinh x_2$. Now let $x$ be any real number and solve $\dfrac{e^y - e^{-y}}{2} = x$. Multiply by $2e^y$: $e^{2y} - 1 = 2xe^y$. With $u = e^y$ this is the quadratic $u^2 - 2xu - 1 = 0$, with roots $u = x \pm \sqrt{x^2 + 1}$. Since $\sqrt{x^2 + 1} > \sqrt{x^2} = \abs{x}$, the root $x - \sqrt{x^2 + 1}$ is negative and cannot be $e^y$, while $x + \sqrt{x^2 + 1}$ is positive. So there is exactly one solution, $y = \ln\big(x + \sqrt{x^2 + 1}\big)$: every real $x$ is a value of $\sinh$, taken once, and this $y$ is $\operatorname{arsinh} x$.
+**(a)** Let $x_1 < x_2$. Then $e^{x_1} < e^{x_2}$ and $e^{-x_1} > e^{-x_2}$, so $e^{x_1} - e^{-x_1} < e^{x_2} - e^{-x_2}$: $\sinh x_1 < \sinh x_2$. Now let $x$ be any real number and solve $\dfrac{e^y - e^{-y}}{2} = x$. Multiply by $2e^y$: $e^{2y} - 1 = 2xe^y$. With $u = e^y$ this is the quadratic $u^2 - 2xu - 1 = 0$, with roots $u = x \pm \sqrt{x^2 + 1}$. Since $\sqrt{x^2 + 1} > \sqrt{x^2} = {\abs{x}}$, the root $x - \sqrt{x^2 + 1}$ is negative and cannot be $e^y$, while $x + \sqrt{x^2 + 1}$ is positive. So there is exactly one solution, $y = \ln\big(x + \sqrt{x^2 + 1}\big)$: every real $x$ is a value of ${\sinh}$, taken once, and this $y$ is $\operatorname{arsinh} x$.
 
 **(b)** $\sinh$ is differentiable, hence continuous, and one-to-one on the open interval $\R$, and its derivative $\cosh y \ge 1$ is never 0. By Theorem 6.4, with $y = \operatorname{arsinh} x$,
 $$\frac{d}{dx}\operatorname{arsinh} x = \frac{1}{\cosh y}.$$

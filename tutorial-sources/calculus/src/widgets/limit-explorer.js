@@ -92,9 +92,9 @@ CalcWidgets.register('limit-explorer', function (root, api) {
   var plotBox = h('div', { class: 'le-plot' })
   var words = api.readout()
 
-  var top = api.row(sel.el, candSel.el)
-  top.classList.add('le-top')
-  root.appendChild(top)
+  var topRow = api.row(sel.el, candSel.el)
+  topRow.classList.add('le-top')
+  root.appendChild(topRow)
   root.appendChild(formulaEl)
   root.appendChild(plotBox)
   root.appendChild(h('div', { class: 'le-key' }, t(
@@ -135,7 +135,7 @@ CalcWidgets.register('limit-explorer', function (root, api) {
       P.curve(function (x) { var y = F.f(x); return Math.abs(y - L) < eps ? y : NaN }, Object.assign({ color: 'var(--green)' }, o))
       P.curve(function (x) { var y = F.f(x); return Math.abs(y - L) >= eps ? y : NaN }, Object.assign({ color: 'var(--red)' }, o))
       F.holes.forEach(function (q) { P.point(q[0], q[1], { hollow: true, r: 4.5, layer: 'main' }) })
-      if (P.Y(L - eps) - P.Y(L + eps) > 34) {
+      if (L - eps > v[2] && L + eps < v[3] && P.Y(L - eps) - P.Y(L + eps) > 34) {   // labels only when the band fits
         P.text(v[1], L + eps, 'L + ε', { anchor: 'end', dx: -6, dy: -5, color: 'var(--orange)' })
         P.text(v[1], L - eps, 'L − ε', { anchor: 'end', dx: -6, dy: 15, color: 'var(--orange)' })
       }

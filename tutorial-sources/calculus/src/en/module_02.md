@@ -838,7 +838,18 @@ same(Abs(dp/2)/(dp/2), 1); same(Abs(-dp/2)/(-dp/2), -1); holds(dp/2 < dp)
 ```
 :::
 
-The same strategy, with the points of Example 2.3, proves that $\sin(1/x)$ has no limit at 0 (Exercise 2.10). The precise definitions also prove the key idea of Section 2.2:
+The same strategy, with the points of Example 2.3, proves that $\sin(1/x)$ has no limit at 0 (Exercise 2.10). It also shows that a limit, when it exists, is a single number. Suppose $f(x)$ tended to $L$ and to $M \ne L$, and challenge both limits with $\varepsilon = \abs{L - M}/2$. For $x \ne a$ close enough to $a$, both $\abs{f(x) - L} < \varepsilon$ and $\abs{f(x) - M} < \varepsilon$, and then
+
+$$\begin{aligned} \abs{L - M} &= \abs{\big(L - f(x)\big) + \big(f(x) - M\big)} \\ &< \varepsilon + \varepsilon = \abs{L - M}, \end{aligned}$$
+
+which is impossible. The precise definitions also prove the key idea of Section 2.2:
+
+```check
+LL, MM, FF = symbols('L M F', real=True)
+same((LL - FF) + (FF - MM), LL - MM)
+same(Abs(LL - MM)/2 + Abs(LL - MM)/2, Abs(LL - MM))
+holds(Abs(1 - FF.subs(FF, Rational(1, 2))) + Abs(Rational(1, 2) - 0) >= Abs(1 - 0))       # an instance of the triangle inequality used
+```
 
 ::: theorem One-sided and two-sided limits
 $\lim_{x\to a} f(x) = L$ exactly when $\lim_{x\to a^-} f(x) = L$ and $\lim_{x\to a^+} f(x) = L$.
@@ -898,6 +909,46 @@ same(2/MP**2*(ep*MP**2/2), ep); same(MP - MP/2, MP/2)
 :::
 
 ## Limits on a computer {#computer}
+
+### Testing a δ {#testing-delta}
+
+The explorer of Section 2.7 decides whether a $\delta$ wins by computing $f$ at thousands of points of the strip. The same test takes a few lines of Python with NumPy.
+
+::: compute Testing a δ at many points
+The function `wins` checks $\abs{f(x) - L} < \varepsilon$ at many points $x$ with $0 < \abs{x - a} < \delta$; here it tests the parabola of Example 2.13 against the challenge $\varepsilon = 0.5$:
+
+```python
+import numpy as np
+
+def wins(f, a, L, eps, delta, n=200_000):
+    # n points strictly inside (a - delta, a + delta), none of them equal to a
+    xs = a + delta*np.linspace(-1, 1, n + 2)[1:-1]
+    xs = xs[xs != a]
+    return bool(np.all(np.abs(f(xs) - L) < eps))
+
+for delta in [0.1, 0.0825, 0.082, 1/14]:
+    print(f"delta = {delta:.4f}: {wins(lambda x: x**2, 3, 9, 0.5, delta)}")
+```
+
+```output
+delta = 0.1000: False
+delta = 0.0825: False
+delta = 0.0820: True
+delta = 0.0714: True
+```
+
+The test agrees with Example 2.13: the proof's $\delta = \tfrac{1}{14} \approx 0.0714$ wins, and the best $\delta$ lies between 0.082 and 0.0825; it is $\sqrt{9.5} - 3 \approx 0.0822$. But a computer test, like a table, looks at finitely many points and one $\varepsilon$ at a time, so it gives evidence, not proof: a function such as $\sin(1/x)$ can misbehave between the points tested. The proof of Example 2.13 covers every $x$ and every $\varepsilon$ at once.
+:::
+
+```check
+holds(Rational(82, 1000) < sqrt(Rational(19, 2)) - 3); holds(sqrt(Rational(19, 2)) - 3 < Rational(825, 10000))
+holds(Rational(1, 14) < Rational(82, 1000)); rounds(Rational(1, 14), '0.0714'); rounds(sqrt(Rational(19, 2)) - 3, '0.0822')
+import numpy as np
+def wins_(f_, a_, L_, eps_, d_, n_=200_000):
+    xs_ = a_ + d_*np.linspace(-1, 1, n_ + 2)[1:-1]; xs_ = xs_[xs_ != a_]
+    return bool(np.all(np.abs(f_(xs_) - L_) < eps_))
+same([wins_(lambda q: q**2, 3, 9, 0.5, d_) for d_ in (0.1, 0.0825, 0.082, 1/14)], [False, False, True, True])
+```
 
 ### Cancellation {#cancellation}
 
