@@ -653,7 +653,7 @@ $\int_{-\infty}^{\infty} x\,dx$ diverges.)
 | ${\displaystyle\int_0^1 \frac{dx}{x^p}}$ | ${\dfrac{1}{1 - p}}$ | ${p < 1;}$ diverges for ${p \ge 1}$ |
 | ${\displaystyle\int_0^\infty e^{-ax}\,dx}$ | ${\dfrac{1}{a}}$ | ${a > 0}$ |
 | ${\displaystyle\int_{-\infty}^{\infty} \frac{dx}{1 + x^2}}$ | ${\pi}$ | |
-| ${\displaystyle\int_{-\infty}^{\infty} e^{-x^2}\,dx}$ | ${\sqrt{\pi}}$ | quoted in Module 12, proved in [Module 19](module_19_EN.html) |
+| ${\displaystyle\int_{-\infty}^{\infty} e^{-x^2}\,dx}$ | ${\sqrt{\pi}}$ | quoted in Module 12, proved in [Module 19](module_19_EN.html#gaussian) |
 
 **Comparison.** If $0 \le f(x) \le g(x)$ for $x \ge a$, then $\int_a^\infty f(x)\,dx$ converges when
 $\int_a^\infty g(x)\,dx$ converges, and $\int_a^\infty g(x)\,dx$ diverges when $\int_a^\infty f(x)\,dx$

@@ -101,7 +101,7 @@ With $g = 0$ this is the area under a curve, as in Module 9. The curves may dip 
 ::: example Two parabolas
 Find the area of the region enclosed by the parabolas $y = 4 - x^2$ and $y = x^2 - 2x$.
 
-The curves meet where $4 - x^2 = x^2 - 2x$, that is, $2x^2 - 2x - 4 = 0$, or $x^2 - x - 2 = 0$. This factors as $(x - 2)(x + 1) = 0$, so the curves meet at $x = -1$ and $x = 2$. Between two meeting points the same curve stays on top (otherwise the continuous function $f - g$ would be 0 somewhere in between, by the Intermediate Value Theorem of Module 3), so test one point: at $x = 0$, $4 - x^2 = 4$ and $x^2 - 2x = 0$, so $y = 4 - x^2$ is the top. Top minus bottom is $(4 - x^2) - (x^2 - 2x) = 4 + 2x - 2x^2$, and
+The curves meet where $4 - x^2 = x^2 - 2x$, that is, $2x^2 - 2x - 4 = 0$, or $x^2 - x - 2 = 0$. This factors as $(x - 2)(x + 1) = 0$, so the curves meet at $x = -1$ and $x = 2$. Between the two meeting points the same curve stays on top (otherwise the continuous function $f - g$ would be 0 somewhere in between, by the Intermediate Value Theorem of Module 3), so test one point: at $x = 0$, $4 - x^2 = 4$ and $x^2 - 2x = 0$, so $y = 4 - x^2$ is the top. Top minus bottom is $(4 - x^2) - (x^2 - 2x) = 4 + 2x - 2x^2$, and
 
 $$\begin{aligned} A &= \int_{-1}^{2} \big(4 + 2x - 2x^2\big)\,dx \\ &= \Big[4x + x^2 - \frac{2x^3}{3}\Big]_{-1}^{2} \\ &= \frac{20}{3} - \Big(-\frac{7}{3}\Big) = 9. \end{aligned}$$
 
@@ -213,7 +213,7 @@ same(integrate(Bq, (x, 0, hq)), Bq*hq)
 
 ### Discs and washers {#washers}
 
-Rotate the region under the graph of a function $f \ge 0$, for $a \le x \le b$, about the $x$-axis. It sweeps out a **solid of revolution**. Each point of the region moves on a circle about the axis, so the cross-section at $x$ is a disc of radius $f(x)$ and area $\pi f(x)^2$, and
+Rotate the region under the graph of a continuous function $f \ge 0$, for $a \le x \le b$, about the $x$-axis. It sweeps out a **solid of revolution**. Each point of the region moves on a circle about the axis, so the cross-section at $x$ is a disc of radius $f(x)$ and area $\pi f(x)^2$, and
 
 $$V = \pi\int_a^b f(x)^2\,dx \qquad\text{(discs)}.$$
 
@@ -240,7 +240,7 @@ $$V = \pi\int_a^b \big(R(x)^2 - r(x)^2\big)\,dx \quad\text{(washers)}.$$
 The **outer radius** $R(x)$ is the distance from the axis to the farther boundary, and the **inner radius** $r(x)$ the distance to the nearer one.
 
 ::: figure id=fig-12-2
-Left: the region between $y = \sqrt x$ and $y = x^2$, $0 \le x \le 1$ (dark blue), rotates about the $x$-axis and sweeps out a solid shaped like a thick bowl (Example 12.6); its outer surface is drawn as a transparent shell, its inner surface in purple. The slice at $x$ (orange) is a washer. Right: the washer seen along the axis, with outer radius $R = \sqrt x$ and inner radius $r = x^2$.
+Left: the region between $y = \sqrt x$ and $y = x^2$, $0 \le x \le 1$ (dark blue), rotates about the $x$-axis and sweeps out a solid shaped like a thick bowl (Example 12.6); its outer surface is drawn as a transparent shell, and the purple circles lie on its inner surface. The slice at $x$ (orange) is a washer. Right: the washer seen along the axis, with outer radius $R = \sqrt x$ and inner radius $r = x^2$.
 :::
 
 ::: example A solid with a hole
@@ -313,7 +313,7 @@ That approximation is good enough. A tube of constant height $h$ between radii $
 
 $$\pi(x + \Delta x)^2h - \pi x^2h = 2\pi\Big(x + \frac{\Delta x}{2}\Big)h\,\Delta x,$$
 
-the circumference at the middle of the tube times its height and thickness. Using $x$ for the radius changes this by $\pi h(\Delta x)^2$, at most $\pi H(\Delta x)^2$ if $H$ is the greatest height of the region; over all $n$ shells that adds up to at most $\pi H(b - a)\,\Delta x$, which approaches 0. The height varies a little across the strip, but, as in Section 12.1, the solid that the strip sweeps out lies between the tubes with the least and the greatest heights on the strip. Adding the shells and taking the limit gives the **shell method**: when the region under $y = f(x) \ge 0$, $0 \le a \le x \le b$, rotates about the $y$-axis,
+the circumference at the middle of the tube times its height and thickness. Using $x$ for the radius changes this by $\pi h(\Delta x)^2$, at most $\pi H(\Delta x)^2$ if $H$ is the greatest height of the region; over all $n$ shells that adds up to at most $\pi H(b - a)\,\Delta x$, which approaches 0. The height varies a little across the strip, but, as in Section 12.1, the solid that the strip sweeps out lies between the tubes with the least and the greatest heights on the strip. Adding the shells and taking the limit gives the **shell method**: when the region under the graph of a continuous function $f \ge 0$, for $0 \le a \le x \le b$, rotates about the $y$-axis,
 
 $$V = 2\pi\int_a^b x\,f(x)\,dx.$$
 
@@ -446,7 +446,7 @@ same(sqrt(dxp**2 + fp_**2*dxp**2), sqrt(1 + fp_**2)*dxp)
 In Leibniz's notation, a tiny piece of the curve is the hypotenuse of a tiny right triangle with sides $dx$ and $dy$: $dL = \sqrt{(dx)^2 + (dy)^2} = \sqrt{1 + (dy/dx)^2}\,dx$. Module 16 extends the formula to curves given by parametric equations.
 
 ::: example A hanging cable
-A cable or chain hanging under its own weight takes the shape of a **catenary**, the graph of $y = c\cosh(x/c)$ for a constant $c > 0$, where $\cosh$ is the hyperbolic cosine of Module 6. Find the length of the catenary $y = \cosh x$ from $x = -1$ to $x = 1$.
+A cable or chain hanging under its own weight takes the shape of a catenary (Module 6), the graph of $y = a\cosh(x/a)$ for a constant $a > 0$, where $\cosh$ is the hyperbolic cosine. Find the length of the catenary $y = \cosh x$ from $x = -1$ to $x = 1$.
 
 Here $f'(x) = \sinh x$, and the identity $\cosh^2 x - \sinh^2 x = 1$ (Module 6) gives $1 + \sinh^2 x = \cosh^2 x$. Since $\cosh x > 0$, $\sqrt{1 + f'(x)^2} = \cosh x$, and
 
@@ -693,7 +693,7 @@ same(6/Rational(14, 3), Rational(9, 7)); rounds(Rational(9, 7), '1.29'); holds(R
 ```
 :::
 
-**A thin plate.** A thin flat plate of uniform density (mass per unit area) is called a **lamina**; its centre of mass is a point $(\bar x, \bar y)$ in its plane. Let the plate occupy the region between $y = g(x)$ and $y = f(x)$, $a \le x \le b$, and slice it into vertical strips. The strip at $x$ is nearly a rectangle of width $\Delta x$ and height $f(x) - g(x)$, which balances at its centre, $\big(x, \tfrac12(f(x) + g(x))\big)$, by symmetry; its mass is the density times its area. Weighting each strip's coordinates by its mass and taking limits gives the formulas below. The density cancels, so the centre of mass depends only on the shape. For $\bar y$, the height of a strip's centre times its area is $\tfrac12(f + g)(f - g)\,\Delta x = \tfrac12\big(f^2 - g^2\big)\,\Delta x$.
+**A thin plate.** A thin flat plate is called a **lamina**. Here its density (mass per unit area) is uniform, the same at every point; Module 19 lets it vary. The centre of mass of a plate is a point $(\bar x, \bar y)$ in its plane. Let the plate occupy the region between $y = g(x)$ and $y = f(x)$, $a \le x \le b$, and slice it into vertical strips. The strip at $x$ is nearly a rectangle of width $\Delta x$ and height $f(x) - g(x)$, which balances at its centre, $\big(x, \tfrac12(f(x) + g(x))\big)$, by symmetry; its mass is the density times its area. Weighting each strip's coordinates by its mass and taking limits gives the formulas below. The density cancels, so the centre of mass depends only on the shape. For $\bar y$, the height of a strip's centre times its area is $\tfrac12(f + g)(f - g)\,\Delta x = \tfrac12\big(f^2 - g^2\big)\,\Delta x$.
 
 ::: definition Centroid of a plate
 Let $f$ and $g$ be continuous on $[a, b]$ with $g \le f$, and let $A$ be the area of the region between their graphs. The **centroid** of the region is the point $(\bar x, \bar y)$ with
@@ -728,7 +728,7 @@ The formula for $\bar y$ has $\tfrac12\big(f^2 - g^2\big)$, not $\tfrac12(f - g)
 
 ## Improper integrals {#improper}
 
-So far every integral has had a finite interval and a continuous integrand. Probabilities, and many questions in physics, need more: the area under $y = 1/x^2$ for all $x \ge 1$, or under $y = 1/\sqrt x$ for $0 < x \le 1$, where the curve shoots up near 0. Such integrals are **improper**. They are defined as limits of ordinary integrals.
+So far every integral has had a finite interval and a bounded integrand. Probabilities, and many questions in physics, need more: the area under $y = 1/x^2$ for all $x \ge 1$, or under $y = 1/\sqrt x$ for $0 < x \le 1$, where the curve shoots up near 0. Such integrals are **improper**. They are defined as limits of ordinary integrals.
 
 ### Infinite intervals {#infinite-intervals}
 
@@ -783,6 +783,7 @@ limit_is(integrate(exp(-x), (x, 0, t)), t, oo, 1); same(integrate(exp(-x), (x, 0
 antideriv(-x*exp(-x) - exp(-x), x*exp(-x), x)
 same(integrate(x*exp(-x), (x, 0, t)), 1 - (t + 1)*exp(-t)); limit_is(t*exp(-t), t, oo, 0); limit_is(1 - (t + 1)*exp(-t), t, oo, 1)
 antideriv(atan(x), 1/(1 + x**2), x); limit_is(atan(t), t, oo, pi/2); limit_is(-atan(t), t, -oo, pi/2)
+same(integrate(1/(1 + x**2), (x, 0, t)), atan(t)); same(integrate(1/(1 + x**2), (x, t, 0)), -atan(t))
 same(integrate(1/(1 + x**2), (x, -oo, oo)), pi)
 ```
 :::
@@ -896,11 +897,11 @@ The same holds for integrals that are improper because the integrands are unboun
 The condition $f \ge 0$ matters: $f(x) = -1$ and $g(x) = 1/x^2$ satisfy $f \le g$ on $[1, \infty)$, and $\int_1^\infty g$ converges, but $\int_1^\infty f$ diverges.
 
 ::: proof
-(a) Let $F(t) = \int_a^t f(x)\,dx$ for $t \ge a$, and let $G = \int_a^\infty g(x)\,dx$. Since $f \ge 0$, $F$ is increasing: making $t$ larger adds the integral of a non-negative function. In the same way $\int_a^t g(x)\,dx$ increases with $t$, towards its limit $G$, so it is at most $G$. Since $f \le g$, the comparison property of integrals (Module 9) gives
+(a) Let $F(t) = \int_a^t f(x)\,dx$ for $t \ge a$, and let $G = \int_a^\infty g(x)\,dx$. Since $f \ge 0$, $F$ is increasing: making $t$ larger adds the integral of a non-negative function. In the same way $\int_a^t g(x)\,dx$ increases with $t$, towards its limit $G$, so it is at most $G$. Since $f \le g$, the comparison theorem for integrals (Module 9) gives
 
 $$F(t) \le \int_a^t g(x)\,dx \le G$$
 
-for every $t \ge a$. So $F(t)$ rises as $t$ grows but never passes $G$. A function that increases and is bounded above has a limit as $t \to \infty$, no larger than the bound. This is a basic property of the real numbers, their **completeness**, which this series takes for granted; Module 14 states it for sequences, as the monotone convergence theorem. So $\int_a^\infty f(x)\,dx = \lim_{t\to\infty} F(t)$ exists and is at most $G$.
+for every $t \ge a$. So $F(t)$ rises as $t$ grows but never passes $G$. A function that increases and is bounded above has a limit as $t \to \infty$, no larger than the bound. This is a form of the completeness of the real numbers, the property that the number line has no gaps, which the proof of the Intermediate Value Theorem used in [Module 3](module_03_EN.html#ivt); Module 14 states it for sequences, as the Monotone Convergence Theorem. So $\int_a^\infty f(x)\,dx = \lim_{t\to\infty} F(t)$ exists and is at most $G$.
 
 (b) If $\int_a^\infty g$ converged, then by (a) so would $\int_a^\infty f$.
 :::
@@ -970,20 +971,22 @@ When the graph of $f \ge 0$, with $f'$ continuous on $[a, b]$, rotates about the
 
 $$S = 2\pi\int_a^b f(x)\sqrt{1 + f'(x)^2}\,dx.$$
 
-The idea of the proof: each chord of the polygon of Section 12.5 sweeps out a band, the curved side of a cone with its tip cut off. Cutting the band open and flattening it shows that its area is $\pi(r_1 + r_2)\ell$, where $r_1$ and $r_2$ are the radii of its two ends and $\ell$ is its slant length, here the length of the chord, $\sqrt{1 + f'(x_i^*)^2}\,\Delta x$. With $r_1 + r_2 \approx 2f(x_i^*)$, the bands add up to approximately a Riemann sum of $2\pi f(x)\sqrt{1 + f'(x)^2}$. (Module 20 treats the area of surfaces in general.) A check: for a ball of radius $a$, $f(x) = \sqrt{a^2 - x^2}$ gives $f(x)\sqrt{1 + f'(x)^2} = a$, and $S = 2\pi \cdot a \cdot 2a = 4\pi a^2$, the familiar area of a sphere.
+The idea of the proof: each chord of the polygon of Section 12.5 sweeps out a band, the curved side of a cone with its tip cut off. Cutting the band open and flattening it shows that its area is $\pi(r_1 + r_2)\ell$, where $r_1$ and $r_2$ are the radii of its two ends and $\ell$ is its slant length, here the length of the chord, $\sqrt{1 + f'(x_i^*)^2}\,\Delta x$. With $r_1 + r_2 \approx 2f(x_i^*)$, the bands add up to approximately a Riemann sum of $2\pi f(x)\sqrt{1 + f'(x)^2}$. (Module 20 treats the area of surfaces in general.) A check: for a ball of radius $a$, $f(x) = \sqrt{a^2 - x^2}$ gives $f(x)\sqrt{1 + f'(x)^2} = a$ for $-a < x < a$. The formula needs $f'$ continuous, and $f'$ is unbounded near $\pm a$, so take the band of the sphere between $x = -b$ and $x = b$, for $0 < b < a$: its area is $2\pi \cdot a \cdot 2b = 4\pi ab$, which approaches $4\pi a^2$, the familiar area of a sphere, as $b \to a$.
 
 For the horn, $f(x) = 1/x$ and $f'(x) = -1/x^2$, so the integrand is
 
 $$\frac{2\pi}{x}\sqrt{1 + \frac{1}{x^4}} \ge \frac{2\pi}{x},$$
 
-and $\int_1^\infty 2\pi\,dx/x$ diverges, so by the comparison test the horn's surface area is infinite. The horn holds $\pi$ cubic units of paint, yet no finite amount of paint could cover its inside with a coat of a fixed thickness $d$, which would need about $S\,d$ of paint. There is no contradiction: far along the horn, the paint that fills it forms a layer thinner than any fixed $d$.
+and $\int_1^\infty 2\pi\,dx/x$ diverges, so by the comparison test the horn's surface area is infinite. The horn holds $\pi$ cubic units of paint, yet no finite amount of paint could cover its outside with a coat of a fixed thickness $d$, which would need about $S\,d$ of paint. There is no contradiction: far along the horn, the paint that fills it forms a layer thinner than any fixed $d$.
 
 ```check
 fsph = sqrt(aq**2 - x**2)
 same(simplify(1 + diff(fsph, x)**2), aq**2/(aq**2 - x**2))
 dpos = symbols('d', positive=True)                         # d = a^2 - x^2 > 0 for -a < x < a
 same(sqrt(dpos)*sqrt(aq**2/dpos), aq)
-same(2*pi*integrate(aq, (x, -aq, aq)), 4*pi*aq**2)
+limit_is(diff(fsph, x), x, aq, -oo, '-')                    # f' is unbounded near a
+bq = symbols('b', positive=True)
+same(2*pi*integrate(aq, (x, -bq, bq)), 4*pi*aq*bq); limit_is(4*pi*aq*bq, bq, aq, 4*pi*aq**2, '-')
 xh = symbols('x', positive=True)
 same(diff(1/xh, xh), -1/xh**2); holds(all(sqrt(1 + 1/Integer(v)**4) >= 1 for v in (1, 2, 10)))
 same(integrate(2*pi/x, (x, 1, oo)), oo)
@@ -1031,14 +1034,14 @@ print(sp.integrate(x**(-p), (x, 1, sp.oo)))
 Piecewise((1/(p - 1), p > 1), (Integral(x**(-p), (x, 1, oo)), True))
 ```
 
-A `Piecewise` result reads like a definition by cases: $1/(p - 1)$ when $p > 1$, and otherwise the integral left unevaluated, because it diverges.
+A `Piecewise` result reads like a definition by cases: $1/(p - 1)$ when $p > 1$, and otherwise the integral, left unevaluated: for $p \le 1$ it diverges, so there is no value to give.
 :::
 
 ## Probability {#probability}
 
 ### Probability densities {#densities}
 
-Some quantities are random: the time until the next request reaches a web server, the lifetime of a component, the error of a measurement. Their values cannot be predicted, but their probabilities can. The **probability** of an event, $P(\text{event})$, is a number from 0 to 1, the fraction of the time the event happens in a long run of repetitions; 1 means certain. A **random variable** $X$ is a quantity whose value is decided by chance; it is **continuous** if it can take any value in an interval.
+Some quantities are random: the time until the next request reaches a web server, the lifetime of a component, the error of a measurement. Their values cannot be predicted, but their probabilities can. The **probability** of an event, $P(\text{event})$, is a number from 0 to 1, the fraction of the time the event happens in a long run of repetitions; 1 means certain. A **random variable** $X$ is a quantity whose value is decided by chance. A waiting time or a lifetime can take any value in an interval, so its probabilities cannot be listed value by value; a curve describes them instead.
 
 Measure such an $X$ many times and draw a histogram in which the area of each bar is the fraction of the measurements in its bin. With more measurements and narrower bins, the tops of the bars settle onto a curve $y = f(x)$, and the fraction of the values between $a$ and $b$ settles onto the area under the curve from $a$ to $b$.
 
@@ -1050,6 +1053,8 @@ $$\int_{-\infty}^{\infty} f(x)\,dx = 1.$$
 A random variable $X$ has density $f$ if, for all numbers $a \le b$,
 
 $$P(a \le X \le b) = \int_a^b f(x)\,dx.$$
+
+A random variable with a density is called **continuous**.
 :::
 
 The total area 1 says that $X$ is certain to take some value. A density may jump, as the exponential density below does at 0; split the integrals at the jumps. Two consequences: a single value has probability $P(X = a) = \int_a^a f(x)\,dx = 0$, so it does not matter whether the inequalities are strict ($<$) or not ($\le$); and $f(x)$ is not a probability but a probability per unit length, $P(x \le X \le x + \Delta x) \approx f(x)\,\Delta x$ for a small $\Delta x$, so $f(x)$ can be larger than 1.
@@ -1195,7 +1200,7 @@ Why the factor $1/\sqrt{2\pi}$? The total area must be 1. Section 12.8 showed, a
 
 $$\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}.$$
 
-No antiderivative helps here, since $e^{-x^2}$ has no elementary one (Module 11). Module 19 proves this value with a beautiful trick, a double integral in polar coordinates; this module quotes it. The substitution $z = \sqrt2\,x$, with $dz = \sqrt2\,dx$ (Module 10; the infinite limits stay infinite), gives
+No antiderivative helps here, since $e^{-x^2}$ has no elementary one (Module 11). This module quotes the value; [Module 19](module_19_EN.html#gaussian) proves it, by squaring the integral, which turns it into a double integral, and evaluating that in polar coordinates. The substitution $z = \sqrt2\,x$, with $dz = \sqrt2\,dx$ (Module 10; the infinite limits stay infinite), gives
 
 $$\int_{-\infty}^{\infty} e^{-z^2/2}\,dz = \sqrt2\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{2\pi},$$
 
@@ -1216,13 +1221,19 @@ a bell centred at $\mu$ whose width is proportional to $\sigma$. Exercise 12.12 
 
 $$P(a \le X \le b) = P\Big(\frac{a - \mu}{\sigma} \le Z \le \frac{b - \mu}{\sigma}\Big).$$
 
+The same substitution, $x = \mu + \sigma z$ with $dx = \sigma\,dz$, shows that the mean of $X$ is $\mu$, as its name says, because $\varphi$ has total area 1 and mean 0:
+
+$$\begin{aligned} \int_{-\infty}^{\infty} x f(x)\,dx &= \int_{-\infty}^{\infty} (\mu + \sigma z)\varphi(z)\,dz \\ &= \mu \cdot 1 + \sigma \cdot 0 = \mu. \end{aligned}$$
+
 One function, $\varphi$, serves every normal distribution.
 
 ```check
-mu_, sg = symbols('mu sigma', positive=True); aa, bb = symbols('a b', real=True)
+mu_ = symbols('mu', real=True); sg = symbols('sigma', positive=True); aa, bb = symbols('a b', real=True)
 fN = exp(-(x - mu_)**2/(2*sg**2))/(sg*sqrt(2*pi))
 same(fN.subs(x, mu_ + sg*z)*sg, phi12); same(integrate(fN, (x, -oo, oo)), 1)
 same(integrate(fN, (x, aa, bb)), integrate(phi12, (z, (aa - mu_)/sg, (bb - mu_)/sg)))
+same((x*fN).subs(x, mu_ + sg*z)*sg, (mu_ + sg*z)*phi12)     # the mean after the substitution
+same(integrate(phi12, (z, -oo, oo)), 1); same(integrate(z*phi12, (z, -oo, oo)), 0); same(integrate(x*fN, (x, -oo, oo)), mu_)
 ```
 
 **Computing normal probabilities.** Since $\varphi$ has no elementary antiderivative, normal probabilities are computed numerically, for example with Simpson's rule (Module 11), or with the **error function** of Module 11,
@@ -1327,6 +1338,13 @@ of those, over 1.5 s: 0.3658
 The simulated mean is close to $1/\lambda = 0.5$, the fraction of waits longer than 1 s is close to $e^{-2} \approx 0.135$, and, among those, the fraction that last at least another 0.5 s is close to $e^{-1} \approx 0.368$: the memoryless property, seen in data.
 :::
 
+```check
+same(solve(Eq(-log(1 - u)/lam, tp2), u), [1 - exp(-lam*tp2)])   # X = t exactly when U = 1 - e^(-lambda t)
+same(diff(-log(1 - u)/lam, u), 1/(lam*(1 - u)))                  # and X increases with U, so X > t when U > 1 - e^(-lambda t)
+same(1 - (1 - exp(-lam*tp2)), exp(-lam*tp2))                     # P(U > s) = 1 - s for a uniform U
+same(1/Rational(2), Rational(1, 2)); rounds(exp(-2), '0.135'); rounds(exp(-1), '0.368')
+```
+
 ## What you learned {#summary}
 
 - **Slice, approximate, add, take the limit.** A quantity spread over $[a, b]$ whose slice near $x$ holds about $q(x)\,\Delta x$ is $\int_a^b q(x)\,dx$. The true amount in each slice must lie between $\Delta x$ times the least and the greatest values of $q$ there; check the units of $q(x)\,dx$.
@@ -1406,12 +1424,14 @@ same(integrate(240*x, (x, Rational(25, 100), Rational(35, 100))), Rational(72, 1
 ::::
 
 :::: exercise Converge or diverge? {#ex-12-4} ★
-Decide whether each integral converges, and find its value if it does.
+Decide whether each integral converges. In (a) to (d), find its value if it does; in (e) and (f), use a comparison.
 
 - (a) $\displaystyle\int_1^\infty \frac{dx}{x^{3/2}}$
 - (b) $\displaystyle\int_0^1 \frac{dx}{x^{3/2}}$
 - (c) $\displaystyle\int_0^\infty e^{-3x}\,dx$
 - (d) $\displaystyle\int_0^4 \frac{dx}{\sqrt{4 - x}}$
+- (e) $\displaystyle\int_1^\infty \frac{\cos^2 x}{x^2}\,dx$
+- (f) $\displaystyle\int_1^\infty \frac{x}{\sqrt{x^3 + 1}}\,dx$
 
 ::: solution
 **(a)** A $p$-integral with $p = \tfrac32 > 1$: it converges, to $\dfrac{1}{3/2 - 1} = 2$. Directly: $\int_1^t x^{-3/2}\,dx = 2 - \dfrac{2}{\sqrt t} \to 2$.
@@ -1426,13 +1446,39 @@ $$\int_0^t \frac{dx}{\sqrt{4 - x}} = 4 - 2\sqrt{4 - t},$$
 
 which approaches 4 as $t \to 4^-$. It converges, to 4.
 
+**(e)** For every $x$, $0 \le \cos^2 x \le 1$, so for $x \ge 1$
+
+$$0 \le \frac{\cos^2 x}{x^2} \le \frac{1}{x^2}.$$
+
+The $p$-integral $\int_1^\infty dx/x^2$ converges ($p = 2$), so by the comparison test the integral converges, to a number at most 1. (Its value, found numerically, is about 0.327.)
+
+**(f)** For large $x$ the integrand behaves like $x/x^{3/2} = 1/\sqrt x$, whose integral diverges, so look for a bound from below. For $x \ge 1$, $x^3 \ge 1$, so $x^3 + 1 \le 2x^3$ and $\sqrt{x^3 + 1} \le \sqrt2\,x^{3/2}$. Hence
+
+$$\begin{aligned} \frac{x}{\sqrt{x^3 + 1}} &\ge \frac{x}{\sqrt2\,x^{3/2}} \\ &= \frac{1}{\sqrt2\,\sqrt x} > 0. \end{aligned}$$
+
+$\int_1^t \frac{dx}{\sqrt2\,\sqrt x} = \sqrt2\big(\sqrt t - 1\big) \to \infty$, so by the comparison test (b) the integral diverges. The limit comparison test gives the same in one line, as $x \to \infty$:
+
+$$\frac{x/\sqrt{x^3 + 1}}{1/\sqrt x} = \frac{x^{3/2}}{\sqrt{x^3 + 1}} \to 1.$$
+
+The bound $x/\sqrt{x^3 + 1} \le 1/\sqrt x$ is true, but it proves nothing: it puts the integrand below a function whose integral diverges.
+
 ```check
 same(integrate(x**Rational(-3, 2), (x, 1, t)), 2 - 2/sqrt(t)); limit_is(2 - 2/sqrt(t), t, oo, 2); same(1/(Rational(3, 2) - 1), 2)
 same(integrate(x**Rational(-3, 2), (x, t, 1)), 2/sqrt(t) - 2); limit_is(2/sqrt(t) - 2, t, 0, oo, '+')
 antideriv(-exp(-3*x)/3, exp(-3*x), x); same(integrate(exp(-3*x), (x, 0, t)), (1 - exp(-3*t))/3); limit_is((1 - exp(-3*t))/3, t, oo, Rational(1, 3))
 antideriv(-2*sqrt(4 - x), 1/sqrt(4 - x), x)
+same((-2*sqrt(4 - x)).subs(x, t) - (-2*sqrt(4 - x)).subs(x, 0), 4 - 2*sqrt(4 - t))    # the integral from 0 to t
 tq4 = symbols('t', positive=True); same(integrate(1/sqrt(4 - x), (x, 0, tq4)).subs(tq4, Rational(3)), 4 - 2*sqrt(4 - 3))
 limit_is(4 - 2*sqrt(4 - t), t, 4, 4, '-'); same(integrate(1/sqrt(4 - x), (x, 0, 4)), 4)
+xr4 = symbols('x', real=True); same(function_range(cos(xr4)**2, xr4, S.Reals), Interval(0, 1))
+same(integrate(x**-2, (x, 1, oo)), 1)
+I4e = (1 + cos(2) - pi + 2*Si(2))/2                          # by parts: the integral of (1 + cos 2x)/(2x^2) over [1, oo)
+near(N(I4e, 30), 0.5 + 0.5*mpmath.quadosc(lambda X: mpmath.cos(2*X)/X**2, [1, mpmath.inf], omega=2), 1e-20)
+rounds(I4e, '0.327'); holds(I4e <= 1)
+same(solve_univariate_inequality(x**3 + 1 <= 2*x**3, x, relational=False), Interval(1, oo))
+xp4 = symbols('x', positive=True); same(xp4/(sqrt(2)*xp4**Rational(3, 2)), 1/(sqrt(2)*sqrt(xp4))); same(xp4/sqrt(xp4**3), 1/sqrt(xp4))
+same(integrate(1/(sqrt(2)*sqrt(x)), (x, 1, t)), sqrt(2)*(sqrt(t) - 1)); limit_is(sqrt(2)*(sqrt(t) - 1), t, oo, oo)
+same((xp4/sqrt(xp4**3 + 1))/(1/sqrt(xp4)), xp4**Rational(3, 2)/sqrt(xp4**3 + 1)); limit_is(x**Rational(3, 2)/sqrt(x**3 + 1), x, oo, 1)
 ```
 :::
 ::::
@@ -1615,9 +1661,11 @@ because $b^2f(b) = 0$ and $0^2f(0) = 0$. Therefore $\pi\int_0^h g(y)^2\,dy = 2\p
 fS_ = Function('f')
 same(x**2*diff(fS_(x), x), diff(x**2*fS_(x), x) - 2*x*fS_(x))      # the product rule behind the parts step
 same((x**2*fS_(x)).subs(x, b) - (x**2*fS_(x)).subs(x, 0), b**2*fS_(b)); same((b**2*fS_(b)).subs(fS_(b), 0), 0)
-for f_try in (1 - x**2, (1 - x)**3, cos(pi*x/2)):          # instances: decreasing on [0, 1] from f(0) to 0
-    same(-pi*integrate(x**2*diff(f_try, x), (x, 0, 1)), 2*pi*integrate(x*f_try, (x, 0, 1)))
 yq = symbols('y', nonnegative=True)
+for f_try, g_try in ((1 - x**2, sqrt(1 - y)), ((1 - x)**3, 1 - y**Rational(1, 3)), (cos(pi*x/2), 2*acos(y)/pi)):
+    # instances: decreasing on [0, 1] from f(0) = 1 to f(1) = 0, with g the inverse function
+    same(f_try.subs(x, 0), 1); same(f_try.subs(x, 1), 0); same(f_try.subs(x, g_try.subs(y, yq)), yq)
+    steps(pi*integrate(g_try**2, (y, 0, 1)), -pi*integrate(x**2*diff(f_try, x), (x, 0, 1)), 2*pi*integrate(x*f_try, (x, 0, 1)))
 same((1 - x**2).subs(x, sqrt(1 - yq)), yq); same(pi*integrate(1 - y, (y, 0, 1)), pi/2); same(2*pi*integrate(x*(1 - x**2), (x, 0, 1)), pi/2)
 ```
 :::

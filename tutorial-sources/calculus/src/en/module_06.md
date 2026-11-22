@@ -984,7 +984,7 @@ A chain or cable hanging freely between two supports, under its own weight, take
 
 $$y = a\cosh\frac{x}{a},$$
 
-where the constant $a > 0$ is the horizontal tension in the chain divided by its weight per unit length. Deriving this needs arc length (Module 12) and differential equations (Module 13). Figure 6.5 (right) compares a catenary with a parabola: they look alike, but they are different curves.
+where the constant $a > 0$ is the horizontal tension in the chain divided by its weight per unit length. Deriving it needs arc length (Module 12) and a differential equation (Module 13), and this series does not do it. Figure 6.5 (right) compares a catenary with a parabola: they look alike, but they are different curves.
 
 ::: figure id=fig-06-5
 Left: the graphs of $\cosh x$, $\sinh x$ and $\tanh x$. For large $x$, $\cosh x$ and $\sinh x$ both approach $\tfrac12 e^x$ (dotted), and $\tanh x$ approaches 1. Right: the catenary $y = \cosh x$ for $-2 \le x \le 2$ (blue), the shape of a chain hanging between two supports, and the parabola through its lowest point and its two ends (orange, dashed). The catenary is flatter at the bottom and steeper at the ends.
