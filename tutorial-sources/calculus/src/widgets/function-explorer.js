@@ -69,6 +69,7 @@ CalcWidgets.register('function-explorer', function (root, api) {
   root.appendChild(api.row(sel.el, reset))
   root.appendChild(formulaEl)
   root.appendChild(plotBox)
+  root.appendChild(h('div', { class: 'fe-key' }, t('Dashed: the graph of y = f(x). Solid: the transformed graph.', '虚线：y = f(x) 的图像。实线：变换后的图像。')))
   root.appendChild(h('div', { class: 'fe-sliders' }, S.a.el, S.b.el, S.c.el, S.d.el))
   root.appendChild(words)
   api.css('function-explorer', [
@@ -82,8 +83,6 @@ CalcWidgets.register('function-explorer', function (root, api) {
       P.axes()
       P.curve(state.fn.f, { color: 'var(--muted)', width: 2, dash: true })
       P.curve(g, { color: 'var(--blue)', width: 2.6 })
-      var v = P.view
-      P.text(v[0] + (v[1] - v[0]) * 0.02, v[3] - (v[3] - v[2]) * 0.06, t('dashed: y = f(x)', '虚线：y = f(x)'), { color: 'var(--slate)', size: 12 })
     },
   })
   function update() { formulaEl.textContent = formula(); words.textContent = describe(); P.redraw() }

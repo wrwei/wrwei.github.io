@@ -37,10 +37,16 @@ def clean(svg, title):
     body = svg[head_end:]
 
     def rnd(m):
-        v = round(float(m.group(0)), 2)
-        s = f'{v:.2f}'.rstrip('0').rstrip('.')
+        v = round(float(m.group(0)), 1)
+        s = f'{v:.1f}'.rstrip('0').rstrip('.')
         return '0' if s in ('-0', '') else s
-    body = re.sub(r'-?\d+\.\d{3,}', rnd, body)
+
+    def compact(d):
+        # 0.1 pt (0.14 px on the page) is far below what anyone can see; drop the spaces around commands.
+        d = re.sub(r'-?\d+\.\d+', rnd, d)
+        return re.sub(r'\s*([MLQCZz])\s*', r'\1', re.sub(r'\s+', ' ', d)).strip()
+    # Round coordinates in path data only: other numbers (glyph scales such as scale(0.015625)) must stay exact.
+    body = re.sub(r'(\sd=")([^"]*)(")', lambda m: m.group(1) + compact(m.group(2)) + m.group(3), body)
     from html import escape
     return head + f'<title>{escape(title)}</title>' + body
 

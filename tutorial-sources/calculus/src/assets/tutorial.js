@@ -1,8 +1,8 @@
-/* Git and GitHub, Step by Step — page behaviour. Runs deferred. */
+/* Calculus — page behaviour (copy buttons, tabs, quiz, progress). Runs deferred. */
 (function () {
   'use strict'
   var zh = (document.documentElement.lang || '').indexOf('zh') === 0
-  var KEY = 'formal-methods:'
+  var KEY = (document.body.getAttribute('data-series') || 'calculus') + ':'
 
   function store(k, v) {
     try {
@@ -158,7 +158,7 @@
         var a = ip.querySelector('.ip-next')
         if (count && next) {
           var card = document.querySelector('.module-card[data-lesson="' + next + '"]')
-          if (card) { a.href = card.getAttribute('href'); a.textContent = a.getAttribute('data-resume') + ' ' + (zh ? '第 ' + next + ' 课' : 'Lesson ' + next) + ' →' }
+          if (card) { a.href = card.getAttribute('href'); a.textContent = a.getAttribute('data-resume') + ' ' + (zh ? '模块 ' + next : 'Module ' + next) + ' →' }
         } else if (count && !next) {
           a.style.display = 'none'
         }

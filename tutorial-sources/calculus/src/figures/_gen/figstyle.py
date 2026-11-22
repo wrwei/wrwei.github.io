@@ -34,7 +34,7 @@ plt.rcParams.update({
     'axes.titlesize': 12, 'axes.titleweight': 'normal', 'axes.titlecolor': C['navy'], 'axes.titlepad': 8,
     'legend.fontsize': 10, 'legend.frameon': False, 'lines.linewidth': 2.2, 'lines.solid_capstyle': 'round',
     'figure.facecolor': 'white', 'axes.facecolor': 'white', 'savefig.facecolor': 'white',
-    'svg.fonttype': 'path', 'svg.hashsalt': 'calculus-series', 'path.simplify': True,
+    'svg.fonttype': 'path', 'svg.hashsalt': 'calculus-series', 'path.simplify': True, 'path.simplify_threshold': 0.3,
 })
 
 
