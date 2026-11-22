@@ -225,7 +225,7 @@ same(integrate(x*cos(x), (x, 0, 2)), (x*sin(x)).subs(x, 2) - (x*sin(x)).subs(x, 
 same(integrate(log(x)*x, (x, 1, 3)), (log(x)*x**2/2).subs(x, 3) - (log(x)*x**2/2).subs(x, 1) - integrate(x/2, (x, 1, 3)))
 ```
 
-When $u = f(x)$ and $v = g(x)$ both increase with $x$, the theorem has a picture (Figure 11.1). As $x$ runs from $a$ to $b$, the point $(u, v)$ traces a curve from $(u_1, v_1)$ to $(u_2, v_2)$, where $u_1 = f(a)$, $v_1 = g(a)$, $u_2 = f(b)$ and $v_2 = g(b)$. The integral $\int v\,du = \int_a^b g(x)f'(x)\,dx$ is the area between this curve and the $u$-axis, and $\int u\,dv = \int_a^b f(x)g'(x)\,dx$ is the area between the curve and the $v$-axis. Together the two regions fill the rectangle $u_2v_2$ except for the rectangle $u_1v_1$:
+When $u = f(x)$ and $v = g(x)$ are never negative and both increase with $x$, the theorem has a picture (Figure 11.1). As $x$ runs from $a$ to $b$, the point $(u, v)$ traces a curve from $(u_1, v_1)$ to $(u_2, v_2)$, where $u_1 = f(a)$, $v_1 = g(a)$, $u_2 = f(b)$ and $v_2 = g(b)$. The integral $\int v\,du = \int_a^b g(x)f'(x)\,dx$ is the area between this curve and the $u$-axis, and $\int u\,dv = \int_a^b f(x)g'(x)\,dx$ is the area between the curve and the $v$-axis. Together the two regions fill the rectangle $u_2v_2$ except for the rectangle $u_1v_1$:
 
 $$\int u\,dv + \int v\,du = u_2v_2 - u_1v_1 = \big[uv\big]_a^b,$$
 
@@ -344,7 +344,7 @@ $$\begin{aligned} &\int \sin^4 x\,dx \\ &\quad= -\tfrac14\sin^3 x\cos x + \tfrac
 
 $$\begin{aligned} \int_0^{\pi/2} \sin^4 x\,dx &= \frac34\int_0^{\pi/2} \sin^2 x\,dx \\ &= \frac34\cdot\frac12\int_0^{\pi/2} 1\,dx \\ &= \frac34\cdot\frac12\cdot\frac{\pi}{2} \\ &= \frac{3\pi}{16} \approx 0.5890. \end{aligned}$$
 
-The middle line agrees with [Exercise 10.12](module_10_EN.html#ex-10-12), which found $\int_0^{\pi/2} \sin^2 x\,dx = \tfrac{\pi}{4}$ by symmetry.
+The second line says that $\int_0^{\pi/2} \sin^2 x\,dx = \tfrac12\cdot\tfrac{\pi}{2} = \tfrac{\pi}{4}$, as [Exercise 10.12](module_10_EN.html#ex-10-12) found by symmetry.
 
 ```check
 antideriv(-sin(x)*cos(x)/2 + x/2, sin(x)**2, x)
@@ -353,7 +353,7 @@ antideriv(-sin(x)**3*cos(x)/4 - Rational(3, 8)*sin(x)*cos(x) + Rational(3, 8)*x,
 for N_ in (2, 3, 4):
     same((-sin(x)**(N_ - 1)*cos(x)/N_).subs(x, pi/2) - (-sin(x)**(N_ - 1)*cos(x)/N_).subs(x, 0), 0)
 steps(Integral(sin(x)**4, (x, 0, pi/2)), Rational(3, 4)*Integral(sin(x)**2, (x, 0, pi/2)), Rational(3, 4)*Rational(1, 2)*Integral(1, (x, 0, pi/2)), Rational(3, 4)*Rational(1, 2)*pi/2, 3*pi/16)
-rounds(3*pi/16, '0.5890'); same(integrate(sin(x)**2, (x, 0, pi/2)), pi/4)
+rounds(3*pi/16, '0.5890'); same(integrate(sin(x)**2, (x, 0, pi/2)), Rational(1, 2)*pi/2); same(Rational(1, 2)*pi/2, pi/4)
 ```
 :::
 
@@ -1144,7 +1144,7 @@ li(x)
 Ei(x)
 ```
 
-`Ei` is the exponential integral, another named antiderivative. SymPy's `li` is a third antiderivative of $\dfrac{1}{\ln x}$, defined by an integral from 0 that needs special care at $t = 1$, where $\dfrac{1}{\ln t}$ is undefined; it differs from $\operatorname{Li}$ by the constant $\operatorname{li} 2$. The prime numbers up to a million, counted by `primepi`, against $\operatorname{Li}$ of a million:
+`Ei` is the exponential integral, another named antiderivative. SymPy's `li` is another antiderivative of $\dfrac{1}{\ln x}$, defined by an integral from 0 that needs special care at $t = 1$, where $\dfrac{1}{\ln t}$ is undefined; it differs from $\operatorname{Li}$ by the constant $\operatorname{li} 2$. The prime numbers up to a million, counted by `primepi`, against $\operatorname{Li}$ of a million:
 
 ```python
 print(sp.N(sp.li(2)))
@@ -1260,8 +1260,15 @@ same(integrate(fM(mq) + Subs(Derivative(fM(x), x), x, mq)*(x - mq), (x, mq - hq,
 ```
 
 ::: figure id=fig-11-4
-One subinterval of the two rules for $\int_1^2 \frac{dx}{x}$, with $n = 1$ so that the errors are visible. Left: the trapezoid under the chord has area 0.75; the graph, concave up, sags below the chord, so the trapezoid is too big by the orange sliver ($\ln 2 \approx 0.693$). Right: the midpoint rectangle (dashed) has the same area, $\tfrac23 \approx 0.667$, as the trapezoid under the tangent line at the midpoint, because the two small triangles between them are equal; the graph lies above the tangent, so the rectangle is too small by the green sliver.
+One subinterval of the two rules for $\int_1^2 \frac{dx}{x}$, with $n = 1$ so that the errors are visible. Left: the trapezoid under the chord has area 0.75, more than the area $\ln 2 \approx 0.693$ under the graph: the graph, concave up, sags below the chord, and the orange sliver is the excess. Right: the midpoint rectangle (dashed) has area $\tfrac23 \approx 0.667$, the same as the trapezoid under the tangent line at the midpoint, because the two small triangles between them are equal; the graph lies above the tangent, so the rectangle is too small by the green sliver.
 :::
+
+```check
+same((1 + Rational(1, 2))/2, Rational(3, 4)); rounds(log(2), '0.693'); holds(Rational(3, 4) > log(2))
+same(1/Rational(3, 2), Rational(2, 3)); rounds(Rational(2, 3), '0.667'); holds(Rational(2, 3) < log(2))
+same(integrate(Rational(2, 3) + Rational(-4, 9)*(x - Rational(3, 2)), (x, 1, 2)), Rational(2, 3))   # the tangent at 3/2: slope -1/(3/2)^2
+same(diff(1/x, x).subs(x, Rational(3, 2)), Rational(-4, 9))
+```
 
 ### Error bounds {#error-bounds}
 
@@ -1289,7 +1296,9 @@ So the error of a single trapezoid is
 
 $$\begin{aligned} &\int_p^q f(x)\,dx - \frac{w}{2}\big(f(p) + f(q)\big) \\ &\quad= -\int_p^q k(x)\,f''(x)\,dx. \end{aligned}$$
 
-**The bound.** Since $k \ge 0$ and $-K \le f'' \le K$, the comparison theorem ([Theorem 9.7](module_09_EN.html#properties)) puts the right side between $-K\int_p^q k\,dx$ and $K\int_p^q k\,dx$, and $\int_p^q k(x)\,dx = \tfrac{w^3}{12}$. So each trapezoid is in error by at most $\tfrac{Kw^3}{12}$. There are $n$ trapezoids, each of width $w = \tfrac{b - a}{n}$, so $\abs{E_T} \le n\cdot\dfrac{K}{12}\Big(\dfrac{b - a}{n}\Big)^3 = \dfrac{K(b - a)^3}{12n^2}$.
+**The bound.** Since $k \ge 0$ and $-K \le f'' \le K$, the comparison theorem ([Theorem 9.7](module_09_EN.html#properties)) puts the right side between $-K\int_p^q k\,dx$ and $K\int_p^q k\,dx$, and $\int_p^q k(x)\,dx = \tfrac{w^3}{12}$. So each trapezoid is in error by at most $\tfrac{Kw^3}{12}$. There are $n$ trapezoids, each of width $w = \tfrac{b - a}{n}$, so
+
+$$\begin{aligned} \abs{E_T} &\le n\cdot\frac{K}{12}\Big(\frac{b - a}{n}\Big)^3 \\ &= \frac{K(b - a)^3}{12n^2}. \end{aligned}$$
 
 **The sign.** If $f'' \ge 0$, each $-\int_p^q kf''\,dx$ is at most 0, so $E_T \le 0$: $T_n$ overestimates.
 
@@ -1484,7 +1493,7 @@ T [4.01, 4.0, 4.0, 4.0]
 S [15.72, 15.95, 15.99, 16.0]
 ```
 
-The midpoint and trapezoidal errors fall by a factor of 4 at each doubling, and Simpson's by a factor close to 16, as Theorems 11.8 and 11.10 predict. With 16 subintervals Simpson's rule is already within $2 \times 10^{-7}$ of the integral, closer than the trapezoidal rule with 64. The midpoint rule overestimates here, because on most of $[0, 1]$ the graph of $e^{-x^2}$ is concave down; and $E_T \approx -2E_M$ once more.
+The midpoint and trapezoidal errors fall by a factor of 4 at each doubling, and Simpson's by a factor close to 16, as Theorems 11.8 and 11.10 predict. With 16 subintervals Simpson's rule is already within $2 \times 10^{-7}$ of the integral, closer than the trapezoidal rule with 64. The midpoint rule overestimates here, because the graph of $e^{-x^2}$ is concave down on most of $[0, 1]$ (more precisely, because $f'(1) - f'(0) = -\tfrac{2}{e}$ is negative, in the estimate of the Going deeper box); and $E_T \approx -2E_M$ once more.
 :::
 
 ```check
@@ -1505,6 +1514,7 @@ holds(abs(eS[2]) < 2e-7); holds(abs(eS[2]) < abs(eT[4])); holds(all(e_ < 0 for e
 for k_ in range(5):
     holds(-2.1 < eT[k_]/eM[k_] < -1.9)
 holds((diff(exp(-x**2), x, 2)).subs(x, Rational(7, 10)) < 0); same(solve(diff(exp(-x**2), x, 2), x), [-sqrt(2)/2, sqrt(2)/2])
+same(diff(exp(-x**2), x).subs(x, 1) - diff(exp(-x**2), x).subs(x, 0), -2/E); holds(-2/E < 0)
 ```
 
 ::: figure id=fig-11-5
@@ -1566,7 +1576,7 @@ Find:
 ::: solution
 **(a)** $u = x$, $dv = \sin 2x\,dx$, so $du = dx$ and $v = -\tfrac12\cos 2x$:
 
-$$\begin{aligned} &\int x\sin 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac12\int \cos 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac14\sin 2x \\ &\qquad + C. \end{aligned}$$
+$$\begin{aligned} &\int x\sin 2x\,dx \\ &\quad= -\tfrac12x\cos 2x \\ &\qquad + \tfrac12\int \cos 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac14\sin 2x + C. \end{aligned}$$
 
 **(b)** By LIATE, $u = \ln x$ and $dv = x^2\,dx$, so $du = \dfrac{dx}{x}$ and $v = \dfrac{x^3}{3}$:
 
@@ -1691,9 +1701,9 @@ Find:
 - (c) $\displaystyle\int (\ln x)^2\,dx$, for $x > 0$
 
 ::: solution
-**(a)** Differentiate $x^3$ and integrate $e^{-x}$:
+**(a)** Differentiate $x^3$ in column D and integrate $e^{-x}$ in column I:
 
-| Sign | Differentiate | Integrate |
+| Sign | D | I |
 |---|---|---|
 | $+$ | $x^3$ | $e^{-x}$ |
 | $-$ | $3x^2$ | $-e^{-x}$ |
@@ -1960,7 +1970,7 @@ This exercise proves the midpoint half of Theorem 11.8. Centre a subinterval at 
 ::: solution
 **(a)** With $u = f(x)$, $dv = dx$ and $v = x - h$, which is 0 at $x = h$,
 
-$$\begin{aligned} &\int_0^h f\,dx \\ &\quad= \big[f(x)(x - h)\big]_0^h \\ &\qquad - \int_0^h f'(x)(x - h)\,dx \\ &\quad= hf(0) + \int_0^h (h - x)f'(x)\,dx. \end{aligned}$$
+$$\begin{aligned} &\int_0^h f\,dx \\ &\quad= \big[f(x)(x - h)\big]_0^h \\ &\qquad - \int_0^h f'(x)(x - h)\,dx \\ &\quad= hf(0) \\ &\qquad + \int_0^h (h - x)f'(x)\,dx. \end{aligned}$$
 
 Again, with $u = f'(x)$ and $dv = (h - x)\,dx$, so that $v = -\tfrac12(h - x)^2$:
 

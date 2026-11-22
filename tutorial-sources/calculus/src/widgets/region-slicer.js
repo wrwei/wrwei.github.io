@@ -14,7 +14,7 @@ CalcWidgets.register('region-slicer', function (root, api) {
   var REGIONS = [
     {
       value: 'parab', label: t('between y = x² and y = x', 'y = x² 与 y = x 之间'),
-      view: [-0.35, 1.85, -0.22, 1.25], exact: '1/6', exactVal: 1 / 6,
+      view: [-0.35, 1.85, -0.22, 1.25], ticks: [[0.5, 1], [0.5, 1]], exact: '1/6', exactVal: 1 / 6,
       dydx: { a: 0, b: 1, as: '0', bs: '1', lo: function (x) { return x * x }, los: 'x²', hi: function (x) { return x }, his: 'x', len: 'x − x²' },
       dxdy: { a: 0, b: 1, as: '0', bs: '1', lo: function (y) { return y }, los: 'y', hi: Math.sqrt, his: '√y', len: '√y − y' },
       curves: [
@@ -24,29 +24,29 @@ CalcWidgets.register('region-slicer', function (root, api) {
     },
     {
       value: 'tri', label: t('triangle 0 ≤ y ≤ x ≤ 1', '三角形 0 ≤ y ≤ x ≤ 1'),
-      view: [-0.35, 1.85, -0.22, 1.25], exact: '1/2', exactVal: 1 / 2,
+      view: [-0.35, 1.85, -0.22, 1.25], ticks: [[0.5, 1], [0.5, 1]], exact: '1/2', exactVal: 1 / 2,
       dydx: { a: 0, b: 1, as: '0', bs: '1', lo: function () { return 0 }, los: '0', hi: function (x) { return x }, his: 'x', len: 'x' },
       dxdy: { a: 0, b: 1, as: '0', bs: '1', lo: function (y) { return y }, los: 'y', hi: function () { return 1 }, his: '1', len: '1 − y' },
       curves: [
-        { pts: [[0, 0], [1, 0]], names: ['y = 0', 'y = 0'], at: [0.5, -0.16], anchor: 'middle' },
+        { pts: [[0, 0], [1, 0]], names: ['y = 0', 'y = 0'], at: [0.2, 0], dy: 17, anchor: 'middle' },
         { pts: [[0, 0], [1, 1]], names: ['y = x', 'x = y'], at: [0.42, 0.62], anchor: 'end' },
-        { pts: [[1, 0], [1, 1]], names: ['x = 1', 'x = 1'], at: [1.05, 0.5], anchor: 'start' },
+        { pts: [[1, 0], [1, 1]], names: ['x = 1', 'x = 1'], at: [1.05, 0.8], anchor: 'start' },
       ],
     },
     {
-      value: 'disc', label: t('quarter disc x² + y² ≤ 1, x ≥ 0, y ≥ 0', '四分之一圆盘 x² + y² ≤ 1，x ≥ 0，y ≥ 0'),
-      view: [-0.35, 1.85, -0.22, 1.25], exact: 'π/4', exactVal: Math.PI / 4,
+      value: 'disc', label: t('quarter disc x² + y² ≤ 1, x, y ≥ 0', '四分之一圆盘 x² + y² ≤ 1，x, y ≥ 0'),
+      view: [-0.35, 1.85, -0.22, 1.25], ticks: [[0.5, 1], [0.5, 1]], exact: 'π/4', exactVal: Math.PI / 4,
       dydx: { a: 0, b: 1, as: '0', bs: '1', lo: function () { return 0 }, los: '0', hi: function (x) { return Math.sqrt(Math.max(0, 1 - x * x)) }, his: '√(1 − x²)', len: '√(1 − x²)' },
       dxdy: { a: 0, b: 1, as: '0', bs: '1', lo: function () { return 0 }, los: '0', hi: function (y) { return Math.sqrt(Math.max(0, 1 - y * y)) }, his: '√(1 − y²)', len: '√(1 − y²)' },
       curves: [
         { pts: arc(1, 0, Math.PI / 2), names: ['y = √(1 − x²)', 'x = √(1 − y²)'], at: [0.76, 0.8], anchor: 'start' },
-        { pts: [[0, 0], [1, 0]], names: ['y = 0', 'y = 0'], at: [0.5, -0.16], anchor: 'middle' },
-        { pts: [[0, 0], [0, 1]], names: ['x = 0', 'x = 0'], at: [-0.05, 0.45], anchor: 'end' },
+        { pts: [[0, 0], [1, 0]], names: ['y = 0', 'y = 0'], at: [0.2, 0], dy: 17, anchor: 'middle' },
+        { pts: [[0, 0], [0, 1]], names: ['x = 0', 'x = 0'], at: [0, 0.25], dx: -6, anchor: 'end' },
       ],
     },
     {
       value: 'sqrt', label: t('between y = √x and y = x/2', 'y = √x 与 y = x/2 之间'),
-      view: [-0.5, 5.6, -0.4, 2.55], exact: '4/3', exactVal: 4 / 3,
+      view: [-0.5, 5.6, -0.4, 2.55], ticks: [[1, 2, 3, 4], [1, 2]], exact: '4/3', exactVal: 4 / 3,
       dydx: { a: 0, b: 4, as: '0', bs: '4', lo: function (x) { return x / 2 }, los: 'x/2', hi: Math.sqrt, his: '√x', len: '√x − x/2' },
       dxdy: { a: 0, b: 2, as: '0', bs: '2', lo: function (y) { return y * y }, los: 'y²', hi: function (y) { return 2 * y }, his: '2y', len: '2y − y²' },
       curves: [
@@ -76,6 +76,16 @@ CalcWidgets.register('region-slicer', function (root, api) {
   function eqs(v, dec) { var q = shown(v, dec); return (q.exact ? '= ' : '≈ ') + q.s }
   function coord(v) { return shown(v, 4).s }
   function sig(v, n) { return minus(Number(v.toPrecision(n))) }
+  // A sum or difference goes in brackets before dx or dy; a single term does not.
+  function bracket(s) {
+    var depth = 0, i
+    for (i = 0; i < s.length; i++) {
+      if (s[i] === '(') depth++
+      else if (s[i] === ')') depth--
+      else if (depth === 0 && (s[i] === '−' || s[i] === '+') && i > 0) return '(' + s + ')'
+    }
+    return s
+  }
 
   // ---------------------------------------------------------------- state
   var S = { region: REGIONS[0], order: 'dydx', pos: 0.5 }
@@ -98,6 +108,8 @@ CalcWidgets.register('region-slicer', function (root, api) {
   var slider = api.slider({ label: 'x', min: 0, max: 1, step: 0.01, value: 0.5, fmt: coord,
     oninput: function (v) { S.pos = v; update() } })
   slider.el.classList.add('rsl-pos')
+  regionSel.el.classList.add('rsl-choice')
+  orderSel.el.classList.add('rsl-choice')
   var sliderLabel = slider.el.querySelector('label')
 
   function resetSlider() {
@@ -138,6 +150,9 @@ CalcWidgets.register('region-slicer', function (root, api) {
   root.appendChild(api.row(slider.el))
   root.appendChild(readout)
   api.css('region-slicer', [
+    '.rsl-plot{max-width:600px;margin:0 auto}',
+    '.rsl-choice{min-width:0;max-width:100%}',
+    '.rsl-choice .cw-select{min-width:0;max-width:100%;text-overflow:ellipsis}',
     '.rsl-pos{flex:1 1 280px}',
     '.rsl-key{font-size:.8rem;color:var(--slate);margin:.25rem 0}',
     '.rsl-readout{font-size:.88rem;color:var(--navy);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.45rem .7rem;margin:.5rem 0;overflow-x:auto}',
@@ -160,15 +175,27 @@ CalcWidgets.register('region-slicer', function (root, api) {
   ].join(''))
 
   // ---------------------------------------------------------------- the picture
+  // Axes with a few fixed ticks, so that the labels of the boundary curves never meet tick labels.
+  function axes(P, ticks) {
+    var v = P.view
+    ticks[0].forEach(function (x) { P.line(x, v[2], x, v[3], { color: '#E8EDF3', width: 1, layer: 'back' }) })
+    ticks[1].forEach(function (y) { P.line(v[0], y, v[1], y, { color: '#E8EDF3', width: 1, layer: 'back' }) })
+    P.line(v[0], 0, v[1], 0, { color: 'var(--navy)', width: 1.2, layer: 'back' })
+    P.line(0, v[2], 0, v[3], { color: 'var(--navy)', width: 1.2, layer: 'back' })
+    ticks[0].forEach(function (x) { P.text(x, 0, String(x), { anchor: 'middle', dy: 16 }).setAttribute('class', 'cw-tick') })
+    ticks[1].forEach(function (y) { P.text(0, y, String(y), { anchor: 'end', dx: -6, dy: 4 }).setAttribute('class', 'cw-tick') })
+    P.text(v[1], 0, 'x', { anchor: 'end', dx: -4, dy: -7 }).setAttribute('class', 'cw-axlabel')
+    P.text(0, v[3], 'y', { dx: 7, dy: 13 }).setAttribute('class', 'cw-axlabel')
+  }
   var P = api.plot(plotBox, {
     view: S.region.view, equal: true, label: t('The region D and one slice of it', '区域 D 及其中的一个切片'),
     draw: function (P) {
       var r = S.region, d = desc(), dv = r.dydx, k = S.order === 'dydx' ? 0 : 1
-      P.axes()
+      axes(P, r.ticks)
       P.area(dv.hi, dv.a, dv.b, { g: dv.lo, fill: 'var(--sky)', opacity: 0.3 })
       r.curves.forEach(function (c) {
         P.poly(c.pts, { color: 'var(--blue)', width: 2.2 }).setAttribute('class', 'rsl-curve')
-        P.text(c.at[0], c.at[1], c.names[k], { color: 'var(--blue)', anchor: c.anchor, dy: 4 }).setAttribute('class', 'cw-label rsl-curve-label')
+        P.text(c.at[0], c.at[1], c.names[k], { color: 'var(--blue)', anchor: c.anchor, dx: c.dx || 0, dy: c.dy != null ? c.dy : 4 }).setAttribute('class', 'cw-label rsl-curve-label')
       })
       var s = S.pos, lo = d.lo(s), hi = d.hi(s), seg
       if (S.order === 'dydx') {
@@ -203,10 +230,16 @@ CalcWidgets.register('region-slicer', function (root, api) {
     // The slice at the current position.
     var lo = d.lo(s), hi = d.hi(s)
     while (sliceLine.firstChild) sliceLine.removeChild(sliceLine.firstChild)
-    sliceLine.appendChild(h('span', {}, (dydx ? t('Vertical slice at ', '竖直切片 ') : t('Horizontal slice at ', '水平切片 ')) + outer + ' = ' + coord(s) + t(': ', '：') + inner + t(' runs from ', ' 从 ') + d.los + ' '))
-    sliceLine.appendChild(h('span', { class: 'rsl-val rsl-from' }, eqs(lo)))
-    sliceLine.appendChild(h('span', {}, t(' to ', ' 到 ') + d.his + ' '))
-    sliceLine.appendChild(h('span', { class: 'rsl-val rsl-to' }, eqs(hi)))
+    // A limit that is a formula is followed by its value here; a constant limit is its own value.
+    function end(formula, v, cls) {
+      var constant = /^[0-9.]+$/.test(formula)
+      if (!constant) sliceLine.appendChild(h('span', {}, formula + ' '))
+      sliceLine.appendChild(h('span', { class: 'rsl-val ' + cls }, constant ? formula : eqs(v)))
+    }
+    sliceLine.appendChild(h('span', {}, (dydx ? t('Vertical slice at ', '竖直切片 ') : t('Horizontal slice at ', '水平切片 ')) + outer + ' = ' + coord(s) + t(': ', '：') + inner + t(' runs from ', ' 从 ')))
+    end(d.los, lo, 'rsl-from')
+    sliceLine.appendChild(h('span', {}, t(' to ', ' 到 ')))
+    end(d.his, hi, 'rsl-to')
     sliceLine.appendChild(h('span', {}, t(' (length ', '（长度 ')))
     sliceLine.appendChild(h('span', { class: 'rsl-val rsl-len' }, eqs(hi - lo).replace(/^= /, '')))
     sliceLine.appendChild(h('span', {}, t(').', '）。')))
@@ -216,7 +249,7 @@ CalcWidgets.register('region-slicer', function (root, api) {
       while (el.firstChild) el.removeChild(el.firstChild)
       el.classList.toggle('rsl-on', q[0] === S.order)
       el.appendChild(h('span', { class: 'rsl-what' }, q[2]))
-      el.appendChild(h('span', { class: 'rsl-formula' }, integralSign(dd.as, dd.bs), '(' + dd.len + ') ' + (q[0] === 'dydx' ? 'dx' : 'dy')))
+      el.appendChild(h('span', { class: 'rsl-formula' }, integralSign(dd.as, dd.bs), bracket(dd.len) + ' ' + (q[0] === 'dydx' ? 'dx' : 'dy')))
       el.appendChild(h('span', { class: 'rsl-num' }, '≈ ' + sig(areaOf(r, q[0]), 7)))
     })
     exactLine.textContent = t('Exact area: ' + r.exact + ' ≈ ' + sig(r.exactVal, 7) + '. Both orders give the same area, as Fubini\'s theorem says they must.',

@@ -90,7 +90,7 @@ CalcWidgets.register('lagrange', function (root, api) {
   // little), going round from the top left; for a closed curve inside the view, a point on the ray from the origin
   // towards the upper left.
   function labelPoint(f, L) {
-    var v = VIEW, m = 0.28, x0 = v[0] + m, x1 = v[1] - m, y0 = v[2] + m, y1 = v[3] - m
+    var v = VIEW, m = 0.5, x0 = v[0] + m, x1 = v[1] - m, y0 = v[2] + m, y1 = v[3] - m
     var path = [[x0, y1], [x1, y1], [x1, y0], [x0, y0], [x0, y1]], prev = null, pv = null
     for (var k = 0; k < 4; k++) {
       for (var i = 0; i <= 200; i++) {

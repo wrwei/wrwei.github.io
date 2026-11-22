@@ -15,7 +15,7 @@ goals:
 
 ## Volumes and double integrals {#double-integrals}
 
-Module 9 found the area under a curve by cutting an interval into short pieces, standing a thin rectangle on each and adding up the rectangles; the limit of those sums is the definite integral. This module takes the same idea up one dimension. A function of two variables $f(x, y)$, the subject of Module 17, has a surface for its graph, $z = f(x, y)$. Over a region of the $xy$-plane, the solid between the region and the surface has a volume. Cut the region into small rectangles, stand a thin box on each, and add up the boxes: the limit of these sums is the **double integral**. It computes much more than volumes. A sum of the same kind is how a computer adds up anything recorded on a grid: the rainfall on each square of a weather map times the area of the square, added over a river's catchment, approximates the volume of water that fell on it.
+Module 9 found the area under a curve by cutting an interval into short pieces, standing a thin rectangle on each and adding up the rectangles; the limit of those sums is the definite integral. This module takes the same idea up one dimension. A function of two variables $f(x, y)$, the subject of Module 17, has a surface for its graph, $z = f(x, y)$. Over a region of the $xy$-plane, the solid between the region and the surface has a volume. Cut the region into small rectangles, stand a thin box on each, and add up the boxes: the limit of these sums is the **double integral**. It computes much more than volumes: masses, averages and probabilities too. A sum of the same kind is how a computer adds up anything recorded on a grid: the rainfall on each square of a weather map times the area of the square, added over a river's catchment, approximates the volume of water that fell on it.
 
 Start with a rectangle in the $xy$-plane,
 
@@ -107,7 +107,7 @@ whenever $m \ge N$ and $n \ge N$, wherever the sample points are. Then $I$ is th
 $$\iint_R f(x, y)\,dA = \lim_{m, n\to\infty}\sum_{i=1}^{m}\sum_{j=1}^{n} f(x_{ij}^*, y_{ij}^*)\,\Delta A.$$
 :::
 
-The symbol $\iint_R f(x, y)\,dA$ reads "the double integral over $R$ of $f$ of $x$, $y$, $dA$", and $dA$, the **element of area**, recalls the areas $\Delta A$ of the small rectangles. When $f \ge 0$ on $R$, the double integral is the volume of the solid between $R$ and the graph of $f$: it defines that volume, and it agrees with the volumes of boxes, prisms and pyramids that you already know. Where $f$ is negative the boxes hang below the $xy$-plane and count as negative, so in general the double integral is a signed volume, like the signed area of [Section 9.4](module_09_EN.html#signed-area). Module 9 also allowed subintervals of different widths; equal widths keep the notation light here and give the same integrals.
+The symbol $\iint_R f(x, y)\,dA$ reads "the double integral over $R$ of $f$ of $x$, $y$, $dA$", and $dA$, the **element of area**, recalls the areas $\Delta A$ of the small rectangles. When $f \ge 0$ on $R$, the double integral is the volume of the solid between $R$ and the graph of $f$: it defines that volume, and it agrees with the volumes of boxes, prisms and pyramids that you already know. Where $f$ is negative the boxes hang below the $xy$-plane and count as negative, so in general the double integral is a signed volume, like the signed area of [Section 9.4](module_09_EN.html#signed-area). Module 9 allowed subintervals of different widths too; here equal widths keep the notation light, and a definition with unequal widths gives the same double integrals.
 
 ::: theorem Integrable functions
 If $f$ is continuous on the rectangle $R$, then $f$ is integrable on $R$. More generally, $f$ is integrable on $R$ if it is bounded on $R$ and continuous at every point of $R$ except those on finitely many curves, each the graph $y = g(x)$ or $x = h(y)$ of a continuous function on a closed interval.
@@ -241,8 +241,8 @@ $$\iint_R g(x)h(y)\,dA = \int_a^b g(x)\,dx\int_c^d h(y)\,dy.$$
 For example, $\iint_R \sin x\cos y\,dA = 1 \cdot 1 = 1$ over $R = [0, \pi/2] \times [0, \pi/2]$. This product rule needs a rectangle, whose limits are constants; Section 19.4 uses it to compute the Gaussian integral.
 
 ```check
-gF, hF = Function('g'), Function('h')
-same(Integral(gF(x)*hF(y), (y, c, b), (x, a, b)).doit(), Integral(gF(x), (x, a, b)).doit()*Integral(hF(y), (y, c, b)).doit())
+gF, hF, dS = Function('g'), Function('h'), symbols('d')
+same(Integral(gF(x)*hF(y), (y, c, dS), (x, a, b)).doit(), Integral(gF(x), (x, a, b)).doit()*Integral(hF(y), (y, c, dS)).doit())
 same(integrate(sin(x)*cos(y), (y, 0, pi/2), (x, 0, pi/2)), 1); same(integrate(sin(x), (x, 0, pi/2)), 1); same(integrate(cos(y), (y, 0, pi/2)), 1)
 ```
 
@@ -280,7 +280,7 @@ print(sp.integrate(x*sp.cos(x*y), (y, 0, 1), (x, 0, sp.pi)))
 2
 ```
 
-These are $A(x)$ and the volume of Example 19.2, with the terms of $A(x)$ in SymPy's order, and the integral of Example 19.3. Numerically, a midpoint sum adds $f$ at the centres of an $n \times n$ grid. NumPy's `meshgrid` builds every pair of centres $(x_i, y_j)$ at once, so even a million boxes take a fraction of a second:
+These are $A(x)$ and the volume of Example 19.2, and the integral of Example 19.3. Numerically, a midpoint sum adds $f$ at the centres of an $n \times n$ grid. NumPy's `meshgrid` builds every pair of centres $(x_i, y_j)$ at once, so even a million boxes take a fraction of a second:
 
 ```python
 import numpy as np
@@ -303,7 +303,7 @@ for n in [2, 10, 100, 1000]:
 1000 21.333336
 ```
 
-The sums approach $\tfrac{64}{3} = 21.333\ldots$, with the error $\tfrac{8}{3n^2}$ found above: each tenfold increase in $n$ divides it by 100, until floating-point rounding shows in the last digits.
+The sums approach $\tfrac{64}{3} = 21.333\ldots$ with the error $\tfrac{8}{3n^2}$ found above, so each tenfold increase in $n$ divides the error by 100. The digits $\ldots0003$ at $n = 10$ are floating-point rounding: that sum is exactly 21.36.
 :::
 
 ::: pitfall
@@ -470,7 +470,7 @@ print(sp.integrate(sp.exp(y**2), (x, 0, y), (y, 0, 1)))   # reversed: x first
 -1/2 + E/2
 ```
 
-The inner integral is written with `erfi`, the "imaginary error function", a relative of the error function of Module 11 and, like it, not an elementary function. SymPy knows how to integrate it and, after simplifying, reaches $\tfrac{e - 1}{2}$, the answer of Example 19.6, which the reversed order gives at once.
+The inner integral is written with `erfi`, the "imaginary error function", a relative of the error function of Module 11 and, like it, not an elementary function. SymPy knows how to integrate it and, after simplifying, reaches `-1/2 + E/2`, that is, $\tfrac{e - 1}{2}$ (`E` is SymPy's name for $e$): the answer of Example 19.6, which the reversed order gives at once.
 :::
 
 ::: pitfall
@@ -859,7 +859,9 @@ The cylinder $x^2 + y^2 = 4$ becomes $r = 2$, and the paraboloid $z = x^2 + y^2$
 ::: theorem Triple integrals in cylindrical coordinates
 Let $E$ be the solid $u_1(x, y) \le z \le u_2(x, y)$ over the region $D$ given by $\alpha \le \theta \le \beta$, $h_1(\theta) \le r \le h_2(\theta)$, with $h_1$ and $h_2$ as in Theorem 19.4 and $u_1 \le u_2$ continuous. If $f$ is continuous on $E$, then
 
-$$\iiint_E f\,dV = \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)}\int_{u_1(r\cos\theta,\,r\sin\theta)}^{u_2(r\cos\theta,\,r\sin\theta)} f(r\cos\theta, r\sin\theta, z)\,r\,dz\,dr\,d\theta.$$
+$$\iiint_E f\,dV = \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)}\int_{u_1}^{u_2} f(r\cos\theta, r\sin\theta, z)\,r\,dz\,dr\,d\theta,$$
+
+where the limits $u_1$ and $u_2$ are evaluated at $(x, y) = (r\cos\theta, r\sin\theta)$.
 :::
 
 ::: example Water in a parabolic bowl
@@ -883,6 +885,8 @@ same(integrate(z*r, (z, r**2, hb)), (hb**2 - r**4)*r/2)
 steps(Integral(z*r, (z, r**2, hb), (r, 0, sqrt(hb)), (theta, 0, 2*pi)), pi*(hb**3/2 - hb**3/6), pi*hb**3/3)
 same((pi*hb**3/3)/(pi*hb**2/2), 2*hb/3); same(hb - 2*hb/3, hb/3)
 same(pi*integrate(y, (y, 0, hb)), pi*hb**2/2)
+rw, gw = symbols('rho g', positive=True)   # the work of lifting each element rho dV through h - z
+same(integrate(rw*gw*(hb - z)*r, (z, r**2, hb), (r, 0, sqrt(hb)), (theta, 0, 2*pi)), Rational(1, 3)*(rw*pi*hb**2/2)*gw*hb)
 ```
 :::
 
@@ -970,7 +974,9 @@ import sympy as sp
 r, theta, z, rho, phi = sp.symbols('r theta z rho phi', nonnegative=True)
 polar = sp.Matrix([r*sp.cos(theta), r*sp.sin(theta)])
 cyl = sp.Matrix([r*sp.cos(theta), r*sp.sin(theta), z])
-sph = sp.Matrix([rho*sp.sin(phi)*sp.cos(theta), rho*sp.sin(phi)*sp.sin(theta), rho*sp.cos(phi)])
+sph = sp.Matrix([rho*sp.sin(phi)*sp.cos(theta),
+                 rho*sp.sin(phi)*sp.sin(theta),
+                 rho*sp.cos(phi)])
 print(sp.simplify(polar.jacobian([r, theta]).det()))
 print(sp.simplify(cyl.jacobian([r, theta, z]).det()))
 print(sp.simplify(sph.jacobian([rho, phi, theta]).det()))
@@ -1007,7 +1013,7 @@ and the stretching factor is a determinant. A **2 × 2 determinant** is the numb
 
 $$\begin{vmatrix} a & b \\ c & d \end{vmatrix} = ad - bc$$
 
-([Module 10 of Mathematical Foundations](../math/module_10_EN.html#s6) treats determinants in general). The parallelogram spanned by two vectors $\langle a, c\rangle$ and $\langle b, d\rangle$ of the plane has area $\abs{ad - bc}$: regarded as the vectors $\langle a, c, 0\rangle$ and $\langle b, d, 0\rangle$ of space, they have the cross product $\langle 0, 0, ad - bc\rangle$, and the length of a cross product is the area of the parallelogram the two vectors span (Module 16).
+Mathematical Foundations meets determinants with matrices, in [its Module 10](../math/module_10_EN.html#s5). The parallelogram spanned by two vectors $\langle a, c\rangle$ and $\langle b, d\rangle$ of the plane has area $\abs{ad - bc}$: regarded as the vectors $\langle a, c, 0\rangle$ and $\langle b, d, 0\rangle$ of space, they have the cross product $\langle 0, 0, ad - bc\rangle$, and the length of a cross product is the area of the parallelogram the two vectors span (Module 16).
 
 ```check
 p1, p2, p3, p4 = symbols('p1 p2 p3 p4')
@@ -1137,7 +1143,11 @@ same(TL.subs({u: u + h, v: v + k}) - TL, h*Matrix([pa, pc]) + k*Matrix([pb, pd])
 ```
 :::
 
-In three dimensions, a transformation $x = x(u, v, w)$, $y = y(u, v, w)$, $z = z(u, v, w)$ has a Jacobian $\dfrac{\partial(x, y, z)}{\partial(u, v, w)}$, the determinant of the 3 × 3 array of its nine first partial derivatives, and $dV = \Big|\dfrac{\partial(x, y, z)}{\partial(u, v, w)}\Big|\,du\,dv\,dw$, under conditions like those of Theorem 19.9. For cylindrical coordinates the Jacobian is $r$ and for spherical coordinates $\rho^2\sin\varphi$, as the compute box of Section 19.7 shows: the factors found there from pictures.
+In three dimensions, a transformation $x = x(u, v, w)$, $y = y(u, v, w)$, $z = z(u, v, w)$ has a Jacobian $\partial(x, y, z)/\partial(u, v, w)$, the determinant of the 3 × 3 array of its nine first partial derivatives, and under conditions like those of Theorem 19.9,
+
+$$dV = \Big|\frac{\partial(x, y, z)}{\partial(u, v, w)}\Big|\,du\,dv\,dw.$$
+
+For cylindrical coordinates the Jacobian is $r$ and for spherical coordinates $\rho^2\sin\varphi$, as the compute box of Section 19.7 shows: the factors found there from pictures.
 
 ::: pitfall
 Two slips with the Jacobian. First, use its absolute value. The transformation $x = v$, $y = u$, which swaps the axes, has Jacobian $-1$, yet it does not make areas negative. Second, use the Jacobian of $x$ and $y$ with respect to $u$ and $v$: it converts $du\,dv$ into $dA$. In Example 19.17 the formulas for $u$ and $v$ give $\dfrac{\partial(u, v)}{\partial(x, y)} = \begin{vmatrix} 2 & -1 \\ -1 & 2 \end{vmatrix} = 3$ at once; that is the reciprocal of the factor needed, $\tfrac13$. (At matching points the two are always reciprocals, a consequence of the chain rule.) Using 3 by mistake gives an answer 9 times too large.
@@ -1156,7 +1166,7 @@ same(Matrix([2*x - y, 2*y - x]).jacobian([x, y]).det(), 3); same(3*JT, 1)
 - In **polar coordinates** $dA = r\,dr\,d\theta$. Squaring the Gaussian integral, squeezing the integral over a square between two discs and letting the size grow proves $\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt\pi$, and so $\int_{-\infty}^{\infty} e^{-ct^2}\,dt = \sqrt{\pi/c}$.
 - A plate with density $\rho$ has mass $\iint_D \rho\,dA$, centre of mass $\big(\tfrac{M_y}{m}, \tfrac{M_x}{m}\big)$ with $M_y = \iint x\rho\,dA$ and $M_x = \iint y\rho\,dA$, and moments of inertia $I_x = \iint y^2\rho\,dA$, $I_y = \iint x^2\rho\,dA$, $I_0 = I_x + I_y$; a uniform disc has $I_0 = \tfrac12 Ma^2$. A **joint density** gives $P\big((X, Y) \in D\big) = \iint_D f\,dA$; independent random variables have the joint density $f_1(x)f_2(y)$.
 - **Triple integrals** $\iiint_E f\,dV$ are computed as iterated integrals in any of six orders; for a solid between two surfaces over $D$, integrate in $z$ first. In **cylindrical coordinates** $dV = r\,dz\,dr\,d\theta$; in **spherical coordinates**, with $\varphi$ measured from the positive $z$-axis and $0 \le \varphi \le \pi$, $dV = \rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi$. A ball of radius $a$ has volume $\tfrac43\pi a^3$.
-- **Change of variables**: $dA = \Big|\dfrac{\partial(x, y)}{\partial(u, v)}\Big|\,du\,dv$, with the Jacobian $x_uy_v - x_vy_u$, the factor by which the transformation multiplies small areas (linear approximation turns small rectangles into near-parallelograms). Polar coordinates have Jacobian $r$; $x = au$, $y = bv$ turns a disc into an ellipse of area $\pi ab$; linear substitutions turn parallelograms into rectangles.
+- **Change of variables**: $dA = \abs{\partial(x, y)/\partial(u, v)}\,du\,dv$, with the Jacobian $x_uy_v - x_vy_u$, the factor by which the transformation multiplies small areas (linear approximation turns small rectangles into near-parallelograms). Polar coordinates have Jacobian $r$; $x = au$, $y = bv$ turns a disc into an ellipse of area $\pi ab$; linear substitutions turn parallelograms into rectangles.
 
 ## Exercises {#exercises}
 
@@ -1504,7 +1514,7 @@ $$V = 2\pi\cdot\frac23\big(a^2 - b^2\big)^{3/2} = \frac{4\pi}{3}\big(a^2 - b^2\b
 
 $$V = \frac{4\pi}{3}\cdot\frac{h^3}{8} = \frac{\pi h^3}{6}.$$
 
-A ring 6 cm tall cut from an orange and one 6 cm tall cut from a ball the size of the Earth have the same volume, $36\pi \approx 113$ cm³: the larger ball has a much wider hole, and its ring is wider but thinner.
+A ring 6 cm tall cut from a ball the size of an orange and one 6 cm tall cut from a ball the size of the Earth have the same volume, $36\pi \approx 113$ cm³: the second ring is far wider around, but its wall is far thinner.
 
 **(c)** With $a = 2$ and $b = 1$: $\tfrac{4\pi}{3}\cdot 3^{3/2} = 4\sqrt3\,\pi$, and $h = 2\sqrt3$ gives $\tfrac{\pi(2\sqrt3)^3}{6} = \tfrac{24\sqrt3\,\pi}{6} = 4\sqrt3\,\pi \approx 21.77$.
 
@@ -1613,7 +1623,7 @@ same(integrate(r*exp(-r**2/2)*r/(2*pi), (r, 0, oo), (theta, 0, 2*pi)), sqrt(pi/2
 - [ ] $\tfrac12$
 - [ ] $\tfrac{1}{16}$
 - [x] $\tfrac18$
-> The joint density is 1 on the unit square, so the probability is the area of the triangle $x \ge 0$, $y \ge 0$, $x + y \le \tfrac12$, with legs $\tfrac12$: $\tfrac12 \cdot \tfrac12 \cdot \tfrac12 = \tfrac18$. $\tfrac14$ is the square $\big[0, \tfrac12\big] \times \big[0, \tfrac12\big]$; $\tfrac12$ is $P(X + Y \le 1)$; $\tfrac{1}{16}$ squares the side $\tfrac14$ of nothing in particular.
+> The joint density is 1 on the unit square, so the probability is the area of the triangle $x \ge 0$, $y \ge 0$, $x + y \le \tfrac12$, with legs $\tfrac12$: $\tfrac12 \cdot \tfrac12 \cdot \tfrac12 = \tfrac18$. $\tfrac14$ is the square $\big[0, \tfrac12\big] \times \big[0, \tfrac12\big]$; $\tfrac12$ is $P(X + Y \le 1)$; $\tfrac{1}{16}$ is $P\big(X \le \tfrac14 \text{ and } Y \le \tfrac14\big)$, the area of a square inside the triangle, as if the $\tfrac12$ had to be split evenly between $X$ and $Y$.
 
 ? $\displaystyle\int_0^\infty e^{-x^2}\,dx$ equals
 - [x] $\dfrac{\sqrt\pi}{2}$
@@ -1632,6 +1642,8 @@ same(integrate(r, (r, 0, 3), (theta, 0, pi)), 9*pi/2); same(integrate(r, (r, 0, 
 gq = Function('g'); same(Integral(gq(y), (x, 0, y)).doit(), y*gq(y))
 same(Matrix([2*u + v, u - v]).jacobian([u, v]).det(), -3); same(2*(-1) + 1*1, -1)
 same(integrate(1, (y, 0, Rational(1, 2) - x), (x, 0, Rational(1, 2))), Rational(1, 8))
+same(integrate(1, (y, 0, Rational(1, 4)), (x, 0, Rational(1, 4))), Rational(1, 16)); holds(Rational(1, 4) + Rational(1, 4) <= Rational(1, 2))
+same(integrate(1, (y, 0, Rational(1, 2)), (x, 0, Rational(1, 2))), Rational(1, 4))
 same(integrate(exp(-x**2), (x, 0, oo)), sqrt(pi)/2); same((sqrt(pi)/2)**2, pi/4)
 same(integrate(exp(-r**2)*r, (r, 0, oo), (theta, 0, pi/2)), pi/4); same(integrate(exp(-r**2)*r, (r, 0, oo), (theta, 0, 2*pi)), pi)
 same(integrate(rh**2, (rh, 0, aB), (theta, 0, 2*pi), (ph, 0, pi)), Rational(2, 3)*pi**2*aB**3)

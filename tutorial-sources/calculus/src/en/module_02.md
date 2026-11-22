@@ -302,11 +302,15 @@ Suppose that $\lim_{x\to a} f(x) = L$ and $\lim_{x\to a} g(x) = M$, and let $c$ 
 The same laws hold for one-sided limits.
 :::
 
-In words: the limit of a sum is the sum of the limits, the limit of a product is the product of the limits, and so on, provided that the limits of the pieces exist and, for a quotient, that the limit of the denominator is not 0. The laws say what you would expect: if $f(x)$ is close to $L$ and $g(x)$ is close to $M$, then $f(x) + g(x)$ is close to $L + M$ and $f(x)g(x)$ is close to $LM$. Turning "close" into a proof needs the precise definition, so the proofs come in Section 2.7, where a Going deeper box proves the sum, product and quotient laws. The other laws follow from those three: $f - g$ is $f + (-1)g$; the constant multiple $c\,f$ is the product of $f$ with the constant function $c$; and the power law is the product law used $n - 1$ times. The root law for square roots is Exercise 2.9; other roots are handled in the same way, with the difference of $n$th powers in place of the difference of squares.
+In words: the limit of a sum is the sum of the limits, the limit of a product is the product of the limits, and so on, provided that the limits of the pieces exist and, for a quotient, that the limit of the denominator is not 0. The laws say what you would expect: if $f(x)$ is close to $L$ and $g(x)$ is close to $M$, then $f(x) + g(x)$ is close to $L + M$ and $f(x)g(x)$ is close to $LM$. Turning "close" into a proof needs the precise definition, so the proofs come in Section 2.7, where a Going deeper box proves the sum, product and quotient laws. The other laws follow from those three: $f - g$ is $f + (-1)g$; the constant multiple $c\,f$ is the product of $f$ with the constant function $c$; and the power law is the product law used $n - 1$ times. The root law for square roots is Exercise 2.9. Other roots are handled in a similar way, with the difference of $n$th powers in place of the difference of squares; the case $L = 0$, which odd $n$ allow, is simpler, because $\abs{\sqrt[n]{f(x)}} < c$ whenever $\abs{f(x)} < c^n$.
 
 ```check
 fF, gF = Function('f')(x), Function('g')(x)
 same(fF - gF, fF + (-1)*gF); same(fF**3, fF*fF*fF)
+cpos = symbols('c', positive=True)
+for n_ in (3, 5):                                  # odd n: the nth root of y = c^n or -c^n has absolute value c
+    same(Abs(real_root(cpos**n_, n_)), cpos); same(Abs(real_root(-cpos**n_, n_)), cpos)
+    holds(Abs(real_root(Rational(1, 10**(n_ + 1)), n_)) < Rational(1, 10)); holds(Abs(real_root(-Rational(1, 10**(n_ + 1)), n_)) < Rational(1, 10))
 ```
 
 ::: example Using the limit laws
@@ -593,7 +597,7 @@ holds(Rational(31, 20) < pi/2)
 ::: example Sine and cosine near 0
 Show that $\lim_{\theta\to0}\sin\theta = 0$ and $\lim_{\theta\to0}\cos\theta = 1$.
 
-For $0 < \theta < \pi/2$ the inequality above gives $0 < \sin\theta < \theta$. Sine is odd, so for $-\pi/2 < \theta < 0$ this becomes $\theta < \sin\theta < 0$. In both cases
+For $0 < \theta < \pi/2$, $\sin\theta > 0$ (the point $P$ lies above the $x$-axis), and the inequality above gives $\sin\theta < \theta$; so $0 < \sin\theta < \theta$. Sine is odd, so for $-\pi/2 < \theta < 0$ this becomes $\theta < \sin\theta < 0$. In both cases
 
 $$-\abs{\theta} \le \sin\theta \le \abs{\theta} \qquad \Big(0 < \abs{\theta} < \frac{\pi}{2}\Big),$$
 
@@ -611,6 +615,7 @@ same(sin(-thr), -sin(thr))
 steps(1 - cos(thr), (1 - cos(thr))*(1 + cos(thr))/(1 + cos(thr)), sin(thr)**2/(1 + cos(thr)))
 for v in [Rational(j, 20) for j in range(-31, 32) if j != 0]:
     holds(-Abs(v) <= sin(v)); holds(sin(v) <= Abs(v)); holds(cos(v) > 0)
+    holds((v > 0) == (sin(v) > 0))                      # 0 < sin(theta) < theta on the right, theta < sin(theta) < 0 on the left
     holds(0 <= 1 - cos(v)); holds(1 - cos(v) <= sin(v)**2); holds(sin(v)**2 <= v**2)
 limit_is(sin(theta), theta, 0, 0); limit_is(1 - cos(theta), theta, 0, 0); limit_is(cos(theta), theta, 0, 1)
 ```
@@ -667,7 +672,7 @@ rounds(sin(Rational(1, 10))/Rational(1, 10), '0.99833')
 ::: example Using the two limits
 Find the limits as $x \to 0$ of (a) $\dfrac{\sin 3x}{x}$ and (b) $\dfrac{\tan x}{x}$.
 
-**(a)** Theorem 2.5 needs the same angle above and below, so write $\dfrac{\sin 3x}{x} = 3\cdot\dfrac{\sin 3x}{3x}$ and put $\theta = 3x$. As $x \to 0$ with $x \ne 0$, $\theta \to 0$ with $\theta \ne 0$, so $\dfrac{\sin 3x}{3x} = \dfrac{\sin\theta}{\theta} \to 1$. (Precisely: a $\delta$ that wins for $\dfrac{\sin\theta}{\theta}$ gives the winning response $\delta/3$ for $\dfrac{\sin 3x}{3x}$.) By the constant multiple law,
+**(a)** Theorem 2.5 needs the same angle above and below, so write $\dfrac{\sin 3x}{x} = 3\cdot\dfrac{\sin 3x}{3x}$ and put $\theta = 3x$. As $x \to 0$ with $x \ne 0$, $\theta \to 0$ with $\theta \ne 0$, so $\dfrac{\sin 3x}{3x} = \dfrac{\sin\theta}{\theta} \to 1$. (Section 2.7 makes this step precise: if $\dfrac{\sin\theta}{\theta}$ is within $\varepsilon$ of 1 whenever $0 < \abs{\theta} < \delta$, then $\dfrac{\sin 3x}{3x}$ is within $\varepsilon$ of 1 whenever $0 < \abs{x} < \delta/3$, because then $0 < \abs{3x} < \delta$.) By the constant multiple law,
 
 $$\lim_{x\to0}\frac{\sin 3x}{x} = 3 \cdot 1 = 3.$$
 
@@ -838,9 +843,9 @@ same(Abs(dp/2)/(dp/2), 1); same(Abs(-dp/2)/(-dp/2), -1); holds(dp/2 < dp)
 ```
 :::
 
-The same strategy, with the points of Example 2.3, proves that $\sin(1/x)$ has no limit at 0 (Exercise 2.10). It also shows that a limit, when it exists, is a single number. Suppose $f(x)$ tended to $L$ and to $M \ne L$, and challenge both limits with $\varepsilon = \abs{L - M}/2$. For $x \ne a$ close enough to $a$, both $\abs{f(x) - L} < \varepsilon$ and $\abs{f(x) - M} < \varepsilon$, and then
+The same strategy, with the points of Example 2.3, proves that $\sin(1/x)$ has no limit at 0 (Exercise 2.10). It also shows that a limit, when it exists, is a single number. Suppose $f(x)$ tended to $L$ and to $M \ne L$, and challenge both limits with $\varepsilon = \abs{L - M}/2$. For $x \ne a$ close enough to $a$, both $\abs{f(x) - L} < \varepsilon$ and $\abs{f(x) - M} < \varepsilon$, and then, by the triangle inequality,
 
-$$\begin{aligned} \abs{L - M} &= \abs{\big(L - f(x)\big) + \big(f(x) - M\big)} \\ &< \varepsilon + \varepsilon = \abs{L - M}, \end{aligned}$$
+$$\begin{aligned} \abs{L - M} &= \abs{\big(L - f(x)\big) + \big(f(x) - M\big)} \\ &\le \abs{L - f(x)} + \abs{f(x) - M} \\ &< \varepsilon + \varepsilon = \abs{L - M}, \end{aligned}$$
 
 which is impossible. The precise definitions also prove the key idea of Section 2.2:
 
@@ -892,7 +897,7 @@ $$\begin{aligned} \abs{f(x)g(x) - LM} &< \frac{\varepsilon}{2} + \frac{\abs{L}}{
 
 **Quotient law.** Since $f/g = f \cdot (1/g)$, the product law reduces this to $\lim_{x\to a} 1/g(x) = 1/M$, for $M \ne 0$. The challenge $\abs{M}/2$ gives a $\delta_0 > 0$ with $\abs{g(x) - M} < \abs{M}/2$ for $0 < \abs{x - a} < \delta_0$. For those $x$, the triangle inequality $\abs{M} \le \abs{M - g(x)} + \abs{g(x)}$ gives $\abs{g(x)} > \abs{M}/2$; in particular $g(x) \ne 0$, so $1/g(x)$ is defined, and
 
-$$\begin{aligned} \abs{\frac{1}{g(x)} - \frac1M} &= \frac{\abs{M - g(x)}}{\abs{g(x)}\,\abs{M}} \\ &< \frac{2}{\abs{M}^2}\,\abs{g(x) - M}. \end{aligned}$$
+$$\begin{aligned} \abs{\frac{1}{g(x)} - \frac1M} &= \frac{\abs{M - g(x)}}{\abs{g(x)}\,\abs{M}} \\ &\le \frac{2}{\abs{M}^2}\,\abs{g(x) - M}. \end{aligned}$$
 
 Choose $\delta \le \delta_0$ so small that $\abs{g(x) - M} < \tfrac12\varepsilon\abs{M}^2$ for $0 < \abs{x - a} < \delta$; then $\abs{1/g(x) - 1/M} < \varepsilon$.
 
@@ -952,9 +957,10 @@ same([wins_(lambda q: q**2, 3, 9, 0.5, d_) for d_ in (0.1, 0.0825, 0.082, 1/14)]
 
 ### Cancellation {#cancellation}
 
-At the end of Module 1, Python computed the falling ball's average speed over $[1, 1.001]$ as 9.804899999998895, where the exact value is 9.8049, and the series promised an explanation. A computer stores a real number in **floating point**: in binary, rounded to about 16 significant decimal digits. So almost every stored number is slightly wrong, typically in its 16th digit. That is harmless until two nearly equal numbers are subtracted. Here $s(1.001) = 4.9098049$ and $s(1) = 4.9$ agree in their first three digits; in the difference, 0.0098049, those digits cancel, and the rounding errors, which were in the 16th digit of $s(1.001)$, are now in the 13th digit of the result. Dividing by $h = 0.001$ does not repair them. This loss of accuracy when nearly equal numbers are subtracted is called **cancellation error**. The closer the two numbers, the more digits cancel: subtracting numbers that agree in their first $k$ digits loses about $k$ of the 16.
+At the end of Module 1, Python computed the falling ball's average speed over $[1, 1.001]$ as 9.804899999998895, where the exact value is 9.8049, and the series promised an explanation. A computer stores a real number in **floating point**: in binary, rounded to about 16 significant decimal digits. So almost every number is stored slightly wrong, typically in its 16th digit (even 4.9 has no exact binary form). That is harmless until two nearly equal numbers are subtracted. Here $s(1.001) = 4.9098049$ and $s(1) = 4.9$ agree in their first three digits; in the difference, 0.0098049, those digits cancel, and the rounding errors, which were in the 16th digit of $s(1.001)$, are now in the 13th digit of the result. Dividing by $h = 0.001$ does not repair them. This loss of accuracy when nearly equal numbers are subtracted is called **cancellation error**. The closer the two numbers, the more digits cancel: subtracting numbers that agree in their first $k$ digits loses about $k$ of the 16.
 
 ```check
+holds(Rational(4.9) != Rational(49, 10)); holds(abs(Rational(4.9) - Rational(49, 10)) < Rational(49, 10)/10**15)   # 4.9 is stored slightly wrong, in about the 16th digit
 same(Rational(49, 10)*Rational(1001, 1000)**2, Rational(49098049, 10**7))
 same(Rational(49098049, 10**7) - Rational(49, 10), Rational(98049, 10**7)); same(Rational(98049, 10**7)/Rational(1, 1000), Rational(98049, 10**4))
 s_ = lambda T: 4.9*T**2
@@ -1016,9 +1022,9 @@ print(math.cos(1e-8), math.cos(1e-8) == 1)
 1.0 True
 ```
 
-$\cos(10^{-8}) = 1 - 5 \times 10^{-17} + \dots$ is closer to 1 than to any other floating-point number, so the computer stores exactly 1, and $1 - \cos x$ comes out as 0: every digit has cancelled. The rearranged formula comes from the proof of Theorem 2.6. Multiply the numerator and the denominator by $1 + \cos x$:
+$\cos(10^{-8}) = 1 - 5 \times 10^{-17} + \dots$ is closer to 1 than to any other floating-point number, so the computer stores exactly 1, and $1 - \cos x$ comes out as 0: every digit has cancelled. The rearranged formula comes from the proof of Theorem 2.6. Multiply the numerator and the denominator by $1 + \cos x$, which is positive for $\abs{x} < \pi$:
 
-$$\begin{aligned} \frac{1 - \cos x}{x^2} &= \frac{1 - \cos^2 x}{x^2(1 + \cos x)} \\ &= \Big(\frac{\sin x}{x}\Big)^2\cdot\frac{1}{1 + \cos x} \qquad (x \ne 0). \end{aligned}$$
+$$\begin{aligned} \frac{1 - \cos x}{x^2} &= \frac{1 - \cos^2 x}{x^2(1 + \cos x)} \\ &= \Big(\frac{\sin x}{x}\Big)^2\cdot\frac{1}{1 + \cos x} \qquad (0 < \abs{x} < \pi). \end{aligned}$$
 
 This formula subtracts nothing, and every digit that it prints above is correct. It also gives the limit: by Theorem 2.5 and Example 2.10, it approaches $1^2 \cdot \tfrac12 = \tfrac12$.
 :::
@@ -1029,6 +1035,9 @@ err_ = lambda h_: abs((s_(1 + h_) - s_(1))/h_ - (9.8 + 4.9*h_))       # error of
 holds(5e-13 < err_(1e-3) < 5e-12); holds(5e-4 < err_(1e-12) < 5e-3)     # "about 1e-12" and "about 1e-3"
 rounds((s_(1 + 1e-15) - s_(1))/1e-15, '10.66')
 steps((1 - cos(x))/x**2, (1 - cos(x)**2)/(x**2*(1 + cos(x))), (sin(x)/x)**2*(1/(1 + cos(x))))
+for v in [Rational(j, 10) for j in range(-31, 32)]:
+    holds(1 + cos(v) > 0)                                               # positive for |x| < pi
+same(1 + cos(pi), 0); same(1 + cos(-pi), 0)                             # but 0 at x = pi and -pi
 limit_is((1 - cos(x))/x**2, x, 0, Rational(1, 2))
 for j in range(1, 10):
     xf = 10.0**(-j); xq = Rational(1, 10**j)
@@ -1047,25 +1056,21 @@ Exercise 2.11 gives another formula that fools the computer, and its cure.
 ### Limits with SymPy {#sympy}
 
 ::: compute Limits with SymPy
-SymPy computes limits exactly with `sp.limit(f, x, a)`:
+SymPy computes limits exactly with `sp.limit(f, x, a, '+-')`. Its arguments are the expression, the variable, the point and the side: `'+-'` asks for the two-sided limit of Definition 2.1, with $x$ approaching $a$ from both sides.
 
 ```python
 import sympy as sp
 x = sp.symbols('x')
-print(sp.limit((x**2 - 1)/(x - 1), x, 1))
-print(sp.limit((sp.sqrt(x + 9) - 3)/x, x, 0))
-print(sp.limit(sp.sin(x)/x, x, 0))
-print(sp.limit((1 - sp.cos(x))/x**2, x, 0))
+print(sp.limit((x**2 - 1)/(x - 1), x, 1, '+-'))
+print(sp.limit((sp.sqrt(x + 9) - 3)/x, x, 0, '+-'))
+print(sp.limit(sp.sin(x)/x, x, 0, '+-'))
+print(sp.limit((1 - sp.cos(x))/x**2, x, 0, '+-'))
 ```
 
 ```output
-2
-1/6
-1
-1/2
 ```
 
-These are the limits of Section 2.1, Example 2.7, Theorem 2.5 and the box above, and they are exact: `1/6`, not 0.1666…. A fourth argument chooses a side: `'-'` for the limit from the left and `'+'` for the limit from the right.
+These are the limits of Section 2.1, Example 2.7, Theorem 2.5 and the box above, and they are exact: `1/6`, not 0.1666…. For a one-sided limit, write `'-'` (from the left) or `'+'` (from the right) instead. Leave the side out, and something surprising happens:
 
 ```python
 f = sp.Abs(x)/x
@@ -1078,7 +1083,7 @@ print(sp.limit(f, x, 0))
 1
 ```
 
-Look at the second line: without a fourth argument SymPy computes the limit from the right, and says nothing about the left. For the two-sided limit of Definition 2.1, write `'+-'`:
+Look at the second line: without a fourth argument SymPy computes the limit from the right, and says nothing about the left. The two-sided limit does not exist, and with `'+-'` SymPy says so:
 
 ```python fails
 print(sp.limit(f, x, 0, '+-'))
@@ -1100,16 +1105,18 @@ oo
 AccumBounds(-1, 1)
 ```
 
-`oo`, two letters o, is SymPy's $\infty$ (`sp.oo` in a program): the values of $1/x^2$ grow beyond every bound, the blow-up that Module 3 writes as $\lim_{x\to0} 1/x^2 = \infty$. `AccumBounds(-1, 1)`, short for "accumulation bounds", says that the values of $\sin(1/x)$ keep returning to every number between $-1$ and 1, the oscillation of Example 2.3. Neither is a limit in the sense of Definition 2.1.
+`oo`, two letters o, is SymPy's $\infty$ (`sp.oo` in a program): the values of $1/x^2$ grow beyond every bound, the blow-up that Module 3 writes as $\lim_{x\to0} 1/x^2 = \infty$. `AccumBounds(-1, 1)`, short for "accumulation bounds", says that near 0 the values of $\sin(1/x)$ keep swinging between $-1$ and 1 without settling: the oscillation of Example 2.3. Neither is a limit in the sense of Definition 2.1.
 :::
 
 ```check
 same(limit(Abs(x)/x, x, 0), 1); same(limit(Abs(x)/x, x, 0, '-'), -1)       # without a direction, SymPy goes from the right
+limit_is((x**2 - 1)/(x - 1), x, 1, 2); limit_is((sqrt(x + 9) - 3)/x, x, 0, Rational(1, 6))   # the four two-sided limits printed
+limit_is(sin(x)/x, x, 0, 1); limit_is((1 - cos(x))/x**2, x, 0, Rational(1, 2))
 same(limit(1/x**2, x, 0, '+-'), oo)
 ```
 
 ::: pitfall
-`sp.limit(f, x, a)` on its own is a one-sided limit: without a fourth argument, SymPy goes from the right. So `sp.limit(sp.Abs(x)/x, x, 0)` gives 1, and `sp.limit(1/x, x, 0)` gives `oo`, although $1/x$ is hugely negative to the left of 0 and neither limit exists. Write `'+-'` whenever you mean the limit of Definition 2.1; for $1/x$, SymPy then answers `zoo`, its symbol for an infinite value without a definite sign.
+`sp.limit(f, x, a)` on its own is a one-sided limit: without a fourth argument, SymPy goes from the right. So `sp.limit(sp.Abs(x)/x, x, 0)` gives 1 and `sp.limit(1/x, x, 0)` gives `oo`, although neither function has a limit at 0: $\abs{x}/x$ jumps there, and $1/x$ is hugely positive to the right of 0 but hugely negative to the left. Write `'+-'` whenever you mean the limit of Definition 2.1; for $1/x$, SymPy then answers `zoo`, its symbol for an infinite value without a definite sign.
 
 ```check
 same(limit(Abs(x)/x, x, 0), 1); same(limit(1/x, x, 0), oo); same(limit(1/x, x, 0, '-'), -oo)
@@ -1127,7 +1134,7 @@ same(limit(1/x, x, 0, '+-'), zoo)
 - $0/0$ is an indeterminate form, a signal to do more work: factor and cancel, rationalise with the conjugate, or combine fractions, then substitute.
 - The squeeze theorem traps a function between two functions with the same limit. With areas in the unit circle it proves $\lim_{\theta\to0}\dfrac{\sin\theta}{\theta} = 1$ and $\lim_{\theta\to0}\dfrac{1 - \cos\theta}{\theta} = 0$, with $\theta$ in radians.
 - Precisely, $\lim_{x\to a} f(x) = L$ means that for every $\varepsilon > 0$ there is a $\delta > 0$ such that $0 < \abs{x - a} < \delta$ implies $\abs{f(x) - L} < \varepsilon$. A proof is a rule that turns any $\varepsilon$ into a winning $\delta$; to disprove a limit, find one $\varepsilon$ that no $\delta$ answers.
-- Floating-point numbers keep about 16 significant digits, and subtracting nearly equal numbers loses them: cancellation error. Rearranging the formula can avoid it. SymPy's `sp.limit` computes limits exactly; it goes from the right unless you give `'+-'`.
+- Floating-point numbers keep about 16 significant digits, and subtracting nearly equal numbers loses them: cancellation error. Rearranging the formula can avoid it. SymPy's `sp.limit` computes limits exactly; without a fourth argument it computes the limit from the right, so write `'+-'` for the two-sided limit.
 
 ## Exercises {#exercises}
 
@@ -1194,20 +1201,37 @@ Find each limit, or explain why it does not exist.
 - (c) $\lim_{x\to0}\cos\dfrac1x$
 - (d) $\lim_{x\to0} x^2\cos\dfrac1x$
 
+Then (e) estimate $\lim_{x\to0^+} x^x$ from a table of values. Why does only the limit from the right make sense here?
+
 ::: solution
 **(a)** Substitution gives $0/0$. Factor: $x^2 + x - 6 = (x - 2)(x + 3)$, so for $x \ne 2$ the quotient is $x + 3$, and the limit is $2 + 3 = 5$.
 
-**(b)** It does not exist: a blow-up. Near 0, $1/x$ is huge, positive to the right of 0 ($1/0.001 = 1000$) and negative to the left ($1/(-0.001) = -1000$), so its values stay close to no number.
+**(b)** It does not exist: a blow-up. To the right of 0, $1/x$ is huge and positive ($1/0.001 = 1000$); to the left, it is huge and negative ($1/(-0.001) = -1000$). As for $1/x^2$ in Section 2.3, whatever number $L$ you name, $1/x > \abs{L} + 1$ for $0 < x < 1/(\abs{L} + 1)$, so close to 0 there are values more than 1 away from $L$: no number is the limit.
 
 **(c)** It does not exist: an oscillation. $\cos(1/x) = 1$ at $x = 1/(2k\pi)$ and $\cos(1/x) = -1$ at $x = 1/\big((2k + 1)\pi\big)$, for $k = 1, 2, 3, \dots$, and these points come as close to 0 as you like. As in Example 2.3, the values 1 and $-1$, which are 2 apart, cannot both stay within $\tfrac12$ of one number.
 
 **(d)** It is 0, by the squeeze theorem: $\abs{\cos(1/x)} \le 1$, so $-x^2 \le x^2\cos(1/x) \le x^2$ for $x \ne 0$, and both bounds approach 0.
+
+**(e)** $x^x$ is a power with a variable exponent, which needs a positive base ([Section 1.4](module_01_EN.html#exponential)). So $x^x$ is defined for every $x > 0$, but on no interval to the left of 0 (at $x = -\tfrac12$, for example, it would be $1/\sqrt{-1/2}$), and only the limit from the right makes sense. Its values near 0:
+
+```valuetable
+x = 0.1, 0.01, 0.001, 0.0001, 0.00001
+$x^x$ = x**x
+digits = 6
+```
+
+The values climb towards 1, and a good guess is $\lim_{x\to0^+} x^x = 1$. They climb slowly: at $x = 0.1$ the value is still below 0.8, so a table that stopped there would mislead you. The table does not prove the guess; Module 7 does.
 
 ```check
 same(factor(x**2 + x - 6), (x - 2)*(x + 3)); same(cancel((x**2 + x - 6)/(x - 2)), x + 3)
 limit_is((x**2 + x - 6)/(x - 2), x, 2, 5)
 same(1/Rational(1, 1000), 1000); same(1/Rational(-1, 1000), -1000)
 limit_is(1/x, x, 0, oo, '+'); limit_is(1/x, x, 0, -oo, '-')
+for Lv_ in (-3, 0, Rational(5, 2), 100):
+    X_ = Rational(1, 2*(abs(Lv_) + 1))            # an x with 0 < x < 1/(|L| + 1)
+    holds(X_ < Rational(1, abs(Lv_) + 1)); holds(1/X_ > abs(Lv_) + 1); holds(1/X_ - Lv_ > 1)
+same(Rational(-1, 2)**Rational(-1, 2), 1/sqrt(Rational(-1, 2))); holds((1/sqrt(Rational(-1, 2))).is_real == False)
+limit_is(x**x, x, 0, 1, '+'); holds(Rational(1, 10)**Rational(1, 10) < Rational(8, 10))
 kp = symbols('k', integer=True, positive=True)
 same(cos(1/(1/(2*kp*pi))), 1); same(cos(1/(1/((2*kp + 1)*pi))), -1)
 same(limit(cos(1/x), x, 0, '+-'), AccumBounds(-1, 1))
