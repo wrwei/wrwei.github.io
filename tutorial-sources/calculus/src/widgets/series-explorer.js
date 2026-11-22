@@ -56,20 +56,20 @@ CalcWidgets.register('series-explorer', function (root, api) {
   function rInt() { return Math.round(state.r * 100) }        // r = k/100 exactly
   function pInt() { var k = Math.round(state.p * 100); return k % 100 === 0 ? k / 100 : null }
   var SERIES = [
-    { value: 'geom', first: 0, label: t('Geometric: Σ rⁿ, from n = 0', '几何级数：Σ rⁿ（n 从 0 起）'),
+    { value: 'geom', first: 0, label: t('Geometric', '几何级数'), formula: t('Σ rⁿ = 1 + r + r² + r³ + ⋯, from n = 0', 'Σ rⁿ = 1 + r + r² + r³ + ⋯，n 从 0 起'),
       term: function (n) { return Math.pow(rInt() / 100, n) },
       exact: function (n) { var k = BigInt(rInt()), c = BigInt(100); return [k ** BigInt(n), c ** BigInt(n)] } },
-    { value: 'harm', first: 1, label: t('Harmonic: Σ 1/n, from n = 1', '调和级数：Σ 1/n（n 从 1 起）'),
+    { value: 'harm', first: 1, label: t('Harmonic', '调和级数'), formula: t('Σ 1/n = 1 + 1/2 + 1/3 + 1/4 + ⋯, from n = 1', 'Σ 1/n = 1 + 1/2 + 1/3 + 1/4 + ⋯，n 从 1 起'),
       term: function (n) { return 1 / n }, exact: function (n) { return [B1, BigInt(n)] } },
-    { value: 'p', first: 1, label: t('p-series: Σ 1/nᵖ, from n = 1', 'p 级数：Σ 1/nᵖ（n 从 1 起）'),
+    { value: 'p', first: 1, label: t('p-series', 'p 级数'), formula: t('Σ 1/nᵖ = 1 + 1/2ᵖ + 1/3ᵖ + ⋯, from n = 1', 'Σ 1/nᵖ = 1 + 1/2ᵖ + 1/3ᵖ + ⋯，n 从 1 起'),
       term: function (n) { return Math.pow(n, -Math.round(state.p * 100) / 100) },
       exact: function (n) { var q = pInt(); return q === null ? null : [B1, BigInt(n) ** BigInt(q)] } },
-    { value: 'alt', first: 1, label: t('Alternating harmonic: Σ (−1)ⁿ⁻¹/n, from n = 1', '交错调和级数：Σ (−1)ⁿ⁻¹/n（n 从 1 起）'),
+    { value: 'alt', first: 1, label: t('Alternating harmonic', '交错调和级数'), formula: t('Σ (−1)ⁿ⁻¹/n = 1 − 1/2 + 1/3 − 1/4 + ⋯, from n = 1', 'Σ (−1)ⁿ⁻¹/n = 1 − 1/2 + 1/3 − 1/4 + ⋯，n 从 1 起'),
       term: function (n) { return (n % 2 ? 1 : -1) / n }, exact: function (n) { return [n % 2 ? B1 : -B1, BigInt(n)] } },
-    { value: 'fact', first: 0, label: t('Σ 1/n!, from n = 0', 'Σ 1/n!（n 从 0 起）'),
+    { value: 'fact', first: 0, label: 'Σ 1/n!', formula: t('Σ 1/n! = 1 + 1 + 1/2 + 1/6 + 1/24 + ⋯, from n = 0', 'Σ 1/n! = 1 + 1 + 1/2 + 1/6 + 1/24 + ⋯，n 从 0 起'),
       term: function (n) { var f = 1; for (var i = 2; i <= n; i++) f *= i; return 1 / f },
       exact: function (n) { var f = B1; for (var i = 2; i <= n; i++) f *= BigInt(i); return [B1, f] } },
-    { value: 'osc', first: 0, label: t('Σ (−1)ⁿ, from n = 0', 'Σ (−1)ⁿ（n 从 0 起）'),
+    { value: 'osc', first: 0, label: 'Σ (−1)ⁿ', formula: t('Σ (−1)ⁿ = 1 − 1 + 1 − 1 + ⋯, from n = 0', 'Σ (−1)ⁿ = 1 − 1 + 1 − 1 + ⋯，n 从 0 起'),
       term: function (n) { return n % 2 ? -1 : 1 }, exact: function (n) { return [n % 2 ? -B1 : B1, B1] } },
   ]
   function series() { return SERIES.filter(function (s) { return s.value === state.key })[0] }
@@ -138,7 +138,9 @@ CalcWidgets.register('series-explorer', function (root, api) {
     verdict: h('div', { class: 'se-verdict' }) }
   var out = api.readout()
   out.appendChild(lines.sn); out.appendChild(lines.sum); out.appendChild(lines.err); out.appendChild(lines.verdict)
-  root.appendChild(api.row(sel.el))
+  var formulaEl = h('div', { class: 'se-formula' })
+  root.appendChild(h('div', { class: 'cw-row se-top' }, sel.el))
+  root.appendChild(formulaEl)
   root.appendChild(h('div', { class: 'se-sliders' }, rS.el, pS.el, nS.el))
   root.appendChild(sumsBox)
   root.appendChild(termsBox)
@@ -146,6 +148,8 @@ CalcWidgets.register('series-explorer', function (root, api) {
     '圆点：部分和；N 上方的圆点是前 N 项之和。虚线：理论给出的和。竖条：各项，第 k 条是第 k 项。')))
   root.appendChild(out)
   api.css('series-explorer', [
+    '.se-top .cw-field{min-width:0;max-width:100%}.se-top .cw-select{max-width:100%}',
+    '.se-formula{font:600 .95rem var(--font-mono);color:var(--blue);margin:.2rem 0 .4rem;overflow-wrap:anywhere}',
     '.se-sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.35rem 1rem;margin:.4rem 0}',
     '.se-plot{margin:.3rem 0}',
     '.se-key{font-size:.8rem;color:var(--slate);margin:.25rem 0}',
@@ -156,30 +160,37 @@ CalcWidgets.register('series-explorer', function (root, api) {
   var data = { S: [], a: [], th: null }
   var P1 = api.plot(sumsBox, { view: [0, 11, 0, 2.2], aspect: 0.5, xlabel: 'N', ylabel: t('partial sums', '部分和'),
     label: t('The partial sums of the series', '级数的部分和'), draw: drawSums })
-  var P2 = api.plot(termsBox, { view: [0, 11, -0.1, 1.1], aspect: 0.26, xlabel: 'k', ylabel: t('terms', '各项'),
+  var P2 = api.plot(termsBox, { view: [0, 11, -0.1, 1.1], aspect: 0.32, xlabel: 'k', ylabel: t('terms', '各项'),
     label: t('The terms of the series', '级数的各项'), draw: drawTerms })
 
-  function range(vals, extra) {
+  // The y-range of the values, with room below (tick labels of an axis at the bottom) and above (the axis name).
+  function range(vals, extra, below, above) {
     var lo = Infinity, hi = -Infinity
     vals.concat(extra).forEach(function (v) { if (isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v) } })
     if (!isFinite(lo)) { lo = -1; hi = 1 }
-    if (hi - lo < 1e-9) { lo -= 0.5; hi += 0.5 } else { var pad = 0.1 * (hi - lo); lo -= pad; hi += pad }
-    return [lo, hi]
+    if (hi - lo < 1e-9) { lo -= 0.5; hi += 0.5 }
+    var span = hi - lo
+    return [lo - below * span, hi + above * span]
+  }
+  // The x-range: 40 px left of x = 0 for the tick labels of the y-axis, 30 px right of N + 1 for the axis name.
+  function xrange(P, N) {
+    var s = (P.W - 16 - 70) / (N + 1)
+    return [-40 / s, N + 1 + 30 / s]
   }
   function drawSums(P) {
-    var N = data.S.length, y = range(data.S, data.th && data.th.sum !== null ? [data.th.sum] : [])
-    P.view = [-0.08 * (N + 1), 1.08 * (N + 1), y[0], y[1]]     // margins keep tick labels clear of the axis labels
+    var N = data.S.length, x = xrange(P, N), y = range(data.S, data.th && data.th.sum !== null ? [data.th.sum] : [], 0.22, 0.22)
+    P.view = [x[0], x[1], y[0], y[1]]
     P.axes()
     if (data.th && data.th.sum !== null) {
-      P.hline(data.th.sum, { color: 'var(--green)', width: 1.6, dash: '7 5' })
-      P.text(1.08 * (N + 1), data.th.sum, data.th.name, { anchor: 'end', dx: -6, dy: data.th.sum > (y[0] + y[1]) / 2 ? 16 : -7, color: 'var(--green)' })
+      P.line(0, data.th.sum, x[1], data.th.sum, { color: 'var(--green)', width: 1.6, dash: '7 5' })
+      P.text(x[1], data.th.sum, data.th.name, { anchor: 'end', dx: -6, dy: data.th.sum > (y[0] + y[1]) / 2 ? 16 : -7, color: 'var(--green)' })
     }
     var rad = N > 120 ? 2 : N > 50 ? 2.8 : 4
     for (var k = 1; k <= N; k++) P.point(k, data.S[k - 1], { r: rad, color: 'var(--blue)' })
   }
   function drawTerms(P) {
-    var N = data.a.length, y = range(data.a, [0])
-    P.view = [-0.08 * (N + 1), 1.08 * (N + 1), y[0], y[1]]
+    var N = data.a.length, x = xrange(P, N), y = range(data.a, [0], 0.3, 0.35)
+    P.view = [x[0], x[1], y[0], y[1]]
     P.axes()
     var w = N > 120 ? 1 : N > 50 ? 1.6 : 2.6
     for (var k = 1; k <= N; k++) P.line(k, 0, k, data.a[k - 1], { color: 'var(--orange)', width: w, layer: 'front' })
@@ -188,6 +199,7 @@ CalcWidgets.register('series-explorer', function (root, api) {
   // ------------------------------------------------------------------ update
   function update() {
     var s = series(), N = state.N
+    formulaEl.textContent = s.formula
     rS.el.hidden = state.key !== 'geom'
     pS.el.hidden = state.key !== 'p'
     data.a = []; data.S = []

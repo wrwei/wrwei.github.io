@@ -687,7 +687,7 @@ Piecewise((1/(1 - r), Abs(r) < 1), (Sum(r**n, (n, 0, oo)), True))
 
 ```python
 print(sp.summation(1/(2*n**2 - n), (n, 1, sp.oo)))
-s = sum(1/(2*k**2 - k) for k in range(1, 10**6 + 1))    # a million terms, in floating point
+s = sum(1/(2*k**2 - k) for k in range(1, 10**6 + 1))   # 10^6 terms
 print(f"{s:.6f}  {float(2*sp.log(2)):.6f}")
 ```
 
@@ -915,11 +915,15 @@ Decide whether (a) $\displaystyle\sum_{n=2}^{\infty}\frac{1}{n\ln n}$ and (b) $\
 
 Both start at $n = 2$, since $\ln 1 = 0$. On $[2, \infty)$, $x\ln x$ and $x(\ln x)^2$ are positive and increasing (products of positive increasing functions), so $f(x) = \dfrac{1}{x\ln x}$ and $g(x) = \dfrac{1}{x(\ln x)^2}$ are continuous, positive and decreasing there: the integral test applies. Substitute $u = \ln x$, $du = dx/x$ (Module 10).
 
-**(a)** $$\int_2^t \frac{dx}{x\ln x} = \int_{\ln 2}^{\ln t}\frac{du}{u} = \ln(\ln t) - \ln(\ln 2) \to \infty \quad (t \to \infty).$$
+**(a)** For $t > 2$,
+
+$$\int_2^t \frac{dx}{x\ln x} = \int_{\ln 2}^{\ln t}\frac{du}{u} = \ln(\ln t) - \ln(\ln 2) \to \infty \quad (t \to \infty).$$
 
 The integral diverges, so the series diverges.
 
-**(b)** $$\int_2^t \frac{dx}{x(\ln x)^2} = \int_{\ln 2}^{\ln t}\frac{du}{u^2} = \frac{1}{\ln 2} - \frac{1}{\ln t} \to \frac{1}{\ln 2} \quad (t \to \infty).$$
+**(b)** For $t > 2$,
+
+$$\int_2^t \frac{dx}{x(\ln x)^2} = \int_{\ln 2}^{\ln t}\frac{du}{u^2} = \frac{1}{\ln 2} - \frac{1}{\ln t} \to \frac{1}{\ln 2} \quad (t \to \infty).$$
 
 The integral converges, so the series converges.
 
@@ -1337,7 +1341,7 @@ rounds(log(2)/2, '0.3466')
 ::: deeper Riemann's rearrangement theorem
 A first reading may skip this box. The example is no accident. **Riemann's rearrangement theorem** says that if $\sum a_n$ converges conditionally, then for every number $T$ some rearrangement converges to $T$, and other rearrangements diverge to $\infty$ or to $-\infty$.
 
-Here is the idea of the proof. Let $p_1, p_2, \dots$ be the positive terms, in their original order, and $q_1, q_2, \dots$ the sizes of the negative ones. Both $\sum p_k$ and $\sum q_k$ diverge. If both converged, $\sum \abs{a_n}$ would converge; if one converged and the other diverged, the partial sums of $\sum a_n$ would tend to $\infty$ or $-\infty$. And $p_k \to 0$ and $q_k \to 0$, because $a_n \to 0$. Now take positive terms until the total first exceeds $T$, then negative terms until it first drops below $T$, then positive terms until it exceeds $T$ again, and so on. Each stage ends after finitely many terms, because the unused $p$s, or $q$s, still add up to infinity, and every term is used sooner or later. Each time the total crosses $T$, it overshoots by at most the term just added, and these terms tend to 0, so the partial sums close in on $T$. For a sum of $\infty$, take positive terms until the total exceeds 1, then one negative term, then positive terms until it exceeds 2, one negative term, and so on.
+Here is the idea of the proof. Let $p_1, p_2, \dots$ be the positive terms, in their original order, and $q_1, q_2, \dots$ the sizes of the negative ones. Both $\sum p_k$ and $\sum q_k$ diverge. If both converged, $\sum \abs{a_n}$ would converge; if one converged and the other diverged, the partial sums of $\sum a_n$ would tend to $\infty$ or $-\infty$. And $p_k \to 0$ and $q_k \to 0$, because $a_n \to 0$. Now take positive terms until the total first exceeds $T$, then negative terms until it first drops below $T$, then positive terms until it exceeds $T$ again, and so on. Each stage ends after finitely many terms, because the unused $p$s, or $q$s, still add up to infinity, and every term is used sooner or later. Each time the total crosses $T$, it overshoots by at most the term added last, and these terms tend to 0, so the partial sums close in on $T$. For a sum of $\infty$, take positive terms until the total exceeds 1, then one negative term, then positive terms until it exceeds 2, one negative term, and so on.
 
 Computers meet a cousin of this effect even in finite sums. Floating-point addition rounds every result, so adding the same numbers in another order can give another answer: in Python, `0.1 + 0.2 + 0.3` gives `0.6000000000000001`, while `0.3 + 0.2 + 0.1` gives `0.6`.
 :::
@@ -1386,7 +1390,9 @@ same(factorial(n)/factorial(n + 1), 1/(n + 1)); limit_is(1/(n + 1), n, oo, 0); s
 ::: example The ratio test
 Decide whether these converge: (a) $\displaystyle\sum_{n=1}^{\infty}\frac{n}{2^n}$, (b) $\displaystyle\sum_{n=1}^{\infty}\frac{n!}{n^n}$, (c) $\displaystyle\sum_{n=1}^{\infty}\frac{3^n}{n^2}$.
 
-**(a)** $$\abs{\frac{a_{n+1}}{a_n}} = \frac{n + 1}{2^{n+1}}\cdot\frac{2^n}{n} = \frac{n + 1}{2n} = \frac12\Big(1 + \frac1n\Big) \to \frac12 < 1.$$
+**(a)** The ratio of consecutive terms is
+
+$$\abs{\frac{a_{n+1}}{a_n}} = \frac{n + 1}{2^{n+1}}\cdot\frac{2^n}{n} = \frac{n + 1}{2n} = \frac12\Big(1 + \frac1n\Big) \to \frac12 < 1.$$
 
 The series converges (SymPy finds that its sum is 2).
 
@@ -1396,7 +1402,9 @@ $$\abs{\frac{a_{n+1}}{a_n}} = \frac{(n + 1)!}{(n + 1)^{n+1}}\cdot\frac{n^n}{n!} 
 
 Since $\tfrac1e < 1$, the series converges.
 
-**(c)** $$\abs{\frac{a_{n+1}}{a_n}} = \frac{3^{n+1}}{(n + 1)^2}\cdot\frac{n^2}{3^n} = \frac{3}{(1 + 1/n)^2} \to 3 > 1.$$
+**(c)** The ratio of consecutive terms is
+
+$$\abs{\frac{a_{n+1}}{a_n}} = \frac{3^{n+1}}{(n + 1)^2}\cdot\frac{n^2}{3^n} = \frac{3}{(1 + 1/n)^2} \to 3 > 1.$$
 
 The series diverges; indeed its terms grow without bound.
 
@@ -1410,7 +1418,7 @@ steps(3**(n + 1)/(n + 1)**2*(n**2/3**n), 3*n**2/(n + 1)**2, 3/(1 + 1/n)**2); lim
 :::
 
 ::: pitfall
-The ratio test needs the limit of the ratios, not just ratios below 1. For the harmonic series, $\dfrac{a_{n+1}}{a_n} = \dfrac{n}{n + 1} < 1$ for every $n$, yet the series diverges: the ratios creep up towards 1, and no fixed $r < 1$ bounds them. And $\rho = 1$ means "no conclusion", not "diverges": $\sum 1/n^2$ has $\rho = 1$ and converges.
+The ratio test needs the limit of the ratios; ratios below 1 are not enough. For the harmonic series, $\dfrac{a_{n+1}}{a_n} = \dfrac{n}{n + 1} < 1$ for every $n$, yet the series diverges: the ratios creep up towards 1, and no fixed $r < 1$ bounds them. And $\rho = 1$ means "no conclusion", not "diverges": $\sum 1/n^2$ has $\rho = 1$ and converges.
 
 ```check
 holds(all(Rational(j, j + 1) < 1 for j in range(1, 500))); limit_is(n/(n + 1), n, oo, 1)
@@ -1909,10 +1917,10 @@ for p_, q_ in ((3, -5), (-2, -7), (Rational(1, 2), 4), (0, 3)):
 > $\dfrac{a_{n+1}}{a_n} = \dfrac{n^2}{(n + 1)^2} \to 1$. With $\rho = 1$ the ratio test says nothing: the harmonic series also has $\rho = 1$ and diverges. The convergence comes from the $p$-series test (or the integral test).
 
 ? The partial sum $S_9 = 1 - \tfrac12 + \tfrac13 - \cdots + \tfrac19$ of the alternating harmonic series approximates its sum $\ln 2$ with an error of at most
-- [ ] $\tfrac19$
-- [ ] $\tfrac{1}{100}$
-- [x] $\tfrac{1}{10}$
-- [ ] $\tfrac{1}{81}$
+- [ ] $\dfrac19$
+- [ ] $\dfrac{1}{100}$
+- [x] $\dfrac{1}{10}$
+- [ ] $\dfrac{1}{81}$
 > By the alternating series test, $\abs{S - S_N} \le b_{N+1}$, the first term left out: $\tfrac{1}{10}$. $\tfrac19$ is the last term included. The true error, about 0.052, is indeed below $\tfrac{1}{10}$, and $S_9$ lies above $\ln 2$ because the first term left out, $-\tfrac{1}{10}$, is negative.
 
 ? The series $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^n}{\sqrt n}$

@@ -1393,3 +1393,683 @@ holds(Abs(N(pi/2, 30) - Float(1.5707963267948966, 30)) < 10**-16); holds(Abs(N(p
 rounds(1e6/1.5707963267948966*6.1e-17, '4e-11'); holds(Abs(-0.3499935020939287 - sin(Integer(10**6))) > 10**-11)
 holds(Abs(-0.3499935020939287 - sin(Integer(10**6))) < 10**-9)
 ```
+
+## Euler's formula {#euler}
+
+Three of the standard series look alike. The series of $e^x$ has every power of $x$, with plus signs; $\sin x$ has the odd powers and $\cos x$ the even powers, with alternating signs, and the same factorials. Complex numbers show that this is no coincidence: the three are one function.
+
+### Complex numbers {#complex}
+
+The equation $x^2 + 1 = 0$ has no real solution, because $x^2 \ge 0$ for every real $x$. Mathematicians add a new number $i$ with $i^2 = -1$ and calculate with it as with a letter in algebra, replacing $i^2$ by $-1$ wherever it appears. Module 13 met such numbers as the complex roots of a characteristic equation; this section needs only the little about them that follows.
+
+::: definition Complex numbers
+A **complex number** is a number $z = p + qi$, where $p$ and $q$ are real numbers and $i$, the **imaginary unit**, satisfies $i^2 = -1$. The real number $p$ is the **real part** of $z$, and $q$ its **imaginary part**. Complex numbers are added and multiplied like expressions in a letter $i$, with $i^2$ replaced by $-1$:
+
+$$\begin{aligned} (p + qi) + (r + si) &= (p + r) + (q + s)i, \\ (p + qi)(r + si) &= (pr - qs) + (ps + qr)i. \end{aligned}$$
+
+Two complex numbers are equal when their real parts are equal and their imaginary parts are equal. The **modulus** of $z = p + qi$ is $\abs{z} = \sqrt{p^2 + q^2}$.
+:::
+
+The real numbers are the complex numbers with imaginary part 0. Picture $z = p + qi$ as the point $(p, q)$ of a plane, the **complex plane**, with real parts along the horizontal axis and imaginary parts up the vertical one; then $\abs{z}$ is the distance from $z$ to 0, and multiplying out shows that $\abs{zw} = \abs{z}\,\abs{w}$. The powers of $i$ repeat in a cycle of four:
+
+$$i^0 = 1, \quad i^1 = i, \quad i^2 = -1, \quad i^3 = -i, \quad i^4 = 1, \quad i^5 = i, \ \dots$$
+
+Multiplying by $i$ turns the plane a quarter turn anticlockwise about 0: $i(p + qi) = -q + pi$, so the point $(p, q)$ moves to $(-q, p)$.
+
+```check
+same(I**2, -1); same([I**j for j in range(6)], [1, I, -1, -I, 1, I])
+pc, qc, rc, sc = symbols('p q r s', real=True)
+same(expand((pc + qc*I) + (rc + sc*I)), (pc + rc) + (qc + sc)*I); same(expand((pc + qc*I)*(rc + sc*I)), (pc*rc - qc*sc) + (pc*sc + qc*rc)*I)
+same(Abs(pc + qc*I), sqrt(pc**2 + qc**2)); same(expand((pc*rc - qc*sc)**2 + (pc*sc + qc*rc)**2), expand((pc**2 + qc**2)*(rc**2 + sc**2)))
+same(expand(I*(pc + qc*I)), -qc + pc*I)
+```
+
+A series of complex numbers converges when the series of their real parts and the series of their imaginary parts both converge; its sum is then the sum of the real parts plus $i$ times the sum of the imaginary parts. If $\sum \abs{z_n}$ converges, so does $\sum z_n$: the real and imaginary parts of $z_n$ are at most $\abs{z_n}$ in size, so both real series converge absolutely, by comparison.
+
+::: definition The exponential of a complex number
+For every complex number $z$,
+
+$$e^z = \sum_{n=0}^\infty \frac{z^n}{n!} = 1 + z + \frac{z^2}{2!} + \frac{z^3}{3!} + \cdots.$$
+:::
+
+The series converges for every $z$, because $\abs{z^n/n!} = \abs{z}^n/n!$ and $\sum \abs{z}^n/n!$ converges (Example 15.2). For a real $z$ it is the familiar $e^x$, by Theorem 15.9. The law of exponents $e^{z+w} = e^z e^w$ holds for complex $z$ and $w$ too. Its proof multiplies the two series term by term and collects the terms with the binomial theorem; it rests on a theorem about multiplying absolutely convergent series, which this series does not prove.
+
+```check
+same(summation(rc**n/factorial(n), (n, 0, oo)), exp(rc)); same(Abs((pc + qc*I)**3), Abs(pc + qc*I)**3)
+zA, wA = symbols('z w')
+same(expand(sum(zA**j/factorial(j) for j in range(5))*sum(wA**j/factorial(j) for j in range(5))).as_poly(zA, wA).as_expr().subs({zA: 0}), sum(wA**j/factorial(j) for j in range(5)))
+for N_ in range(1, 6):                          # the terms of degree N in e^z e^w add up to (z + w)^N/N!, by the binomial theorem
+    same(sum(zA**j/factorial(j)*wA**(N_ - j)/factorial(N_ - j) for j in range(N_ + 1)), (zA + wA)**N_/factorial(N_))
+```
+
+### e to an imaginary power {#euler-formula}
+
+::: theorem Euler's formula
+For every real number $\theta$,
+
+$$e^{i\theta} = \cos\theta + i\sin\theta.$$
+:::
+
+::: proof
+Put $z = i\theta$ in the series. Since $(i\theta)^n = i^n\theta^n$ and the powers of $i$ cycle through $1, i, -1, -i$,
+
+$$e^{i\theta} = 1 + i\theta - \frac{\theta^2}{2!} - i\,\frac{\theta^3}{3!} + \frac{\theta^4}{4!} + i\,\frac{\theta^5}{5!} - \cdots.$$
+
+The real parts of the terms are $1, 0, -\tfrac{\theta^2}{2!}, 0, \tfrac{\theta^4}{4!}, \dots$: the terms of the series of $\cos\theta$, with zeros in between, which change neither whether it converges nor its sum. The imaginary parts are $0, \theta, 0, -\tfrac{\theta^3}{3!}, 0, \tfrac{\theta^5}{5!}, \dots$: the series of $\sin\theta$, with zeros in between. By Theorem 15.9 these converge to $\cos\theta$ and $\sin\theta$, so $e^{i\theta} = \cos\theta + i\sin\theta$.
+:::
+
+```check
+thr = symbols('theta', real=True)
+ser_ = expand(sum((I*thr)**j/factorial(j) for j in range(12))); re_, im_ = ser_.as_real_imag()
+same(re_, sum((-1)**j*thr**(2*j)/factorial(2*j) for j in range(6))); same(im_, sum((-1)**j*thr**(2*j + 1)/factorial(2*j + 1) for j in range(6)))
+same(expand(exp(I*thr), complex=True), cos(thr) + I*sin(thr))
+```
+
+At $\theta = \pi$, $\cos\pi = -1$ and $\sin\pi = 0$, so
+
+$$e^{i\pi} = -1, \qquad\text{that is,}\qquad e^{i\pi} + 1 = 0:$$
+
+one equation that links five of the most important numbers in mathematics, 0, 1, $e$, $i$ and $\pi$. Figure 15.4 shows what Euler's formula means. The complex number $e^{i\theta}$ is the point $(\cos\theta, \sin\theta)$, the point at angle $\theta$ on the unit circle of [Section 1.4](module_01_EN.html#trig), and its modulus is 1. As $\theta$ increases, $e^{i\theta}$ moves anticlockwise round the circle, once every $2\pi$.
+
+::: figure id=fig-15-4
+Left: by Euler's formula, $e^{i\theta} = \cos\theta + i\sin\theta$ is the point at angle $\theta$ on the unit circle of the complex plane, with real part $\cos\theta$ (green) and imaginary part $\sin\theta$ (blue). Right: the partial sums $S_N$ of the series $\sum (i\pi)^n/n!$ of $e^{i\pi}$. Each term is the one before multiplied by $i\pi/n$, so the path turns left by a right angle at every step, and it spirals in to $-1$.
+:::
+
+```check
+same(exp(I*pi), -1); same(exp(I*pi) + 1, 0); same(Abs(exp(I*thr)), 1); same(exp(I*thr).as_real_imag(), (cos(thr), sin(thr)))
+nQ2 = symbols('n', integer=True, positive=True)
+same(((I*pi)**nQ2/factorial(nQ2))/((I*pi)**(nQ2 - 1)/factorial(nQ2 - 1)), I*pi/nQ2)
+Sp = [sum((I*pi)**j/factorial(j) for j in range(N_ + 1)) for N_ in range(26)]
+same(Sp[1], 1 + I*pi); same(Sp[2], 1 + I*pi - pi**2/2); holds(Abs(N(Sp[25]) + 1) < 10**-12)
+```
+
+Euler's formula with $-\theta$ in place of $\theta$ gives $e^{-i\theta} = \cos\theta - i\sin\theta$, because $\cos$ is even and $\sin$ is odd. Adding and subtracting the two formulas,
+
+$$\cos\theta = \frac{e^{i\theta} + e^{-i\theta}}{2}, \qquad \sin\theta = \frac{e^{i\theta} - e^{-i\theta}}{2i},$$
+
+close relatives of $\cosh x = \tfrac12(e^x + e^{-x})$ and $\sinh x = \tfrac12(e^x - e^{-x})$ of Module 6. The law of exponents turns into the addition formulas of Module 1. From $e^{i(x + y)} = e^{ix}e^{iy}$,
+
+$$\begin{aligned} \cos(x + y) + i\sin(x + y) &= (\cos x + i\sin x)(\cos y + i\sin y) \\ &= (\cos x\cos y - \sin x\sin y) + i(\sin x\cos y + \cos x\sin y), \end{aligned}$$
+
+and comparing the real parts, and then the imaginary parts, gives both formulas at once.
+
+```check
+same(expand(exp(-I*thr), complex=True), cos(thr) - I*sin(thr))
+same(expand_complex((exp(I*thr) + exp(-I*thr))/2), cos(thr)); same(expand_complex((exp(I*thr) - exp(-I*thr))/(2*I)), sin(thr))
+same(cosh(x).rewrite(exp), (exp(x) + exp(-x))/2); same(sinh(x).rewrite(exp), (exp(x) - exp(-x))/2)
+xr2, yr2 = symbols('x y', real=True)
+same(expand((cos(xr2) + I*sin(xr2))*(cos(yr2) + I*sin(yr2))), (cos(xr2)*cos(yr2) - sin(xr2)*sin(yr2)) + I*(sin(xr2)*cos(yr2) + cos(xr2)*sin(yr2)))
+same(expand_trig(cos(xr2 + yr2)), cos(xr2)*cos(yr2) - sin(xr2)*sin(yr2)); same(expand_trig(sin(xr2 + yr2)), sin(xr2)*cos(yr2) + cos(xr2)*sin(yr2))
+```
+
+Complex numbers also answer the question of Section 15.2: why does the series of $1/(1 + x^2)$ stop converging at $x = \pm1$, where nothing happens to the function? Allow complex $z$ in $1/(1 + z^2)$: the denominator is 0 at $z = \pm i$, at distance 1 from 0 in the complex plane. A theorem of complex analysis, beyond this series, says that the Taylor series of a rational function in lowest terms, about a real $a$, has as its radius of convergence the distance from $a$ to the nearest complex number at which the denominator is 0. The function blows up at $\pm i$, out of sight of the real line, and the series cannot converge beyond that distance. About $a = 1$ the radius is $\abs{1 - i} = \sqrt2$. And since $\arctan x$ is an integral of $1/(1 + x^2)$, and integration keeps the radius (Theorem 15.2), the series of $\arctan x$ about $a$ has radius $\abs{a - i} = \sqrt{1 + a^2}$: the widget of Section 15.4 shows it.
+
+```check
+zc = symbols('z'); same_set(solve(1 + zc**2, zc), [I, -I]); same(Abs(I), 1); same(Abs(1 - I), sqrt(2))
+arl = symbols('a', real=True); same(Abs(arl - I), sqrt(1 + arl**2))
+cser = series(1/(1 + (1 + u)**2), u, 0, 16).removeO()          # about a = 1: |c_n| is at most 2^(-(n+1)/2), and equal to it for even n
+for j in range(16):
+    same(cser.coeff(u, j), (-1)**j*sin((j + 1)*pi/4)/2**(Rational(j + 1, 2)))
+limit_is((2**(-(2*n + 1)/Rational(2)))**(1/(2*n)), n, oo, 1/sqrt(2))   # so the root test gives the radius sqrt(2)
+```
+
+::: pitfall
+Not every rule of real exponentials survives. For real numbers, $e^x = e^y$ forces $x = y$; for complex numbers it does not, because $e^{2\pi i} = \cos 2\pi + i\sin 2\pi = 1 = e^0$, although $2\pi i \ne 0$. The complex exponential repeats itself with period $2\pi i$, so you cannot cancel it, or take logarithms, as you would for real numbers.
+
+```check
+same(exp(2*pi*I), 1); same(exp(0), 1); same(exp(zA + 2*pi*I), exp(zA))
+```
+:::
+
+### Oscillations {#oscillations}
+
+Module 13 solved the equation $y'' + py' + qy = 0$, with real constants $p$ and $q$, by trying $y = e^{rt}$, which leads to the characteristic equation $r^2 + pr + q = 0$. When $p^2 < 4q$ this equation has no real roots, and Module 13 gave the solutions $e^{at}\cos bt$ and $e^{at}\sin bt$, with $a = -\tfrac{p}{2}$ and $b = \tfrac12\sqrt{4q - p^2}$, checked by substitution. Euler's formula shows where they come from.
+
+By the quadratic formula the roots are $r = -\tfrac{p}{2} \pm \tfrac12\sqrt{p^2 - 4q}$. When $p^2 < 4q$, the number $p^2 - 4q$ is negative, and $\big(i\sqrt{4q - p^2}\big)^2 = -(4q - p^2) = p^2 - 4q$; so the roots are the complex numbers $r = a \pm bi$.
+
+**Complex roots give complex solutions.** A function of a real variable $t$ with complex values, $u(t) + i\,v(t)$, is differentiated by differentiating its real and imaginary parts. For $r = a + bi$, Euler's formula and the law of exponents give $e^{rt} = e^{at}e^{ibt} = e^{at}\cos bt + i\,e^{at}\sin bt$, and by the product rule
+
+$$\begin{aligned} \frac{d}{dt}e^{rt} &= e^{at}(a\cos bt - b\sin bt) + i\,e^{at}(a\sin bt + b\cos bt) \\ &= (a + bi)\,e^{at}(\cos bt + i\sin bt) = r\,e^{rt}, \end{aligned}$$
+
+as multiplying out $(a + bi)(\cos bt + i\sin bt)$ confirms. So $(e^{rt})'' = r^2e^{rt}$, and $y = e^{rt}$ gives $y'' + py' + qy = (r^2 + pr + q)\,e^{rt} = 0$, exactly as for a real root.
+
+**Their real and imaginary parts are real solutions.** If $y = u + iv$ solves the equation, with $u$ and $v$ real functions, then, since $p$ and $q$ are real,
+
+$$0 = y'' + py' + qy = (u'' + pu' + qu) + i\,(v'' + pv' + qv),$$
+
+and a complex number is 0 only when its real and imaginary parts are both 0. So $u$ and $v$ are solutions. The real and imaginary parts of $e^{(a+bi)t}$ are $e^{at}\cos bt$ and $e^{at}\sin bt$: Module 13's solutions. The imaginary part $b$ of the root makes them oscillate, because $e^{ibt}$ goes round the unit circle; the real part $a$ decides whether the oscillation dies away ($a < 0$), grows ($a > 0$) or keeps its size ($a = 0$).
+
+```check
+pq_, qq3 = symbols('p q', real=True)
+same_set(solve(r**2 + pq_*r + qq3, r), [-pq_/2 - sqrt(pq_**2 - 4*qq3)/2, -pq_/2 + sqrt(pq_**2 - 4*qq3)/2])
+dpos = symbols('d', positive=True); same((I*sqrt(dpos))**2, -dpos)
+ar2, br2 = symbols('a b', real=True); tr = symbols('t', real=True)
+Yc = exp(ar2*tr)*cos(br2*tr) + I*exp(ar2*tr)*sin(br2*tr)
+same(expand(exp((ar2 + I*br2)*tr), complex=True), expand(Yc))
+same(expand(diff(Yc, tr)), expand((ar2 + I*br2)*Yc))
+same(expand(diff(exp(ar2*tr)*cos(br2*tr), tr)), expand(exp(ar2*tr)*(ar2*cos(br2*tr) - br2*sin(br2*tr))))
+same(expand((ar2 + I*br2)*(cos(br2*tr) + I*sin(br2*tr))), expand((ar2*cos(br2*tr) - br2*sin(br2*tr)) + I*(ar2*sin(br2*tr) + br2*cos(br2*tr))))
+same(expand((r**2 + pq_*r + qq3).subs({r: ar2 + I*br2, pq_: -2*ar2, qq3: ar2**2 + br2**2})), 0)   # a + bi is a root when p = -2a, q = a^2 + b^2
+for part in (exp(ar2*tr)*cos(br2*tr), exp(ar2*tr)*sin(br2*tr)):
+    same(simplify(diff(part, tr, 2) - 2*ar2*diff(part, tr) + (ar2**2 + br2**2)*part), 0)
+```
+
+::: example A damped spring
+A mass on a spring with damping moves according to $y'' + 2y' + 10y = 0$, where $y$ is its displacement and $t$ the time (in seconds, say). Find real solutions with Euler's formula, and describe the motion.
+
+The characteristic equation $r^2 + 2r + 10 = 0$ has roots
+
+$$r = \frac{-2 \pm \sqrt{4 - 40}}{2} = \frac{-2 \pm 6i}{2} = -1 \pm 3i,$$
+
+since $\sqrt{-36} = 6i$ in the sense above: $(6i)^2 = -36$. So $e^{(-1+3i)t} = e^{-t}(\cos 3t + i\sin 3t)$ is a complex solution, and its real and imaginary parts give the real solutions $e^{-t}\cos 3t$ and $e^{-t}\sin 3t$; Module 13's general solution is $y = e^{-t}(C_1\cos 3t + C_2\sin 3t)$. The motion is an oscillation with period $2\pi/3 \approx 2.09$ seconds, whose size is multiplied by $e^{-t}$: it halves every $\ln 2 \approx 0.69$ seconds.
+
+```check
+same_set(solve(r**2 + 2*r + 10, r), [-1 + 3*I, -1 - 3*I]); same((6*I)**2, -36); same((-2 + 6*I)/2, -1 + 3*I)
+same(expand(exp((-1 + 3*I)*tr), complex=True), expand(exp(-tr)*cos(3*tr) + I*exp(-tr)*sin(3*tr)))
+for part in (exp(-tr)*cos(3*tr), exp(-tr)*sin(3*tr)):
+    same(simplify(diff(part, tr, 2) + 2*diff(part, tr) + 10*part), 0)
+yf = Function('y'); C1, C2 = symbols('C1 C2')
+same(dsolve(yf(tr).diff(tr, 2) + 2*yf(tr).diff(tr) + 10*yf(tr)).rhs, (C1*sin(3*tr) + C2*cos(3*tr))*exp(-tr))
+rounds(2*pi/3, '2.09'); rounds(log(2), '0.69'); same(exp(-(tr + log(2)))/exp(-tr), Rational(1, 2))
+```
+:::
+
+::: compute Euler's formula in Python
+Python has complex numbers built in. It writes the imaginary unit as `j`, as engineers do, so $i$ is `1j`, and the module `cmath` has the complex exponential:
+
+```python
+import cmath
+import math
+print(1j**2)
+print(cmath.exp(1j*math.pi))
+theta = 1.0
+print(cmath.exp(1j*theta))
+print(math.cos(theta), math.sin(theta))
+```
+
+```output
+(-1+0j)
+(-1+1.2246467991473532e-16j)
+(0.5403023058681398+0.8414709848078965j)
+0.5403023058681398 0.8414709848078965
+```
+
+$e^{i\pi}$ comes out as $-1$ plus a tiny imaginary part. That part is $\sin$ of `math.pi`, which is $\pi$ rounded to about 16 digits: $\sin(\pi - \delta) \approx \delta$ for a small $\delta$, and here $\delta = \pi - $ `math.pi` $\approx 1.22 \times 10^{-16}$. SymPy, which keeps $\pi$ exact, gets $-1$ exactly; with a real symbol it expands $e^{it}$ by Euler's formula, and its differential equation solver produces the oscillations of Example 15.18:
+
+```python
+import sympy as sp
+t = sp.symbols('t', real=True)
+y = sp.Function('y')
+print(sp.exp(sp.I*sp.pi))
+print(sp.expand(sp.exp(sp.I*t), complex=True))
+print(sp.dsolve(y(t).diff(t, 2) + 2*y(t).diff(t) + 10*y(t)))
+```
+
+```output
+-1
+I*sin(t) + cos(t)
+Eq(y(t), (C1*sin(3*t) + C2*cos(3*t))*exp(-t))
+```
+:::
+
+```check
+rounds(pi - Float(3.141592653589793, 40), '1.22e-16'); rounds(sin(Float(3.141592653589793, 40)), '1.22e-16')
+```
+
+## What you learned {#summary}
+
+- A power series $\sum c_n(x - a)^n$ converges absolutely for $\abs{x - a} < R$ and diverges for $\abs{x - a} > R$; the radius $R$, possibly 0 or $\infty$, usually comes from the ratio test, as $1/\lim\abs{c_{n+1}/c_n}$. The two endpoints $a \pm R$ must be tested separately.
+- Substituting into the geometric series $1/(1 - u) = \sum u^n$, for $\abs{u} < 1$, gives series for $1/(1 + x)$, $1/(1 + x^2)$, $1/(2 - x)$ and many more; the condition $\abs{u} < 1$ must be translated too.
+- Inside the interval of convergence a power series can be differentiated and integrated term by term, with the same radius. Integrating gives $\ln(1 + x) = x - \tfrac{x^2}{2} + \cdots$ and $\arctan x = x - \tfrac{x^3}{3} + \cdots$; at the endpoints, $1 - \tfrac12 + \tfrac13 - \cdots = \ln 2$ and $1 - \tfrac13 + \tfrac15 - \cdots = \tfrac{\pi}{4}$, and Abel's theorem covers every series that converges at an endpoint.
+- If $f$ has a power series about $a$, its coefficients are $f^{(n)}(a)/n!$: it is the Taylor series of $f$ (the Maclaurin series when $a = 0$). The standard series are those of $1/(1 - x)$, $\ln(1 + x)$, $\arctan x$, $e^x$, $\sin x$, $\cos x$ and the binomial series of $(1 + x)^k$, with their intervals.
+- The Taylor polynomial $T_n$ matches $f$ and its first $n$ derivatives at $a$. Taylor's theorem: $f(x) = T_n(x) + \dfrac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1}$ for some $c$ between $a$ and $x$; so $\abs{f(x) - T_n(x)} \le \dfrac{M}{(n + 1)!}\abs{x - a}^{n+1}$ when $\abs{f^{(n+1)}} \le M$. It proves the error estimates of Modules 4 and 7.
+- A Taylor series equals $f$ exactly where the remainder tends to 0: for $e^x$, $\sin x$ and $\cos x$, at every $x$. A convergent Taylor series can have the wrong sum, as $e^{-1/x^2}$ shows.
+- Series compute $e$, $\pi$ (Machin's formula) and $\ln 2$, evaluate limits such as $\lim (\sin x - x)/x^3 = -\tfrac16$, give the approximations of physics, and, after range reduction, the polynomials of mathematics libraries.
+- With complex numbers, $e^{i\theta} = \cos\theta + i\sin\theta$ and $e^{i\pi} + 1 = 0$. Complex roots $a \pm bi$ of a characteristic equation give the oscillating solutions $e^{at}\cos bt$ and $e^{at}\sin bt$, and complex numbers explain radii of convergence such as that of $1/(1 + x^2)$.
+- SymPy: `sp.series(f, x, a, n)` gives the terms up to $(x - a)^{n-1}$, and `.removeO()` drops the $O$ term.
+
+## Exercises {#exercises}
+
+:::: exercise Intervals of convergence {#ex-15-1} ★
+Find the radius and the interval of convergence of each series.
+
+- (a) $\displaystyle\sum_{n=1}^\infty \frac{n\,x^n}{4^n}$
+- (b) $\displaystyle\sum_{n=1}^\infty \frac{(x + 1)^n}{\sqrt n}$
+- (c) $\displaystyle\sum_{n=0}^\infty \frac{(2x)^n}{n!}$
+
+::: solution
+**(a)** Here $c_n = n/4^n$, and $\abs{\dfrac{c_{n+1}}{c_n}} = \dfrac{n + 1}{4n} \to \dfrac14$, so $R = 4$. At $x = 4$ the terms are $n$, and at $x = -4$ they are $(-1)^n n$: in both cases they do not tend to 0, so the series diverges. The interval is $(-4, 4)$.
+
+**(b)** The centre is $-1$. Here $c_n = 1/\sqrt n$ and $\abs{c_{n+1}/c_n} = \sqrt{n/(n + 1)} \to 1$, so $R = 1$: the series converges absolutely for $\abs{x + 1} < 1$, that is, $-2 < x < 0$. At $x = 0$ it is $\sum 1/\sqrt n$, a $p$-series with $p = \tfrac12 \le 1$, which diverges. At $x = -2$ it is $\sum (-1)^n/\sqrt n$, which converges by the alternating series test, since $1/\sqrt n$ decreases to 0. The interval is $[-2, 0)$.
+
+**(c)** Here $c_n = 2^n/n!$ and $\abs{c_{n+1}/c_n} = \dfrac{2}{n + 1} \to 0$, so $R = \infty$: the series converges for every $x$. It is the series of $e^{2x}$.
+
+```check
+nE = symbols('n', integer=True, positive=True)
+ca = lambda N: N/4**N
+same(ca(nE + 1)/ca(nE), (nE + 1)/(4*nE)); limit_is((n + 1)/(4*n), n, oo, Rational(1, 4))
+same(ca(nE)*4**nE, nE); same(Abs(ca(nE)*(-4)**nE), nE)
+same(sqrt(nE)/sqrt(nE + 1), (1/sqrt(nE + 1))/(1/sqrt(nE))); limit_is(sqrt(n/(n + 1)), n, oo, 1)
+same(solve_univariate_inequality(Abs(x + 1) < 1, x, relational=False), Interval.open(-2, 0))
+holds(Sum(1/sqrt(n), (n, 1, oo)).is_convergent() == False); holds(Sum((-1)**n/sqrt(n), (n, 1, oo)).is_convergent())
+cc3 = lambda N: 2**N/factorial(N)
+same(cc3(nE + 1)/cc3(nE), 2/(nE + 1)); limit_is(2/(n + 1), n, oo, 0)
+same(summation((2*x)**n/factorial(n), (n, 0, oo)), exp(2*x))
+```
+:::
+::::
+
+:::: exercise Series from the geometric series {#ex-15-2} ★
+Find a power series about 0 for each function, and its interval of convergence.
+
+- (a) $\dfrac{1}{1 - 3x}$
+- (b) $\dfrac{x^2}{1 + x}$
+- (c) $\dfrac{1}{4 + x^2}$
+
+::: solution
+**(a)** With $u = 3x$: $\dfrac{1}{1 - 3x} = \sum 3^n x^n = 1 + 3x + 9x^2 + \cdots$, for $\abs{3x} < 1$, that is, $\abs{x} < \tfrac13$. At $x = \pm\tfrac13$ the terms are $(\pm1)^n$, which do not tend to 0. The interval is $\big(-\tfrac13, \tfrac13\big)$.
+
+**(b)** Multiply the series of $\dfrac{1}{1 + x}$ by $x^2$: $\dfrac{x^2}{1 + x} = \sum (-1)^n x^{n+2} = x^2 - x^3 + x^4 - \cdots$, for $\abs{x} < 1$. At $x = \pm1$ the terms have size 1, so the interval is $(-1, 1)$.
+
+**(c)** Take out the factor 4, to make the 1 appear:
+
+$$\frac{1}{4 + x^2} = \frac14\cdot\frac{1}{1 + x^2/4} = \frac14\sum_{n=0}^\infty (-1)^n\Big(\frac{x^2}{4}\Big)^n = \sum_{n=0}^\infty \frac{(-1)^n x^{2n}}{4^{n+1}},$$
+
+for $x^2/4 < 1$, that is, $\abs{x} < 2$. At $x = \pm2$ the terms are $(-1)^n/4$, which do not tend to 0, so the interval is $(-2, 2)$. A test at $x = 1$: the series is $\tfrac14 - \tfrac{1}{16} + \tfrac{1}{64} - \cdots = \dfrac{1/4}{1 + 1/4} = \tfrac15$, and $\dfrac{1}{4 + 1} = \tfrac15$.
+
+```check
+same(series(1/(1 - 3*x), x, 0, 8).removeO(), sum(3**j*x**j for j in range(8)))
+same(solve_univariate_inequality(Abs(3*x) < 1, x, relational=False), Interval.open(-Rational(1, 3), Rational(1, 3)))
+same(series(x**2/(1 + x), x, 0, 10).removeO(), sum((-1)**j*x**(j + 2) for j in range(8)))
+steps(1/(4 + x**2), Rational(1, 4)/(1 + x**2/4))
+same(series(1/(4 + x**2), x, 0, 14).removeO(), sum((-1)**j*x**(2*j)/4**(j + 1) for j in range(7)))
+same(solve_univariate_inequality(x**2/4 < 1, x, relational=False), Interval.open(-2, 2))
+same(summation((-1)**n/4**(n + 1), (n, 0, oo)), Rational(1, 5)); same(Rational(1, 4)/(1 + Rational(1, 4)), Rational(1, 5))
+```
+:::
+::::
+
+:::: exercise Estimating cos 0.2 {#ex-15-3} ★
+- (a) Write down the Maclaurin polynomial $T_4$ of $\cos x$.
+- (b) Use it to estimate $\cos 0.2$.
+- (c) Bound the error with Taylor's inequality, and compare the bound with the actual error.
+
+::: solution
+**(a)** $T_4(x) = 1 - \dfrac{x^2}{2} + \dfrac{x^4}{24}$.
+
+**(b)** $T_4(0.2) = 1 - 0.02 + \dfrac{0.0016}{24} = 0.98 + 0.0000666\ldots \approx 0.98006667$.
+
+**(c)** Every derivative of $\cos$ is $\pm\sin$ or $\pm\cos$, so $M = 1$ will do. The coefficient of $x^5$ is 0, so $T_4 = T_5$, and Taylor's inequality with $n = 5$ gives
+
+$$\abs{\cos 0.2 - T_4(0.2)} \le \frac{0.2^6}{6!} = \frac{0.000064}{720} \approx 8.9 \times 10^{-8}.$$
+
+A calculator gives $\cos 0.2 \approx 0.98006658$, so the error is about $-8.9 \times 10^{-8}$: the bound is almost exact, because the next term of the series, $-x^6/720$, makes up nearly all of the error. With $n = 4$ the inequality gives only $0.2^5/5! \approx 2.7 \times 10^{-6}$, true but thirty times larger.
+
+```check
+T4c = 1 - x**2/2 + x**4/24; v2 = Rational(1, 5)
+same(series(cos(x), x, 0, 6).removeO(), T4c)
+same(T4c.subs(x, v2), 1 - Rational(2, 100) + Rational(16, 10000)/24); rounds(T4c.subs(x, v2), '0.98006667')
+same(v2**6, Rational(64, 10**6)); same(factorial(6), 720); rounds(v2**6/factorial(6), '8.9e-8')
+rounds(cos(v2), '0.98006658'); rounds(cos(v2) - T4c.subs(x, v2), '-8.9e-8'); holds(Abs(cos(v2) - T4c.subs(x, v2)) <= v2**6/factorial(6))
+rounds(v2**5/factorial(5), '2.7e-6'); rounds((v2**5/factorial(5))/(v2**6/factorial(6)), '30')
+```
+:::
+::::
+
+:::: exercise New series from old {#ex-15-4} ★
+Use the standard series to find the Maclaurin series of each function, with its first three nonzero terms, and say for which $x$ it equals the function.
+
+- (a) $x^2e^{-x}$
+- (b) $\sin(x^2)$
+- (c) $\cosh x = \tfrac12(e^x + e^{-x})$
+
+::: solution
+**(a)** Put $-x$ for $x$ in the series of $e^x$, then multiply by $x^2$:
+
+$$x^2e^{-x} = x^2\sum_{n=0}^\infty \frac{(-x)^n}{n!} = \sum_{n=0}^\infty (-1)^n\frac{x^{n+2}}{n!} = x^2 - x^3 + \frac{x^4}{2} - \cdots,$$
+
+for every $x$, since the series of $e^x$ equals $e^x$ for every $x$.
+
+**(b)** Put $x^2$ for $x$ in the series of $\sin x$:
+
+$$\sin(x^2) = \sum_{n=0}^\infty (-1)^n\frac{x^{4n+2}}{(2n + 1)!} = x^2 - \frac{x^6}{6} + \frac{x^{10}}{120} - \cdots,$$
+
+for every $x$.
+
+**(c)** Add the series of $e^x$ and $e^{-x}$: the term in $x^n$ is $\big(1 + (-1)^n\big)\dfrac{x^n}{n!}$, which is 0 for odd $n$ and $\dfrac{2x^n}{n!}$ for even $n$. Halving,
+
+$$\cosh x = \sum_{n=0}^\infty \frac{x^{2n}}{(2n)!} = 1 + \frac{x^2}{2} + \frac{x^4}{24} + \cdots,$$
+
+for every $x$: the series of $\cos x$ without its minus signs.
+
+```check
+same(series(x**2*exp(-x), x, 0, 8).removeO(), sum((-1)**j*x**(j + 2)/factorial(j) for j in range(6)))
+same([(-1)**j/factorial(j) for j in range(3)], [1, -1, Rational(1, 2)])
+same(series(sin(x**2), x, 0, 16).removeO(), sum((-1)**j*x**(4*j + 2)/factorial(2*j + 1) for j in range(4)))
+same([factorial(2*j + 1) for j in range(3)], [1, 6, 120])
+same(cosh(x).rewrite(exp), (exp(x) + exp(-x))/2); same([1 + (-1)**j for j in range(6)], [2, 0, 2, 0, 2, 0])
+same(series(cosh(x), x, 0, 12).removeO(), sum(x**(2*j)/factorial(2*j) for j in range(6)))
+same(summation(x**(2*n)/factorial(2*n), (n, 0, oo)), cosh(x))
+```
+:::
+::::
+
+:::: exercise Sums by differentiating {#ex-15-5} ★★
+Example 15.6 showed that $\displaystyle\sum_{n=1}^\infty n x^n = \frac{x}{(1 - x)^2}$ for $\abs{x} < 1$.
+
+- (a) Find $\displaystyle\sum_{n=1}^\infty \frac{n}{3^n}$.
+- (b) Show that $\displaystyle\sum_{n=1}^\infty n^2x^n = \frac{x(1 + x)}{(1 - x)^3}$ for $\abs{x} < 1$.
+- (c) Find $\displaystyle\sum_{n=1}^\infty \frac{n^2}{2^n}$.
+
+::: solution
+**(a)** Put $x = \tfrac13$: $\dfrac{1/3}{(2/3)^2} = \dfrac{1/3}{4/9} = \dfrac34$.
+
+**(b)** Differentiate $\sum n x^n = \dfrac{x}{(1 - x)^2}$ term by term (Theorem 15.2, inside the radius 1). On the right, by the quotient rule, and then cancelling a factor $1 - x$:
+
+$$\frac{d}{dx}\,\frac{x}{(1 - x)^2} = \frac{(1 - x)^2 + 2x(1 - x)}{(1 - x)^4} = \frac{(1 - x) + 2x}{(1 - x)^3} = \frac{1 + x}{(1 - x)^3}.$$
+
+On the left the derivative is $\sum n^2 x^{n-1}$. Multiplying by $x$ gives $\sum n^2 x^n = \dfrac{x(1 + x)}{(1 - x)^3}$.
+
+**(c)** At $x = \tfrac12$: $\dfrac{\tfrac12\cdot\tfrac32}{(1/2)^3} = \dfrac34\cdot8 = 6$.
+
+```check
+same((x/(1 - x)**2).subs(x, Rational(1, 3)), Rational(3, 4)); same(summation(n/3**n, (n, 1, oo)), Rational(3, 4))
+steps(diff(x/(1 - x)**2, x), ((1 - x)**2 + 2*x*(1 - x))/(1 - x)**4, ((1 - x) + 2*x)/(1 - x)**3, (1 + x)/(1 - x)**3)
+same(diff(n*x**n, x)*x, n**2*x**n)
+same(series(x*(1 + x)/(1 - x)**3, x, 0, 10).removeO(), sum(j**2*x**j for j in range(1, 10)))
+same((x*(1 + x)/(1 - x)**3).subs(x, Rational(1, 2)), 6); same(summation(n**2/2**n, (n, 1, oo)), 6)
+```
+:::
+::::
+
+:::: exercise Square roots by the binomial series {#ex-15-6} ★★
+- (a) Use the first four terms of the series of $\sqrt{1 + x}$ (Example 15.10) to estimate $\sqrt{1.1}$.
+- (b) Show that, for $0 < x < 1$, the terms of this series after the first alternate in sign and decrease in size, and use this to bound the error of (a).
+- (c) Estimate $\sqrt{110}$, with an error bound.
+
+::: solution
+**(a)** $\sqrt{1.1} \approx 1 + \dfrac{0.1}{2} - \dfrac{0.01}{8} + \dfrac{0.001}{16} = 1 + 0.05 - 0.00125 + 0.0000625 = 1.0488125$.
+
+**(b)** The ratio of consecutive coefficients is
+
+$$\binom{1/2}{n+1}\Big/\binom{1/2}{n} = \frac{\tfrac12 - n}{n + 1},$$
+
+which for $n \ge 1$ is negative and has size $\dfrac{n - \tfrac12}{n + 1} < 1$. So for $0 < x < 1$, from the term in $x$ on, each term has the opposite sign to the one before and is smaller in size (its size is multiplied by $\tfrac{n - 1/2}{n + 1}\,x < 1$), and the terms tend to 0. By the alternating series bound of Module 14, applied to the series from its second term on, the error is less than the first term left out:
+
+$$\abs{\binom{1/2}{4}x^4} = \frac{5}{128}(0.1)^4 \approx 3.9 \times 10^{-6}.$$
+
+Indeed $\sqrt{1.1} \approx 1.0488088$, and the error of 1.0488125 is about $-3.7 \times 10^{-6}$.
+
+**(c)** $\sqrt{110} = \sqrt{100 \times 1.1} = 10\sqrt{1.1} \approx 10.488125$, with error less than $10 \times 3.9 \times 10^{-6} = 3.9 \times 10^{-5}$. So $\sqrt{110}$ lies between 10.488086 and 10.488125, and to four decimal places it is 10.4881 (a calculator gives 10.488088).
+
+```check
+v3 = Rational(1, 10); est = 1 + v3/2 - v3**2/8 + v3**3/16
+same([v3/2, v3**2/8, v3**3/16], [Rational(5, 100), Rational(125, 100000), Rational(625, 10**7)]); same(est, Rational(10488125, 10**7))
+same(expand_func(binomial(Rational(1, 2), nB + 1)/binomial(Rational(1, 2), nB)), (Rational(1, 2) - nB)/(nB + 1))
+holds(all((Rational(1, 2) - j)/(j + 1) < 0 and Abs((Rational(1, 2) - j)/(j + 1)) < 1 for j in range(1, 60)))
+same(binomial(Rational(1, 2), 4), -Rational(5, 128)); rounds(Rational(5, 128)*v3**4, '3.9e-6')
+rounds(sqrt(Rational(11, 10)), '1.0488088'); rounds(sqrt(Rational(11, 10)) - est, '-3.7e-6'); holds(Abs(sqrt(Rational(11, 10)) - est) < Rational(5, 128)*v3**4)
+same(sqrt(110), 10*sqrt(Rational(11, 10))); rounds(10*Rational(5, 128)*v3**4, '3.9e-5')
+holds(10*est - 10*Rational(5, 128)*v3**4 > Rational(10488086, 10**6)); rounds(10*est - Rational(39, 10**6), '10.4881'); rounds(10*est, '10.4881')
+rounds(sqrt(110), '10.488088')
+```
+:::
+::::
+
+:::: exercise Estimating ln 0.8 {#ex-15-7} ★★
+- (a) Use the Maclaurin polynomial $T_3$ of $\ln(1 + x)$ to estimate $\ln 0.8$.
+- (b) Bound the error with Taylor's inequality.
+- (c) Why can you not use the alternating series bound here? Compare the bound of (b) with the actual error.
+
+::: solution
+**(a)** $T_3(x) = x - \dfrac{x^2}{2} + \dfrac{x^3}{3}$ and $0.8 = 1 + x$ with $x = -0.2$, so
+
+$$\ln 0.8 \approx -0.2 - \frac{0.04}{2} + \frac{-0.008}{3} = -0.2 - 0.02 - 0.0026667 = -0.2226667.$$
+
+**(b)** The derivatives of $f(x) = \ln(1 + x)$ are $\dfrac{1}{1 + x}$, $-\dfrac{1}{(1 + x)^2}$, $\dfrac{2}{(1 + x)^3}$ and $f^{(4)}(x) = -\dfrac{6}{(1 + x)^4}$. For $t$ between $-0.2$ and 0, $1 + t \ge 0.8$, so $\abs{f^{(4)}(t)} \le \dfrac{6}{0.8^4} = 14.6484375$, and
+
+$$\abs{\ln 0.8 - T_3(-0.2)} \le \frac{14.6484375}{4!}\,(0.2)^4 \approx 0.00098.$$
+
+**(c)** At $x = -0.2$ every term of the series, $-0.2 - 0.02 - 0.0026667 - 0.0004 - \cdots$, is negative: the series does not alternate, so the alternating series bound does not apply. It would have claimed an error less than the next term, 0.0004, which is false: $\ln 0.8 \approx -0.2231436$, and the error is about $-0.00048$. Taylor's inequality, which needs no alternating signs, gives the safe bound 0.00098. The Lagrange form even gives the sign: $f^{(4)} < 0$, so $R_3 < 0$ and $T_3$ overestimates.
+
+```check
+fl = log(1 + x)
+same([diff(fl, x, j) for j in range(1, 5)], [1/(1 + x), -1/(1 + x)**2, 2/(1 + x)**3, -6/(1 + x)**4])
+T3l = x - x**2/2 + x**3/3; vm = -Rational(1, 5)
+same(T3l.subs(x, vm), -Rational(2, 10) - Rational(2, 100) - Rational(8, 3000)); rounds(T3l.subs(x, vm), '-0.2226667')
+same(6/Rational(4, 5)**4, Rational(146484375, 10**7)); rounds(Rational(146484375, 10**7)/24*vm**4, '0.00098')
+rounds(log(Rational(4, 5)), '-0.2231436'); rounds(log(Rational(4, 5)) - T3l.subs(x, vm), '-0.00048')
+holds(Abs(log(Rational(4, 5)) - T3l.subs(x, vm)) <= Rational(146484375, 10**7)/24*vm**4)
+holds(all((-1)**(j - 1)*vm**j/j < 0 for j in range(1, 12))); same(Abs(vm**4/4), Rational(4, 10000))
+holds(Abs(log(Rational(4, 5)) - T3l.subs(x, vm)) > Rational(4, 10000)); holds(log(Rational(4, 5)) - T3l.subs(x, vm) < 0)
+```
+:::
+::::
+
+:::: exercise Limits by series {#ex-15-8} ★★
+Use series to find each limit.
+
+- (a) $\displaystyle\lim_{x\to0}\frac{e^x - 1 - x - x^2/2}{x^3}$
+- (b) $\displaystyle\lim_{x\to0}\frac{x - \arctan x}{x^3}$
+- (c) $\displaystyle\lim_{x\to0}\frac{e^{x^2} - \cos x}{x^2}$
+
+::: solution
+**(a)** $e^x = 1 + x + \dfrac{x^2}{2} + \dfrac{x^3}{6} + O(x^4)$, so the numerator is $\dfrac{x^3}{6} + O(x^4)$, and the quotient is $\dfrac16 + O(x) \to \dfrac16$.
+
+**(b)** $\arctan x = x - \dfrac{x^3}{3} + O(x^5)$ (for $\abs{x} \le \tfrac12$, say, the alternating series bound makes the error at most $\abs{x}^5/5$). So $x - \arctan x = \dfrac{x^3}{3} + O(x^5)$, and the limit is $\dfrac13$.
+
+**(c)** Substitute $x^2$ in $e^u = 1 + u + O(u^2)$: $e^{x^2} = 1 + x^2 + O(x^4)$. And $\cos x = 1 - \dfrac{x^2}{2} + O(x^4)$. So $e^{x^2} - \cos x = \dfrac32x^2 + O(x^4)$, and the limit is $\dfrac32$. Stopping at the first terms, $e^{x^2} \approx 1$ and $\cos x \approx 1$, would leave $0/x^2$ and the wrong answer 0: keep terms up to the order of the denominator.
+
+```check
+same(series(exp(x) - 1 - x - x**2/2, x, 0, 4).removeO(), x**3/6); limit_is((exp(x) - 1 - x - x**2/2)/x**3, x, 0, Rational(1, 6))
+same(series(x - atan(x), x, 0, 5).removeO(), x**3/3); limit_is((x - atan(x))/x**3, x, 0, Rational(1, 3))
+holds(all(Abs(atan(Rational(k_, 10)) - (Rational(k_, 10) - Rational(k_, 10)**3/3)) <= Rational(k_, 10)**5/5 for k_ in range(1, 6)))
+same(series(exp(x**2), x, 0, 4).removeO(), 1 + x**2); same(series(exp(x**2) - cos(x), x, 0, 4).removeO(), Rational(3, 2)*x**2)
+limit_is((exp(x**2) - cos(x))/x**2, x, 0, Rational(3, 2))
+```
+:::
+::::
+
+:::: exercise Trigonometry from Euler's formula {#ex-15-9} ★★
+- (a) Use $\big(e^{i\theta}\big)^2 = e^{2i\theta}$ to find formulas for $\cos 2\theta$ and $\sin 2\theta$.
+- (b) Use $\big(e^{i\theta}\big)^3 = e^{3i\theta}$ to show that $\cos 3\theta = 4\cos^3\theta - 3\cos\theta$ and $\sin 3\theta = 3\sin\theta - 4\sin^3\theta$.
+- (c) Use $\cos\theta = \tfrac12\big(e^{i\theta} + e^{-i\theta}\big)$ to show that $\cos^2\theta = \tfrac12(1 + \cos 2\theta)$, the identity behind $\int\cos^2\theta\,d\theta$ in Module 11.
+
+::: solution
+Write $c = \cos\theta$ and $s = \sin\theta$, so that $e^{i\theta} = c + is$.
+
+**(a)** $(c + is)^2 = c^2 + 2ics + i^2s^2 = (c^2 - s^2) + i\,2sc$. And $e^{2i\theta} = \cos 2\theta + i\sin 2\theta$. Equal complex numbers have equal real parts and equal imaginary parts, so $\cos 2\theta = \cos^2\theta - \sin^2\theta$ and $\sin 2\theta = 2\sin\theta\cos\theta$.
+
+**(b)** Expand the cube, with $i^2 = -1$ and $i^3 = -i$:
+
+$$(c + is)^3 = c^3 + 3c^2(is) + 3c(is)^2 + (is)^3 = (c^3 - 3cs^2) + i(3c^2s - s^3).$$
+
+With $s^2 = 1 - c^2$, the real part is $c^3 - 3c(1 - c^2) = 4c^3 - 3c$; with $c^2 = 1 - s^2$, the imaginary part is $3(1 - s^2)s - s^3 = 3s - 4s^3$. Comparing with $e^{3i\theta} = \cos 3\theta + i\sin 3\theta$ gives both formulas.
+
+**(c)** Square, using $e^{i\theta}e^{-i\theta} = e^0 = 1$:
+
+$$\cos^2\theta = \frac{e^{2i\theta} + 2 + e^{-2i\theta}}{4} = \frac12 + \frac12\cdot\frac{e^{2i\theta} + e^{-2i\theta}}{2} = \frac12(1 + \cos 2\theta).$$
+
+```check
+cs_, sn_ = symbols('c s', real=True)
+same(expand((cs_ + I*sn_)**2), cs_**2 - sn_**2 + 2*I*sn_*cs_); same(expand_trig(cos(2*theta)), cos(theta)**2 - sin(theta)**2)
+same(expand_trig(sin(2*theta)), 2*sin(theta)*cos(theta))
+same(expand((cs_ + I*sn_)**3), cs_**3 - 3*cs_*sn_**2 + I*(3*cs_**2*sn_ - sn_**3))
+same(expand(cs_**3 - 3*cs_*(1 - cs_**2)), 4*cs_**3 - 3*cs_); same(expand(3*(1 - sn_**2)*sn_ - sn_**3), 3*sn_ - 4*sn_**3)
+same(expand_trig(cos(3*theta)), 4*cos(theta)**3 - 3*cos(theta)); same(expand_trig(sin(3*theta)), 3*sin(theta) - 4*sin(theta)**3)
+same(expand(((exp(I*thr) + exp(-I*thr))/2)**2), exp(2*I*thr)/4 + Rational(1, 2) + exp(-2*I*thr)/4)
+same(expand_complex(exp(2*I*thr)/4 + Rational(1, 2) + exp(-2*I*thr)/4), (1 + cos(2*thr))/2); same((1 + cos(2*theta))/2, cos(theta)**2)
+```
+:::
+::::
+
+:::: exercise The number e is irrational {#ex-15-10} ★★★
+Suppose, to the contrary, that $e = p/q$ for whole numbers $p$ and $q \ge 1$. Since also $e = 2p/(2q)$, you may assume that $q \ge 2$. Let $s_q = \sum_{k=0}^{q} 1/k!$.
+
+- (a) Show that $q!\,(e - s_q)$ is a whole number.
+- (b) Use the bound $0 < e - s_n < \dfrac{3}{(n + 1)!}$ of Section 15.6 to show that $0 < q!\,(e - s_q) < 1$.
+- (c) Conclude that $e$ is irrational.
+
+::: solution
+**(a)** $q!\,e = q!\,\dfrac{p}{q} = p\,(q - 1)!$, a whole number. And $q!\,s_q = \sum_{k=0}^{q} \dfrac{q!}{k!}$, where each $\dfrac{q!}{k!} = (k + 1)(k + 2)\cdots q$ (or 1, when $k = q$) is a whole number. So $q!\,(e - s_q)$ is the difference of two whole numbers: a whole number.
+
+**(b)** Multiply $0 < e - s_q < \dfrac{3}{(q + 1)!}$ by $q!$:
+
+$$0 < q!\,(e - s_q) < \frac{3\,q!}{(q + 1)!} = \frac{3}{q + 1} \le 1,$$
+
+since $q \ge 2$.
+
+**(c)** By (a) and (b), $q!\,(e - s_q)$ is a whole number strictly between 0 and 1. There is no such number, so the assumption $e = p/q$ is false: $e$ is irrational. The proof works because the series of $e$ converges so fast that the error after the term $1/q!$ is too small to be a multiple of $1/q!$.
+
+```check
+qI = symbols('q', integer=True, positive=True); pI = symbols('p', integer=True, positive=True)
+same(factorial(qI)*(pI/qI), pI*factorial(qI - 1))
+for Q_ in range(2, 9):
+    holds(all((factorial(Q_)/factorial(j)).is_integer for j in range(Q_ + 1)))
+    holds(0 < factorial(Q_)*(E - sE(Q_))); holds(factorial(Q_)*(E - sE(Q_)) < Rational(3, Q_ + 1)); holds(Rational(3, Q_ + 1) <= 1)
+same(factorial(qI)*3/factorial(qI + 1), 3/(qI + 1))
+```
+:::
+::::
+
+:::: exercise Machin's formula {#ex-15-11} ★★★
+Let $\alpha = \arctan\tfrac15$. Use the formula $\tan(u + v) = \dfrac{\tan u + \tan v}{1 - \tan u\tan v}$, which follows from the addition formulas of Module 1.
+
+- (a) Show that $\tan 2\alpha = \tfrac{5}{12}$ and $\tan 4\alpha = \tfrac{120}{119}$.
+- (b) Show that $\tan\big(4\alpha - \tfrac{\pi}{4}\big) = \tfrac{1}{239}$, and conclude that $\dfrac{\pi}{4} = 4\arctan\dfrac15 - \arctan\dfrac{1}{239}$.
+- (c) In Section 15.6, an error of less than $\tfrac{1}{11\cdot5^{11}}$ in $\arctan\tfrac15$ became an error 16 times as large in $\pi$. How many terms of the series of $\arctan\tfrac15$ guarantee an error below $10^{-12}$ in $\pi$ from that series?
+
+::: solution
+**(a)** With $u = v$, the formula gives $\tan 2u = \dfrac{2\tan u}{1 - \tan^2u}$. So
+
+$$\tan 2\alpha = \frac{2/5}{1 - 1/25} = \frac25\cdot\frac{25}{24} = \frac{5}{12}, \qquad \tan 4\alpha = \frac{10/12}{1 - 25/144} = \frac56\cdot\frac{144}{119} = \frac{120}{119}.$$
+
+**(b)** With $-v$ in place of $v$, and $\tan(-v) = -\tan v$, the formula gives $\tan(u - v) = \dfrac{\tan u - \tan v}{1 + \tan u\tan v}$. With $u = 4\alpha$ and $v = \tfrac{\pi}{4}$, where $\tan\tfrac{\pi}{4} = 1$:
+
+$$\tan\Big(4\alpha - \frac{\pi}{4}\Big) = \frac{120/119 - 1}{1 + 120/119} = \frac{1/119}{239/119} = \frac{1}{239}.$$
+
+To conclude that $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, the angle must lie in $\big(-\tfrac{\pi}{2}, \tfrac{\pi}{2}\big)$, the range of $\arctan$ (Module 6). For $x > 0$, $\arctan x = \int_0^x \dfrac{dt}{1 + t^2} < \int_0^x dt = x$, so $0 < \alpha < \tfrac15$, and $-\tfrac{\pi}{4} < 4\alpha - \tfrac{\pi}{4} < \tfrac45 - \tfrac{\pi}{4} < \tfrac{\pi}{2}$. So $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, which rearranges to Machin's formula.
+
+**(c)** With $n$ terms the error in $\arctan\tfrac15$ is less than the first term left out, $\dfrac{(1/5)^{2n+1}}{2n + 1}$, and the error in $\pi$ is less than 16 times that. For $n = 8$, $16\cdot\dfrac{5^{-17}}{17} \approx 1.2 \times 10^{-12}$, not enough; for $n = 9$, $16\cdot\dfrac{5^{-19}}{19} \approx 4.4 \times 10^{-14}$. So 9 terms suffice.
+
+```check
+same(expand_trig(tan(2*theta)), 2*tan(theta)/(1 - tan(theta)**2)); same(tan(2*atan(Rational(1, 5))), Rational(5, 12)); same(tan(4*atan(Rational(1, 5))), Rational(120, 119))
+same(2*Rational(1, 5)/(1 - Rational(1, 25)), Rational(5, 12)); same(2*Rational(5, 12)/(1 - Rational(25, 144)), Rational(120, 119))
+same(expand_trig(tan(theta - pi/4)), (tan(theta) - 1)/(1 + tan(theta))); same((Rational(120, 119) - 1)/(1 + Rational(120, 119)), Rational(1, 239))
+al_ = atan(Rational(1, 5)); same(integrate(1/(1 + tt**2), (tt, 0, x)), atan(x))
+holds(al_ < Rational(1, 5)); holds(Rational(4, 5) - pi/4 < pi/2); holds(4*al_ - pi/4 > -pi/4)
+near(4*al_ - pi/4, atan(Rational(1, 239)), 1e-25)
+rounds(16*Rational(1, 5)**17/17, '1.2e-12'); rounds(16*Rational(1, 5)**19/19, '4.4e-14')
+holds(16*Rational(1, 5)**17/17 > Rational(1, 10**12)); holds(16*Rational(1, 5)**19/19 < Rational(1, 10**12))
+```
+:::
+::::
+
+:::: exercise Newton's method converges quadratically {#ex-15-12} ★★★
+Prove Theorem 7.3. Let $f(r) = 0$, let $f'$ and $f''$ be continuous on an open interval containing $r$, and let $f'(r) \ne 0$.
+
+- (a) Show that there are numbers $\delta > 0$ and $K \ge 0$ with $K\delta \le \tfrac12$ such that $f'(x) \ne 0$ and $\abs{\dfrac{f''(c)}{2f'(x)}} \le K$ for all $x$ and $c$ in $[r - \delta, r + \delta]$.
+- (b) Using the identity $e_{n+1} = \dfrac{f''(c_n)}{2f'(x_n)}\,e_n^2$ of Section 15.5, show that if $\abs{x_0 - r} \le \delta$, then $\abs{e_{n+1}} \le \tfrac12\abs{e_n}$ for every $n$, so that $x_n \to r$.
+- (c) Deduce that $e_{n+1}/e_n^2 \to f''(r)/\big(2f'(r)\big)$, if no $x_n$ equals $r$.
+
+::: solution
+**(a)** Since $f'$ is continuous at $r$ and $f'(r) \ne 0$, there is a $\delta_1 > 0$ such that $\abs{f'(x) - f'(r)} < \tfrac12\abs{f'(r)}$, and so $\abs{f'(x)} > \tfrac12\abs{f'(r)} > 0$, for $\abs{x - r} \le \delta_1$ (taking $\delta_1$ so small that this closed interval lies in the open interval of the hypothesis). On the closed interval $[r - \delta_1, r + \delta_1]$ the continuous function $\abs{f''}$ has a largest value $B$, by the Extreme Value Theorem (Module 3). So for $x$ and $c$ in that interval
+
+$$\abs{\frac{f''(c)}{2f'(x)}} \le \frac{B}{2\cdot\tfrac12\abs{f'(r)}} = \frac{B}{\abs{f'(r)}} = K.$$
+
+If $K = 0$, take $\delta = \delta_1$; otherwise take $\delta$ the smaller of $\delta_1$ and $\dfrac{1}{2K}$. A smaller interval keeps both properties, and $K\delta \le \tfrac12$.
+
+**(b)** By induction on $n$, show that $\abs{e_n} \le \delta$ and that $x_{n+1}$ is defined, with $\abs{e_{n+1}} \le \tfrac12\abs{e_n}$. Suppose $\abs{e_n} \le \delta$, as is true for $n = 0$. Then $x_n$ lies in $[r - \delta, r + \delta]$, so $f'(x_n) \ne 0$ and Newton's step gives $x_{n+1}$. The identity holds with $c_n$ between $x_n$ and $r$, hence also in the interval, so
+
+$$\abs{e_{n+1}} \le K e_n^2 = (K\abs{e_n})\,\abs{e_n} \le K\delta\,\abs{e_n} \le \tfrac12\abs{e_n} \le \delta.$$
+
+So $\abs{e_n} \le \delta/2^n$ for every $n$, which tends to 0: $x_n \to r$.
+
+**(c)** $\dfrac{e_{n+1}}{e_n^2} = \dfrac{f''(c_n)}{2f'(x_n)}$. As $n \to \infty$, $x_n \to r$, and $c_n$, which lies between $x_n$ and $r$, tends to $r$ too, by the squeeze theorem. Since $f''$ and $f'$ are continuous at $r$ and $f'(r) \ne 0$, the quotient tends to $\dfrac{f''(r)}{2f'(r)}$. For $f(x) = x^2 - 2$ this is $\dfrac{2}{4\sqrt2} = \dfrac{1}{2\sqrt2} \approx 0.354$, the constant of Example 7.9.
+
+```check
+fq_ = x**2 - 2; r_ = sqrt(2)
+xs_ = [Rational(3, 2)]
+for _ in range(5):
+    xs_.append(xs_[-1] - fq_.subs(x, xs_[-1])/diff(fq_, x).subs(x, xs_[-1]))
+es_ = [v_ - r_ for v_ in xs_]
+for j in range(5):
+    holds(Abs(es_[j + 1]) <= Abs(es_[j])/2)
+rounds(es_[4]/es_[3]**2, '0.354'); same((diff(fq_, x, 2)/(2*diff(fq_, x))).subs(x, r_), 1/(2*sqrt(2))); rounds(1/(2*sqrt(2)), '0.354')
+same(2/(4*sqrt(2)), 1/(2*sqrt(2)))
+Bs, Fs = symbols('B F', positive=True); same(Bs/(2*Fs/2), Bs/Fs)
+```
+:::
+::::
+
+## Check yourself {#quiz}
+
+```quiz
+? The radius of convergence of $\displaystyle\sum_{n=1}^\infty \frac{x^n}{n\,3^n}$ is
+- [ ] $\tfrac13$
+- [ ] $1$
+- [x] $3$
+- [ ] $\infty$
+> $\abs{c_{n+1}/c_n} = \dfrac{n}{3(n + 1)} \to \dfrac13$, so $R = 3$. $\tfrac13$ is the limit $L$ itself, not $1/L$; 1 ignores the factor $3^n$; $R = \infty$ would need $L = 0$.
+
+? The interval of convergence of $\displaystyle\sum_{n=1}^\infty \frac{(x - 2)^n}{n}$ is
+- [ ] $(1, 3)$
+- [x] $[1, 3)$
+- [ ] $(1, 3]$
+- [ ] $[1, 3]$
+> The centre is 2 and $R = 1$. At $x = 3$ the series is the harmonic series $\sum 1/n$, which diverges; at $x = 1$ it is $\sum (-1)^n/n$, which converges by the alternating series test. $(1, 3)$ leaves out $x = 1$, and $(1, 3]$ and $[1, 3]$ wrongly include $x = 3$.
+
+? The coefficient of $x^4$ in the Maclaurin series of $e^{2x}$ is
+- [ ] $\tfrac{1}{24}$
+- [ ] $\tfrac{1}{12}$
+- [ ] $16$
+- [x] $\tfrac23$
+> $e^{2x} = \sum (2x)^n/n!$, so the coefficient of $x^4$ is $2^4/4! = 16/24 = \tfrac23$; equivalently $f^{(4)}(0)/4!$ with $f^{(4)}(x) = 16e^{2x}$. $\tfrac{1}{24}$ forgets the factor $2^4$, $\tfrac{1}{12}$ uses $2$ instead of $2^4$, and 16 forgets to divide by $4!$.
+
+? The Maclaurin series of $\dfrac{1}{1 + x^2}$, and where it converges, are
+- [x] $1 - x^2 + x^4 - x^6 + \cdots$, for $-1 < x < 1$
+- [ ] $1 - x^2 + x^4 - x^6 + \cdots$, for every $x$
+- [ ] $1 + x^2 + x^4 + x^6 + \cdots$, for $-1 < x < 1$
+- [ ] $x - \tfrac{x^3}{3} + \tfrac{x^5}{5} - \cdots$, for $-1 \le x \le 1$
+> Put $u = -x^2$ in $\dfrac{1}{1 - u} = \sum u^n$, valid for $\abs{u} < 1$, that is, $\abs{x} < 1$. The function is defined for every $x$, but its series diverges for $\abs{x} \ge 1$; the signs alternate because $u = -x^2$; and the last series is that of $\arctan x$, an antiderivative.
+
+? If $f(1) = 2$, $f'(1) = 3$ and $f''(1) = 4$, the Taylor polynomial $T_2$ of $f$ about 1 is
+- [ ] $2 + 3x + 2x^2$
+- [ ] $2 + 3(x - 1) + 4(x - 1)^2$
+- [x] $2 + 3(x - 1) + 2(x - 1)^2$
+- [ ] $2 + 3(x - 1) + 8(x - 1)^2$
+> $T_2(x) = f(1) + f'(1)(x - 1) + \dfrac{f''(1)}{2!}(x - 1)^2$, and $4/2! = 2$. Forgetting to divide by $2!$ gives $4(x - 1)^2$, multiplying instead gives $8(x - 1)^2$, and powers of $x$ instead of $x - 1$ give a polynomial about 0.
+
+? With $M = 1$, and using $T_3 = T_4$ for $\sin x$, Taylor's inequality guarantees that $\abs{\sin 0.1 - \big(0.1 - \tfrac{0.1^3}{6}\big)}$ is at most
+- [ ] $\tfrac{0.1^4}{4!} \approx 4.2 \times 10^{-6}$
+- [x] $\tfrac{0.1^5}{5!} \approx 8.3 \times 10^{-8}$
+- [ ] $\tfrac{0.1^3}{3!} \approx 1.7 \times 10^{-4}$
+- [ ] $0.1^5 = 10^{-5}$
+> The coefficient of $x^4$ is 0, so $T_3 = T_4$, and $R_4$ is bounded by $M\abs{x}^5/5! = 10^{-5}/120 \approx 8.3 \times 10^{-8}$. $0.1^4/4!$ is the bound for $R_3$, true but weaker; $0.1^3/3!$ is the size of the last term kept, not the error; $10^{-5}$ forgets to divide by $5!$.
+
+? $\displaystyle\lim_{x\to0}\frac{x - \sin x}{x^3}$ equals
+- [x] $\tfrac16$
+- [ ] $-\tfrac16$
+- [ ] $0$
+- [ ] $\tfrac13$
+> $\sin x = x - \tfrac{x^3}{6} + O(x^5)$, so $x - \sin x = \tfrac{x^3}{6} + O(x^5)$ and the quotient tends to $\tfrac16$. $-\tfrac16$ is the limit of $(\sin x - x)/x^3$; 0 comes from replacing $\sin x$ by $x$ alone; $\tfrac13$ is the limit with $\arctan x$ in place of $\sin x$.
+
+? By Euler's formula, $e^{i\pi/2}$ equals
+- [ ] $-1$
+- [ ] $1$
+- [x] $i$
+- [ ] $-i$
+> $e^{i\pi/2} = \cos\tfrac{\pi}{2} + i\sin\tfrac{\pi}{2} = 0 + i = i$: a quarter turn round the unit circle. $-1$ is $e^{i\pi}$, a half turn; 1 is $e^0$; $-i$ is $e^{-i\pi/2}$.
+```
+
+```check
+same((1/((n + 1)*3**(n + 1)))/(1/(n*3**n)), n/(3*(n + 1))); limit_is(n/(3*(n + 1)), n, oo, Rational(1, 3))
+holds(Sum(1/n, (n, 1, oo)).is_convergent() == False); holds(Sum((-1)**n/n, (n, 1, oo)).is_convergent())
+same(series(exp(2*x), x, 0, 5).removeO().coeff(x, 4), Rational(2, 3)); same(diff(exp(2*x), x, 4).subs(x, 0)/factorial(4), Rational(2, 3))
+same(series(1/(1 + x**2), x, 0, 8).removeO(), 1 - x**2 + x**4 - x**6)
+fQ = 2 + 3*(x - 1) + 2*(x - 1)**2; same([diff(fQ, x, j).subs(x, 1) for j in range(3)], [2, 3, 4])
+rounds(Rational(1, 10)**5/120, '8.3e-8'); rounds(Rational(1, 10)**4/24, '4.2e-6'); rounds(Rational(1, 10)**3/6, '1.7e-4')
+holds(Abs(sin(Rational(1, 10)) - (Rational(1, 10) - Rational(1, 6000))) <= Rational(1, 10)**5/120)
+limit_is((x - sin(x))/x**3, x, 0, Rational(1, 6)); limit_is((sin(x) - x)/x**3, x, 0, -Rational(1, 6)); limit_is((x - atan(x))/x**3, x, 0, Rational(1, 3))
+same(exp(I*pi/2), I); same(exp(-I*pi/2), -I); same(exp(I*pi), -1); same(exp(0), 1)
+```
