@@ -380,7 +380,7 @@ Cancelling a factor can change the domain: carry the condition along, as in $r(x
 
 For $x \ge 0$, the **square root** $\sqrt{x}$ is the non-negative number whose square is $x$. So $\sqrt{9} = 3$, not $\pm 3$. The equation $x^2 = 9$ has two solutions, $\sqrt9 = 3$ and $-\sqrt9 = -3$, but the symbol $\sqrt9$ means only the first. The domain and the range of $\sqrt x$ are both $[0, \infty)$; its graph is half of a parabola lying on its side (Figure 1.3).
 
-The **cube root** $\sqrt[3]{x}$ is the number whose cube is $x$. Every real number has exactly one real cube root, so the domain is $\R$: $\sqrt[3]{8} = 2$ and $\sqrt[3]{-8} = -2$. In general the $n$th root $\sqrt[n]{x}$ is defined for every $x$ when $n$ is odd, and for $x \ge 0$ when $n$ is even. Roots are powers with fractional exponents: $x^{1/n} = \sqrt[n]{x}$ and $x^{m/n} = \big(\sqrt[n]{x}\big)^m$ (with $m/n$ in lowest terms), so $8^{2/3} = 2^2 = 4$. For a negative $x$, this series follows most calculus books and reads $x^{1/3}$ as the real cube root; Python does not, as Section 1.7 shows.
+The **cube root** $\sqrt[3]{x}$ is the number whose cube is $x$. Every real number has exactly one real cube root, so the domain is $\R$: $\sqrt[3]{8} = 2$ and $\sqrt[3]{-8} = -2$. In general the $n$th root $\sqrt[n]{x}$ is defined for every $x$ when $n$ is odd, and for $x \ge 0$ when $n$ is even. Roots are powers with fractional exponents: $x^{1/n} = \sqrt[n]{x}$ and $x^{m/n} = \big(\sqrt[n]{x}\big)^m$ (with $m/n$ in lowest terms), so $8^{2/3} = 2^2 = 4$. For a negative $x$, this series follows most calculus books and reads $x^{1/3}$ as the real cube root; Python and SymPy do not, as Section 1.7 shows.
 
 ```check
 same(sqrt(9), 3); same_set(solve(x**2 - 9, x), [3, -3])
@@ -563,8 +563,16 @@ rounds(2**Rational(3322, 1000), '10.00')
 :::
 
 ::: pitfall
-The laws of logarithms are about products, quotients and powers, not sums: $\ln(x + y)$ is not $\ln x + \ln y$, and $\dfrac{\ln x}{\ln y}$ is not $\ln\dfrac{x}{y}$. Watch the notation too: some books and calculators write $\log x$ for $\log_{10} x$, while others, and Python, write $\log x$ for $\ln x$. This series always writes the base, except in $\ln$.
+The laws of logarithms are about products, quotients and powers, not sums: $\ln(x + y)$ is not $\ln x + \ln y$, and $\dfrac{\ln x}{\ln y}$ is not $\ln\dfrac{x}{y}$. The laws also need positive inputs: for every $x \ne 0$, $\ln(x^2) = 2\ln\abs{x}$, which is not $2\ln x$ when $x < 0$, where $\ln x$ is not even defined. Watch the notation too: some books and calculators write $\log x$ for $\log_{10} x$, while others, and Python, write $\log x$ for $\ln x$. This series always writes the base, except in $\ln$.
 :::
+
+```check
+xn = symbols('x_n', negative=True)
+same(log(xn**2), 2*log(-xn)); same(Abs(xn), -xn)
+for v in (Integer(-3), Rational(-1, 2), Integer(5)):
+    same(log(v**2), 2*log(Abs(v)))
+holds(log(Integer(-3)).is_real is False)
+```
 
 ### Trigonometric functions {#trig}
 
@@ -605,7 +613,7 @@ Everything about sine and cosine can be read from the circle:
 - **The Pythagorean identity.** $P$ lies on the circle $x^2 + y^2 = 1$, so for every $\theta$
   $$\sin^2\theta + \cos^2\theta = 1,$$
   where $\sin^2\theta$ means $(\sin\theta)^2$.
-- **Periodicity.** Adding $2\pi$ to $\theta$ takes $P$ once round the circle, so $\sin(\theta + 2\pi) = \sin\theta$ and $\cos(\theta + 2\pi) = \cos\theta$: sine and cosine are **periodic** with period $2\pi$ (Figure 1.4). The tangent has period $\pi$; it is undefined where $\cos\theta = 0$, at $\theta = \pi/2 + k\pi$ for every integer $k$.
+- **Periodicity.** Adding $2\pi$ to $\theta$ takes $P$ once round the circle, so $\sin(\theta + 2\pi) = \sin\theta$ and $\cos(\theta + 2\pi) = \cos\theta$: sine and cosine are **periodic** with period $2\pi$ (Figure 1.4). The tangent has period $\pi$ (the formulas for $\pi + \theta$ below show why); it is undefined where $\cos\theta = 0$, at $\theta = \pi/2 + k\pi$ for every integer $k$.
 - **Symmetry.** Turning through $-\theta$ gives the mirror image of $P$ in the $x$-axis, so $\cos(-\theta) = \cos\theta$ and $\sin(-\theta) = -\sin\theta$: cosine is even and sine is odd.
 
 ```check
@@ -1119,7 +1127,7 @@ x*(x - 3)*(x + 2)
 x**2 - x - 6
 ```
 
-These are the polynomial of Example 1.4, its value $p(4) = 64 - 16 - 24 = 24$, its factored form, and one product expanded. Powers need `**`: in Python the symbol `^` means something else.
+The polynomial is the one of Example 1.4. The three lines are its value $p(4) = 64 - 16 - 24 = 24$, its factored form, and the product $(x + 2)(x - 3)$ expanded. Powers need `**`: in Python the symbol `^` means something else.
 
 ```python fails
 print(x^2)
@@ -1218,7 +1226,18 @@ print(math.cbrt(-8))
 -2.0
 ```
 
-Python raises a negative number to a fractional power as a complex number (the `j` marks its imaginary part), not as the real cube root $-2$ that this series means by $(-8)^{1/3}$; `math.cbrt` gives the real cube root. And outside the domain of a function, Python refuses:
+Python raises a negative number to a fractional power as a complex number (the `j` marks its imaginary part), not as the real cube root $-2$ that this series means by $(-8)^{1/3}$; `math.cbrt` gives the real cube root. SymPy, too, takes the complex root unless you ask for the real one:
+
+```python
+import sympy as sp
+print(sp.root(-8, 3), sp.real_root(-8, 3))
+```
+
+```output
+2*(-1)**(1/3) -2
+```
+
+In `2*(-1)**(1/3)`, the factor `(-1)**(1/3)` stands for a complex number, not for $-1$. And outside the domain of a function, Python refuses:
 
 ```python fails
 print(math.sqrt(-4))
@@ -1289,8 +1308,8 @@ same([Rational(98, 10) + Rational(49, 10)*hh for hh in (Rational(1, 10), Rationa
 - The domain of a formula leaves out division by zero, even roots of negative numbers and logarithms of numbers that are not positive; a model may restrict it further.
 - The graph of $f$ is the set of points $(x, f(x))$; no vertical line meets it twice. Piecewise functions use different formulas on different parts of the domain, with filled and hollow dots at the boundaries.
 - The catalogue: linear functions (constant rate of change $m$), powers and polynomials, rational functions, roots, exponentials $a^x$ and $e^x$ with $e \approx 2.71828$, logarithms with $\ln$ the inverse of $e^x$, and the trigonometric functions, defined from the unit circle in radians.
-- $f(x - c)$ shifts a graph right and $f(x) + c$ up; $c\,f(x)$ stretches it vertically and $f(cx)$ squashes it horizontally. $(f \circ g)(x) = f\big(g(x)\big)$ applies $g$ first. A one-to-one function has an inverse, whose graph is the mirror image in $y = x$.
-- The average rate of change $\dfrac{f(b) - f(a)}{b - a}$ is the slope of a secant line, and the difference quotient $\dfrac{f(a + h) - f(a)}{h}$ is the average rate over an interval of length $h$. As $h$ shrinks, it approaches the instantaneous rate: the idea behind limits (Module 2) and derivatives (Module 4).
+- For $c > 0$, $f(x - c)$ shifts a graph $c$ units right and $f(x) + c$ shifts it $c$ units up; for $c > 1$, $c\,f(x)$ stretches it vertically and $f(cx)$ squashes it horizontally. $(f \circ g)(x) = f\big(g(x)\big)$ applies $g$ first. A one-to-one function has an inverse, whose graph is the mirror image in $y = x$.
+- The average rate of change $\big(f(b) - f(a)\big)/(b - a)$ is the slope of a secant line, and the difference quotient $\big(f(a + h) - f(a)\big)/h$ is the average rate over an interval of length $h$. As $h$ shrinks, it approaches the instantaneous rate: the idea behind limits (Module 2) and derivatives (Module 4).
 - SymPy (`symbols`, `subs`, `expand`, `factor`, `simplify`, `N`, `lambdify`), NumPy and matplotlib check and explore all of this; floating-point arithmetic is approximate in its last digits.
 
 ```check
@@ -1354,13 +1373,22 @@ same((x**2 - 1).subs(x, 1), 0)
 - (b) Find the exact values of $\sin\theta$ and $\cos\theta$ for $\theta = 3\pi/4$, $7\pi/6$ and $-\pi/3$.
 
 ::: solution
-**(a)** Multiply degrees by $\pi/180$: $225 \cdot \dfrac{\pi}{180} = \dfrac{5\pi}{4}$ and $-60 \cdot \dfrac{\pi}{180} = -\dfrac{\pi}{3}$. To go back, multiply by $180/\pi$: $\dfrac{5\pi}{6} \cdot \dfrac{180}{\pi} = 150^\circ$.
+**(a)** Multiply degrees by $\pi/180$:
+
+$$\begin{aligned} 225 \cdot \frac{\pi}{180} &= \frac{5\pi}{4}, \\ -60 \cdot \frac{\pi}{180} &= -\frac{\pi}{3}. \end{aligned}$$
+
+To go back, multiply by $180/\pi$:
+
+$$\frac{5\pi}{6} \cdot \frac{180}{\pi} = 150^\circ.$$
 
 **(b)** Use the standard angles and the symmetries of the circle.
 
-- $3\pi/4 = \pi - \pi/4$, the mirror image of $\pi/4$ in the $y$-axis: $\sin\dfrac{3\pi}{4} = \sin\dfrac{\pi}{4} = \dfrac{\sqrt2}{2}$ and $\cos\dfrac{3\pi}{4} = -\cos\dfrac{\pi}{4} = -\dfrac{\sqrt2}{2}$.
-- $7\pi/6 = \pi + \pi/6$, the reflection of $\pi/6$ through the origin: $\sin\dfrac{7\pi}{6} = -\sin\dfrac{\pi}{6} = -\dfrac12$ and $\cos\dfrac{7\pi}{6} = -\cos\dfrac{\pi}{6} = -\dfrac{\sqrt3}{2}$.
-- $-\pi/3$ is the mirror image of $\pi/3$ in the $x$-axis: $\sin\Big(-\dfrac{\pi}{3}\Big) = -\sin\dfrac{\pi}{3} = -\dfrac{\sqrt3}{2}$ and $\cos\Big(-\dfrac{\pi}{3}\Big) = \cos\dfrac{\pi}{3} = \dfrac12$.
+- $3\pi/4 = \pi - \pi/4$, the mirror image of $\pi/4$ in the $y$-axis:
+  $$\begin{aligned} \sin\frac{3\pi}{4} &= \sin\frac{\pi}{4} = \frac{\sqrt2}{2}, \\ \cos\frac{3\pi}{4} &= -\cos\frac{\pi}{4} = -\frac{\sqrt2}{2}. \end{aligned}$$
+- $7\pi/6 = \pi + \pi/6$, the reflection of $\pi/6$ through the origin:
+  $$\begin{aligned} \sin\frac{7\pi}{6} &= -\sin\frac{\pi}{6} = -\frac12, \\ \cos\frac{7\pi}{6} &= -\cos\frac{\pi}{6} = -\frac{\sqrt3}{2}. \end{aligned}$$
+- $-\pi/3$ is the mirror image of $\pi/3$ in the $x$-axis:
+  $$\begin{aligned} \sin\Big(-\frac{\pi}{3}\Big) &= -\sin\frac{\pi}{3} \\ &= -\frac{\sqrt3}{2}, \\ \cos\Big(-\frac{\pi}{3}\Big) &= \cos\frac{\pi}{3} = \frac12. \end{aligned}$$
 
 ```check
 same(225*pi/180, 5*pi/4); same(-60*pi/180, -pi/3); same(5*pi/6*180/pi, 150)
@@ -1375,7 +1403,7 @@ same(3*pi/4, pi - pi/4); same(7*pi/6, pi + pi/6)
 :::: exercise Logarithms and exponentials {#ex-1-4} ★
 Without a calculator, find:
 
-- (a) $\log_2 32$
+- (a) $\log_3 81$
 - (b) $\log_{10} 0.001$
 - (c) $\ln\big(e^5\big)$
 - (d) $e^{\ln 7}$
@@ -1384,7 +1412,7 @@ Without a calculator, find:
 Then (f) solve $e^{2x} = 7$, giving the exact answer and its value to three decimal places.
 
 ::: solution
-**(a)** $2^5 = 32$, so $\log_2 32 = 5$.
+**(a)** $3^4 = 81$, so $\log_3 81 = 4$.
 
 **(b)** $0.001 = 10^{-3}$, so $\log_{10} 0.001 = -3$.
 
@@ -1399,7 +1427,7 @@ $$x = \frac{\ln 7}{2} \approx 0.973.$$
 Check: $e^{2 \cdot 0.973} = e^{1.946} \approx 7.00$.
 
 ```check
-same(log(32, 2), 5); same(log(Rational(1, 1000), 10), -3); same(log(exp(5)), 5); same(exp(log(7)), 7)
+same(3**4, 81); same(log(81, 3), 4); same(log(Rational(1, 1000), 10), -3); same(log(exp(5)), 5); same(exp(log(7)), 7)
 same(log(12) - log(3) + log(2), log(8)); same(log(8), 3*log(2))
 xs = solve(Eq(exp(2*symbols('x', real=True)), 7))
 same(xs, [log(7)/2]); rounds(log(7)/2, '0.973')
@@ -1519,6 +1547,7 @@ same(fc8(Rational(101, 100)), Rational(1030301, 1000000)); same((fc8(Rational(10
 same(expand((1 + h)**3), 1 + 3*h + 3*h**2 + h**3)
 steps((fc8(1 + h) - fc8(1))/h, (3*h + 3*h**2 + h**3)/h, 3 + 3*h + h**2)
 same([(3 + 3*h + h**2).subs(h, v) for v in (1, Rational(1, 10), Rational(1, 100))], [7, Rational(331, 100), Rational(30301, 10000)])
+limit_is((fc8(1 + h) - fc8(1))/h, h, 0, 3)                                 # (c): the average rates approach 3
 ```
 :::
 ::::
@@ -1533,12 +1562,18 @@ Let $f(x) = \dfrac1x$, and let $a \ne 0$.
 
 ::: solution
 **(a)** Put the two fractions over the common denominator $a(a + h)$:
-$$\begin{aligned} f(a + h) - f(a) &= \frac{1}{a + h} - \frac1a \\ &= \frac{a - (a + h)}{a(a + h)} = \frac{-h}{a(a + h)}. \end{aligned}$$
+$$\begin{aligned} f(a + h) - f(a) &= \frac{1}{a + h} - \frac1a \\ &= \frac{a - (a + h)}{a(a + h)} \\ &= \frac{-h}{a(a + h)}. \end{aligned}$$
 Dividing by $h$ (allowed, since $h \ne 0$) gives $-\dfrac{1}{a(a + h)}$.
 
-**(b)** For $a = 2$ and $h = 0.1$: $-\dfrac{1}{2 \cdot 2.1} = -\dfrac{1}{4.2} \approx -0.2381$. For $h = -0.1$: $-\dfrac{1}{2 \cdot 1.9} = -\dfrac{1}{3.8} \approx -0.2632$.
+**(b)** For $a = 2$ and $h = 0.1$,
 
-**(c)** As $h$ shrinks, $a + h$ approaches $a$, so the quotient approaches $-\dfrac{1}{a^2}$; for $a = 2$ that is $-\tfrac14 = -0.25$, between the two values of (b). It is negative because $1/x$ decreases on each side of 0: when the input increases, the output decreases, so $\Delta y$ and $\Delta x$ have opposite signs.
+$$-\frac{1}{2 \cdot 2.1} = -\frac{1}{4.2} \approx -0.2381,$$
+
+and for $h = -0.1$,
+
+$$-\frac{1}{2 \cdot 1.9} = -\frac{1}{3.8} \approx -0.2632.$$
+
+**(c)** As $h$ shrinks, $a + h$ approaches $a$, so the quotient approaches $-\dfrac{1}{a^2}$; for $a = 2$ that is $-\tfrac14 = -0.25$, between the two values of (b). The quotient is negative whenever $a$ and $a + h$ lie on the same side of 0, as they do once $\abs{h} < \abs{a}$: then $a(a + h) > 0$. The reason is that $1/x$ decreases on each side of 0: when the input increases, the output decreases, so $\Delta y$ and $\Delta x$ have opposite signs. Across 0 this fails: for $a = 2$ and $h = -3$, the quotient is $-\dfrac{1}{2 \cdot (-1)} = \tfrac12$.
 
 ```check
 steps((1/(a + h) - 1/a), (a - (a + h))/(a*(a + h)), -h/(a*(a + h)))
@@ -1548,6 +1583,10 @@ same(q9(Rational(1, 10)), -1/Rational(42, 10)); rounds(q9(Rational(1, 10)), '-0.
 same(q9(-Rational(1, 10)), -1/Rational(38, 10)); rounds(q9(-Rational(1, 10)), '-0.2632')
 same((-1/(a*(a + h))).subs(h, 0), -1/a**2); same(-1/Integer(2)**2, -Rational(1, 4))
 holds(q9(Rational(1, 10)) > -Rational(1, 4)); holds(-Rational(1, 4) > q9(-Rational(1, 10)))
+limit_is(-1/(a*(a + h)), h, 0, -1/a**2)
+ap9, bp9 = symbols('a b', positive=True); an9, bn9 = symbols('a b', negative=True)   # b = a + h
+holds((-1/(ap9*bp9)).is_negative); holds((-1/(an9*bn9)).is_negative)                # same side of 0: negative
+same(q9(-3), Rational(1, 2)); same((1/(2 + h) - Rational(1, 2))/h, q9(h))   # across 0: a = 2, h = -3
 ```
 :::
 ::::
@@ -1575,7 +1614,7 @@ x1, x2 = symbols('x1 x2', real=True)
 same(expand(x2**3 - x1**3), expand((x2 - x1)*(x2**2 + x1*x2 + x1**2)))
 same(expand((x2**3 + x2) - (x1**3 + x1)), expand((x2 - x1)*(x2**2 + x1*x2 + x1**2 + 1)))
 same(expand((x2 + x1/2)**2 + Rational(3, 4)*x1**2), x2**2 + x1*x2 + x1**2)
-holds(((x2 + x1/2)**2 + Rational(3, 4)*x1**2 + 1).subs({x1: -3, x2: Rational(3, 2)}) >= 1)
+holds(((x2 + x1/2)**2 + Rational(3, 4)*x1**2).is_nonnegative)          # for all real x1, x2
 ```
 :::
 ::::
@@ -1594,9 +1633,9 @@ Expanding, $(a + h)^2 - (a - h)^2 = (a^2 + 2ah + h^2) - (a^2 - 2ah + h^2) = 4ah$
 $$\begin{aligned} \frac{f(a + h) - f(a - h)}{2h} &= \frac{4pah + 2qh}{2h} \\ &= 2pa + q. \end{aligned}$$
 The $h$ cancels completely: the answer is the same for every $h > 0$.
 
-**(b)** All these secant lines have the same slope, $2pa + q$, so they are parallel, however wide the interval. As $h$ shrinks, the average rate stays at $2pa + q$, so that is the number it approaches: the instantaneous rate of change of $f$ at $a$ is $2pa + q$.
+**(b)** All these secant lines have the same slope, $2pa + q$, so they are parallel, however wide the interval. As $h$ shrinks, the average rate stays at $2pa + q$, so that is the number it approaches: the instantaneous rate of change of $f$ at $a$ is $2pa + q$. The difference quotient of Section 1.6 agrees: $f(a + h) - f(a) = p(2ah + h^2) + qh$, so the difference quotient is $2pa + q + ph$, which also approaches $2pa + q$ as $h$ shrinks.
 
-**(c)** Here $p = 4.9$ and $q = r = 0$. Both intervals are centred on $a = 1$ (with $h = 0.5$ and $h = 0.1$), so the average speed over each is $2 \cdot 4.9 \cdot 1 = 9.8$ m/s: exactly the instantaneous speed found in Section 1.6, where intervals starting at $t = 1$ only approached 9.8. Module 4 uses centred intervals, the central difference, for other functions, where they are very accurate though not exact.
+**(c)** Here $p = 4.9$ and $q = r = 0$. Both intervals are centred on $a = 1$ (with $h = 0.5$ and $h = 0.1$), so the average speed over each is $2 \cdot 4.9 \cdot 1 = 9.8$ m/s: exactly the instantaneous speed found in Section 1.6, where intervals starting or ending at $t = 1$ only approached 9.8. Module 4 uses centred intervals, the central difference, for other functions, where they are very accurate though not exact.
 
 ```check
 pq, qq_, rq = symbols('p q r')
@@ -1605,6 +1644,8 @@ same((a + h) - (a - h), 2*h)
 same(expand((a + h)**2 - (a - h)**2), 4*a*h)
 same(expand(fq2(a + h) - fq2(a - h)), 4*pq*a*h + 2*qq_*h)
 steps((fq2(a + h) - fq2(a - h))/(2*h), (4*pq*a*h + 2*qq_*h)/(2*h), 2*pq*a + qq_)
+same(expand(fq2(a + h) - fq2(a)), expand(pq*(2*a*h + h**2) + qq_*h))   # (b): the one-sided quotient
+steps((fq2(a + h) - fq2(a))/h, 2*pq*a + qq_ + pq*h); limit_is(2*pq*a + qq_ + pq*h, h, 0, 2*pq*a + qq_)
 sq2 = lambda T: Rational(49, 10)*sympify(T)**2
 same((sq2(Rational(3, 2)) - sq2(Rational(1, 2)))/1, Rational(98, 10))
 same((sq2(Rational(11, 10)) - sq2(Rational(9, 10)))/Rational(2, 10), Rational(98, 10))
@@ -1663,7 +1704,7 @@ same(2*Rational(49, 10)*1, Rational(98, 10))
 - [ ] $21$
 - [ ] $3$
 - [ ] $14.5$
-> $\dfrac{f(5) - f(2)}{5 - 2} = \dfrac{25 - 4}{3} = \dfrac{21}{3} = 7$. 21 is the change in $f$ alone, not divided by the change in $x$; 14.5 is the average of the values $f(2)$ and $f(5)$, a different thing.
+> $\dfrac{f(5) - f(2)}{5 - 2} = \dfrac{25 - 4}{3} = \dfrac{21}{3} = 7$. 21 is the change in $f$ alone, not divided by the change in $x$, and 3 is the change in $x$ alone; 14.5 is the average of the values $f(2)$ and $f(5)$, a different thing.
 
 ? For $f(x) = x^2$ and $h \ne 0$, the difference quotient $\dfrac{f(3 + h) - f(3)}{h}$ simplifies to
 - [ ] $h$

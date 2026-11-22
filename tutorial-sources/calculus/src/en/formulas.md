@@ -64,7 +64,7 @@ negative base breaks them: $\big((-1)^2\big)^{1/2} = 1$, but $(-1)^{2 \cdot 1/2}
 | Power | ${\ln(x^r) = r\ln x}$ | ${x > 0,}$ ${r}$ real | [1](module_01_EN.html) |
 | Even power | ${\ln(x^2) = 2\ln\abs{x}}$ | ${x \ne 0}$ | [1](module_01_EN.html) |
 | Values | ${\ln 1 = 0,}$ ${\ \ln e = 1}$ | | [1](module_01_EN.html) |
-| Change of base | ${\log_a x = \dfrac{\ln x}{\ln a}}$ | ${a > 0,}$ ${a \ne 1,}$ ${x > 0}$ | [6](module_06_EN.html) |
+| Change of base | ${\log_a x = \dfrac{\ln x}{\ln a}}$ | ${a > 0,}$ ${a \ne 1,}$ ${x > 0}$ | [1](module_01_EN.html) |
 | Base ${e}$ | ${a^x = e^{x\ln a}}$ | ${a > 0,}$ ${x}$ real | [6](module_06_EN.html) |
 
 ```check
@@ -253,7 +253,7 @@ same(x**x*diff(x*log(x), x), diff(x**x, x))                   # an instance: x^x
 
 | ${f(x)}$ | ${f'(x)}$ | Holds for | Module |
 |---|---|---|---|
-| ${x^n}$ | ${nx^{n-1}}$ | ${n}$ real and ${x > 0;}$ every ${x \ne 0}$ if ${n}$ is an integer | [4](module_04_EN.html), [5](module_05_EN.html), [6](module_06_EN.html) |
+| ${x^n}$ | ${nx^{n-1}}$ | ${n}$ real and ${x > 0;}$ every ${x \ne 0}$ if ${n}$ is an integer; every ${x}$ if ${n = 1, 2, 3, \ldots}$ | [4](module_04_EN.html), [5](module_05_EN.html), [6](module_06_EN.html) |
 | ${e^x}$ | ${e^x}$ | every ${x}$ | [6](module_06_EN.html) |
 | ${e^{kx}}$ | ${ke^{kx}}$ | ${k}$ constant | [6](module_06_EN.html) |
 | ${a^x}$ | ${a^x\ln a}$ | ${a > 0}$ | [6](module_06_EN.html) |
@@ -271,6 +271,8 @@ nz = symbols('n_z', integer=True); xq = symbols('x_q', real=True, nonzero=True)
 same(diff(xq**nz, xq), nz*xq**(nz - 1))
 for N_ in range(-4, 6):
     same(diff(x**N_, x), N_*x**(N_ - 1))
+for N_ in range(1, 6):                                        # positive integers: at x = 0 too, from the definition
+    same(limit(((0 + h)**N_ - 0**N_)/h, h, 0, '+-'), N_*Integer(0)**(N_ - 1))
 same(diff(exp(x), x), exp(x)); same(diff(exp(k*x), x), k*exp(k*x))
 ap = symbols('a_p', positive=True)
 same(diff(ap**x, x), ap**x*log(ap))
@@ -1242,7 +1244,7 @@ module column says where each is introduced.
 
 | Command | What it does | Module |
 |---|---|---|
-| `sp.symbols('x n')` | creates symbols: `x, n = sp.symbols('x n')`; `positive=True` adds an assumption | [1](module_01_EN.html) |
+| `sp.symbols('x n')` | creates symbols: `x, n = sp.symbols('x n')`; `positive=True` adds an assumption | [1](module_01_EN.html), [6](module_06_EN.html) |
 | `f.subs(x, 2)` | substitutes ${2}$ for ${x}$ in `f` | [1](module_01_EN.html) |
 | `sp.expand(f)` | expands products and powers | [1](module_01_EN.html) |
 | `sp.factor(f)` | factorises | [1](module_01_EN.html) |

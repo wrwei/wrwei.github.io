@@ -16,6 +16,16 @@ CalcWidgets.register('function-explorer', function (root, api) {
   var state = { fn: FUNCS[0], a: 1, b: 1, c: 0, d: 0 }
 
   function num(v) { return String(Math.round(v * 100) / 100).replace('-', '−') }
+  // A stretch factor, exactly: as a decimal when two decimals hold it (1.5), else as a fraction with a
+  // small denominator (1/0.75 = 4/3: the sliders move in steps of 0.25), else marked as approximate.
+  function factor(v) {
+    if (Math.abs(Math.round(v * 100) / 100 - v) < 1e-12) return num(v)
+    for (var q = 2; q <= 12; q++) {
+      var p = Math.round(v * q)
+      if (Math.abs(v * q - p) < 1e-9) return p + '/' + q
+    }
+    return '≈ ' + num(v)
+  }
   // The formula of a·f(b(x − c)) + d, leaving out what does nothing (a = 1, b = 1, c = 0, d = 0).
   function inner() {
     var b = state.b, c = state.c
@@ -41,10 +51,12 @@ CalcWidgets.register('function-explorer', function (root, api) {
   }
   function describe() {
     var out = [], a = state.a, b = state.b, c = state.c, d = state.d
+    // Factors are the geometric ones, at least 1: a = 0.5 squashes by a factor of 2, as b = 2 does.
     if (a < 0) out.push(t('reflected in the x-axis', '关于 x 轴翻折'))
-    if (Math.abs(a) !== 1) out.push(Math.abs(a) > 1 ? t('stretched vertically by a factor of ' + num(Math.abs(a)), '竖直方向拉伸为原来的 ' + num(Math.abs(a)) + ' 倍') : t('squashed vertically by a factor of ' + num(Math.abs(a)), '竖直方向压缩为原来的 ' + num(Math.abs(a)) + ' 倍'))
+    if (a === 0) out.push(t('flattened onto the x-axis', '压扁到 x 轴上'))
+    else if (Math.abs(a) !== 1) out.push(Math.abs(a) > 1 ? t('stretched vertically by a factor of ' + factor(Math.abs(a)), '竖直方向拉伸为原来的 ' + factor(Math.abs(a)) + ' 倍') : t('squashed vertically by a factor of ' + factor(1 / Math.abs(a)), '竖直方向压缩为原来的 ' + factor(Math.abs(a)) + ' 倍'))
     if (b < 0) out.push(t('reflected in the y-axis', '关于 y 轴翻折'))
-    if (Math.abs(b) !== 1) out.push(Math.abs(b) > 1 ? t('squashed horizontally by a factor of ' + num(Math.abs(b)), '水平方向压缩为原来的 1/' + num(Math.abs(b))) : t('stretched horizontally by a factor of ' + num(1 / Math.abs(b)), '水平方向拉伸为原来的 ' + num(1 / Math.abs(b)) + ' 倍'))
+    if (Math.abs(b) !== 1) out.push(Math.abs(b) > 1 ? t('squashed horizontally by a factor of ' + factor(Math.abs(b)), '水平方向压缩为原来的 ' + factor(1 / Math.abs(b)) + ' 倍') : t('stretched horizontally by a factor of ' + factor(1 / Math.abs(b)), '水平方向拉伸为原来的 ' + factor(1 / Math.abs(b)) + ' 倍'))
     if (c !== 0) out.push(c > 0 ? t('shifted ' + num(c) + ' to the right', '向右平移 ' + num(c)) : t('shifted ' + num(-c) + ' to the left', '向左平移 ' + num(-c)))
     if (d !== 0) out.push(d > 0 ? t('shifted ' + num(d) + ' up', '向上平移 ' + num(d)) : t('shifted ' + num(-d) + ' down', '向下平移 ' + num(-d)))
     if (!out.length) return t('The graph of f itself: move a slider.', '这就是 f 本身的图像：拖动滑块试试。')
