@@ -21,7 +21,7 @@ $$1 + x + x^2 + x^3 + \cdots = \frac{1}{1 - x}.$$
 
 Read as a function of $x$, the left side is a polynomial that never ends. Its partial sums
 
-$$S_n(x) = 1 + x + x^2 + \cdots + x^n = \frac{1 - x^{n+1}}{1 - x} \qquad (x \ne 1)$$
+$$\begin{aligned} S_n(x) &= 1 + x + x^2 + \cdots + x^n \\ &= \frac{1 - x^{n+1}}{1 - x} \qquad (x \ne 1) \end{aligned}$$
 
 are ordinary polynomials, and for each $x$ between $-1$ and 1 they approach $1/(1 - x)$ as $n$ grows. Figure 15.1 (left) shows them: inside the interval $(-1, 1)$ the polynomials hug the curve more and more closely; outside it they peel away. The table follows three values of $x$:
 
@@ -59,7 +59,7 @@ Left: the partial sums $S_n(x) = 1 + x + \cdots + x^n$ for $n = 1$, 2, 5 and 10,
 ::: definition Power series
 A **power series centred at $a$** (or **about $a$**) is a series of the form
 
-$$\sum_{n=0}^{\infty} c_n (x - a)^n = c_0 + c_1(x - a) + c_2(x - a)^2 + \cdots,$$
+$$\begin{aligned} &\sum_{n=0}^{\infty} c_n (x - a)^n \\ &\quad= c_0 + c_1(x - a) + c_2(x - a)^2 + \cdots, \end{aligned}$$
 
 where $x$ is a variable and the **coefficients** $c_0, c_1, c_2, \dots$ are constants. For each number $x$ it is a series of numbers, which converges or diverges; where it converges, its sum is a function of $x$.
 :::
@@ -79,7 +79,7 @@ For a power series $\sum c_n(x - a)^n$, exactly one of the following holds:
 :::
 
 ::: proof
-The heart of the proof is a comparison with a geometric series. Suppose the series converges at some $x_1 \ne a$, and let $x$ be closer to $a$: $\abs{x - a} < \abs{x_1 - a}$. The terms $c_n(x_1 - a)^n$ tend to 0, by the divergence test of Module 14, so they are bounded: from some $n$ on they lie between $-1$ and 1, and the finitely many before are no larger in size than the largest of them. So there is a number $M$ with $\abs{c_n (x_1 - a)^n} \le M$ for every $n$. With $q = \abs{x - a}/\abs{x_1 - a}$, which is less than 1,
+The heart of the proof is a comparison with a geometric series. Suppose the series converges at some $x_1 \ne a$, and let $x$ be closer to $a$: $\abs{x - a} < \abs{x_1 - a}$. The terms of a convergent series tend to 0 (otherwise the divergence test of Module 14 would make it diverge), so the terms $c_n(x_1 - a)^n$ tend to 0, and they are bounded: from some $n$ on they lie between $-1$ and 1, and the finitely many before are no larger in size than the largest of them. So there is a number $M$ with $\abs{c_n (x_1 - a)^n} \le M$ for every $n$. With $q = \abs{x - a}/\abs{x_1 - a}$, which is less than 1,
 
 $$\abs{c_n (x - a)^n} = \abs{c_n (x_1 - a)^n}\, q^n \le M q^n.$$
 
@@ -212,7 +212,7 @@ This needs $\abs{x/2} < 1$, that is, $\abs{x} < 2$. At $x = \pm 2$ the terms hav
 
 **(b)** With $u = x^2$, $\dfrac{1}{1 - x^2} = \sum x^{2n}$ for $\abs{x} < 1$. Multiplying every term by $x$ multiplies the sum by $x$:
 
-$$\frac{x}{1 - x^2} = \sum_{n=0}^\infty x^{2n+1} = x + x^3 + x^5 + \cdots, \qquad \abs{x} < 1.$$
+$$\begin{aligned} \frac{x}{1 - x^2} &= \sum_{n=0}^\infty x^{2n+1} \\ &= x + x^3 + x^5 + \cdots, \qquad \abs{x} < 1. \end{aligned}$$
 
 At $x = \pm 1$ every term is $\pm 1$, so the interval is $(-1, 1)$.
 
@@ -298,11 +298,11 @@ and $\sum n q^{n-1}$ converges by the ratio test: $(n + 1)q^n/(n q^{n-1}) \to q 
 
 **The derivative.** Let $g(x) = \sum n c_n x^{n-1}$, fix $x$ with $\abs{x} < r < R$, and let $h \ne 0$ be so small that $\abs{x + h} < r$. For $n \ge 2$, the Mean Value Theorem gives $(x + h)^n - x^n = n\xi^{n-1}h$ for some $\xi$ between $x$ and $x + h$, and, applied again, $n\xi^{n-1} - nx^{n-1} = n(n - 1)\eta^{n-2}(\xi - x)$ for some $\eta$ between $x$ and $\xi$. Since $\abs{\xi}$ and $\abs{\eta}$ are less than $r$ and $\abs{\xi - x} \le \abs{h}$,
 
-$$\abs{\frac{(x + h)^n - x^n}{h} - n x^{n-1}} \le n(n - 1)\, r^{n-2}\,\abs{h},$$
+$$\begin{aligned} &\abs{\frac{(x + h)^n - x^n}{h} - n x^{n-1}} \\ &\qquad\le n(n - 1)\, r^{n-2}\,\abs{h}, \end{aligned}$$
 
 and for $n = 0$ and $n = 1$ the left side is 0. The three series for $f(x + h)$, $f(x)$ and $g(x)$ converge, so they may be combined term by term:
 
-$$\abs{\frac{f(x + h) - f(x)}{h} - g(x)} \le \abs{h} \sum_{n=2}^\infty n(n - 1)\abs{c_n} r^{n-2}.$$
+$$\begin{aligned} &\abs{\frac{f(x + h) - f(x)}{h} - g(x)} \\ &\qquad\le \abs{h} \sum_{n=2}^\infty n(n - 1)\abs{c_n} r^{n-2}. \end{aligned}$$
 
 The last series converges, because the twice-derived series converges absolutely at $r < R$. So the left side tends to 0 as $h \to 0$: $f'(x) = g(x)$.
 
@@ -333,11 +333,11 @@ $$\begin{aligned} \ln(1 + x) &= \int_0^x \frac{dt}{1 + t} = \sum_{n=0}^\infty (-
 
 In the same way, $\arctan x$ is an antiderivative of $\dfrac{1}{1 + x^2}$ (Module 6), with $\arctan 0 = 0$, so for $\abs{x} < 1$
 
-$$\arctan x = \int_0^x \frac{dt}{1 + t^2} = \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} = x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots$$
+$$\begin{aligned} \arctan x &= \int_0^x \frac{dt}{1 + t^2} = \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} \\ &= x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots \end{aligned}$$
 
 Both series have radius 1, like the series that were integrated. At $x = 0.1$, four terms give
 
-$$\ln 1.1 \approx 0.1 - 0.005 + 0.000333 - 0.000025 = 0.095308,$$
+$$\begin{aligned} \ln 1.1 &\approx 0.1 - 0.005 + 0.000333 - 0.000025 \\ &= 0.095308, \end{aligned}$$
 
 while a calculator gives $\ln 1.1 \approx 0.0953102$: both round to 0.09531. The terms alternate in sign and decrease in size, so by the alternating series bound of Module 14 the error is less than the first term left out, $0.1^5/5 = 0.000002$.
 
@@ -363,7 +363,7 @@ Find the sum of $\displaystyle\sum_{n=1}^{\infty} n x^n$ for $\abs{x} < 1$, and 
 
 Differentiate the geometric series term by term (Theorem 15.2): for $\abs{x} < 1$,
 
-$$\frac{1}{(1 - x)^2} = \frac{d}{dx}\Big(\frac{1}{1 - x}\Big) = \sum_{n=1}^{\infty} n x^{n-1} = 1 + 2x + 3x^2 + \cdots.$$
+$$\begin{aligned} \frac{1}{(1 - x)^2} &= \frac{d}{dx}\Big(\frac{1}{1 - x}\Big) \\ &= \sum_{n=1}^{\infty} n x^{n-1} = 1 + 2x + 3x^2 + \cdots. \end{aligned}$$
 
 Multiplying by $x$ gives $\displaystyle\sum_{n=1}^{\infty} n x^n = \frac{x}{(1 - x)^2}$. At $x = \tfrac12$,
 
@@ -387,11 +387,11 @@ At $x = 1$ the series for $\ln(1 + x)$ becomes the alternating harmonic series $
 ::: theorem Two sums at the ends of the interval
 For every whole number $n \ge 1$,
 
-$$\abs{\ln 2 - \Big(1 - \frac12 + \frac13 - \cdots + \frac{(-1)^{n-1}}{n}\Big)} \le \frac{1}{n + 1}$$
+$$\begin{aligned} &\abs{\ln 2 - \Big(1 - \frac12 + \frac13 - \cdots + \frac{(-1)^{n-1}}{n}\Big)} \\ &\qquad\le \frac{1}{n + 1} \end{aligned}$$
 
 and
 
-$$\abs{\frac{\pi}{4} - \Big(1 - \frac13 + \frac15 - \cdots + \frac{(-1)^{n-1}}{2n - 1}\Big)} \le \frac{1}{2n + 1}.$$
+$$\begin{aligned} &\abs{\frac{\pi}{4} - \Big(1 - \frac13 + \frac15 - \cdots + \frac{(-1)^{n-1}}{2n - 1}\Big)} \\ &\qquad\le \frac{1}{2n + 1}. \end{aligned}$$
 
 Consequently $\ln 2 = 1 - \dfrac12 + \dfrac13 - \dfrac14 + \cdots$ and $\dfrac{\pi}{4} = 1 - \dfrac13 + \dfrac15 - \dfrac17 + \cdots$.
 :::
@@ -487,7 +487,7 @@ In particular, $f$ has only one power series centred at $a$.
 ::: proof
 By Theorem 15.2, applied $n$ times, for $\abs{x - a} < R$
 
-$$f^{(n)}(x) = \sum_{k=n}^\infty k(k - 1)\cdots(k - n + 1)\,c_k (x - a)^{k-n}.$$
+$$\begin{aligned} f^{(n)}(x) &= \sum_{k=n}^\infty k(k - 1)\cdots(k - n + 1) \\ &\qquad\times c_k (x - a)^{k-n}. \end{aligned}$$
 
 At $x = a$ every term with $k > n$ is 0, and the term with $k = n$ is $n(n - 1)\cdots1\cdot c_n = n!\,c_n$. Since the coefficients are fixed by $f$, two power series for $f$ about $a$ have the same coefficients: they are the same series.
 :::
@@ -504,7 +504,7 @@ Here $f^{(0)}$ means $f$ itself and $0! = 1$, so the formula gives $c_0 = f(a)$ 
 ::: definition Taylor series and Taylor polynomials
 Let $f$ have derivatives of every order at $a$. The **Taylor series** of $f$ about $a$ (or centred at $a$) is
 
-$$\sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x - a)^n = f(a) + f'(a)(x - a) + \frac{f''(a)}{2!}(x - a)^2 + \cdots.$$
+$$\begin{aligned} &\sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x - a)^n \\ &\quad= f(a) + f'(a)(x - a) + \frac{f''(a)}{2!}(x - a)^2 + \cdots. \end{aligned}$$
 
 Its partial sum
 
@@ -538,11 +538,11 @@ Find the Maclaurin series of $\sin x$ and of $\cos x$, and their radii of conver
 
 The derivatives of $\sin x$ are $\cos x$, $-\sin x$, $-\cos x$, $\sin x$, and then the cycle of four repeats. At 0 the values of $\sin x$ and its derivatives are $0, 1, 0, -1, 0, 1, 0, -1, \dots$. So only odd powers appear, with alternating signs:
 
-$$\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \cdots = \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n + 1)!}.$$
+$$\begin{aligned} \sin x &= x - \frac{x^3}{3!} + \frac{x^5}{5!} - \cdots \\ &= \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n + 1)!}. \end{aligned}$$
 
 For $\cos x$ the values at 0 are $1, 0, -1, 0, 1, \dots$, and only even powers appear:
 
-$$\cos x = 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!}.$$
+$$\begin{aligned} \cos x &= 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots \\ &= \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!}. \end{aligned}$$
 
 (The equals signs anticipate Section 15.5, which proves them; so far these are the Maclaurin series.) For the sine series, the ratio of two consecutive nonzero terms is
 
@@ -576,7 +576,7 @@ $$T_3(x) = 2 + \frac{x - 4}{4} - \frac{(x - 4)^2}{64} + \frac{(x - 4)^3}{512},$$
 
 and $T_1$ and $T_2$ are its first two and three terms. At $x = 4.1$, where $x - 4 = 0.1$,
 
-$$\begin{aligned} T_1(4.1) &= 2.025, \\ T_2(4.1) &= 2.025 - 0.00015625 = 2.02484375, \\ T_3(4.1) &= 2.02484375 + 0.000001953125 \approx 2.0248457. \end{aligned}$$
+$$\begin{aligned} T_1(4.1) &= 2.025, \\ T_2(4.1) &= 2.025 - 0.00015625 \\ &= 2.02484375, \\ T_3(4.1) &= 2.02484375 + 0.000001953125 \\ &\approx 2.0248457. \end{aligned}$$
 
 A calculator gives $\sqrt{4.1} \approx 2.02484567$: the errors are about $-1.5 \times 10^{-4}$, $1.9 \times 10^{-6}$ and $-3.0 \times 10^{-8}$. Each new term gains about two correct digits here. $T_1$ is the linearisation of Example 7.5.
 
@@ -606,7 +606,7 @@ $$\binom{k}{n} = \frac{k(k - 1)\cdots(k - n + 1)}{n!}, \qquad \binom{k}{0} = 1,$
 
 read "k choose n". The Maclaurin series of $(1 + x)^k$ is the **binomial series**
 
-$$\sum_{n=0}^\infty \binom{k}{n}x^n = 1 + kx + \frac{k(k - 1)}{2!}x^2 + \frac{k(k - 1)(k - 2)}{3!}x^3 + \cdots.$$
+$$\begin{aligned} \sum_{n=0}^\infty \binom{k}{n}x^n &= 1 + kx + \frac{k(k - 1)}{2!}x^2 \\ &\qquad + \frac{k(k - 1)(k - 2)}{3!}x^3 + \cdots. \end{aligned}$$
 
 When $k$ is a whole number, $k \ge 0$, every coefficient with $n > k$ contains the factor $k - k = 0$, so the series stops: it is the binomial theorem of algebra, as in $(1 + x)^3 = 1 + 3x + 3x^2 + x^3$. For every other $k$ no coefficient is 0, and the ratio test gives
 
@@ -633,15 +633,15 @@ $$(1 + x)^k = \sum_{n=0}^\infty \binom{k}{n}x^n.$$
 ::: proof
 Let $g(x)$ be the sum of the series for $\abs{x} < 1$. By Theorem 15.2, renaming $n - 1$ as $n$,
 
-$$g'(x) = \sum_{n=1}^\infty n\binom{k}{n}x^{n-1} = \sum_{n=0}^\infty (n + 1)\binom{k}{n+1}x^n.$$
+$$\begin{aligned} g'(x) &= \sum_{n=1}^\infty n\binom{k}{n}x^{n-1} \\ &= \sum_{n=0}^\infty (n + 1)\binom{k}{n+1}x^n. \end{aligned}$$
 
 From the definition, $\binom{k}{n+1} = \binom{k}{n}\dfrac{k - n}{n + 1}$, so $(n + 1)\binom{k}{n+1} = (k - n)\binom{k}{n}$. Also $x\,g'(x) = \sum n\binom{k}{n}x^n$ (the term with $n = 0$ is 0). Adding,
 
-$$(1 + x)\,g'(x) = \sum_{n=0}^\infty \big[(k - n) + n\big]\binom{k}{n}x^n = k\,g(x).$$
+$$\begin{aligned} (1 + x)\,g'(x) &= \sum_{n=0}^\infty \big[(k - n) + n\big]\binom{k}{n}x^n \\ &= k\,g(x). \end{aligned}$$
 
 Now let $h(x) = g(x)(1 + x)^{-k}$. By the product rule,
 
-$$\begin{aligned} h'(x) &= g'(x)(1 + x)^{-k} - k\,g(x)(1 + x)^{-k-1} \\ &= (1 + x)^{-k-1}\big[(1 + x)g'(x) - k\,g(x)\big] = 0 \end{aligned}$$
+$$\begin{aligned} h'(x) &= g'(x)(1 + x)^{-k} - k\,g(x)(1 + x)^{-k-1} \\ &= (1 + x)^{-k-1}\big[(1 + x)g'(x) - k\,g(x)\big] \\ &= 0 \end{aligned}$$
 
 for $\abs{x} < 1$. A function whose derivative is 0 on an interval is constant (Module 8), so $h(x) = h(0) = g(0) = 1$, that is, $g(x) = (1 + x)^k$.
 :::
@@ -673,7 +673,7 @@ Find the first four terms of the binomial series of (a) $\sqrt{1 + x}$ and (b) $
 
 **(a)** Here $k = \tfrac12$:
 
-$$\binom{1/2}{1} = \frac12, \quad \binom{1/2}{2} = \frac{\tfrac12\cdot\big(-\tfrac12\big)}{2} = -\frac18, \quad \binom{1/2}{3} = \frac{\tfrac12\cdot\big(-\tfrac12\big)\cdot\big(-\tfrac32\big)}{6} = \frac{1}{16},$$
+$$\begin{aligned} \binom{1/2}{1} &= \frac12, \\ \binom{1/2}{2} &= \frac{\tfrac12\cdot\big(-\tfrac12\big)}{2} = -\frac18, \\ \binom{1/2}{3} &= \frac{\tfrac12\cdot\big(-\tfrac12\big)\cdot\big(-\tfrac32\big)}{6} = \frac{1}{16}, \end{aligned}$$
 
 so for $\abs{x} < 1$
 
@@ -681,7 +681,9 @@ $$\sqrt{1 + x} = 1 + \frac{x}{2} - \frac{x^2}{8} + \frac{x^3}{16} - \cdots.$$
 
 **(b)** Now $k = -\tfrac12$, with $-x$ in place of $x$. The coefficients are $\binom{-1/2}{1} = -\tfrac12$, $\binom{-1/2}{2} = \tfrac{(-1/2)(-3/2)}{2} = \tfrac38$ and $\binom{-1/2}{3} = \tfrac{(-1/2)(-3/2)(-5/2)}{6} = -\tfrac{5}{16}$, and multiplying by $(-x)^n$ makes every sign positive:
 
-$$\frac{1}{\sqrt{1 - x}} = 1 + \frac{x}{2} + \frac{3x^2}{8} + \frac{5x^3}{16} + \cdots, \qquad \abs{x} < 1.$$
+$$\frac{1}{\sqrt{1 - x}} = 1 + \frac{x}{2} + \frac{3x^2}{8} + \frac{5x^3}{16} + \cdots,$$
+
+for $\abs{x} < 1$.
 
 The first two terms of (a) are the linearisation $\sqrt{1 + x} \approx 1 + \tfrac12 x$; the third term shows that it is slightly too large, by about $\tfrac18 x^2$. Series (b) returns in Section 15.6, in Einstein's formula for kinetic energy.
 
@@ -735,13 +737,13 @@ Find $\displaystyle\int_0^1 e^{-x^2}\,dx$ to three decimal places.
 
 Substitute $u = -x^2$ in the series of $e^u$, which converges for every $u$:
 
-$$e^{-x^2} = \sum_{n=0}^\infty \frac{(-x^2)^n}{n!} = 1 - x^2 + \frac{x^4}{2!} - \frac{x^6}{3!} + \cdots.$$
+$$\begin{aligned} e^{-x^2} &= \sum_{n=0}^\infty \frac{(-x^2)^n}{n!} \\ &= 1 - x^2 + \frac{x^4}{2!} - \frac{x^6}{3!} + \cdots. \end{aligned}$$
 
 Integrate term by term from 0 to 1 (Theorem 15.2, with $R = \infty$):
 
-$$\int_0^1 e^{-x^2}\,dx = \sum_{n=0}^\infty \frac{(-1)^n}{(2n + 1)\,n!} = 1 - \frac13 + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} - \frac{1}{1320} + \frac{1}{9360} - \cdots.$$
+$$\begin{aligned} \int_0^1 e^{-x^2}\,dx &= \sum_{n=0}^\infty \frac{(-1)^n}{(2n + 1)\,n!} \\ &= 1 - \frac13 + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} \\ &\qquad - \frac{1}{1320} + \frac{1}{9360} - \cdots. \end{aligned}$$
 
-The terms alternate in sign and decrease in size to 0, so the alternating series bound applies: the sum of the first six terms, $0.746729$ to six places, differs from the integral by less than the seventh term, $1/9360 < 0.00011$. So the integral lies between 0.74672 and 0.74684, and to three decimal places it is 0.747. This integral is the area under the bell curve of the normal distribution (Module 12) between its centre and one unit to the right, apart from the scaling factors of the distribution.
+The terms alternate in sign and decrease in size to 0, so the alternating series bound applies: the sum of the first six terms, $0.746729$ to six places, differs from the integral by less than the seventh term, $1/9360 < 0.00011$. So the integral lies between 0.74672 and 0.74684, and to three decimal places it is 0.747. Up to scaling, $e^{-x^2}$ is the bell curve of the normal distribution (Module 12), so integrals like this one give the probabilities of that distribution, which have no formula in elementary functions.
 
 ```check
 same(series(exp(-x**2), x, 0, 12).removeO(), sum((-x**2)**j/factorial(j) for j in range(6)))
@@ -787,19 +789,20 @@ x + x**3/3 + 2*x**5/15 + 17*x**7/315 + 62*x**9/2835 + O(x**10)
 The first line is the binomial series. The coefficients of $\tan x$ follow no simple pattern, and its series converges only for $\abs{x} < \pi/2$. Mind the order of the arguments: the third is the centre, not the number of terms.
 
 ```python
-print(sp.series(sp.exp(x), x, 4))
+print(sp.series(x**3, x, 4))
 ```
 
 ```output
-exp(4) + (x - 4)*exp(4) + (x - 4)**2*exp(4)/2 + (x - 4)**3*exp(4)/6 + (x - 4)**4*exp(4)/24 + (x - 4)**5*exp(4)/120 + O((x - 4)**6, (x, 4))
+48*x + (x - 4)**3 + 12*(x - 4)**2 - 128
 ```
 
-With no fourth argument, SymPy expands about the centre 4 with its default order 6, that is, up to $(x - 4)^5$. This is the Taylor series of $e^x$ about 4: every coefficient is $e^4/n!$, since every derivative of $e^x$ at 4 is $e^4$.
+With no fourth argument, SymPy expands about the centre 4 (with its default order 6). A polynomial is its own Taylor series, so the answer is $x^3$ rewritten in powers of $x - 4$, $64 + 48(x - 4) + 12(x - 4)^2 + (x - 4)^3$, with $64 + 48(x - 4)$ merged into $48x - 128$; there is no $O$ term, because nothing was left out.
 :::
 
 ```check
 same(series(tan(x), x, 0, 10).removeO(), x + x**3/3 + 2*x**5/15 + 17*x**7/315 + 62*x**9/2835)
-same(series(exp(x), x, 4, 6).removeO(), sum(E**4*(x - 4)**j/factorial(j) for j in range(6)))
+same(64 + 48*(x - 4) + 12*(x - 4)**2 + (x - 4)**3, x**3); same(64 + 48*(x - 4), 48*x - 128)
+same([diff(x**3, x, j).subs(x, 4)/factorial(j) for j in range(4)], [64, 48, 12, 1])
 same(1 + x/4, 2 + (x - 4)/4); same(series(sqrt(x), x, 4, 3).removeO(), 2 + (x - 4)/4 - (x - 4)**2/64)
 ```
 
@@ -807,7 +810,7 @@ same(1 + x/4, 2 + (x - 4)/4); same(series(sqrt(x), x, 4, 3).removeO(), 2 + (x - 
 
 In practice nobody sums a whole series: you stop at some $T_n$. Figure 15.2 shows how the Maclaurin polynomials of $\sin x$,
 
-$$T_1(x) = x, \qquad T_3(x) = x - \frac{x^3}{6}, \qquad T_5(x) = x - \frac{x^3}{6} + \frac{x^5}{120},$$
+$$\begin{aligned} T_1(x) &= x, \\ T_3(x) &= x - \frac{x^3}{6}, \\ T_5(x) &= x - \frac{x^3}{6} + \frac{x^5}{120}, \end{aligned}$$
 
 approximate it. (Since every even coefficient is 0, $T_2 = T_1$ and $T_4 = T_3$.) Each hugs the curve around 0, and the higher the degree, the wider the stretch on which it does.
 
@@ -869,7 +872,7 @@ is the **remainder** of degree $n$ ($R_n(x)$ reads "R n of x"). Since $T_n(x)$ i
 ::: theorem Taylor's theorem
 Let $n \ge 0$ be a whole number, and let $f$ have derivatives up to order $n + 1$ on an open interval $I$ that contains $a$. Then for every $x$ in $I$,
 
-$$f(x) = T_n(x) + R_n(x), \qquad R_n(x) = \frac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1},$$
+$$\begin{aligned} f(x) &= T_n(x) + R_n(x), \\ R_n(x) &= \frac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1}, \end{aligned}$$
 
 for some number $c$ between $a$ and $x$ (with $c = a$ if $x = a$).
 :::
@@ -883,7 +886,7 @@ $$f(x) = T_n(x) + \frac{K}{(n + 1)!}(x - a)^{n+1};$$
 
 it exists because $(x - a)^{n+1} \ne 0$. The task is to show that $K = f^{(n+1)}(c)$ for some $c$ between $a$ and $x$. Keep $x$ fixed, and define, for $t$ in the closed interval between $a$ and $x$,
 
-$$g(t) = f(x) - \sum_{k=0}^{n} \frac{f^{(k)}(t)}{k!}(x - t)^k - \frac{K}{(n + 1)!}(x - t)^{n+1}.$$
+$$\begin{aligned} g(t) &= f(x) - \sum_{k=0}^{n} \frac{f^{(k)}(t)}{k!}(x - t)^k \\ &\qquad - \frac{K}{(n + 1)!}(x - t)^{n+1}. \end{aligned}$$
 
 At $t = x$ every term of the sum with $k \ge 1$ is 0, and the term with $k = 0$ is $f(x)$, so $g(x) = 0$; and $g(a) = 0$ by the choice of $K$. Now differentiate with respect to $t$. The term with $k = 0$, $f(t)$, has derivative $f'(t)$, and by the product rule the term with $k \ge 1$ has derivative
 
@@ -891,7 +894,7 @@ $$\frac{f^{(k+1)}(t)}{k!}(x - t)^k - \frac{f^{(k)}(t)}{(k - 1)!}(x - t)^{k-1}.$$
 
 Added up, the second part of each of these cancels the first part of the one before: the sum **telescopes**, and only $\dfrac{f^{(n+1)}(t)}{n!}(x - t)^n$ survives. So
 
-$$g'(t) = -\frac{f^{(n+1)}(t)}{n!}(x - t)^n + \frac{K}{n!}(x - t)^n = \frac{(x - t)^n}{n!}\big(K - f^{(n+1)}(t)\big).$$
+$$\begin{aligned} g'(t) &= -\frac{f^{(n+1)}(t)}{n!}(x - t)^n + \frac{K}{n!}(x - t)^n \\ &= \frac{(x - t)^n}{n!}\big(K - f^{(n+1)}(t)\big). \end{aligned}$$
 
 The function $g$ is differentiable, and $g(a) = g(x) = 0$, so by Rolle's theorem (Module 8) $g'(c) = 0$ for some $c$ strictly between $a$ and $x$. There $(x - c)^n \ne 0$, so $K = f^{(n+1)}(c)$.
 :::
@@ -918,9 +921,9 @@ $$\abs{f(x) - T_n(x)} \le \frac{M}{(n + 1)!}\,\abs{x - a}^{n+1}.$$
 
 Taylor's theorem also says how good $T_n$ is near $a$. Suppose $f^{(n+1)}$ is continuous on $I$. On a closed interval around $a$ inside $I$ it is bounded, say by $M$ (the Extreme Value Theorem of Module 3), and for $x \ne a$ in that interval
 
-$$\abs{\frac{f(x) - T_n(x)}{(x - a)^n}} \le \frac{M}{(n + 1)!}\,\abs{x - a} \to 0 \quad\text{as } x \to a.$$
+$$\abs{\frac{f(x) - T_n(x)}{(x - a)^n}} \le \frac{M}{(n + 1)!}\,\abs{x - a},$$
 
-So the error of $T_n$ is small even compared with $(x - a)^n$; for $n = 1$ this is Theorem 7.1. In this sense $T_n$ is the best polynomial approximation of degree $n$ near $a$. No other polynomial $p$ of degree at most $n$ does as well: if $\big(f(x) - p(x)\big)/(x - a)^n$ also tended to 0, then so would $q(x)/(x - a)^n$, where $q = T_n - p$. Write $q(x) = d_0 + d_1(x - a) + \cdots + d_n(x - a)^n$. Then $q(x)$, $q(x)/(x - a)$, …, $q(x)/(x - a)^{n-1}$ tend to 0 as well, being $q(x)/(x - a)^n$ times a power of $x - a$. The first limit is $d_0$, so $d_0 = 0$; then the second is $d_1$, so $d_1 = 0$; and so on up to $d_n = 0$. So $p = T_n$.
+which tends to 0 as $x \to a$. So the error of $T_n$ is small even compared with $(x - a)^n$; for $n = 1$ this is Theorem 7.1. In this sense $T_n$ is the best polynomial approximation of degree $n$ near $a$. No other polynomial $p$ of degree at most $n$ does as well: if $\big(f(x) - p(x)\big)/(x - a)^n$ also tended to 0, then so would $q(x)/(x - a)^n$, where $q = T_n - p$. Write $q(x) = d_0 + d_1(x - a) + \cdots + d_n(x - a)^n$. Then $q(x)$, $q(x)/(x - a)$, …, $q(x)/(x - a)^{n-1}$ tend to 0 as well, being $q(x)/(x - a)^n$ times a power of $x - a$. The first limit is $d_0$, so $d_0 = 0$; then the second is $d_1$, so $d_1 = 0$; and so on up to $d_n = 0$. So $p = T_n$.
 
 ```check
 dq = symbols('d0:4')
@@ -936,13 +939,13 @@ same(cancel((qq_.subs({dq[0]: 0, dq[1]: 0, dq[2]: 0}))/(x - a)**3), dq[3])
 
 **(a)** Every derivative of $\sin$ is $\pm\sin$ or $\pm\cos$, so $M = 1$ will do for every $n$. With $n = 5$, Taylor's inequality gives $\abs{R_5(0.5)} \le 0.5^6/6! \approx 2.2 \times 10^{-5}$. You can do better. The coefficient of $x^6$ in the series of $\sin x$ is 0, so $T_5 = T_6$, and with $n = 6$
 
-$$\abs{\sin 0.5 - T_5(0.5)} = \abs{R_6(0.5)} \le \frac{0.5^7}{7!} = \frac{0.0078125}{5040} \approx 1.55 \times 10^{-6}.$$
+$$\begin{aligned} \abs{\sin 0.5 - T_5(0.5)} &= \abs{R_6(0.5)} \le \frac{0.5^7}{7!} \\ &= \frac{0.0078125}{5040} \approx 1.55 \times 10^{-6}. \end{aligned}$$
 
 Indeed $T_5(0.5) = 0.5 - 0.0208333 + 0.0002604 = 0.4794271$, while $\sin 0.5 \approx 0.4794255$: the error is about $-1.54 \times 10^{-6}$, very close to the bound.
 
 **(b)** Here $n = 2$ and $f'''(t) = \tfrac38 t^{-5/2}$, which decreases as $t$ grows, so on $[4, 4.1]$ it is largest at $t = 4$: $M = \tfrac38\cdot 4^{-5/2} = \tfrac{3}{256}$. So
 
-$$\abs{\sqrt{4.1} - T_2(4.1)} \le \frac{3/256}{3!}\,(0.1)^3 = \frac{1}{512\,000} \approx 1.95 \times 10^{-6}.$$
+$$\begin{aligned} \abs{\sqrt{4.1} - T_2(4.1)} &\le \frac{3/256}{3!}\,(0.1)^3 \\ &= \frac{1}{512\,000} \approx 1.95 \times 10^{-6}. \end{aligned}$$
 
 The actual error is about $1.92 \times 10^{-6}$. The Lagrange form also gives the sign: $R_2(4.1) = \dfrac{f'''(c)}{3!}(0.1)^3$ with $f'''(c) > 0$, so the remainder is positive, and $T_2(4.1) = 2.02484375$ is slightly too small.
 
@@ -1005,11 +1008,11 @@ Modules 4 and 7 stated how large the errors of three approximations are, and lef
 ::: proof
 Part 1 is Taylor's theorem with $n = 1$, since $T_1 = L$. For part 2, apply part 1 with $x = a + h$: $f(a + h) = f(a) + f'(a)h + \tfrac12 f''(c)h^2$; subtract $f(a)$, divide by $h$ and subtract $f'(a)$. For part 3, Taylor's theorem with $n = 2$ at $x = a + h$ and at $x = a - h$ gives
 
-$$f(a \pm h) = f(a) \pm f'(a)h + \frac{f''(a)}{2}h^2 \pm \frac{f'''(c_\pm)}{6}h^3,$$
+$$\begin{aligned} f(a \pm h) &= f(a) \pm f'(a)h + \frac{f''(a)}{2}h^2 \\ &\qquad \pm \frac{f'''(c_\pm)}{6}h^3, \end{aligned}$$
 
 with $c_+$ between $a$ and $a + h$ and $c_-$ between $a - h$ and $a$. Subtract: the terms $f(a)$ and $\tfrac12 f''(a)h^2$ cancel, and
 
-$$f(a + h) - f(a - h) = 2f'(a)h + \frac{f'''(c_+) + f'''(c_-)}{6}h^3.$$
+$$\begin{aligned} &f(a + h) - f(a - h) \\ &\quad= 2f'(a)h + \frac{f'''(c_+) + f'''(c_-)}{6}h^3. \end{aligned}$$
 
 Divide by $2h$ and subtract $f'(a)$: the error is $\dfrac{h^2}{6}$ times $\tfrac12\big(f'''(c_+) + f'''(c_-)\big)$, the average of two values of $f'''$. The average lies between the two values, so, $f'''$ being continuous, the Intermediate Value Theorem (Module 3) gives a $c$ between $c_-$ and $c_+$ at which $f'''(c)$ equals it.
 :::
@@ -1031,7 +1034,7 @@ As $h \to 0$ in part 2, $c$ is squeezed towards $a$, so if $f''$ is continuous a
 
 Newton's method of Module 7 is a third beneficiary. Let $f(r) = 0$, and let $e_n = x_n - r$ be the error of the $n$th iterate. Taylor's theorem of degree 1 about $x_n$, evaluated at $r$, gives
 
-$$0 = f(r) = f(x_n) + f'(x_n)(r - x_n) + \frac{f''(c_n)}{2}(r - x_n)^2$$
+$$\begin{aligned} 0 = f(r) &= f(x_n) + f'(x_n)(r - x_n) \\ &\qquad + \frac{f''(c_n)}{2}(r - x_n)^2 \end{aligned}$$
 
 for some $c_n$ between $x_n$ and $r$. Divide by $f'(x_n)$, and use $x_{n+1} = x_n - f(x_n)/f'(x_n)$, so that $f(x_n)/f'(x_n) = x_n - x_{n+1}$:
 
@@ -1051,7 +1054,7 @@ same((xN - fsol/f1N) - rN, f2N/(2*f1N)*(xN - rN)**2)
 ::: theorem $e^x$, $\sin x$ and $\cos x$ equal their series
 For every real number $x$,
 
-$$e^x = \sum_{n=0}^\infty \frac{x^n}{n!}, \qquad \sin x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n + 1)!}, \qquad \cos x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!}.$$
+$$\begin{aligned} e^x &= \sum_{n=0}^\infty \frac{x^n}{n!}, \\ \sin x &= \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n + 1)!}, \\ \cos x &= \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!}. \end{aligned}$$
 :::
 
 ::: proof
@@ -1084,7 +1087,7 @@ $$f^{(n+1)}(x) = \Big[\frac{2}{x^3}\,p_n\Big(\frac1x\Big) - \frac{1}{x^2}\,p_n'\
 
 which has the same form, with $p_{n+1}(u) = 2u^3p_n(u) - u^2p_n'(u)$. Second, for every whole number $m \ge 0$, $u^me^{-u^2} \to 0$ as $u \to \infty$ and as $u \to -\infty$, because exponentials grow faster than powers ([Section 7.7](module_07_EN.html#growth)): for $\abs{u} \ge 1$, $u^2 \ge \abs{u}$, so $\abs{u}^me^{-u^2} \le \abs{u}^me^{-\abs{u}}$. Now suppose $f^{(n)}(0) = 0$, as is true for $n = 0$. By the definition of the derivative, with $u = 1/x$,
 
-$$\begin{aligned} f^{(n+1)}(0) &= \lim_{x\to0}\frac{f^{(n)}(x) - 0}{x} = \lim_{x\to0}\frac1x\,p_n\Big(\frac1x\Big)e^{-1/x^2} \\ &= \lim_{u\to\pm\infty} u\,p_n(u)\,e^{-u^2} = 0, \end{aligned}$$
+$$\begin{aligned} f^{(n+1)}(0) &= \lim_{x\to0}\frac{f^{(n)}(x) - 0}{x} \\ &= \lim_{x\to0}\frac1x\,p_n\Big(\frac1x\Big)e^{-1/x^2} \\ &= \lim_{u\to\pm\infty} u\,p_n(u)\,e^{-u^2} = 0, \end{aligned}$$
 
 because $u\,p_n(u)$ is a sum of constant multiples of powers of $u$. By induction, $f^{(n)}(0) = 0$ for every $n$. So this $f$ has derivatives of every order everywhere, yet it is not analytic at 0: no power series centred at 0 equals it on any interval around 0, since by Theorem 15.5 that series would have to be its Maclaurin series, 0.
 :::
@@ -1139,7 +1142,7 @@ Taylor's theorem says how fast. With $a = 0$ and $x = 1$, $e - s_n = R_n(1) = e^
 
 $$0 < e - s_n < \frac{3}{(n + 1)!}.$$
 
-For $n = 10$ the bound is $3/11! \approx 7.5 \times 10^{-8}$; the table shows an error of $2.7 \times 10^{-8}$. Thirteen terms ($s_{12}$) give $e$ to ten significant digits. Compare the compound-interest limit of [Section 6.1](module_06_EN.html#compound-interest), $(1 + 1/n)^n$, which with $n = 525\,600$ still gives only 2.718279.
+For $n = 10$ the bound is $3/11! \approx 7.5 \times 10^{-8}$; the table shows an error of $2.7 \times 10^{-8}$. Thirteen terms, up to $1/12!$, give $e$ to ten significant digits. Compare the compound-interest limit of [Section 6.1](module_06_EN.html#compound-interest), $(1 + 1/n)^n$, which with $n = 525\,600$ still gives only 2.718279.
 
 ```check
 for N_ in range(13):                                   # the formula of the table is the partial sum
@@ -1155,7 +1158,7 @@ $$\frac{\pi}{4} = 4\arctan\frac15 - \arctan\frac{1}{239},$$
 
 which Exercise 15.11 proves, needs $\arctan$ only at $\tfrac15$ and $\tfrac{1}{239}$. Each term of the series of $\arctan\tfrac15$ is about 25 times smaller than the one before. The series alternate, with terms that decrease in size, so the error of each partial sum is less than the first term left out. Five terms of the first series and two of the second give
 
-$$\begin{aligned} \arctan\tfrac15 &\approx \tfrac15 - \tfrac{1}{3\cdot5^3} + \tfrac{1}{5\cdot5^5} - \tfrac{1}{7\cdot5^7} + \tfrac{1}{9\cdot5^9}, \\ \arctan\tfrac{1}{239} &\approx \tfrac{1}{239} - \tfrac{1}{3\cdot239^3}, \end{aligned}$$
+$$\begin{aligned} \arctan\frac15 &\approx \frac15 - \frac{1}{3\cdot5^3} + \frac{1}{5\cdot5^5} \\ &\qquad - \frac{1}{7\cdot5^7} + \frac{1}{9\cdot5^9}, \\ \arctan\frac{1}{239} &\approx \frac{1}{239} - \frac{1}{3\cdot239^3}, \end{aligned}$$
 
 with errors less than $\tfrac{1}{11\cdot5^{11}} \approx 1.9 \times 10^{-9}$ and $\tfrac{1}{5\cdot239^5} \approx 2.6 \times 10^{-13}$, and so $\pi \approx 3.14159268$, with an error of at most $16 \times 1.9 \times 10^{-9} + 4 \times 2.6 \times 10^{-13}$, less than $3 \times 10^{-8}$. Formulas of this kind computed $\pi$ to hundreds of digits by hand, and to millions by computer.
 
@@ -1177,27 +1180,30 @@ Python's `fractions` module computes with exact fractions, so the partial sums o
 from fractions import Fraction
 import sympy as sp
 
-def arctan_sum(x, terms):
-    """The first terms of x - x**3/3 + x**5/5 - ..., as an exact fraction."""
-    return sum(Fraction((-1)**k, 2*k + 1)*x**(2*k + 1) for k in range(terms))
+def arctan_sum(x, n):
+    """The first n terms of x - x**3/3 + x**5/5 - ..., as an exact fraction."""
+    return sum(Fraction((-1)**k, 2*k + 1)*x**(2*k + 1) for k in range(n))
 
-for terms in (2, 5, 10, 20, 36):
-    p = 4*(4*arctan_sum(Fraction(1, 5), terms) - arctan_sum(Fraction(1, 239), terms))
-    error = sp.Rational(p.numerator, p.denominator) - sp.pi
-    print(f"{terms:2d} terms of each series: error {sp.N(error, 2)}")
-print(sp.N(sp.Rational(p.numerator, p.denominator), 52))
+def machin(n):
+    """Pi from n terms of each series in Machin's formula."""
+    p = 4*(4*arctan_sum(Fraction(1, 5), n) - arctan_sum(Fraction(1, 239), n))
+    return sp.Rational(p.numerator, p.denominator)
+
+for n in (2, 5, 10, 20, 36):
+    print(f"{n:2d} terms: error {sp.N(machin(n) - sp.pi, 2)}")
+print(sp.N(machin(36), 52))
 ```
 
 ```output
- 2 terms of each series: error -0.0010
- 5 terms of each series: error 2.9E-8
-10 terms of each series: error -1.5E-15
-20 terms of each series: error -8.3E-30
-36 terms of each series: error -2.0E-52
+ 2 terms: error -0.0010
+ 5 terms: error 2.9E-8
+10 terms: error -1.5E-15
+20 terms: error -8.3E-30
+36 terms: error -2.0E-52
 3.141592653589793238462643383279502884197169399375106
 ```
 
-Each extra term gains about 1.4 digits, because $\log_{10} 25 \approx 1.4$; 36 terms of each series give an error of about $2 \times 10^{-52}$, so the 52 digits printed are those of $\pi$. SymPy writes the powers of ten with a capital `E`.
+Each extra term of each series gains about 1.4 digits, because $\log_{10} 25 \approx 1.4$; 36 terms of each give an error of about $2 \times 10^{-52}$, so the 52 digits printed are those of $\pi$. SymPy writes the powers of ten with a capital `E`.
 :::
 
 ```check
@@ -1205,7 +1211,7 @@ rounds(log(25, 10), '1.4')
 pF = 4*(4*atn(Rational(1, 5), 36) - atn(Rational(1, 239), 36)); holds(Abs(pF - pi) < Rational(3, 10**52)); holds(Abs(pF - pi) > Rational(1, 10**52))
 ```
 
-For $\ln 2$ the alternating harmonic series is just as slow. A faster series comes from subtracting two logarithms. Replacing $x$ by $-x$ in the series of $\ln(1 + x)$ gives $\ln(1 - x) = -x - \tfrac{x^2}{2} - \tfrac{x^3}{3} - \cdots$ for $\abs{x} < 1$.
+For $\ln 2$ the alternating harmonic series is equally slow. A faster series comes from subtracting two logarithms. Replacing $x$ by $-x$ in the series of $\ln(1 + x)$ gives $\ln(1 - x) = -x - \tfrac{x^2}{2} - \tfrac{x^3}{3} - \cdots$ for $\abs{x} < 1$.
 
 ::: example A fast series for $\ln 2$
 Show that for $\abs{x} < 1$
@@ -1216,7 +1222,7 @@ and use it to find $\ln 2$ to six decimal places.
 
 Subtract the two series, term by term (both converge for $\abs{x} < 1$). The even powers have the same coefficient in both and cancel; the odd powers have opposite coefficients and double:
 
-$$\ln(1 + x) - \ln(1 - x) = 2x + \frac{2x^3}{3} + \frac{2x^5}{5} + \cdots,$$
+$$\begin{aligned} &\ln(1 + x) - \ln(1 - x) \\ &\quad= 2x + \frac{2x^3}{3} + \frac{2x^5}{5} + \cdots, \end{aligned}$$
 
 and the left side is $\ln\dfrac{1 + x}{1 - x}$, by the laws of logarithms. Now $\dfrac{1 + x}{1 - x} = 2$ when $1 + x = 2 - 2x$, that is, $x = \tfrac13$. So
 
@@ -1240,7 +1246,7 @@ same(bd(5), 2*Rational(1, 3)**11/11/(1 - Rational(1, 9))); rounds(bd(5), '1.2e-6
 rounds(l2(6), '0.69314707'); holds(log(2) - l2(6) > 0); holds(log(2) - l2(6) < bd(6))
 holds(l2(6) + Rational(11, 10**8) < Rational(69314719, 10**8)); rounds(log(2), '0.693147')
 holds(Abs(log(2) - l2(5)) > Rational(5, 10**7))                  # five terms are not enough for six decimals
-holds(Rational(1, 10**6 + 1) < Rational(5, 10**7)*Rational(21, 10)) # the alternating harmonic bound 1/(n + 1) needs n near a million
+same(Rational(1, 2*10**6), Rational(5, 10**7))                    # the error 1/(2n) of the alternating harmonic series reaches 5e-7 at n = 10^6
 ```
 :::
 
@@ -1259,7 +1265,7 @@ L'Hôpital's rule reaches the same answer only after three applications.
 
 **(b)** Multiply the series of $e^x$ and $\sin x$, keeping the terms up to $x^3$; every product of higher degree goes into $O(x^4)$:
 
-$$\begin{aligned} e^x\sin x &= \Big(1 + x + \frac{x^2}{2} + O(x^3)\Big)\Big(x - \frac{x^3}{6} + O(x^5)\Big) \\ &= x + x^2 + \Big(\frac12 - \frac16\Big)x^3 + O(x^4) = x + x^2 + \frac{x^3}{3} + O(x^4). \end{aligned}$$
+$$\begin{aligned} e^x\sin x &= \Big(1 + x + \frac{x^2}{2} + O(x^3)\Big) \\ &\qquad\times\Big(x - \frac{x^3}{6} + O(x^5)\Big) \\ &= x + x^2 + \Big(\frac12 - \frac16\Big)x^3 + O(x^4) \\ &= x + x^2 + \frac{x^3}{3} + O(x^4). \end{aligned}$$
 
 So $\dfrac{e^x\sin x - x - x^2}{x^3} = \dfrac13 + O(x) \to \dfrac13$.
 
@@ -1292,7 +1298,7 @@ where $c = 299\,792\,458$ m/s is the speed of light. Show that for small $v/c$ t
 
 Put $x = v^2/c^2$ in Example 15.10(b), $\dfrac{1}{\sqrt{1 - x}} = 1 + \dfrac{x}{2} + \dfrac{3x^2}{8} + \cdots$:
 
-$$E_k = mc^2\Big(\frac{v^2}{2c^2} + \frac{3v^4}{8c^4} + \cdots\Big) = \frac12 mv^2 + \frac{3mv^4}{8c^2} + \cdots.$$
+$$\begin{aligned} E_k &= mc^2\Big(\frac{v^2}{2c^2} + \frac{3v^4}{8c^4} + \cdots\Big) \\ &= \frac12 mv^2 + \frac{3mv^4}{8c^2} + \cdots. \end{aligned}$$
 
 Newton's formula is the first term. The second, divided by the first, is $\tfrac34\,v^2/c^2$: that is roughly the relative error of $\tfrac12mv^2$. At $v = 0.1c$ it is 0.75%; the exact values are $E_k \approx 0.0050378\,mc^2$ against $\tfrac12mv^2 = 0.005\,mc^2$, a relative error of 0.75% indeed. For any speed up to 300 m/s, $v^2/c^2 < 1.1 \times 10^{-12}$, and Newton's formula is right to about one part in a million million.
 
@@ -1385,13 +1391,14 @@ x =    1000.0: my_sin = +0.8268795405320475, math.sin = +0.8268795405320025
 x = 1000000.0: my_sin = -0.3499935020939287, math.sin = -0.3499935021712929
 ```
 
-For $x = 0.5$ and 2 the two agree in every digit printed, and for $x = 10$ in all but the last. For larger $x$ they part company: the error of `my_sin` grows with $x$. The polynomial is not to blame; the reduction is. `math.pi/2` is $\pi/2$ rounded to about 16 digits, and $k$ times its error, with $k$ about $x/1.57$, ends up in $r$: for $x = 10^6$ that is an error near $10^{-10}$. Python's `math.sin` reduces with many more digits of $\pi$.
+For $x = 0.5$ and 2 the two agree in every digit printed, and for $x = 10$ in all but the last. For larger $x$ they part company, more and more as $x$ grows: at $x = 10^6$ they differ by about $8 \times 10^{-11}$. The polynomial is not to blame; the reduction is. `math.pi/2` is $\pi/2$ rounded to about 16 digits, and $r = x - k\cdot\tfrac{\pi}{2}$ inherits $k$ times that rounding error, with $k$ about $x/1.57$, as well as the rounding of $k\cdot\tfrac{\pi}{2}$, a number almost as large as $x$. Python's `math.sin` reduces with many more digits of $\pi$.
 :::
 
 ```check
 holds(Abs(N(pi/2, 30) - Float(1.5707963267948966, 30)) < 10**-16); holds(Abs(N(pi/2, 30) - Float(1.5707963267948966, 30)) > 5*10**-17)
-rounds(1e6/1.5707963267948966*6.1e-17, '4e-11'); holds(Abs(-0.3499935020939287 - sin(Integer(10**6))) > 10**-11)
-holds(Abs(-0.3499935020939287 - sin(Integer(10**6))) < 10**-9)
+rounds(Abs(-0.3499935020939287 - (-0.3499935021712929)), '8e-11'); rounds(1e6/1.5707963267948966, '636620')
+holds(Abs(-0.3499935021712929 - sin(Integer(10**6))) < 10**-15)              # math.sin is right to the digits printed
+holds(Abs(0.4794255386042030 - sin(Rational(1, 2))) < 10**-16); holds(Abs(-0.5440211108893701 - sin(10)) < 10**-15)
 ```
 
 ## Euler's formula {#euler}
@@ -1412,7 +1419,7 @@ Two complex numbers are equal when their real parts are equal and their imaginar
 
 The real numbers are the complex numbers with imaginary part 0. Picture $z = p + qi$ as the point $(p, q)$ of a plane, the **complex plane**, with real parts along the horizontal axis and imaginary parts up the vertical one; then $\abs{z}$ is the distance from $z$ to 0, and multiplying out shows that $\abs{zw} = \abs{z}\,\abs{w}$. The powers of $i$ repeat in a cycle of four:
 
-$$i^0 = 1, \quad i^1 = i, \quad i^2 = -1, \quad i^3 = -i, \quad i^4 = 1, \quad i^5 = i, \ \dots$$
+$$\begin{aligned} &i^0 = 1, \quad i^1 = i, \quad i^2 = -1, \\ &i^3 = -i, \quad i^4 = 1, \quad i^5 = i, \ \dots \end{aligned}$$
 
 Multiplying by $i$ turns the plane a quarter turn anticlockwise about 0: $i(p + qi) = -q + pi$, so the point $(p, q)$ moves to $(-q, p)$.
 
@@ -1435,7 +1442,7 @@ $$e^z = \sum_{n=0}^\infty \frac{z^n}{n!} = 1 + z + \frac{z^2}{2!} + \frac{z^3}{3
 The series converges for every $z$, because $\abs{z^n/n!} = \abs{z}^n/n!$ and $\sum \abs{z}^n/n!$ converges (Example 15.2). For a real $z$ it is the familiar $e^x$, by Theorem 15.9. The law of exponents $e^{z+w} = e^z e^w$ holds for complex $z$ and $w$ too. Its proof multiplies the two series term by term and collects the terms with the binomial theorem; it rests on a theorem about multiplying absolutely convergent series, which this series does not prove.
 
 ```check
-same(summation(rc**n/factorial(n), (n, 0, oo)), exp(rc)); same(Abs((pc + qc*I)**3), Abs(pc + qc*I)**3)
+same(summation(rc**n/factorial(n), (n, 0, oo)), exp(rc)); same(Abs((3 + 4*I)**3), Abs(3 + 4*I)**3); same(Abs((3 + 4*I)*(1 - 2*I)), Abs(3 + 4*I)*Abs(1 - 2*I))
 zA, wA = symbols('z w')
 same(expand(sum(zA**j/factorial(j) for j in range(5))*sum(wA**j/factorial(j) for j in range(5))).as_poly(zA, wA).as_expr().subs({zA: 0}), sum(wA**j/factorial(j) for j in range(5)))
 for N_ in range(1, 6):                          # the terms of degree N in e^z e^w add up to (z + w)^N/N!, by the binomial theorem
@@ -1453,7 +1460,7 @@ $$e^{i\theta} = \cos\theta + i\sin\theta.$$
 ::: proof
 Put $z = i\theta$ in the series. Since $(i\theta)^n = i^n\theta^n$ and the powers of $i$ cycle through $1, i, -1, -i$,
 
-$$e^{i\theta} = 1 + i\theta - \frac{\theta^2}{2!} - i\,\frac{\theta^3}{3!} + \frac{\theta^4}{4!} + i\,\frac{\theta^5}{5!} - \cdots.$$
+$$\begin{aligned} e^{i\theta} &= 1 + i\theta - \frac{\theta^2}{2!} - i\,\frac{\theta^3}{3!} \\ &\qquad + \frac{\theta^4}{4!} + i\,\frac{\theta^5}{5!} - \cdots. \end{aligned}$$
 
 The real parts of the terms are $1, 0, -\tfrac{\theta^2}{2!}, 0, \tfrac{\theta^4}{4!}, \dots$: the terms of the series of $\cos\theta$, with zeros in between, which change neither whether it converges nor its sum. The imaginary parts are $0, \theta, 0, -\tfrac{\theta^3}{3!}, 0, \tfrac{\theta^5}{5!}, \dots$: the series of $\sin\theta$, with zeros in between. By Theorem 15.9 these converge to $\cos\theta$ and $\sin\theta$, so $e^{i\theta} = \cos\theta + i\sin\theta$.
 :::
@@ -1489,7 +1496,7 @@ $$\cos\theta = \frac{e^{i\theta} + e^{-i\theta}}{2}, \qquad \sin\theta = \frac{e
 
 close relatives of $\cosh x = \tfrac12(e^x + e^{-x})$ and $\sinh x = \tfrac12(e^x - e^{-x})$ of Module 6. The law of exponents turns into the addition formulas of Module 1. From $e^{i(x + y)} = e^{ix}e^{iy}$,
 
-$$\begin{aligned} \cos(x + y) + i\sin(x + y) &= (\cos x + i\sin x)(\cos y + i\sin y) \\ &= (\cos x\cos y - \sin x\sin y) + i(\sin x\cos y + \cos x\sin y), \end{aligned}$$
+$$\begin{aligned} &\cos(x + y) + i\sin(x + y) \\ &\quad= (\cos x + i\sin x)(\cos y + i\sin y) \\ &\quad= (\cos x\cos y - \sin x\sin y) \\ &\qquad + i(\sin x\cos y + \cos x\sin y), \end{aligned}$$
 
 and comparing the real parts, and then the imaginary parts, gives both formulas at once.
 
@@ -1529,13 +1536,13 @@ By the quadratic formula the roots are $r = -\tfrac{p}{2} \pm \tfrac12\sqrt{p^2 
 
 **Complex roots give complex solutions.** A function of a real variable $t$ with complex values, $u(t) + i\,v(t)$, is differentiated by differentiating its real and imaginary parts. For $r = a + bi$, Euler's formula and the law of exponents give $e^{rt} = e^{at}e^{ibt} = e^{at}\cos bt + i\,e^{at}\sin bt$, and by the product rule
 
-$$\begin{aligned} \frac{d}{dt}e^{rt} &= e^{at}(a\cos bt - b\sin bt) + i\,e^{at}(a\sin bt + b\cos bt) \\ &= (a + bi)\,e^{at}(\cos bt + i\sin bt) = r\,e^{rt}, \end{aligned}$$
+$$\begin{aligned} \frac{d}{dt}e^{rt} &= e^{at}(a\cos bt - b\sin bt) \\ &\qquad + i\,e^{at}(a\sin bt + b\cos bt) \\ &= (a + bi)\,e^{at}(\cos bt + i\sin bt) \\ &= r\,e^{rt}, \end{aligned}$$
 
 as multiplying out $(a + bi)(\cos bt + i\sin bt)$ confirms. So $(e^{rt})'' = r^2e^{rt}$, and $y = e^{rt}$ gives $y'' + py' + qy = (r^2 + pr + q)\,e^{rt} = 0$, exactly as for a real root.
 
 **Their real and imaginary parts are real solutions.** If $y = u + iv$ solves the equation, with $u$ and $v$ real functions, then, since $p$ and $q$ are real,
 
-$$0 = y'' + py' + qy = (u'' + pu' + qu) + i\,(v'' + pv' + qv),$$
+$$\begin{aligned} 0 &= y'' + py' + qy \\ &= (u'' + pu' + qu) + i\,(v'' + pv' + qv), \end{aligned}$$
 
 and a complex number is 0 only when its real and imaginary parts are both 0. So $u$ and $v$ are solutions. The real and imaginary parts of $e^{(a+bi)t}$ are $e^{at}\cos bt$ and $e^{at}\sin bt$: Module 13's solutions. The imaginary part $b$ of the root makes them oscillate, because $e^{ibt}$ goes round the unit circle; the real part $a$ decides whether the oscillation dies away ($a < 0$), grows ($a > 0$) or keeps its size ($a = 0$).
 
@@ -1594,7 +1601,7 @@ print(math.cos(theta), math.sin(theta))
 0.5403023058681398 0.8414709848078965
 ```
 
-$e^{i\pi}$ comes out as $-1$ plus a tiny imaginary part. That part is $\sin$ of `math.pi`, which is $\pi$ rounded to about 16 digits: $\sin(\pi - \delta) \approx \delta$ for a small $\delta$, and here $\delta = \pi - $ `math.pi` $\approx 1.22 \times 10^{-16}$. SymPy, which keeps $\pi$ exact, gets $-1$ exactly; with a real symbol it expands $e^{it}$ by Euler's formula, and its differential equation solver produces the oscillations of Example 15.18:
+$e^{i\pi}$ comes out as $-1$ plus a tiny imaginary part. That part is $\sin$ of `math.pi`, which is $\pi$ rounded to about 16 digits: $\sin(\pi - \delta) \approx \delta$ for a small $\delta$, and here $\delta$, the difference between $\pi$ and `math.pi`, is about $1.22 \times 10^{-16}$. SymPy, which keeps $\pi$ exact, gets $-1$ exactly; with a real symbol it expands $e^{it}$ by Euler's formula, and its differential equation solver produces the oscillations of Example 15.17:
 
 ```python
 import sympy as sp
@@ -1673,7 +1680,7 @@ Find a power series about 0 for each function, and its interval of convergence.
 
 **(c)** Take out the factor 4, to make the 1 appear:
 
-$$\frac{1}{4 + x^2} = \frac14\cdot\frac{1}{1 + x^2/4} = \frac14\sum_{n=0}^\infty (-1)^n\Big(\frac{x^2}{4}\Big)^n = \sum_{n=0}^\infty \frac{(-1)^n x^{2n}}{4^{n+1}},$$
+$$\begin{aligned} \frac{1}{4 + x^2} &= \frac14\cdot\frac{1}{1 + x^2/4} \\ &= \frac14\sum_{n=0}^\infty (-1)^n\Big(\frac{x^2}{4}\Big)^n \\ &= \sum_{n=0}^\infty \frac{(-1)^n x^{2n}}{4^{n+1}}, \end{aligned}$$
 
 for $x^2/4 < 1$, that is, $\abs{x} < 2$. At $x = \pm2$ the terms are $(-1)^n/4$, which do not tend to 0, so the interval is $(-2, 2)$. A test at $x = 1$: the series is $\tfrac14 - \tfrac{1}{16} + \tfrac{1}{64} - \cdots = \dfrac{1/4}{1 + 1/4} = \tfrac15$, and $\dfrac{1}{4 + 1} = \tfrac15$.
 
@@ -1701,7 +1708,7 @@ same(summation((-1)**n/4**(n + 1), (n, 0, oo)), Rational(1, 5)); same(Rational(1
 
 **(c)** Every derivative of $\cos$ is $\pm\sin$ or $\pm\cos$, so $M = 1$ will do. The coefficient of $x^5$ is 0, so $T_4 = T_5$, and Taylor's inequality with $n = 5$ gives
 
-$$\abs{\cos 0.2 - T_4(0.2)} \le \frac{0.2^6}{6!} = \frac{0.000064}{720} \approx 8.9 \times 10^{-8}.$$
+$$\begin{aligned} \abs{\cos 0.2 - T_4(0.2)} &\le \frac{0.2^6}{6!} \\ &= \frac{0.000064}{720} \approx 8.9 \times 10^{-8}. \end{aligned}$$
 
 A calculator gives $\cos 0.2 \approx 0.98006658$, so the error is about $-8.9 \times 10^{-8}$: the bound is almost exact, because the next term of the series, $-x^6/720$, makes up nearly all of the error. With $n = 4$ the inequality gives only $0.2^5/5! \approx 2.7 \times 10^{-6}$, true but thirty times larger.
 
@@ -1726,19 +1733,19 @@ Use the standard series to find the Maclaurin series of each function, with its 
 ::: solution
 **(a)** Put $-x$ for $x$ in the series of $e^x$, then multiply by $x^2$:
 
-$$x^2e^{-x} = x^2\sum_{n=0}^\infty \frac{(-x)^n}{n!} = \sum_{n=0}^\infty (-1)^n\frac{x^{n+2}}{n!} = x^2 - x^3 + \frac{x^4}{2} - \cdots,$$
+$$\begin{aligned} x^2e^{-x} &= x^2\sum_{n=0}^\infty \frac{(-x)^n}{n!} \\ &= \sum_{n=0}^\infty (-1)^n\frac{x^{n+2}}{n!} \\ &= x^2 - x^3 + \frac{x^4}{2} - \cdots, \end{aligned}$$
 
 for every $x$, since the series of $e^x$ equals $e^x$ for every $x$.
 
 **(b)** Put $x^2$ for $x$ in the series of $\sin x$:
 
-$$\sin(x^2) = \sum_{n=0}^\infty (-1)^n\frac{x^{4n+2}}{(2n + 1)!} = x^2 - \frac{x^6}{6} + \frac{x^{10}}{120} - \cdots,$$
+$$\begin{aligned} \sin(x^2) &= \sum_{n=0}^\infty (-1)^n\frac{x^{4n+2}}{(2n + 1)!} \\ &= x^2 - \frac{x^6}{6} + \frac{x^{10}}{120} - \cdots, \end{aligned}$$
 
 for every $x$.
 
 **(c)** Add the series of $e^x$ and $e^{-x}$: the term in $x^n$ is $\big(1 + (-1)^n\big)\dfrac{x^n}{n!}$, which is 0 for odd $n$ and $\dfrac{2x^n}{n!}$ for even $n$. Halving,
 
-$$\cosh x = \sum_{n=0}^\infty \frac{x^{2n}}{(2n)!} = 1 + \frac{x^2}{2} + \frac{x^4}{24} + \cdots,$$
+$$\begin{aligned} \cosh x &= \sum_{n=0}^\infty \frac{x^{2n}}{(2n)!} \\ &= 1 + \frac{x^2}{2} + \frac{x^4}{24} + \cdots, \end{aligned}$$
 
 for every $x$: the series of $\cos x$ without its minus signs.
 
@@ -1766,7 +1773,7 @@ Example 15.6 showed that $\displaystyle\sum_{n=1}^\infty n x^n = \frac{x}{(1 - x
 
 **(b)** Differentiate $\sum n x^n = \dfrac{x}{(1 - x)^2}$ term by term (Theorem 15.2, inside the radius 1). On the right, by the quotient rule, and then cancelling a factor $1 - x$:
 
-$$\frac{d}{dx}\,\frac{x}{(1 - x)^2} = \frac{(1 - x)^2 + 2x(1 - x)}{(1 - x)^4} = \frac{(1 - x) + 2x}{(1 - x)^3} = \frac{1 + x}{(1 - x)^3}.$$
+$$\begin{aligned} \frac{d}{dx}\,\frac{x}{(1 - x)^2} &= \frac{(1 - x)^2 + 2x(1 - x)}{(1 - x)^4} \\ &= \frac{(1 - x) + 2x}{(1 - x)^3} = \frac{1 + x}{(1 - x)^3}. \end{aligned}$$
 
 On the left the derivative is $\sum n^2 x^{n-1}$. Multiplying by $x$ gives $\sum n^2 x^n = \dfrac{x(1 + x)}{(1 - x)^3}$.
 
@@ -1800,17 +1807,18 @@ $$\abs{\binom{1/2}{4}x^4} = \frac{5}{128}(0.1)^4 \approx 3.9 \times 10^{-6}.$$
 
 Indeed $\sqrt{1.1} \approx 1.0488088$, and the error of 1.0488125 is about $-3.7 \times 10^{-6}$.
 
-**(c)** $\sqrt{110} = \sqrt{100 \times 1.1} = 10\sqrt{1.1} \approx 10.488125$, with error less than $10 \times 3.9 \times 10^{-6} = 3.9 \times 10^{-5}$. So $\sqrt{110}$ lies between 10.488086 and 10.488125, and to four decimal places it is 10.4881 (a calculator gives 10.488088).
+**(c)** $\sqrt{110} = \sqrt{100 \times 1.1} = 10\sqrt{1.1} \approx 10.488125$, with error less than $10 \times 3.9 \times 10^{-6} = 3.9 \times 10^{-5}$. So $\sqrt{110}$ lies between 10.488085 and 10.488125, and to four decimal places it is 10.4881 (a calculator gives 10.488088).
 
 ```check
 v3 = Rational(1, 10); est = 1 + v3/2 - v3**2/8 + v3**3/16
 same([v3/2, v3**2/8, v3**3/16], [Rational(5, 100), Rational(125, 100000), Rational(625, 10**7)]); same(est, Rational(10488125, 10**7))
-same(expand_func(binomial(Rational(1, 2), nB + 1)/binomial(Rational(1, 2), nB)), (Rational(1, 2) - nB)/(nB + 1))
+for j in range(1, 30):
+    same(binomial(Rational(1, 2), j + 1)/binomial(Rational(1, 2), j), (Rational(1, 2) - j)/(j + 1))
 holds(all((Rational(1, 2) - j)/(j + 1) < 0 and Abs((Rational(1, 2) - j)/(j + 1)) < 1 for j in range(1, 60)))
 same(binomial(Rational(1, 2), 4), -Rational(5, 128)); rounds(Rational(5, 128)*v3**4, '3.9e-6')
 rounds(sqrt(Rational(11, 10)), '1.0488088'); rounds(sqrt(Rational(11, 10)) - est, '-3.7e-6'); holds(Abs(sqrt(Rational(11, 10)) - est) < Rational(5, 128)*v3**4)
 same(sqrt(110), 10*sqrt(Rational(11, 10))); rounds(10*Rational(5, 128)*v3**4, '3.9e-5')
-holds(10*est - 10*Rational(5, 128)*v3**4 > Rational(10488086, 10**6)); rounds(10*est - Rational(39, 10**6), '10.4881'); rounds(10*est, '10.4881')
+holds(10*est - 10*Rational(5, 128)*v3**4 > Rational(10488085, 10**6)); rounds(Rational(10488085, 10**6), '10.4881'); rounds(10*est, '10.4881')
 rounds(sqrt(110), '10.488088')
 ```
 :::
@@ -1824,11 +1832,11 @@ rounds(sqrt(110), '10.488088')
 ::: solution
 **(a)** $T_3(x) = x - \dfrac{x^2}{2} + \dfrac{x^3}{3}$ and $0.8 = 1 + x$ with $x = -0.2$, so
 
-$$\ln 0.8 \approx -0.2 - \frac{0.04}{2} + \frac{-0.008}{3} = -0.2 - 0.02 - 0.0026667 = -0.2226667.$$
+$$\begin{aligned} \ln 0.8 &\approx -0.2 - \frac{0.04}{2} + \frac{-0.008}{3} \\ &= -0.2 - 0.02 - 0.0026667 \\ &= -0.2226667. \end{aligned}$$
 
 **(b)** The derivatives of $f(x) = \ln(1 + x)$ are $\dfrac{1}{1 + x}$, $-\dfrac{1}{(1 + x)^2}$, $\dfrac{2}{(1 + x)^3}$ and $f^{(4)}(x) = -\dfrac{6}{(1 + x)^4}$. For $t$ between $-0.2$ and 0, $1 + t \ge 0.8$, so $\abs{f^{(4)}(t)} \le \dfrac{6}{0.8^4} = 14.6484375$, and
 
-$$\abs{\ln 0.8 - T_3(-0.2)} \le \frac{14.6484375}{4!}\,(0.2)^4 \approx 0.00098.$$
+$$\begin{aligned} \abs{\ln 0.8 - T_3(-0.2)} &\le \frac{14.6484375}{4!}\,(0.2)^4 \\ &\approx 0.00098. \end{aligned}$$
 
 **(c)** At $x = -0.2$ every term of the series, $-0.2 - 0.02 - 0.0026667 - 0.0004 - \cdots$, is negative: the series does not alternate, so the alternating series bound does not apply. It would have claimed an error less than the next term, 0.0004, which is false: $\ln 0.8 \approx -0.2231436$, and the error is about $-0.00048$. Taylor's inequality, which needs no alternating signs, gives the safe bound 0.00098. The Lagrange form even gives the sign: $f^{(4)} < 0$, so $R_3 < 0$ and $T_3$ overestimates.
 
@@ -1882,13 +1890,13 @@ Write $c = \cos\theta$ and $s = \sin\theta$, so that $e^{i\theta} = c + is$.
 
 **(b)** Expand the cube, with $i^2 = -1$ and $i^3 = -i$:
 
-$$(c + is)^3 = c^3 + 3c^2(is) + 3c(is)^2 + (is)^3 = (c^3 - 3cs^2) + i(3c^2s - s^3).$$
+$$\begin{aligned} (c + is)^3 &= c^3 + 3c^2(is) + 3c(is)^2 + (is)^3 \\ &= (c^3 - 3cs^2) + i(3c^2s - s^3). \end{aligned}$$
 
 With $s^2 = 1 - c^2$, the real part is $c^3 - 3c(1 - c^2) = 4c^3 - 3c$; with $c^2 = 1 - s^2$, the imaginary part is $3(1 - s^2)s - s^3 = 3s - 4s^3$. Comparing with $e^{3i\theta} = \cos 3\theta + i\sin 3\theta$ gives both formulas.
 
 **(c)** Square, using $e^{i\theta}e^{-i\theta} = e^0 = 1$:
 
-$$\cos^2\theta = \frac{e^{2i\theta} + 2 + e^{-2i\theta}}{4} = \frac12 + \frac12\cdot\frac{e^{2i\theta} + e^{-2i\theta}}{2} = \frac12(1 + \cos 2\theta).$$
+$$\begin{aligned} \cos^2\theta &= \frac{e^{2i\theta} + 2 + e^{-2i\theta}}{4} \\ &= \frac12 + \frac12\cdot\frac{e^{2i\theta} + e^{-2i\theta}}{2} \\ &= \frac12(1 + \cos 2\theta). \end{aligned}$$
 
 ```check
 cs_, sn_ = symbols('c s', real=True)
@@ -1915,7 +1923,7 @@ Suppose, to the contrary, that $e = p/q$ for whole numbers $p$ and $q \ge 1$. Si
 
 **(b)** Multiply $0 < e - s_q < \dfrac{3}{(q + 1)!}$ by $q!$:
 
-$$0 < q!\,(e - s_q) < \frac{3\,q!}{(q + 1)!} = \frac{3}{q + 1} \le 1,$$
+$$\begin{aligned} 0 < q!\,(e - s_q) &< \frac{3\,q!}{(q + 1)!} \\ &= \frac{3}{q + 1} \le 1, \end{aligned}$$
 
 since $q \ge 2$.
 
@@ -1942,11 +1950,11 @@ Let $\alpha = \arctan\tfrac15$. Use the formula $\tan(u + v) = \dfrac{\tan u + \
 ::: solution
 **(a)** With $u = v$, the formula gives $\tan 2u = \dfrac{2\tan u}{1 - \tan^2u}$. So
 
-$$\tan 2\alpha = \frac{2/5}{1 - 1/25} = \frac25\cdot\frac{25}{24} = \frac{5}{12}, \qquad \tan 4\alpha = \frac{10/12}{1 - 25/144} = \frac56\cdot\frac{144}{119} = \frac{120}{119}.$$
+$$\begin{aligned} \tan 2\alpha &= \frac{2/5}{1 - 1/25} = \frac25\cdot\frac{25}{24} = \frac{5}{12}, \\ \tan 4\alpha &= \frac{10/12}{1 - 25/144} = \frac56\cdot\frac{144}{119} = \frac{120}{119}. \end{aligned}$$
 
 **(b)** With $-v$ in place of $v$, and $\tan(-v) = -\tan v$, the formula gives $\tan(u - v) = \dfrac{\tan u - \tan v}{1 + \tan u\tan v}$. With $u = 4\alpha$ and $v = \tfrac{\pi}{4}$, where $\tan\tfrac{\pi}{4} = 1$:
 
-$$\tan\Big(4\alpha - \frac{\pi}{4}\Big) = \frac{120/119 - 1}{1 + 120/119} = \frac{1/119}{239/119} = \frac{1}{239}.$$
+$$\begin{aligned} \tan\Big(4\alpha - \frac{\pi}{4}\Big) &= \frac{120/119 - 1}{1 + 120/119} \\ &= \frac{1/119}{239/119} = \frac{1}{239}. \end{aligned}$$
 
 To conclude that $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, the angle must lie in $\big(-\tfrac{\pi}{2}, \tfrac{\pi}{2}\big)$, the range of $\arctan$ (Module 6). For $x > 0$, $\arctan x = \int_0^x \dfrac{dt}{1 + t^2} < \int_0^x dt = x$, so $0 < \alpha < \tfrac15$, and $-\tfrac{\pi}{4} < 4\alpha - \tfrac{\pi}{4} < \tfrac45 - \tfrac{\pi}{4} < \tfrac{\pi}{2}$. So $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, which rearranges to Machin's formula.
 
@@ -1981,7 +1989,7 @@ If $K = 0$, take $\delta = \delta_1$; otherwise take $\delta$ the smaller of $\d
 
 **(b)** By induction on $n$, show that $\abs{e_n} \le \delta$ and that $x_{n+1}$ is defined, with $\abs{e_{n+1}} \le \tfrac12\abs{e_n}$. Suppose $\abs{e_n} \le \delta$, as is true for $n = 0$. Then $x_n$ lies in $[r - \delta, r + \delta]$, so $f'(x_n) \ne 0$ and Newton's step gives $x_{n+1}$. The identity holds with $c_n$ between $x_n$ and $r$, hence also in the interval, so
 
-$$\abs{e_{n+1}} \le K e_n^2 = (K\abs{e_n})\,\abs{e_n} \le K\delta\,\abs{e_n} \le \tfrac12\abs{e_n} \le \delta.$$
+$$\begin{aligned} \abs{e_{n+1}} &\le K e_n^2 = (K\abs{e_n})\,\abs{e_n} \\ &\le K\delta\,\abs{e_n} \le \tfrac12\abs{e_n} \le \delta. \end{aligned}$$
 
 So $\abs{e_n} \le \delta/2^n$ for every $n$, which tends to 0: $x_n \to r$.
 
@@ -2006,11 +2014,11 @@ Bs, Fs = symbols('B F', positive=True); same(Bs/(2*Fs/2), Bs/Fs)
 
 ```quiz
 ? The radius of convergence of $\displaystyle\sum_{n=1}^\infty \frac{x^n}{n\,3^n}$ is
-- [ ] $\tfrac13$
+- [ ] $\dfrac13$
 - [ ] $1$
 - [x] $3$
 - [ ] $\infty$
-> $\abs{c_{n+1}/c_n} = \dfrac{n}{3(n + 1)} \to \dfrac13$, so $R = 3$. $\tfrac13$ is the limit $L$ itself, not $1/L$; 1 ignores the factor $3^n$; $R = \infty$ would need $L = 0$.
+> $\abs{c_{n+1}/c_n} = \dfrac{n}{3(n + 1)} \to \dfrac13$, so $R = 3$. $\dfrac13$ is the limit $L$ itself, not $1/L$; 1 ignores the factor $3^n$; $R = \infty$ would need $L = 0$.
 
 ? The interval of convergence of $\displaystyle\sum_{n=1}^\infty \frac{(x - 2)^n}{n}$ is
 - [ ] $(1, 3)$
@@ -2020,17 +2028,17 @@ Bs, Fs = symbols('B F', positive=True); same(Bs/(2*Fs/2), Bs/Fs)
 > The centre is 2 and $R = 1$. At $x = 3$ the series is the harmonic series $\sum 1/n$, which diverges; at $x = 1$ it is $\sum (-1)^n/n$, which converges by the alternating series test. $(1, 3)$ leaves out $x = 1$, and $(1, 3]$ and $[1, 3]$ wrongly include $x = 3$.
 
 ? The coefficient of $x^4$ in the Maclaurin series of $e^{2x}$ is
-- [ ] $\tfrac{1}{24}$
-- [ ] $\tfrac{1}{12}$
+- [ ] $\dfrac{1}{24}$
+- [ ] $\dfrac{1}{12}$
 - [ ] $16$
-- [x] $\tfrac23$
-> $e^{2x} = \sum (2x)^n/n!$, so the coefficient of $x^4$ is $2^4/4! = 16/24 = \tfrac23$; equivalently $f^{(4)}(0)/4!$ with $f^{(4)}(x) = 16e^{2x}$. $\tfrac{1}{24}$ forgets the factor $2^4$, $\tfrac{1}{12}$ uses $2$ instead of $2^4$, and 16 forgets to divide by $4!$.
+- [x] $\dfrac23$
+> $e^{2x} = \sum (2x)^n/n!$, so the coefficient of $x^4$ is $2^4/4! = 16/24 = \dfrac23$; equivalently $f^{(4)}(0)/4!$ with $f^{(4)}(x) = 16e^{2x}$. $\dfrac{1}{24}$ forgets the factor $2^4$, $\dfrac{1}{12}$ uses $2$ instead of $2^4$, and 16 forgets to divide by $4!$.
 
 ? The Maclaurin series of $\dfrac{1}{1 + x^2}$, and where it converges, are
 - [x] $1 - x^2 + x^4 - x^6 + \cdots$, for $-1 < x < 1$
 - [ ] $1 - x^2 + x^4 - x^6 + \cdots$, for every $x$
 - [ ] $1 + x^2 + x^4 + x^6 + \cdots$, for $-1 < x < 1$
-- [ ] $x - \tfrac{x^3}{3} + \tfrac{x^5}{5} - \cdots$, for $-1 \le x \le 1$
+- [ ] $x - \dfrac{x^3}{3} + \dfrac{x^5}{5} - \cdots$, for $-1 \le x \le 1$
 > Put $u = -x^2$ in $\dfrac{1}{1 - u} = \sum u^n$, valid for $\abs{u} < 1$, that is, $\abs{x} < 1$. The function is defined for every $x$, but its series diverges for $\abs{x} \ge 1$; the signs alternate because $u = -x^2$; and the last series is that of $\arctan x$, an antiderivative.
 
 ? If $f(1) = 2$, $f'(1) = 3$ and $f''(1) = 4$, the Taylor polynomial $T_2$ of $f$ about 1 is
@@ -2040,26 +2048,26 @@ Bs, Fs = symbols('B F', positive=True); same(Bs/(2*Fs/2), Bs/Fs)
 - [ ] $2 + 3(x - 1) + 8(x - 1)^2$
 > $T_2(x) = f(1) + f'(1)(x - 1) + \dfrac{f''(1)}{2!}(x - 1)^2$, and $4/2! = 2$. Forgetting to divide by $2!$ gives $4(x - 1)^2$, multiplying instead gives $8(x - 1)^2$, and powers of $x$ instead of $x - 1$ give a polynomial about 0.
 
-? With $M = 1$, and using $T_3 = T_4$ for $\sin x$, Taylor's inequality guarantees that $\abs{\sin 0.1 - \big(0.1 - \tfrac{0.1^3}{6}\big)}$ is at most
-- [ ] $\tfrac{0.1^4}{4!} \approx 4.2 \times 10^{-6}$
-- [x] $\tfrac{0.1^5}{5!} \approx 8.3 \times 10^{-8}$
-- [ ] $\tfrac{0.1^3}{3!} \approx 1.7 \times 10^{-4}$
+? With $M = 1$, and using $T_3 = T_4$ for $\sin x$, Taylor's inequality guarantees that $\abs{\sin 0.1 - \big(0.1 - \dfrac{0.1^3}{6}\big)}$ is at most
+- [ ] $\dfrac{0.1^4}{4!} \approx 4.2 \times 10^{-6}$
+- [x] $\dfrac{0.1^5}{5!} \approx 8.3 \times 10^{-8}$
+- [ ] $\dfrac{0.1^3}{3!} \approx 1.7 \times 10^{-4}$
 - [ ] $0.1^5 = 10^{-5}$
 > The coefficient of $x^4$ is 0, so $T_3 = T_4$, and $R_4$ is bounded by $M\abs{x}^5/5! = 10^{-5}/120 \approx 8.3 \times 10^{-8}$. $0.1^4/4!$ is the bound for $R_3$, true but weaker; $0.1^3/3!$ is the size of the last term kept, not the error; $10^{-5}$ forgets to divide by $5!$.
 
 ? $\displaystyle\lim_{x\to0}\frac{x - \sin x}{x^3}$ equals
-- [x] $\tfrac16$
-- [ ] $-\tfrac16$
+- [x] $\dfrac16$
+- [ ] $-\dfrac16$
 - [ ] $0$
-- [ ] $\tfrac13$
-> $\sin x = x - \tfrac{x^3}{6} + O(x^5)$, so $x - \sin x = \tfrac{x^3}{6} + O(x^5)$ and the quotient tends to $\tfrac16$. $-\tfrac16$ is the limit of $(\sin x - x)/x^3$; 0 comes from replacing $\sin x$ by $x$ alone; $\tfrac13$ is the limit with $\arctan x$ in place of $\sin x$.
+- [ ] $\dfrac13$
+> $\sin x = x - \dfrac{x^3}{6} + O(x^5)$, so $x - \sin x = \dfrac{x^3}{6} + O(x^5)$ and the quotient tends to $\dfrac16$. $-\dfrac16$ is the limit of $(\sin x - x)/x^3$; 0 comes from replacing $\sin x$ by $x$ alone; $\dfrac13$ is the limit with $\arctan x$ in place of $\sin x$.
 
 ? By Euler's formula, $e^{i\pi/2}$ equals
 - [ ] $-1$
 - [ ] $1$
 - [x] $i$
 - [ ] $-i$
-> $e^{i\pi/2} = \cos\tfrac{\pi}{2} + i\sin\tfrac{\pi}{2} = 0 + i = i$: a quarter turn round the unit circle. $-1$ is $e^{i\pi}$, a half turn; 1 is $e^0$; $-i$ is $e^{-i\pi/2}$.
+> $e^{i\pi/2} = \cos\dfrac{\pi}{2} + i\sin\dfrac{\pi}{2} = 0 + i = i$: a quarter turn round the unit circle. $-1$ is $e^{i\pi}$, a half turn; 1 is $e^0$; $-i$ is $e^{-i\pi/2}$.
 ```
 
 ```check
