@@ -116,8 +116,8 @@ def fmt_number(v, digits=6, decimals=None, sci=None):
     with localcontext() as ctx:
         ctx.prec = 60
         d = Decimal(str(sp.N(v, 40)))
-        if d.is_zero():
-            return '0'
+        if d.is_zero():   # with fixed decimals, 0.0000 lines up with its column
+            return format(Decimal(0).quantize(Decimal(1).scaleb(-int(decimals))), 'f') if decimals is not None else '0'
         if decimals is not None:
             q = d.quantize(Decimal(1).scaleb(-int(decimals)), rounding=ROUND_HALF_UP)
             return format(q, 'f')
@@ -167,7 +167,8 @@ def compute_table(spec):
     exprs = [sp.sympify(e, locals=loc) for _, e in cols]
     rows = [header]
     for vs in split_top(values):
-        if __import__('re').fullmatch(r'-?\d+(\.\d+)?([eE]-?\d+)?', vs):
+        decimal = __import__('re').fullmatch(r'-?\d+(\.\d+)?([eE]-?\d+)?', vs) is not None
+        if decimal:
             val = sp.nsimplify(vs, rational=True)
             shown = vs if 'e' not in vs.lower() else sp.latex(sp.Float(vs))
         else:
@@ -176,7 +177,15 @@ def compute_table(spec):
         row = [shown]
         for e in exprs:
             try:
-                y = e.evalf(40, subs={var: val})
+                # Substitute the input as a 60-digit number and evaluate normally: 0/0 gives nan
+                # ("undefined"), exact zeros stay zero, and nothing builds huge exact rationals
+                # (as (1 + 1/n)**n at n = 10**6 would with an exact n).
+                # A symbolic input (pi/2) is substituted exactly, so tan(pi/2) is undefined, not huge.
+                if decimal:
+                    y = sp.N(e.subs(var, sp.N(val, 60)), 40)
+                else:
+                    ye = e.subs(var, val)
+                    y = ye if ye.has(sp.zoo, sp.nan) else sp.N(ye, 40)
             except (ZeroDivisionError, ValueError):
                 row.append('undefined')
                 continue

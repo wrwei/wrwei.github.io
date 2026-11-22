@@ -848,7 +848,7 @@ which is impossible. The precise definitions also prove the key idea of Section 
 LL, MM, FF = symbols('L M F', real=True)
 same((LL - FF) + (FF - MM), LL - MM)
 same(Abs(LL - MM)/2 + Abs(LL - MM)/2, Abs(LL - MM))
-holds(Abs(1 - FF.subs(FF, Rational(1, 2))) + Abs(Rational(1, 2) - 0) >= Abs(1 - 0))       # an instance of the triangle inequality used
+same(Intersection(solveset(Abs(FF - 1) < 1, FF, S.Reals), solveset(Abs(FF - 3) < 1, FF, S.Reals)), S.EmptySet)   # L = 1, M = 3, eps = 1: no value is within eps of both
 ```
 
 ::: theorem One-sided and two-sided limits
