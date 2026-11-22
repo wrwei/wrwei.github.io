@@ -1250,7 +1250,7 @@ module column says where each is introduced.
 | `sp.N(f, 10)` | the value of `f` to 10 significant digits | [1](module_01_EN.html) |
 | `sp.lambdify(x, f)` | turns `f` into a fast Python function | [1](module_01_EN.html) |
 | `sp.log(x)` | ${\ln x,}$ as is `math.log(x)`; `sp.log(x, 10)` is ${\log_{10} x}$ | [1](module_01_EN.html) |
-| `sp.limit(f, x, a)` | the limit as ${x \to a;}$ add `'+'` for the limit from the right | [2](module_02_EN.html) |
+| `sp.limit(f, x, a, '+-')` | the limit as ${x \to a;}$ without `'+-'` SymPy gives the limit from the right (`'+'`, its default); `'-'` gives the limit from the left | [2](module_02_EN.html) |
 | `sp.oo` | ${\infty,}$ as in `sp.limit(f, x, sp.oo)` | [3](module_03_EN.html) |
 | `sp.diff(f, x)` | the derivative; `sp.diff(f, x, 2)` is the second derivative | [4](module_04_EN.html) |
 | `sp.solve(f, x)` | a list of the solutions of ${f = 0}$ | [8](module_08_EN.html) |

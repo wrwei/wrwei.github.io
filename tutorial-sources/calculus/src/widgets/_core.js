@@ -270,6 +270,8 @@
    *                          default 15); o.segments: true draws short line segments without heads
    *                          (direction fields); o.normalize: true draws every arrow the same length
    * Options o: color, width, dash (true or "6 4"), opacity, fill, r, hollow, size, anchor, dx, dy, bold.
+   * P.curve also takes o.from, o.to (the x-range drawn), o.breaks (x values where the line must break:
+   * jumps, asymptotes) and o.jump (break wherever consecutive values differ by more than this, in data units).
    * P.X(x) P.Y(y) map data to pixels; P.data(px, py) maps back; P.view [xmin, xmax, ymin, ymax];
    * P.setView(v); P.onDrag(function (x, y, phase) {...}) with phase 'start' | 'move' | 'end'.
    */
@@ -339,11 +341,17 @@
       o = o || {}
       var v = P.view, n = o.samples || Math.max(400, P.W * 2), d = '', pen = false, prevPy = null
       var a = o.from != null ? Math.max(o.from, v[0]) : v[0], b = o.to != null ? Math.min(o.to, v[1]) : v[1]
+      var breaks = (o.breaks || []).slice(), prevX = null, prevY = null
       for (var i = 0; i <= n; i++) {
         var x = a + (b - a) * i / n, y
         try { y = f(x) } catch (e) { y = NaN }
         var py = P.Y(y)
-        if (!isFinite(y) || Math.abs(py) > 1e5 || (prevPy !== null && Math.abs(py - prevPy) > P.H * 1.2)) { pen = isFinite(y) && Math.abs(py) <= 1e5; if (pen) d += 'M' + P.X(x).toFixed(1) + ' ' + py.toFixed(1); prevPy = pen ? py : null; continue }
+        var crossed = prevX !== null && breaks.some(function (bx) { return prevX < bx && x >= bx })
+        var jumped = o.jump != null && prevY !== null && isFinite(prevY) && Math.abs(y - prevY) > o.jump
+        prevX = x; prevY = y
+        if (!isFinite(y) || Math.abs(py) > 1e5) { pen = false; prevPy = null; continue }
+        // Lift the pen at a break, at a jump, and where the curve leaps across the plot (an asymptote).
+        if (crossed || jumped || (prevPy !== null && Math.abs(py - prevPy) > P.H * 1.2)) pen = false
         d += (pen ? 'L' : 'M') + P.X(x).toFixed(1) + ' ' + py.toFixed(1)
         pen = true; prevPy = py
       }
@@ -513,6 +521,7 @@
 
   css('core', [
     '.cw{font-size:.9rem;color:var(--navy)}',
+    '.cw [hidden]{display:none!important}',
     '.cw-row{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin:.4rem 0}',
     '.cw-plot{display:block;width:100%;height:auto;max-width:760px;background:var(--white);border:1px solid var(--border);border-radius:8px;touch-action:none;user-select:none}',
     '.cw-plot.cw-draggable{cursor:crosshair}',

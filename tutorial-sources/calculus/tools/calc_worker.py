@@ -55,6 +55,7 @@ def check_namespace():
     import calccheck
     ns = {'__name__': '__checks__'}
     exec('from sympy import *', ns)
+    exec('from sympy.calculus.util import function_range, continuous_domain, periodicity, minimum, maximum', ns)
     for k in calccheck.__all__:
         ns[k] = getattr(calccheck, k)
     names = 'x y z t u v w r s h k m n a b c theta'

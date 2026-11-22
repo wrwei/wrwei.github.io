@@ -140,7 +140,8 @@ example that computes nothing (reading a graph, a definition in action) is marke
 displayed result you want verified; all check blocks of a page run in page order in one namespace, so a
 later block can use names an earlier one defined.
 
-The namespace starts with `from sympy import *`, the symbols `x y z t u v w r s h k m n a b c theta`
+The namespace starts with `from sympy import *` (plus `function_range`, `continuous_domain`, `periodicity`,
+`minimum` and `maximum` from `sympy.calculus.util`), the symbols `x y z t u v w r s h k m n a b c theta`
 (no assumptions: declare your own, e.g. `x = symbols('x', positive=True)`, when a result needs
 them), and these helpers (`tools/calccheck.py`):
 
@@ -185,6 +186,12 @@ A check must check what the page states, exactly: the reviewer compares every ch
 prose around it. Keep each block fast (well under two seconds); avoid `simplify` on large expressions
 when `expand` or `same` will do. Never weaken a check to make it pass: if a check fails, the page is
 wrong (or the check), find out which.
+
+SymPy pitfalls met so far: `limit(f, x, a)` is the limit **from the right** (SymPy's default direction is
+`'+'`); a two-sided limit needs `limit(f, x, a, '+-')` (`limit_is` is two-sided by default). SymPy's
+`limit` can get one-sided limits of `Piecewise` functions wrong, and `summation` returns `nan` for some
+convergent series (e.g. the sum of 1/(2n² − n)): check such results another way (partial fractions, a
+known series, high-precision partial sums with `near`).
 
 ### 6.2 Compute boxes (Python)
 

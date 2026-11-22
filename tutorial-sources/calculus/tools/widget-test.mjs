@@ -88,13 +88,13 @@ for (const file of tests) {
       },
       async select(sel, value) { return t.set(sel, value) },
       async clickAt(sel, fx, fy) {
-        const box = await find(sel, 'e => { if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height } }')
+        const box = await find(sel, 'e => { if (!e) return null; e.scrollIntoView({ block: "center", inline: "center", behavior: "instant" }); const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height } }')
         if (!box) { t.check(false, `clickAt ${sel}: not found`); return }
         await page.mouse.click(box.x + fx * box.w, box.y + fy * box.h)
         await new Promise(r => setTimeout(r, 80))
       },
       async drag(sel, from, to) {
-        const box = await find(sel, 'e => { if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height } }')
+        const box = await find(sel, 'e => { if (!e) return null; e.scrollIntoView({ block: "center", inline: "center", behavior: "instant" }); const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height } }')
         if (!box) { t.check(false, `drag ${sel}: not found`); return }
         await page.mouse.move(box.x + from[0] * box.w, box.y + from[1] * box.h)
         await page.mouse.down()
