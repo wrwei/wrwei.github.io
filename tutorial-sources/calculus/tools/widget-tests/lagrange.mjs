@@ -3,6 +3,16 @@ export const page = 'module_18'
 // The readout as one string; the live value of a control (a property, not the attribute).
 const readout = async t => (await t.texts('.lg-readout div')).join(' | ')
 const selects = t => t.page.$$eval(t.root + ' select', els => els.map(e => e.value))
+// The tips of the two arrows (the first point of each arrowhead): whether both lie at least 5 px inside the plot's
+// clipping rectangle (so that the whole head shows), and the ratio of their distances from the point.
+const tips = t => t.page.$eval(t.root, el => {
+  const b = ['x', 'y', 'width', 'height'].map(a => +el.querySelector('clipPath rect').getAttribute(a))
+  const p = el.querySelector('.lg-point'), P = [+p.getAttribute('cx'), +p.getAttribute('cy')]
+  const tip = sel => el.querySelector(sel + ' path').getAttribute('d').match(/^M\s*([-\d.e]+)[ ,]+([-\d.e]+)/).slice(1).map(Number)
+  const f = tip('.lg-grad-f'), g = tip('.lg-grad-g')
+  const inside = q => q[0] > b[0] + 5 && q[0] < b[0] + b[2] - 5 && q[1] > b[1] + 5 && q[1] < b[1] + b[3] - 5
+  return { inside: inside(f) && inside(g), ratio: Math.hypot(f[0] - P[0], f[1] - P[1]) / Math.hypot(g[0] - P[0], g[1] - P[1]) }
+})
 
 export async function run(t) {
   // Start: f = xy on the ellipse x²/4 + y² = 1 at t = 20°, where f = sin 40° is still increasing with t.
@@ -53,6 +63,18 @@ export async function run(t) {
   await t.set('input[type=range]', 0.5)
   r = await readout(t)
   t.check(r.includes('x = 0.5') && r.includes('xy = 0.25') && r.includes('λ = |∇f| / |∇g| = 0.5'), 'xy on the line at x = 0.5: the maximum 1/4, λ = 1/2')
+
+  // At the ends of the line the arrows stay inside the plot (they are clipped to it), shrinking together near the top
+  // edge: their lengths keep the ratio |∇f| : |∇g|, here √101/2 : √2 at (−0.25, 1.25) and 4√2 : √2 at (2, −1).
+  await t.select('select >> nth=0', 'quad')
+  const ends = []
+  for (const [x, want] of [[-0.25, Math.sqrt(101 / 8)], [2, 4]]) {
+    await t.set('input[type=range]', x)
+    const q = await tips(t)
+    ends.push(q.inside && Math.abs(q.ratio / want - 1) < 0.01)
+  }
+  await t.shot('line')
+  t.check(ends.every(Boolean), 'x² + 2y² at both ends of the line: both arrowheads well inside the plot, lengths in the ratio |∇f| : |∇g|')
   await t.select('select >> nth=0', 'sum')
   r = await readout(t)
   t.check((await selects(t)).join() === 'sum,circle' && r.includes('now the circle') && r.includes('nothing to optimise') && (await t.text('.lg-key')).includes('x² + y² = 1'),

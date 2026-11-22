@@ -512,7 +512,7 @@ $$\alpha \le \theta \le \beta, \qquad h_1(\theta) \le r \le h_2(\theta),$$
 
 where $0 < \beta - \alpha \le 2\pi$ and $h_1$, $h_2$ are continuous on $[\alpha, \beta]$ with $0 \le h_1(\theta) \le h_2(\theta)$. Then
 
-$$\iint_D f(x, y)\,dA = \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)} f(r\cos\theta, r\sin\theta)\,r\,dr\,d\theta.$$
+$$\begin{aligned} &\iint_D f(x, y)\,dA \\ &\quad= \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)} f(r\cos\theta, r\sin\theta)\,r\,dr\,d\theta. \end{aligned}$$
 :::
 
 In short, $dA = r\,dr\,d\theta$: replace $x$ and $y$ by $r\cos\theta$ and $r\sin\theta$, and $dA$ by $r\,dr\,d\theta$. For a polar rectangle, $h_1$ and $h_2$ are the constants $r_0$ and $r_1$. With $f = 1$ and $h_1 = 0$, the inner integral is $\int_0^{h_2(\theta)} r\,dr = \tfrac12 h_2(\theta)^2$, and the theorem gives the area $\int_\alpha^\beta \tfrac12 h_2(\theta)^2\,d\theta$: the formula for areas in polar coordinates of Module 16.
@@ -663,7 +663,7 @@ A thin flat plate, a **lamina**, occupies a region $D$ of the plane, and its **d
 ::: definition Mass and centre of mass of a plate
 A lamina occupying the region $D$ with continuous density $\rho(x, y) > 0$ has the **mass** and the **moments** about the $y$-axis and the $x$-axis
 
-$$m = \iint_D \rho\,dA, \quad M_y = \iint_D x\rho\,dA, \quad M_x = \iint_D y\rho\,dA,$$
+$$\begin{aligned} m &= \iint_D \rho\,dA, \\ M_y &= \iint_D x\rho\,dA, \qquad M_x = \iint_D y\rho\,dA, \end{aligned}$$
 
 and its **centre of mass** is the point $(\bar x, \bar y)$ with
 
@@ -859,9 +859,9 @@ The cylinder $x^2 + y^2 = 4$ becomes $r = 2$, and the paraboloid $z = x^2 + y^2$
 ::: theorem Triple integrals in cylindrical coordinates
 Let $E$ be the solid $u_1(x, y) \le z \le u_2(x, y)$ over the region $D$ given by $\alpha \le \theta \le \beta$, $h_1(\theta) \le r \le h_2(\theta)$, with $h_1$ and $h_2$ as in Theorem 19.4 and $u_1 \le u_2$ continuous. If $f$ is continuous on $E$, then
 
-$$\iiint_E f\,dV = \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)}\int_{u_1}^{u_2} f(r\cos\theta, r\sin\theta, z)\,r\,dz\,dr\,d\theta,$$
+$$\iiint_E f\,dV = \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)}\int_{u_1}^{u_2} f\,r\,dz\,dr\,d\theta,$$
 
-where the limits $u_1$ and $u_2$ are evaluated at $(x, y) = (r\cos\theta, r\sin\theta)$.
+where $f$ is evaluated at $(r\cos\theta, r\sin\theta, z)$, and the limits $u_1$ and $u_2$ at $(x, y) = (r\cos\theta, r\sin\theta)$.
 :::
 
 ::: example Water in a parabolic bowl
@@ -897,7 +897,7 @@ Balls, cones with their tip at the origin and the regions between spheres call f
 ::: definition Spherical coordinates
 The **spherical coordinates** $(\rho, \theta, \varphi)$ of a point $P$ are its distance $\rho \ge 0$ from the origin $O$; the angle $\theta$ of its cylindrical coordinates; and the angle $\varphi$ between the positive $z$-axis and the segment $OP$, with $0 \le \varphi \le \pi$. Then
 
-$$x = \rho\sin\varphi\cos\theta, \quad y = \rho\sin\varphi\sin\theta, \quad z = \rho\cos\varphi,$$
+$$\begin{aligned} x &= \rho\sin\varphi\cos\theta, \qquad y = \rho\sin\varphi\sin\theta, \\ z &= \rho\cos\varphi, \end{aligned}$$
 
 and $\rho^2 = x^2 + y^2 + z^2$.
 :::
@@ -925,9 +925,9 @@ $$dV = \rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi.$$
 ::: theorem Triple integrals in spherical coordinates
 Let $E$ be the spherical wedge $\rho_0 \le \rho \le \rho_1$, $\alpha \le \theta \le \beta$, $\varphi_0 \le \varphi \le \varphi_1$, where $\rho_0 \ge 0$, $0 < \beta - \alpha \le 2\pi$ and $0 \le \varphi_0 < \varphi_1 \le \pi$. If $f$ is continuous on $E$, then
 
-$$\iiint_E f\,dV = \int_{\varphi_0}^{\varphi_1}\int_\alpha^\beta\int_{\rho_0}^{\rho_1} f(x, y, z)\,\rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi,$$
+$$\iiint_E f\,dV = \int_{\varphi_0}^{\varphi_1}\int_\alpha^\beta\int_{\rho_0}^{\rho_1} f\,\rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi,$$
 
-with $x$, $y$ and $z$ replaced by their expressions in $\rho$, $\theta$ and $\varphi$.
+where $f$ is evaluated at the point with $x = \rho\sin\varphi\cos\theta$, $y = \rho\sin\varphi\sin\theta$ and $z = \rho\cos\varphi$.
 :::
 
 The wedge argument above is the idea of the proof; Section 19.8 gives the general reason, in which $\rho^2\sin\varphi$ is a Jacobian. The same formula holds when $\rho$ runs between two continuous functions of $\theta$ and $\varphi$.
@@ -1026,12 +1026,12 @@ Let $x = x(u, v)$ and $y = y(u, v)$ have continuous first partial derivatives. T
 $$\frac{\partial(x, y)}{\partial(u, v)} = \begin{vmatrix} \dfrac{\partial x}{\partial u} & \dfrac{\partial x}{\partial v} \\[8pt] \dfrac{\partial y}{\partial u} & \dfrac{\partial y}{\partial v} \end{vmatrix} = \frac{\partial x}{\partial u}\frac{\partial y}{\partial v} - \frac{\partial x}{\partial v}\frac{\partial y}{\partial u}.$$
 :::
 
-$\dfrac{\partial(x, y)}{\partial(u, v)}$ reads "the Jacobian of $x$ and $y$ with respect to $u$ and $v$". It is a function of $u$ and $v$.
+The symbol $\partial(x, y)/\partial(u, v)$ reads "the Jacobian of $x$ and $y$ with respect to $u$ and $v$". It is a function of $u$ and $v$.
 
 ::: theorem Change of variables in a double integral
 Let $T$ have continuous first partial derivatives, and let it map a region $S$ of the $uv$-plane onto a region $D$ of the $xy$-plane, one-to-one except perhaps on the boundary of $S$, with a Jacobian that is not 0 except perhaps on the boundary of $S$. Let $S$ and $D$ be of type I or type II. If $f$ is continuous on $D$, then
 
-$$\iint_D f(x, y)\,dA = \iint_S f\big(x(u, v), y(u, v)\big)\,\Big|\frac{\partial(x, y)}{\partial(u, v)}\Big|\,du\,dv.$$
+$$\begin{aligned} &\iint_D f(x, y)\,dA \\ &\quad= \iint_S f\big(x(u, v), y(u, v)\big)\,\Big|\frac{\partial(x, y)}{\partial(u, v)}\Big|\,du\,dv. \end{aligned}$$
 :::
 
 In short, $dA = \Big|\dfrac{\partial(x, y)}{\partial(u, v)}\Big|\,du\,dv$: the absolute value of the Jacobian is the factor by which $T$ multiplies small areas near each point. The Going deeper box below explains why; a complete proof belongs to a course in advanced calculus. In one variable the sign of $g'(u)$ is taken care of by the order of the limits; areas have no direction, so here the absolute value does that job.
@@ -1124,7 +1124,7 @@ $$\begin{aligned} x(u_0 + h, v_0 + k) &\approx x(u_0, v_0) + x_u h + x_v k, \\ y
 
 with the partial derivatives taken at $(u_0, v_0)$. In vector form, $T(u_0 + h, v_0 + k) \approx T(u_0, v_0) + h\,\vb{r}_u + k\,\vb{r}_v$, where $\vb{r}_u = \langle x_u, y_u\rangle$ and $\vb{r}_v = \langle x_v, y_v\rangle$. As $h$ runs from 0 to $\Delta u$ and $k$ from 0 to $\Delta v$, the right side fills the parallelogram with a corner at $T(u_0, v_0)$ spanned by $\Delta u\,\vb{r}_u$ and $\Delta v\,\vb{r}_v$. So the image of the small rectangle is nearly that parallelogram (Figure 19.5), whose area is
 
-$$\big|(x_u\Delta u)(y_v\Delta v) - (x_v\Delta v)(y_u\Delta u)\big| = \Big|\frac{\partial(x, y)}{\partial(u, v)}\Big|\,\Delta u\,\Delta v.$$
+$$\begin{aligned} &\big|(x_u\Delta u)(y_v\Delta v) - (x_v\Delta v)(y_u\Delta u)\big| \\ &\quad= \Big|\frac{\partial(x, y)}{\partial(u, v)}\Big|\,\Delta u\,\Delta v. \end{aligned}$$
 
 Cut $S$ into small rectangles. Their images cut $D$ into small pieces, of areas about $\abs{J}\,\Delta u\,\Delta v$ with $J$ the Jacobian at a corner, so
 
@@ -1150,7 +1150,11 @@ $$dV = \Big|\frac{\partial(x, y, z)}{\partial(u, v, w)}\Big|\,du\,dv\,dw.$$
 For cylindrical coordinates the Jacobian is $r$ and for spherical coordinates $\rho^2\sin\varphi$, as the compute box of Section 19.7 shows: the factors found there from pictures.
 
 ::: pitfall
-Two slips with the Jacobian. First, use its absolute value. The transformation $x = v$, $y = u$, which swaps the axes, has Jacobian $-1$, yet it does not make areas negative. Second, use the Jacobian of $x$ and $y$ with respect to $u$ and $v$: it converts $du\,dv$ into $dA$. In Example 19.17 the formulas for $u$ and $v$ give $\dfrac{\partial(u, v)}{\partial(x, y)} = \begin{vmatrix} 2 & -1 \\ -1 & 2 \end{vmatrix} = 3$ at once; that is the reciprocal of the factor needed, $\tfrac13$. (At matching points the two are always reciprocals, a consequence of the chain rule.) Using 3 by mistake gives an answer 9 times too large.
+Two slips with the Jacobian. First, use its absolute value. The transformation $x = v$, $y = u$, which swaps the axes, has Jacobian $-1$, yet it does not make areas negative. Second, use the Jacobian of $x$ and $y$ with respect to $u$ and $v$: it converts $du\,dv$ into $dA$. In Example 19.17 the formulas for $u$ and $v$ give at once
+
+$$\frac{\partial(u, v)}{\partial(x, y)} = \begin{vmatrix} 2 & -1 \\ -1 & 2 \end{vmatrix} = 3,$$
+
+the reciprocal of the factor needed, $\tfrac13$. (At matching points the two are always reciprocals, a consequence of the chain rule.) Using 3 by mistake gives an answer 9 times too large.
 
 ```check
 same(Matrix([v, u]).jacobian([u, v]).det(), -1)
@@ -1184,11 +1188,11 @@ $$\frac{9 + 11 + 17 + 35}{8} = \frac{72}{8} = 9.$$
 
 **(b)** In the order $dy\,dx$, the inner integral holds $x$ constant:
 
-$$\begin{aligned} \int_0^2 \big(xy^2 + 1\big)\,dy &= \Big[\frac{xy^3}{3} + y\Big]_{y=0}^{y=2} = \frac{8x}{3} + 2, \\ \int_0^2\Big(\frac{8x}{3} + 2\Big)\,dx &= \frac{16}{3} + 4 = \frac{28}{3} \approx 9.333. \end{aligned}$$
+$$\begin{aligned} \int_0^2 \big(xy^2 + 1\big)\,dy &= \Big[\frac{xy^3}{3} + y\Big]_{y=0}^{y=2} \\ &= \frac{8x}{3} + 2, \\ \int_0^2\Big(\frac{8x}{3} + 2\Big)\,dx &= \frac{16}{3} + 4 = \frac{28}{3} \approx 9.333. \end{aligned}$$
 
 In the order $dx\,dy$:
 
-$$\begin{aligned} \int_0^2 \big(xy^2 + 1\big)\,dx &= \Big[\frac{x^2y^2}{2} + x\Big]_{x=0}^{x=2} = 2y^2 + 2, \\ \int_0^2 \big(2y^2 + 2\big)\,dy &= \frac{16}{3} + 4 = \frac{28}{3}. \end{aligned}$$
+$$\begin{aligned} \int_0^2 \big(xy^2 + 1\big)\,dx &= \Big[\frac{x^2y^2}{2} + x\Big]_{x=0}^{x=2} \\ &= 2y^2 + 2, \\ \int_0^2 \big(2y^2 + 2\big)\,dy &= \frac{16}{3} + 4 = \frac{28}{3}. \end{aligned}$$
 
 The two orders agree, as Fubini's theorem says.
 
@@ -1224,7 +1228,7 @@ $$\iint_D f\,dA = \int_0^2\int_{y^2}^{2y} f\,dx\,dy.$$
 
 **(c)** With $f = 1$:
 
-$$\begin{aligned} \int_0^4\Big(\sqrt x - \frac x2\Big)\,dx &= \Big[\frac23x^{3/2} - \frac{x^2}{4}\Big]_0^4 = \frac{16}{3} - 4 = \frac43, \\ \int_0^2 \big(2y - y^2\big)\,dy &= \Big[y^2 - \frac{y^3}{3}\Big]_0^2 = 4 - \frac83 = \frac43. \end{aligned}$$
+$$\begin{aligned} \int_0^4\Big(\sqrt x - \frac x2\Big)\,dx &= \Big[\frac23x^{3/2} - \frac{x^2}{4}\Big]_0^4 \\ &= \frac{16}{3} - 4 = \frac43, \\ \int_0^2 \big(2y - y^2\big)\,dy &= \Big[y^2 - \frac{y^3}{3}\Big]_0^2 \\ &= 4 - \frac83 = \frac43. \end{aligned}$$
 
 **(d)** Horizontal slices are easier here:
 
@@ -1255,11 +1259,11 @@ Let $D$ be the triangle with vertices $(0, 0)$, $(2, 0)$ and $(1, 1)$.
 
 **(b)** In the order $dy\,dx$, split at $x = 1$:
 
-$$\begin{aligned} &\int_0^1\int_0^x y\,dy\,dx + \int_1^2\int_0^{2-x} y\,dy\,dx \\ &\quad= \int_0^1\frac{x^2}{2}\,dx + \int_1^2\frac{(2 - x)^2}{2}\,dx = \frac16 + \frac16 = \frac13. \end{aligned}$$
+$$\begin{aligned} &\int_0^1\int_0^x y\,dy\,dx + \int_1^2\int_0^{2-x} y\,dy\,dx \\ &\quad= \int_0^1\frac{x^2}{2}\,dx + \int_1^2\frac{(2 - x)^2}{2}\,dx \\ &\quad= \frac16 + \frac16 = \frac13. \end{aligned}$$
 
 In the order $dx\,dy$, the slice at height $y$ has length $(2 - y) - y = 2 - 2y$:
 
-$$\int_0^1\int_y^{2-y} y\,dx\,dy = \int_0^1 \big(2y - 2y^2\big)\,dy = 1 - \frac23 = \frac13.$$
+$$\begin{aligned} \int_0^1\int_y^{2-y} y\,dx\,dy &= \int_0^1 \big(2y - 2y^2\big)\,dy \\ &= 1 - \frac23 = \frac13. \end{aligned}$$
 
 The triangle has base 2 and height 1, so its area is 1 and $\bar y = \tfrac13$: the centroid of a triangle lies a third of the way up from its base.
 
@@ -1278,7 +1282,7 @@ Let $D$ be the quarter disc $x^2 + y^2 \le 1$, $x \ge 0$, $y \ge 0$. Evaluate $\
 ::: solution
 **(a)** In polar coordinates $xy = r^2\cos\theta\sin\theta$ and $dA = r\,dr\,d\theta$, and $D$ is $0 \le r \le 1$, $0 \le \theta \le \pi/2$. The integrand is a product, so the integral splits:
 
-$$\begin{aligned} \iint_D xy\,dA &= \int_0^{\pi/2}\int_0^1 r^2\cos\theta\sin\theta\,r\,dr\,d\theta \\ &= \int_0^1 r^3\,dr\int_0^{\pi/2}\sin\theta\cos\theta\,d\theta = \frac14\cdot\frac12 = \frac18, \end{aligned}$$
+$$\begin{aligned} \iint_D xy\,dA &= \int_0^{\pi/2}\int_0^1 r^2\cos\theta\sin\theta\,r\,dr\,d\theta \\ &= \int_0^1 r^3\,dr\int_0^{\pi/2}\sin\theta\cos\theta\,d\theta \\ &= \frac14\cdot\frac12 = \frac18, \end{aligned}$$
 
 since $\int_0^{\pi/2}\sin\theta\cos\theta\,d\theta = \big[\tfrac12\sin^2\theta\big]_0^{\pi/2} = \tfrac12$ (substitute $u = \sin\theta$).
 
@@ -1305,7 +1309,7 @@ Evaluate $\displaystyle\int_0^1\int_{\sqrt x}^{1} \sqrt{1 + y^3}\,dy\,dx$.
 ::: solution
 The inner integral needs an antiderivative of $\sqrt{1 + y^3}$, and there is no elementary one, so reverse the order. The limits say $0 \le x \le 1$ and $\sqrt x \le y \le 1$. For $x \ge 0$ and $y \ge 0$, $y \ge \sqrt x$ is the same as $x \le y^2$, so the region is bounded by the $y$-axis, the parabola $x = y^2$ and the line $y = 1$: a horizontal line at height $y$, $0 \le y \le 1$, enters it on the $y$-axis and leaves it on the parabola $x = y^2$. So
 
-$$\begin{aligned} \int_0^1\int_{\sqrt x}^{1} \sqrt{1 + y^3}\,dy\,dx &= \int_0^1\int_0^{y^2}\sqrt{1 + y^3}\,dx\,dy \\ &= \int_0^1 y^2\sqrt{1 + y^3}\,dy. \end{aligned}$$
+$$\begin{aligned} &\int_0^1\int_{\sqrt x}^{1} \sqrt{1 + y^3}\,dy\,dx \\ &\quad= \int_0^1\int_0^{y^2}\sqrt{1 + y^3}\,dx\,dy \\ &\quad= \int_0^1 y^2\sqrt{1 + y^3}\,dy. \end{aligned}$$
 
 Substitute $u = 1 + y^3$, $du = 3y^2\,dy$; the limits become $u = 1$ and $u = 2$:
 
@@ -1341,11 +1345,11 @@ Each probability is the integral of 1 over the part of the square where the even
 
 **(c)** Work with the complement, $xy > \tfrac12$, which is one region: $y > \dfrac{1}{2x}$, and since $y \le 1$ this needs $\dfrac{1}{2x} < 1$, that is, $x > \tfrac12$. So
 
-$$\begin{aligned} P\Big(XY > \frac12\Big) &= \int_{1/2}^{1}\Big(1 - \frac{1}{2x}\Big)\,dx \\ &= \frac12 - \frac12\Big(\ln 1 - \ln\frac12\Big) = \frac12 - \frac{\ln 2}{2}, \end{aligned}$$
+$$\begin{aligned} P\Big(XY > \frac12\Big) &= \int_{1/2}^{1}\Big(1 - \frac{1}{2x}\Big)\,dx \\ &= \frac12 - \frac12\Big(\ln 1 - \ln\frac12\Big) \\ &= \frac12 - \frac{\ln 2}{2}, \end{aligned}$$
 
 and
 
-$$P\Big(XY \le \frac12\Big) = 1 - \Big(\frac12 - \frac{\ln 2}{2}\Big) = \frac{1 + \ln 2}{2} \approx 0.847.$$
+$$\begin{aligned} P\Big(XY \le \frac12\Big) &= 1 - \Big(\frac12 - \frac{\ln 2}{2}\Big) \\ &= \frac{1 + \ln 2}{2} \approx 0.847. \end{aligned}$$
 
 (Directly, the event $xy \le \tfrac12$ needs two pieces: the whole strip $0 \le x \le \tfrac12$, and $0 \le y \le \tfrac{1}{2x}$ for $\tfrac12 \le x \le 1$.)
 
@@ -1365,11 +1369,11 @@ A thin plate occupies the half disc $x^2 + y^2 \le a^2$, $y \ge 0$, and its dens
 ::: solution
 In polar coordinates the half disc is $0 \le r \le a$, $0 \le \theta \le \pi$, and $\rho = kr\sin\theta$. The mass is
 
-$$\begin{aligned} m &= \int_0^\pi\int_0^a kr\sin\theta\cdot r\,dr\,d\theta \\ &= k\int_0^\pi\sin\theta\,d\theta\int_0^a r^2\,dr = k\cdot 2\cdot\frac{a^3}{3} = \frac{2ka^3}{3}. \end{aligned}$$
+$$\begin{aligned} m &= \int_0^\pi\int_0^a kr\sin\theta\cdot r\,dr\,d\theta \\ &= k\int_0^\pi\sin\theta\,d\theta\int_0^a r^2\,dr \\ &= k\cdot 2\cdot\frac{a^3}{3} = \frac{2ka^3}{3}. \end{aligned}$$
 
 The plate and its density do not change when $x$ is replaced by $-x$, so the moments of mirror-image pieces about the $y$-axis cancel: $M_y = 0$ and $\bar x = 0$. (In the integral, $\int_0^\pi\cos\theta\sin\theta\,d\theta = 0$.) For $\bar y$, with $\int_0^\pi \sin^2\theta\,d\theta = \tfrac{\pi}{2}$ (write $\sin^2\theta = \tfrac12(1 - \cos 2\theta)$),
 
-$$\begin{aligned} M_x &= \iint_D y\cdot ky\,dA = k\int_0^\pi\int_0^a r^2\sin^2\theta\cdot r\,dr\,d\theta \\ &= k\cdot\frac{\pi}{2}\cdot\frac{a^4}{4} = \frac{k\pi a^4}{8}, \end{aligned}$$
+$$\begin{aligned} M_x &= \iint_D y\cdot ky\,dA \\ &= k\int_0^\pi\int_0^a r^2\sin^2\theta\cdot r\,dr\,d\theta \\ &= k\cdot\frac{\pi}{2}\cdot\frac{a^4}{4} = \frac{k\pi a^4}{8}, \end{aligned}$$
 
 so
 
@@ -1422,15 +1426,15 @@ Take a ball of radius $a$ centred at the origin, with constant density $k$, so t
 - (b) Find its moment of inertia about the $z$-axis, $I_z = \iiint \big(x^2 + y^2\big)k\,dV$, in terms of $M$ and $a$, and compare with the uniform disc of Example 19.10.
 
 ::: solution
-**(a)** The average of the distance $\rho$ over the ball is its integral divided by the volume $\tfrac43\pi a^3$. The integral splits into three single integrals:
+**(a)** The average of the distance $\rho$ over the ball is its integral divided by the volume $\tfrac43\pi a^3$. With $dV = \rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi$, the integral of $\rho$ splits into three single integrals:
 
-$$\begin{aligned} \iiint \rho\,dV &= \int_0^\pi\int_0^{2\pi}\int_0^a \rho\cdot\rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi \\ &= \frac{a^4}{4}\cdot 2\pi\cdot 2 = \pi a^4, \end{aligned}$$
+$$\begin{aligned} \iiint \rho\,dV &= \int_0^\pi\int_0^{2\pi}\int_0^a \rho^3\sin\varphi\,d\rho\,d\theta\,d\varphi \\ &= \frac{a^4}{4}\cdot 2\pi\cdot 2 = \pi a^4, \end{aligned}$$
 
 so the average distance is $\dfrac{\pi a^4}{\tfrac43\pi a^3} = \dfrac{3a}{4}$. Most of a ball's volume lies near its surface.
 
-**(b)** In spherical coordinates $x^2 + y^2 = r^2 = \rho^2\sin^2\varphi$, so
+**(b)** In spherical coordinates $x^2 + y^2 = r^2 = \rho^2\sin^2\varphi$, and the factor $\rho^2\sin\varphi$ of $dV$ makes the integrand $k\rho^4\sin^3\varphi$:
 
-$$\begin{aligned} I_z &= k\int_0^\pi\int_0^{2\pi}\int_0^a \rho^2\sin^2\varphi\cdot\rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi \\ &= k\cdot\frac{a^5}{5}\cdot 2\pi\int_0^\pi\sin^3\varphi\,d\varphi. \end{aligned}$$
+$$\begin{aligned} I_z &= k\int_0^\pi\int_0^{2\pi}\int_0^a \rho^4\sin^3\varphi\,d\rho\,d\theta\,d\varphi \\ &= k\cdot\frac{a^5}{5}\cdot 2\pi\int_0^\pi\sin^3\varphi\,d\varphi. \end{aligned}$$
 
 For the last integral write $\sin^3\varphi = \big(1 - \cos^2\varphi\big)\sin\varphi$ and substitute $u = \cos\varphi$: $\int_0^\pi \sin^3\varphi\,d\varphi = \int_{-1}^{1}\big(1 - u^2\big)\,du = \tfrac43$. So
 
@@ -1444,7 +1448,8 @@ Ir = integrate(rh*rh**2*sin(ph), (rh, 0, aK), (theta, 0, 2*pi), (ph, 0, pi)); sa
 same(Ir/(Rational(4, 3)*pi*aK**3), 3*aK/4)
 same((rh*sin(ph)*cos(theta))**2 + (rh*sin(ph)*sin(theta))**2, rh**2*sin(ph)**2)
 same(integrate(sin(ph)**3, (ph, 0, pi)), Rational(4, 3)); same(integrate(1 - u**2, (u, -1, 1)), Rational(4, 3)); same((1 - cos(ph)**2)*sin(ph), sin(ph)**3)
-Iz = integrate(kp*rh**2*sin(ph)**2*rh**2*sin(ph), (rh, 0, aK), (theta, 0, 2*pi), (ph, 0, pi)); same(Iz, 8*pi*kp*aK**5/15)
+same(rh**2*sin(ph)**2*rh**2*sin(ph), rh**4*sin(ph)**3); same(rh*rh**2*sin(ph), rh**3*sin(ph))
+Iz = integrate(kp*rh**4*sin(ph)**3, (rh, 0, aK), (theta, 0, 2*pi), (ph, 0, pi)); same(Iz, 8*pi*kp*aK**5/15); same(Iz, kp*aK**5/5*2*pi*Rational(4, 3))
 same(Iz, Rational(2, 5)*(Rational(4, 3)*pi*aK**3*kp)*aK**2); holds(Rational(1, 2) > Rational(2, 5))
 ```
 :::
@@ -1470,7 +1475,7 @@ $$\begin{aligned} \frac{\partial(x, y)}{\partial(u, v)} &= x_uy_v - x_vy_u \\ &=
 
 The check: from $u = xy$ and $v = y/x$,
 
-$$\frac{\partial(u, v)}{\partial(x, y)} = \begin{vmatrix} y & x \\ -y/x^2 & 1/x \end{vmatrix} = \frac yx + \frac yx = \frac{2y}{x} = 2v,$$
+$$\begin{aligned} \frac{\partial(u, v)}{\partial(x, y)} &= \begin{vmatrix} y & x \\ -y/x^2 & 1/x \end{vmatrix} \\ &= \frac yx + \frac yx = \frac{2y}{x} = 2v, \end{aligned}$$
 
 the reciprocal of $\tfrac{1}{2v}$, as the pitfall of Section 19.8 says it must be.
 
@@ -1516,7 +1521,9 @@ $$V = \frac{4\pi}{3}\cdot\frac{h^3}{8} = \frac{\pi h^3}{6}.$$
 
 A ring 6 cm tall cut from a ball the size of an orange and one 6 cm tall cut from a ball the size of the Earth have the same volume, $36\pi \approx 113$ cm³: the second ring is far wider around, but its wall is far thinner.
 
-**(c)** With $a = 2$ and $b = 1$: $\tfrac{4\pi}{3}\cdot 3^{3/2} = 4\sqrt3\,\pi$, and $h = 2\sqrt3$ gives $\tfrac{\pi(2\sqrt3)^3}{6} = \tfrac{24\sqrt3\,\pi}{6} = 4\sqrt3\,\pi \approx 21.77$.
+**(c)** With $a = 2$ and $b = 1$, the formula of (a) gives $\tfrac{4\pi}{3}\cdot 3^{3/2} = 4\sqrt3\,\pi$. The height is $h = 2\sqrt3$, and the formula of (b) gives the same:
+
+$$\frac{\pi\big(2\sqrt3\big)^3}{6} = \frac{24\sqrt3\,\pi}{6} = 4\sqrt3\,\pi \approx 21.77.$$
 
 ```check
 aR, bR = symbols('a b', positive=True)
@@ -1537,8 +1544,8 @@ Model the horizontal and vertical errors $X$ and $Y$ of a dart player's throws, 
 
 $$\varphi(x)\varphi(y) = \frac{1}{2\pi}e^{-(x^2 + y^2)/2}.$$
 
-- (a) Use polar coordinates to show that the probability of landing within the distance $c$ of the target is $1 - e^{-c^2/2}$. Evaluate it for $c = 1$, 2 and 3, and compare with the 68–95–99.7 rule of Module 12.
-- (b) As Module 12 defined the mean of one random variable, the mean of a quantity $g(X, Y)$ is $\iint g(x, y)f(x, y)\,dA$ over the plane. Show that the mean distance from the target is $\sqrt{\pi/2} \approx 1.253$. You may use the Gaussian integral.
+- (a) Use polar coordinates to show that the probability of landing within the distance $c$ of the target is $1 - e^{-c^2/2}$. Evaluate it for $c = 1$, 2 and 3, and compare with the 68–95–99.7 rule of [Section 12.9](module_12_EN.html#normal).
+- (b) In the way that [Section 12.9](module_12_EN.html#expected-value) defined the mean of one random variable, the mean of a quantity $g(X, Y)$ is $\iint g(x, y)f(x, y)\,dA$ over the plane. Show that the mean distance from the target is $\sqrt{\pi/2} \approx 1.253$. You may use the Gaussian integral.
 
 ::: solution
 **(a)** The event is the disc $x^2 + y^2 \le c^2$, which is $0 \le r \le c$, $0 \le \theta \le 2\pi$ in polar coordinates. With $u = r^2/2$,
@@ -1549,7 +1556,7 @@ For $c = 1$, 2 and 3 this is $1 - e^{-1/2} \approx 0.393$, $1 - e^{-2} \approx 0
 
 **(b)** The distance is $r$, so the mean distance is
 
-$$\int_0^{2\pi}\int_0^\infty r\cdot\frac{1}{2\pi}e^{-r^2/2}\,r\,dr\,d\theta = \int_0^\infty r^2e^{-r^2/2}\,dr,$$
+$$\begin{aligned} &\int_0^{2\pi}\int_0^\infty r\cdot\frac{1}{2\pi}e^{-r^2/2}\,r\,dr\,d\theta \\ &\quad= \int_0^\infty r^2e^{-r^2/2}\,dr, \end{aligned}$$
 
 an improper integral of a positive function. Integrate by parts with $u = r$ and $dv = re^{-r^2/2}\,dr$, so $v = -e^{-r^2/2}$: for $t > 0$,
 

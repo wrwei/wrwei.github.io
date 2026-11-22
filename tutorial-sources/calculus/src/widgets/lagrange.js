@@ -25,7 +25,7 @@ CalcWidgets.register('lagrange', function (root, api) {
     { value: 'ellipse', label: 'x²/4 + y² = 1', angle: true, where: '(2 cos t, sin t)',
       r: function (s) { return [2 * Math.cos(s), Math.sin(s)] }, dr: function (s) { return [-2 * Math.sin(s), Math.cos(s)] },
       grad: function (x, y) { return [x / 2, 2 * y] } },
-    { value: 'line', label: 'x + y = 1', angle: false, where: '(x, 1 − x)', min: -0.8, max: 2.8, step: 0.01,
+    { value: 'line', label: 'x + y = 1', angle: false, where: '(x, 1 − x)', min: -0.25, max: 2, step: 0.01,
       r: function (s) { return [s, 1 - s] }, dr: function () { return [1, -1] }, grad: function () { return [1, 1] } },
   ]
   var VIEW = [-3.2, 3.2, -2.2, 2.2]
@@ -86,6 +86,20 @@ CalcWidgets.register('lagrange', function (root, api) {
   }
 
   // ------------------------------------------------------------------ the picture
+  // One scale for both arrows, so that their lengths compare as |∇f| and |∇g| do: the longer arrow is 0.95 long, or
+  // shorter where that would bring a tip within 0.15 of the edge of the view (on the line, near the ends of its range).
+  function arrowScale(r) {
+    var big = Math.max(r.nf, r.ng), k = big > 0 ? 0.95 / big : 0, e = 0.15, v = VIEW, gs = [r.gf, r.gg]
+    for (var i = 0; i < 2; i++) {
+      var g = gs[i]
+      if (g[0] > 0) k = Math.min(k, (v[1] - e - r.x) / g[0])
+      if (g[0] < 0) k = Math.min(k, (v[0] + e - r.x) / g[0])
+      if (g[1] > 0) k = Math.min(k, (v[3] - e - r.y) / g[1])
+      if (g[1] < 0) k = Math.min(k, (v[2] + e - r.y) / g[1])
+    }
+    return Math.max(k, 0)
+  }
+
   // A label point for the level curve f = L: the first place where the curve crosses the edge of the view (inset a
   // little), going round from the top left; for a closed curve inside the view, a point on the ray from the origin
   // towards the upper left.
@@ -135,12 +149,14 @@ CalcWidgets.register('lagrange', function (root, api) {
       curve.setAttribute('class', 'lg-constraint')
       var lev = P.contour(o.f, [r.f], { color: 'var(--orange)', width: 2.2, n: 120 })
       lev.setAttribute('class', 'lg-level')
-      var big = Math.max(r.nf, r.ng), k = big > 0 ? 0.95 / big : 0
-      var ag = P.arrow(r.x, r.y, r.x + k * r.gg[0], r.y + k * r.gg[1], { color: 'var(--green)', width: 5, head: 13, layer: 'main' })
+      // The point first and the arrows over it, so that a short arrow stays visible; a short arrow gets a smaller head.
+      P.point(r.x, r.y, { color: 'var(--navy)', r: 5.5, layer: 'main' }).setAttribute('class', 'lg-point')
+      var k = arrowScale(r), px = P.X(1) - P.X(0)
+      var head = function (n, most) { return Math.max(5, Math.min(most, 0.6 * k * n * px)) }
+      var ag = P.arrow(r.x, r.y, r.x + k * r.gg[0], r.y + k * r.gg[1], { color: 'var(--green)', width: 5, head: head(r.ng, 13), layer: 'main' })
       ag.setAttribute('class', 'lg-grad-g'); ag.setAttribute('opacity', '0.55')
-      var af = P.arrow(r.x, r.y, r.x + k * r.gf[0], r.y + k * r.gf[1], { color: 'var(--orange)', width: 2.2, head: 10, layer: 'main' })
+      var af = P.arrow(r.x, r.y, r.x + k * r.gf[0], r.y + k * r.gf[1], { color: 'var(--orange)', width: 2.2, head: head(r.nf, 10), layer: 'main' })
       af.setAttribute('class', 'lg-grad-f')
-      P.point(r.x, r.y, { color: 'var(--navy)', r: 5.5 }).setAttribute('class', 'lg-point')
     },
   })
 

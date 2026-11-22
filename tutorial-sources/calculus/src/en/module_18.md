@@ -873,6 +873,8 @@ same(pts_[4], ((1 - eb_*ab_)**4*x0b, (1 - eb_*cb_)**4*y0b))
 er_ = symbols('eta', real=True)
 for cv_ in (1, 10, 25):
     same(solve_univariate_inequality(Abs(1 - cv_*er_) < 1, er_, relational=False), Interval.open(0, Rational(2, cv_)))
+    for e_ in (Rational(-1, 10), 0, Rational(1, 10*cv_), Rational(1, cv_), Rational(19, 10*cv_), Rational(2, cv_), Rational(21, 10*cv_), 1 + Rational(2, cv_)):
+        holds(bool(Abs(1 - cv_*e_) < 1) == bool(0 < e_ < Rational(2, cv_)))   # a point in each piece, and the ends
 ```
 
 ### Ill-conditioning {#ill-conditioning}
@@ -1442,4 +1444,5 @@ same_set(solve([1 - 2*lq8*xq8, 1 - 2*lq8*yq8, xq8**2 + yq8**2 - 2], [xq8, yq8, l
 same(Rational(6, 5)*0 + Rational(8, 5), Rational(8, 5)); holds(all(Rational(6, 5)*xi + Rational(8, 5) != yi for xi, yi in zip(X9, Y9)))
 same(Rational(2, 25), Rational(8, 100)); same(Rational(1, 25), Rational(4, 100)); same(1 - 25*1, -24)
 same(solve_univariate_inequality(Abs(1 - 25*er_) < 1, er_, relational=False), Interval.open(0, Rational(2, 25)))
+holds(all(bool(Abs(1 - 25*e_) < 1) == bool(0 < e_ < Rational(8, 100)) for e_ in (Rational(-1, 100), 0, Rational(4, 100), Rational(79, 1000), Rational(8, 100), Rational(81, 1000), 1)))
 ```

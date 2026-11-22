@@ -186,7 +186,7 @@ Find the one-sided limits of $f(x) = \dfrac{\abs{x}}{x}$ at 0. Does $\lim_{x\to0
 
 $f$ is defined for every $x \ne 0$. For $x > 0$, $\abs{x} = x$, so $f(x) = x/x = 1$; for $x < 0$, $\abs{x} = -x$, so $f(x) = -x/x = -1$. Each piece is constant, so
 
-$$\lim_{x\to0^-}\frac{\abs{x}}{x} = -1 \qquad\text{and}\qquad \lim_{x\to0^+}\frac{\abs{x}}{x} = 1.$$
+$$\lim_{x\to0^-}\frac{\abs{x}}{x} = -1 \quad\text{and}\quad \lim_{x\to0^+}\frac{\abs{x}}{x} = 1.$$
 
 The one-sided limits differ, so $\lim_{x\to0} \abs{x}/x$ does not exist. The graph (Figure 2.2, left) consists of two horizontal half-lines, with a jump of 2 at $x = 0$.
 
@@ -347,7 +347,7 @@ If $p$ is a polynomial, then $\lim_{x\to a} p(x) = p(a)$ for every number $a$. I
 ::: proof
 Write $p(x) = c_n x^n + \dots + c_1 x + c_0$. By the power law and the basic limit $\lim_{x\to a} x = a$, $\lim_{x\to a} x^k = a^k$ for each $k \ge 1$; by the constant multiple law, $\lim_{x\to a} c_k x^k = c_k a^k$; and by the sum law, used once for each plus sign, together with $\lim_{x\to a} c_0 = c_0$,
 
-$$\lim_{x\to a} p(x) = c_n a^n + \dots + c_1 a + c_0 = p(a).$$
+$$\begin{aligned} \lim_{x\to a} p(x) &= c_n a^n + \dots + c_1 a + c_0 \\ &= p(a). \end{aligned}$$
 
 If $r = p/q$, then $\lim_{x\to a} p(x) = p(a)$ and $\lim_{x\to a} q(x) = q(a)$, which is not 0, so the quotient law gives $\lim_{x\to a} r(x) = p(a)/q(a) = r(a)$.
 :::
@@ -355,7 +355,8 @@ If $r = p/q$, then $\lim_{x\to a} p(x) = p(a)$ and $\lim_{x\to a} q(x) = q(a)$, 
 ```check
 cs = symbols('c0:4')
 pg = sum(cs[j]*x**j for j in range(4))
-same(limit(pg, x, a), pg.subs(x, a))
+limit_is(pg, x, a, pg.subs(x, a))                  # two-sided, at a symbolic point a
+limit_is(pg/(x**2 - 2*x + 5), x, a, pg.subs(x, a)/(a**2 - 2*a + 5))   # a rational function whose denominator is never 0 on the real line
 same(Rational(2*2**2 - 3*2 + 1, 2 + 3), Rational(3, 5))
 ```
 
@@ -473,7 +474,7 @@ limit_is(n6/d6, x, 3, Rational(5, 6))
 
 When the $0/0$ comes from a difference that contains a square root, multiply the numerator and the denominator by the **conjugate**, the same two terms with the opposite sign between them. The conjugate of $\sqrt{A} - B$ is $\sqrt{A} + B$, and their product,
 
-$$\big(\sqrt{A} - B\big)\big(\sqrt{A} + B\big) = A - B^2 \qquad (A \ge 0),$$
+$$\big(\sqrt{A} - B\big)\big(\sqrt{A} + B\big) = A - B^2 \quad (A \ge 0),$$
 
 has no square root left.
 
@@ -672,16 +673,25 @@ rounds(sin(Rational(1, 10))/Rational(1, 10), '0.99833')
 ::: example Using the two limits
 Find the limits as $x \to 0$ of (a) $\dfrac{\sin 3x}{x}$ and (b) $\dfrac{\tan x}{x}$.
 
-**(a)** Theorem 2.5 needs the same angle above and below, so write $\dfrac{\sin 3x}{x} = 3\cdot\dfrac{\sin 3x}{3x}$ and put $\theta = 3x$. As $x \to 0$ with $x \ne 0$, $\theta \to 0$ with $\theta \ne 0$, so $\dfrac{\sin 3x}{3x} = \dfrac{\sin\theta}{\theta} \to 1$. (Section 2.7 makes this step precise: if $\dfrac{\sin\theta}{\theta}$ is within $\varepsilon$ of 1 whenever $0 < \abs{\theta} < \delta$, then $\dfrac{\sin 3x}{3x}$ is within $\varepsilon$ of 1 whenever $0 < \abs{x} < \delta/3$, because then $0 < \abs{3x} < \delta$.) By the constant multiple law,
+**(a)** Theorem 2.5 needs the same angle above and below. So put $\theta = 3x$ and write
+
+$$\frac{\sin 3x}{x} = 3\cdot\frac{\sin 3x}{3x} = 3\cdot\frac{\sin\theta}{\theta}.$$
+
+As $x \to 0$ with $x \ne 0$, $\theta \to 0$ with $\theta \ne 0$, so $\sin\theta/\theta \to 1$. (Section 2.7 makes this step precise: if $\sin\theta/\theta$ is within $\varepsilon$ of 1 whenever $0 < \abs{\theta} < \delta$, then $\sin 3x/(3x)$ is within $\varepsilon$ of 1 whenever $0 < \abs{x} < \delta/3$, because then $0 < \abs{3x} < \delta$.) By the constant multiple law,
 
 $$\lim_{x\to0}\frac{\sin 3x}{x} = 3 \cdot 1 = 3.$$
 
-**(b)** Write $\dfrac{\tan x}{x} = \dfrac{\sin x}{x}\cdot\dfrac{1}{\cos x}$. The first factor approaches 1 (Theorem 2.5) and $\cos x \to 1$ (Example 2.10), so by the product and quotient laws
+**(b)** Write
+
+$$\frac{\tan x}{x} = \frac{\sin x}{x}\cdot\frac{1}{\cos x}.$$
+
+The first factor approaches 1 (Theorem 2.5) and $\cos x \to 1$ (Example 2.10), so by the product and quotient laws
 
 $$\lim_{x\to0}\frac{\tan x}{x} = 1 \cdot \frac11 = 1.$$
 
 ```check
-same(sin(3*x)/x, 3*sin(3*x)/(3*x)); limit_is(sin(3*x)/(3*x), x, 0, 1); limit_is(sin(3*x)/x, x, 0, 3)
+same(sin(3*x)/x, 3*sin(3*x)/(3*x)); same((3*sin(theta)/theta).subs(theta, 3*x), 3*sin(3*x)/(3*x))
+limit_is(sin(3*x)/(3*x), x, 0, 1); limit_is(sin(3*x)/x, x, 0, 3)
 same(tan(x)/x, (sin(x)/x)*(1/cos(x))); limit_is(tan(x)/x, x, 0, 1)
 ```
 :::
@@ -881,7 +891,7 @@ From here on, $\lim_{x\to a} f(x) = L$ and $\lim_{x\to a} g(x) = M$.
 
 **Sum law.** Challenge $f$ with $\varepsilon/2$: there is a $\delta_1 > 0$ such that $\abs{f(x) - L} < \varepsilon/2$ whenever $0 < \abs{x - a} < \delta_1$. In the same way there is a $\delta_2 > 0$ for $g$. Let $\delta = \min(\delta_1, \delta_2)$. If $0 < \abs{x - a} < \delta$, both inequalities hold, and by the triangle inequality
 
-$$\begin{aligned} &\abs{\big(f(x) + g(x)\big) - (L + M)} \\ &\quad\le \abs{f(x) - L} + \abs{g(x) - M} < \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon. \end{aligned}$$
+$$\begin{aligned} &\abs{\big(f(x) + g(x)\big) - (L + M)} \\ &\quad\le \abs{f(x) - L} + \abs{g(x) - M} \\ &\quad< \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon. \end{aligned}$$
 
 **Product law.** First, $g$ stays bounded near $a$: the challenge 1 gives a $\delta_0 > 0$ with $\abs{g(x) - M} < 1$, and so $\abs{g(x)} < \abs{M} + 1$, for $0 < \abs{x - a} < \delta_0$. Next,
 
@@ -889,7 +899,7 @@ $$\begin{aligned} &f(x)g(x) - LM \\ &\quad= \big(f(x) - L\big)g(x) + L\big(g(x) 
 
 so, by the triangle inequality, for those $x$
 
-$$\begin{aligned} &\abs{f(x)g(x) - LM} \\ &\quad\le \abs{f(x) - L}\big(\abs{M} + 1\big) + \abs{L}\,\abs{g(x) - M}. \end{aligned}$$
+$$\begin{aligned} &\abs{f(x)g(x) - LM} \\ &\quad\le \abs{f(x) - L}\big(\abs{M} + 1\big) \\ &\qquad + \abs{L}\,\abs{g(x) - M}. \end{aligned}$$
 
 Now choose $\delta \le \delta_0$ so small that $\abs{f(x) - L} < \dfrac{\varepsilon}{2(\abs{M} + 1)}$ and $\abs{g(x) - M} < \dfrac{\varepsilon}{2(\abs{L} + 1)}$ for $0 < \abs{x - a} < \delta$. Then
 
@@ -1022,9 +1032,9 @@ print(math.cos(1e-8), math.cos(1e-8) == 1)
 1.0 True
 ```
 
-$\cos(10^{-8}) = 1 - 5 \times 10^{-17} + \dots$ is closer to 1 than to any other floating-point number, so the computer stores exactly 1, and $1 - \cos x$ comes out as 0: every digit has cancelled. The rearranged formula comes from the proof of Theorem 2.6. Multiply the numerator and the denominator by $1 + \cos x$, which is positive for $\abs{x} < \pi$:
+$\cos(10^{-8}) = 1 - 5 \times 10^{-17} + \dots$ is closer to 1 than to any other floating-point number, so the computer stores exactly 1, and $1 - \cos x$ comes out as 0: every digit has cancelled. The rearranged formula comes from the proof of Theorem 2.6. Multiply the numerator and the denominator by $1 + \cos x$, which is positive for $\abs{x} < \pi$. For $0 < \abs{x} < \pi$,
 
-$$\begin{aligned} \frac{1 - \cos x}{x^2} &= \frac{1 - \cos^2 x}{x^2(1 + \cos x)} \\ &= \Big(\frac{\sin x}{x}\Big)^2\cdot\frac{1}{1 + \cos x} \qquad (0 < \abs{x} < \pi). \end{aligned}$$
+$$\begin{aligned} \frac{1 - \cos x}{x^2} &= \frac{1 - \cos^2 x}{x^2(1 + \cos x)} \\ &= \Big(\frac{\sin x}{x}\Big)^2\cdot\frac{1}{1 + \cos x}. \end{aligned}$$
 
 This formula subtracts nothing, and every digit that it prints above is correct. It also gives the limit: by Theorem 2.5 and Example 2.10, it approaches $1^2 \cdot \tfrac12 = \tfrac12$.
 :::
@@ -1068,6 +1078,10 @@ print(sp.limit((1 - sp.cos(x))/x**2, x, 0, '+-'))
 ```
 
 ```output
+2
+1/6
+1
+1/2
 ```
 
 These are the limits of Section 2.1, Example 2.7, Theorem 2.5 and the box above, and they are exact: `1/6`, not 0.1666…. For a one-sided limit, write `'-'` (from the left) or `'+'` (from the right) instead. Leave the side out, and something surprising happens:
@@ -1218,9 +1232,16 @@ Then (e) estimate $\lim_{x\to0^+} x^x$ from a table of values. Why does only the
 x = 0.1, 0.01, 0.001, 0.0001, 0.00001
 $x^x$ = x**x
 digits = 6
+---
+x | x^x
+0.1 | 0.794328
+0.01 | 0.954993
+0.001 | 0.993116
+0.0001 | 0.999079
+0.00001 | 0.999885
 ```
 
-The values climb towards 1, and a good guess is $\lim_{x\to0^+} x^x = 1$. They climb slowly: at $x = 0.1$ the value is still below 0.8, so a table that stopped there would mislead you. The table does not prove the guess; Module 7 does.
+The values climb towards 1, and a good guess is $\lim_{x\to0^+} x^x = 1$. They climb slowly: at $x = 0.1$ the value is still below 0.8, so only values much closer to 0 show where they are heading. The table does not prove the guess; Module 7 does.
 
 ```check
 same(factor(x**2 + x - 6), (x - 2)*(x + 3)); same(cancel((x**2 + x - 6)/(x - 2)), x + 3)
@@ -1250,17 +1271,17 @@ Find each limit, showing the algebra.
 ::: solution
 **(a)** At $x = -2$ the numerator is $4 - 10 + 6 = 0$ and the denominator is $4 - 4 = 0$. Factor: $x^2 + 5x + 6 = (x + 2)(x + 3)$ and $x^2 - 4 = (x + 2)(x - 2)$. For $x \ne -2$ (and $x \ne 2$),
 
-$$\frac{x^2 + 5x + 6}{x^2 - 4} = \frac{x + 3}{x - 2} \to \frac{-2 + 3}{-2 - 2} = -\frac14.$$
+$$\begin{aligned} \frac{x^2 + 5x + 6}{x^2 - 4} &= \frac{x + 3}{x - 2} \\ &\to \frac{-2 + 3}{-2 - 2} = -\frac14. \end{aligned}$$
 
 **(b)** Substitution gives $0/0$. Multiply the numerator and the denominator by the conjugate $\sqrt x + 3$, or notice that for $x \ge 0$, $x - 9 = \big(\sqrt x - 3\big)\big(\sqrt x + 3\big)$. Either way, for $x \ge 0$ with $x \ne 9$,
 
-$$\frac{x - 9}{\sqrt x - 3} = \sqrt x + 3 \to \sqrt9 + 3 = 6$$
+$$\begin{aligned} \frac{x - 9}{\sqrt x - 3} &= \sqrt x + 3 \\ &\to \sqrt9 + 3 = 6 \end{aligned}$$
 
 by the root and sum laws.
 
 **(c)** Substitution gives $0/0$. Put the bracket over the common denominator $(1 + h)^2$ and expand:
 
-$$\begin{aligned} \frac{1}{(1 + h)^2} - 1 &= \frac{1 - (1 + h)^2}{(1 + h)^2} \\ &= \frac{-2h - h^2}{(1 + h)^2} = \frac{-h(2 + h)}{(1 + h)^2}. \end{aligned}$$
+$$\begin{aligned} \frac{1}{(1 + h)^2} - 1 &= \frac{1 - (1 + h)^2}{(1 + h)^2} \\ &= \frac{-2h - h^2}{(1 + h)^2} \\ &= \frac{-h(2 + h)}{(1 + h)^2}. \end{aligned}$$
 
 So, for $h \ne 0$ (and $h \ne -1$),
 
@@ -1278,6 +1299,7 @@ limit_is((x - 9)/(sqrt(x) - 3), x, 9, 6)
 steps(1/(1 + h)**2 - 1, (1 - (1 + h)**2)/(1 + h)**2, (-2*h - h**2)/(1 + h)**2, -h*(2 + h)/(1 + h)**2)
 same(cancel((1/(1 + h)**2 - 1)/h), -(2 + h)/(1 + h)**2)
 limit_is((1/(1 + h)**2 - 1)/h, h, 0, -2)
+same((1/(1 + h)**2 - 1)/h, ((1/x**2).subs(x, 1 + h) - (1/x**2).subs(x, 1))/h)   # the difference quotient of 1/x^2 at 1
 ```
 :::
 ::::
@@ -1300,7 +1322,7 @@ by the quotient law, since the limit of the denominator, 2, is not 0. A common w
 
 **(c)** Multiply the numerator and the denominator by $1 + \cos x$, as in the proof of Theorem 2.6. For $0 < \abs{x} < \pi/2$, where $\sin x \ne 0$ and $1 + \cos x > 0$,
 
-$$\begin{aligned} \frac{1 - \cos x}{x\sin x} &= \frac{\sin^2 x}{x\sin x\,(1 + \cos x)} \\ &= \frac{\sin x}{x}\cdot\frac{1}{1 + \cos x} \to 1 \cdot \frac12 = \frac12. \end{aligned}$$
+$$\begin{aligned} \frac{1 - \cos x}{x\sin x} &= \frac{\sin^2 x}{x\sin x\,(1 + \cos x)} \\ &= \frac{\sin x}{x}\cdot\frac{1}{1 + \cos x} \\ &\to 1 \cdot \frac12 = \frac12. \end{aligned}$$
 
 ```check
 same(sin(5*x)/(2*x), Rational(5, 2)*sin(5*x)/(5*x)); limit_is(sin(5*x)/(2*x), x, 0, Rational(5, 2))
@@ -1349,7 +1371,7 @@ same((4 + c).subs(c, 3), 7); same(7 - 5, 2)
 
 *Proof.* Let $\varepsilon > 0$ and $\delta = \varepsilon/2$. If $0 < \abs{x - (-1)} < \delta$, that is, $0 < \abs{x + 1} < \delta$, then
 
-$$\abs{(5 - 2x) - 7} = 2\abs{x + 1} < 2\delta = \varepsilon.$$
+$$\begin{aligned} \abs{(5 - 2x) - 7} &= 2\abs{x + 1} \\ &< 2\delta = \varepsilon. \end{aligned}$$
 
 **(b)** $\delta = 0.01/2 = 0.005$. No larger $\delta$ wins: if $\delta > 0.005$, the point $x = -1.005$ satisfies $0 < \abs{x + 1} = 0.005 < \delta$, but $\abs{(5 - 2x) - 7} = \abs{7.01 - 7} = 0.01$, which is not less than $\varepsilon$. For a line, the "exactly when" of the scratch work makes the proof's $\delta$ the best possible; for the parabola of Example 2.13 it was not.
 
@@ -1376,9 +1398,9 @@ A square tile should have an area of 400 cm², and the customer accepts any area
 
 **(b)** For $s > 0$, the tolerance $399 < s^2 < 401$ holds exactly when $\sqrt{399} < s < \sqrt{401}$, that is, approximately $19.97498 < s < 20.02498$. The interval around 20 must fit on both sides, and the two sides are not equal: $20 - \sqrt{399} \approx 0.025016$ and $\sqrt{401} - 20 \approx 0.024984$. The largest $\delta$ is the smaller, $\sqrt{401} - 20 \approx 0.0250$ cm: the side must be cut to within about a quarter of a millimetre. The $\delta$ of (a) is a little smaller, as Example 2.13 led you to expect.
 
-**(c)** Replace the tolerance 1 by any $\varepsilon > 0$ in (a). *Proof.* Let $\varepsilon > 0$ and $\delta = \min\big(1, \tfrac{\varepsilon}{41}\big)$. Suppose that $0 < \abs{s - 20} < \delta$. Since $\delta \le 1$, $19 < s < 21$, and so $\abs{s + 20} < 41$. Since $\delta \le \varepsilon/41$, $\abs{s - 20} < \varepsilon/41$. Therefore
+**(c)** Replace the tolerance 1 by any $\varepsilon > 0$ in (a). *Proof.* Let $\varepsilon > 0$ and $\delta = \min(1, \varepsilon/41)$. Suppose that $0 < \abs{s - 20} < \delta$. Since $\delta \le 1$, $19 < s < 21$, and so $\abs{s + 20} < 41$. Since $\delta \le \varepsilon/41$, $\abs{s - 20} < \varepsilon/41$. Therefore
 
-$$\abs{s^2 - 400} = \abs{s + 20}\,\abs{s - 20} < 41 \cdot \frac{\varepsilon}{41} = \varepsilon.$$
+$$\begin{aligned} \abs{s^2 - 400} &= \abs{s + 20}\,\abs{s - 20} \\ &< 41 \cdot \frac{\varepsilon}{41} = \varepsilon. \end{aligned}$$
 
 So every challenge is met, and $\lim_{s\to20} s^2 = 400$. For $\varepsilon = 1$ the proof gives the $\delta = \tfrac{1}{41}$ of (a).
 
@@ -1419,7 +1441,7 @@ $$\begin{aligned} \big\lvert\sqrt{f(x)} - \sqrt L\big\rvert &= \frac{\abs{f(x) -
 
 **(c)** Let $\varepsilon > 0$. Challenge $f$ with $\varepsilon\sqrt L$: there is a $\delta_1 > 0$ with $\abs{f(x) - L} < \varepsilon\sqrt L$ whenever $0 < \abs{x - a} < \delta_1$. Let $\delta = \min(\delta_0, \delta_1)$. If $0 < \abs{x - a} < \delta$, then by (b)
 
-$$\big\lvert\sqrt{f(x)} - \sqrt L\big\rvert \le \frac{\abs{f(x) - L}}{\sqrt L} < \frac{\varepsilon\sqrt L}{\sqrt L} = \varepsilon.$$
+$$\begin{aligned} \big\lvert\sqrt{f(x)} - \sqrt L\big\rvert &\le \frac{\abs{f(x) - L}}{\sqrt L} \\ &< \frac{\varepsilon\sqrt L}{\sqrt L} = \varepsilon. \end{aligned}$$
 
 So $\lim_{x\to a}\sqrt{f(x)} = \sqrt L$. For $f(x) = x$, whose limit at $a$ is $a$ (Section 2.7), this gives $\lim_{x\to a}\sqrt x = \sqrt a$ for every $a > 0$.
 
@@ -1441,15 +1463,15 @@ Prove from Definition 2.3 that $\lim_{x\to0}\sin(1/x)$ does not exist. (Use the 
 ::: solution
 Let $L$ be any number; the challenge $\varepsilon = 1$ will defeat it. Let $\delta > 0$ be any response, and choose a whole number $k \ge 1$ with $k \ge 1/\delta$. The points
 
-$$x_1 = \frac{2}{(4k + 1)\pi} \quad\text{and}\quad x_2 = \frac{2}{(4k + 3)\pi}$$
+$$x_1 = \frac{2}{(4k + 1)\pi}, \quad x_2 = \frac{2}{(4k + 3)\pi}$$
 
 are positive, and
 
-$$x_2 < x_1 < \frac{2}{4k\pi} = \frac{1}{2k\pi} \le \frac{\delta}{2\pi} < \delta,$$
+$$\begin{aligned} x_2 < x_1 &< \frac{2}{4k\pi} = \frac{1}{2k\pi} \\ &\le \frac{\delta}{2\pi} < \delta, \end{aligned}$$
 
 so both satisfy $0 < \abs{x} < \delta$. At these points $\sin(1/x_1) = \sin\dfrac{(4k + 1)\pi}{2} = 1$ and $\sin(1/x_2) = \sin\dfrac{(4k + 3)\pi}{2} = -1$. If both values were within 1 of $L$, the triangle inequality would give
 
-$$\begin{aligned} 2 &= \abs{(1 - L) + (L + 1)} \\ &\le \abs{1 - L} + \abs{L + 1} < 1 + 1 = 2, \end{aligned}$$
+$$\begin{aligned} 2 &= \abs{(1 - L) + (L + 1)} \\ &\le \abs{1 - L} + \abs{L + 1} \\ &< 1 + 1 = 2, \end{aligned}$$
 
 which is impossible. So at least one of $x_1$ and $x_2$ gives $\abs{\sin(1/x) - L} \ge 1$, and $\delta$ loses. Since $\delta$ and $L$ were arbitrary, $\sin(1/x)$ has no limit at 0.
 
@@ -1578,6 +1600,7 @@ limit_is(x + 1, x, 1, 2)
 same((Abs(x - 2)/(x - 2)).subs(x, 2 - hp), -1); limit_is(Abs(x - 2)/(x - 2), x, 2, -1, '-'); limit_is(Abs(x - 2)/(x - 2), x, 2, 1, '+')
 same(cancel((x**2 - 4)/(x - 2)), x + 2); limit_is((x**2 - 4)/(x - 2), x, 2, 4)
 same((sqrt(1 + x) - 1)/x, 1/(sqrt(1 + x) + 1)); limit_is((sqrt(1 + x) - 1)/x, x, 0, Rational(1, 2)); same(((1 + x) - 1)/x, 1)
+limit_is(sqrt(1 + x) + 1, x, 0, 2)                  # the distractor 2: the reciprocal forgotten
 limit_is(sin(4*x)/x, x, 0, 4); same(sin(4*x)/x, 4*sin(4*x)/(4*x))
 limit_is(1 - x**2, x, 0, 1); limit_is(1 + x**2, x, 0, 1)
 steps(Abs((4*xr + 3) - 7), 4*Abs(xr - 1)); same(4*(ep/4), ep); same(4*(ep/2), 2*ep)
