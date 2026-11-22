@@ -67,7 +67,7 @@ function skeleton(src) {
 }
 
 // Style (English prose only, outside code and mathematics).
-const FILLER = /\b(simply|just|obviously|clearly|of course|trivially|easy to see|it is easy)\b/i
+const FILLER = /\b(simply(?!\s+connected)|just|obviously|clearly|of course|trivially|easy to see|it is easy)\b/i   // "simply connected" is a term
 const AMERICAN = /\b(formaliz\w*|behavior\w*|color\w*|modeling|modeled|analyz\w*|organiz\w*|recogniz\w*|generaliz\w*|minimiz\w*|maximiz\w*|realiz\w*|specializ\w*|utiliz\w*|optimiz\w*|summariz\w*|emphasiz\w*|characteriz\w*|initializ\w*|normaliz\w*|parametriz\w*|visualiz\w*|linearliz\w*|center|centers|centered|favor\w*|labeled|labeling|traveled|catalog|meter|meters|liter|liters|fiber|gray)\b/
 function styleCheck(f, src) {
   let fence = null

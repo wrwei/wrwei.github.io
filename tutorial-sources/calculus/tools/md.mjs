@@ -162,9 +162,10 @@ function mathPlugin(md) {
   }, { alt: ['paragraph', 'reference', 'blockquote', 'list'] })
   md.renderer.rules.math_inline = (toks, i, opts, env) => {
     const punct = (toks[i].meta && toks[i].meta.punct) || ''
-    const m = tex(toks[i].content, false, env)
-    // A word joiner (U+2060) forbids a line break before the punctuation only.
-    return punct ? `${m}⁠${escapeHtml(punct)}` : m
+    // Punctuation straight after a formula ("$f(x)$,") is set inside it, as \\text{,}: KaTeX keeps it
+    // with the formula's last symbol, so a line can never start with it. (A word joiner does not stop
+    // browsers breaking after KaTeX's inline-blocks.)
+    return punct ? tex(`${toks[i].content}\\text{${punct}}`, false, env) : tex(toks[i].content, false, env)
   }
   md.renderer.rules.math_block = (toks, i, opts, env) => `<div class="math-display">${tex(toks[i].content, true, env)}</div>\n`
 }
