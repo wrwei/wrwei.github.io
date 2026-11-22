@@ -234,7 +234,7 @@ class Page:
                 self.problem(b.line, 'check failed: ' + r['failure'].replace('\n', '\n  '))
             elif r['checks'] == 0:
                 self.problem(b.line, 'this check block checks nothing (call same, rounds, holds, ...)')
-            if r['seconds'] > 10:
+            if r['seconds'] > 5:
                 self.warnings.append(f'{self.where(b.line)}: this check block took {r["seconds"]} s')
         for b, r in zip(tables, res['tables']):
             if 'error' in r:

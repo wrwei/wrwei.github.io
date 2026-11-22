@@ -59,7 +59,7 @@ Left: the partial sums $S_n(x) = 1 + x + \cdots + x^n$ for $n = 1$, 2, 5 and 10,
 ::: definition Power series
 A **power series centred at $a$** (or **about $a$**) is a series of the form
 
-$$\begin{aligned} &\sum_{n=0}^{\infty} c_n (x - a)^n \\ &\quad= c_0 + c_1(x - a) + c_2(x - a)^2 + \cdots, \end{aligned}$$
+$$\begin{aligned} &\sum_{n=0}^{\infty} c_n (x - a)^n \\ &= c_0 + c_1(x - a) + c_2(x - a)^2 + \cdots, \end{aligned}$$
 
 where $x$ is a variable and the **coefficients** $c_0, c_1, c_2, \dots$ are constants. For each number $x$ it is a series of numbers, which converges or diverges; where it converges, its sum is a function of $x$.
 :::
@@ -155,7 +155,7 @@ Find the interval of convergence of $\displaystyle\sum_{n=1}^{\infty} \frac{(-1)
 
 Here $c_n = \dfrac{(-1)^n}{n\,2^n}$, and
 
-$$\abs{\frac{c_{n+1}}{c_n}} = \frac{n\,2^n}{(n + 1)\,2^{n+1}} = \frac{n}{2(n + 1)} \to \frac12.$$
+$$\begin{aligned} \abs{\frac{c_{n+1}}{c_n}} &= \frac{n\,2^n}{(n + 1)\,2^{n+1}} \\ &= \frac{n}{2(n + 1)} \to \frac12. \end{aligned}$$
 
 So $R = 2$: the series converges absolutely when $\abs{x - 3} < 2$, that is, $1 < x < 5$, and diverges when $\abs{x - 3} > 2$. At $x = 5$, $(x - 3)^n = 2^n$, and the series is $\sum (-1)^n/n$, which converges by the alternating series test. At $x = 1$, $(x - 3)^n = (-2)^n = (-1)^n 2^n$, and the terms are $\dfrac{(-1)^n(-1)^n 2^n}{n\,2^n} = \dfrac1n$: the harmonic series, which diverges. The interval of convergence is $(1, 5]$, centred at 3 with radius 2.
 
@@ -170,7 +170,7 @@ same(cq(nQ)*(-2)**nQ, 1/nQ); holds(Sum(1/n, (n, 1, oo)).is_convergent() == False
 :::
 
 ::: pitfall
-Two slips with the ratio test. It works with absolute values: the condition in Example 15.3 is $\abs{x - 3} < 2$, an interval centred at 3, not $x - 3 < 2$, which would let in every $x < 5$. And at the endpoints the ratio tends to exactly 1, where the ratio test is silent. Declaring the endpoints in or out without testing them is the most common error with intervals of convergence.
+Two slips with the ratio test. It works with absolute values: the condition in Example 15.3 is $\abs{x - 3} < 2$, an interval centred at 3, not $x - 3 < 2$, which would let in every $x < 5$. And at the endpoints, where the ratio tends to exactly 1, the test is silent: declaring them in or out without testing them is the most common error with intervals of convergence.
 :::
 
 ## Functions as power series {#functions-as-series}
@@ -181,11 +181,11 @@ $$\frac{1}{1 - u} = \sum_{n=0}^{\infty} u^n = 1 + u + u^2 + \cdots,$$
 
 and $u$ may be replaced by any expression in $x$, provided the condition $\abs{u} < 1$ is translated too. With $u = -x$, for $\abs{x} < 1$,
 
-$$\frac{1}{1 + x} = 1 - x + x^2 - x^3 + \cdots = \sum_{n=0}^\infty (-1)^n x^n.$$
+$$\begin{aligned} \frac{1}{1 + x} &= 1 - x + x^2 - x^3 + \cdots \\ &= \sum_{n=0}^\infty (-1)^n x^n. \end{aligned}$$
 
 With $u = -x^2$, which satisfies $\abs{u} < 1$ exactly when $\abs{x} < 1$,
 
-$$\frac{1}{1 + x^2} = 1 - x^2 + x^4 - x^6 + \cdots = \sum_{n=0}^\infty (-1)^n x^{2n}.$$
+$$\begin{aligned} \frac{1}{1 + x^2} &= 1 - x^2 + x^4 - x^6 + \cdots \\ &= \sum_{n=0}^\infty (-1)^n x^{2n}. \end{aligned}$$
 
 At $x = \pm 1$ the terms of both series have size 1 and do not tend to 0, so both intervals of convergence are $(-1, 1)$. The second is a surprise. The function $1/(1 + x^2)$ is defined and smooth on the whole real line, with nothing special at $\pm 1$, yet its series stops converging there (Figure 15.1, right). The reason lies off the real line, and Section 15.7 reveals it.
 
@@ -206,13 +206,13 @@ Find a power series for each function, centred where stated, with its interval o
 
 **(a)** Make the 1 of $1/(1 - u)$ appear by taking out the factor 2:
 
-$$\begin{aligned} \frac{1}{2 - x} &= \frac12\cdot\frac{1}{1 - x/2} = \frac12\sum_{n=0}^\infty \Big(\frac{x}{2}\Big)^n \\ &= \sum_{n=0}^\infty \frac{x^n}{2^{n+1}} = \frac12 + \frac{x}{4} + \frac{x^2}{8} + \cdots. \end{aligned}$$
+$$\begin{aligned} \frac{1}{2 - x} &= \frac12\cdot\frac{1}{1 - x/2} = \frac12\sum_{n=0}^\infty \Big(\frac{x}{2}\Big)^n \\ &= \sum_{n=0}^\infty \frac{x^n}{2^{n+1}} \\ &= \frac12 + \frac{x}{4} + \frac{x^2}{8} + \cdots. \end{aligned}$$
 
 This needs $\abs{x/2} < 1$, that is, $\abs{x} < 2$. At $x = \pm 2$ the terms have size $\tfrac12$ and do not tend to 0, so the interval is $(-2, 2)$.
 
-**(b)** With $u = x^2$, $\dfrac{1}{1 - x^2} = \sum x^{2n}$ for $\abs{x} < 1$. Multiplying every term by $x$ multiplies the sum by $x$:
+**(b)** With $u = x^2$, $\dfrac{1}{1 - x^2} = \sum x^{2n}$ for $\abs{x} < 1$. Multiplying every term by $x$ multiplies the sum by $x$, so for $\abs{x} < 1$
 
-$$\begin{aligned} \frac{x}{1 - x^2} &= \sum_{n=0}^\infty x^{2n+1} \\ &= x + x^3 + x^5 + \cdots, \qquad \abs{x} < 1. \end{aligned}$$
+$$\begin{aligned} \frac{x}{1 - x^2} &= \sum_{n=0}^\infty x^{2n+1} \\ &= x + x^3 + x^5 + \cdots. \end{aligned}$$
 
 At $x = \pm 1$ every term is $\pm 1$, so the interval is $(-1, 1)$.
 
@@ -254,9 +254,9 @@ same(summation(Rational(1, 2)**n, (n, 0, oo)), 2/(2 - 1))
 Inside its interval of convergence a power series can be treated like a polynomial: differentiated and integrated term by term.
 
 ::: theorem Term-by-term differentiation and integration
-Let $\sum c_n(x - a)^n$ have radius of convergence $R > 0$ (possibly $R = \infty$), and let
+Let $\sum c_n(x - a)^n$ have radius of convergence $R > 0$ (possibly $R = \infty$), and for $\abs{x - a} < R$ let
 
-$$f(x) = \sum_{n=0}^\infty c_n (x - a)^n \qquad \text{for } \abs{x - a} < R.$$
+$$f(x) = \sum_{n=0}^\infty c_n (x - a)^n.$$
 
 Then, for every $x$ with $\abs{x - a} < R$:
 
@@ -329,17 +329,17 @@ Find power series about 0 for $\ln(1 + x)$ and $\arctan x$, and use four terms o
 
 For $\abs{t} < 1$, $\dfrac{1}{1 + t} = \sum (-1)^n t^n$. Let $\abs{x} < 1$. The function $\ln(1 + t)$ is an antiderivative of $\dfrac{1}{1 + t}$, and $\ln 1 = 0$, so by the Fundamental Theorem of Calculus and Theorem 15.2,
 
-$$\begin{aligned} \ln(1 + x) &= \int_0^x \frac{dt}{1 + t} = \sum_{n=0}^\infty (-1)^n\frac{x^{n+1}}{n + 1} \\ &= x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + \cdots \end{aligned}$$
+$$\begin{aligned} \ln(1 + x) &= \int_0^x \frac{dt}{1 + t} \\ &= \sum_{n=0}^\infty (-1)^n\frac{x^{n+1}}{n + 1} \\ &= x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + \cdots \end{aligned}$$
 
 In the same way, $\arctan x$ is an antiderivative of $\dfrac{1}{1 + x^2}$ (Module 6), with $\arctan 0 = 0$, so for $\abs{x} < 1$
 
-$$\begin{aligned} \arctan x &= \int_0^x \frac{dt}{1 + t^2} = \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} \\ &= x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots \end{aligned}$$
+$$\begin{aligned} \arctan x &= \int_0^x \frac{dt}{1 + t^2} \\ &= \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} \\ &= x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots \end{aligned}$$
 
 Both series have radius 1, like the series that were integrated. At $x = 0.1$, four terms give
 
-$$\begin{aligned} \ln 1.1 &\approx 0.1 - 0.005 + 0.000333 - 0.000025 \\ &= 0.095308, \end{aligned}$$
+$$\begin{aligned} \ln 1.1 &\approx 0.1 - 0.005 \\ &\quad + 0.000333 - 0.000025 \\ &= 0.095308, \end{aligned}$$
 
-while a calculator gives $\ln 1.1 \approx 0.0953102$: both round to 0.09531. The terms alternate in sign and decrease in size, so by the alternating series bound of Module 14 the error is less than the first term left out, $0.1^5/5 = 0.000002$.
+while a calculator gives $\ln 1.1 \approx 0.0953102$: both round to 0.09531. The terms alternate in sign and decrease in size, so by the alternating series bound of Module 14 the error is less than the first term left out, $0.1^5/5 = 0.000002$. At $x = \tfrac12$ the same series gives $\ln\tfrac32 = \tfrac12 - \tfrac18 + \tfrac{1}{24} - \cdots$, the sum of Exercise 14.9.
 
 ```check
 tt = symbols('t')
@@ -353,6 +353,7 @@ same(terms, [Rational(1, 10), -Rational(5, 1000), Rational(1, 3000), -Rational(2
 rounds(sum(terms), '0.095308'); rounds(log(Rational(11, 10)), '0.0953102')
 rounds(sum(terms), '0.09531'); rounds(log(Rational(11, 10)), '0.09531')
 same(xv_**5/5, Rational(2, 1000000)); holds(Abs(log(Rational(11, 10)) - sum(terms)) < xv_**5/5)
+same(summation((-1)**(n - 1)/(n*2**n), (n, 1, oo)), log(Rational(3, 2))); same([(-1)**(j - 1)*Rational(1, 2)**j/j for j in range(1, 4)], [Rational(1, 2), -Rational(1, 8), Rational(1, 24)])
 ```
 :::
 
@@ -363,7 +364,7 @@ Find the sum of $\displaystyle\sum_{n=1}^{\infty} n x^n$ for $\abs{x} < 1$, and 
 
 Differentiate the geometric series term by term (Theorem 15.2): for $\abs{x} < 1$,
 
-$$\begin{aligned} \frac{1}{(1 - x)^2} &= \frac{d}{dx}\Big(\frac{1}{1 - x}\Big) \\ &= \sum_{n=1}^{\infty} n x^{n-1} = 1 + 2x + 3x^2 + \cdots. \end{aligned}$$
+$$\begin{aligned} \frac{1}{(1 - x)^2} &= \frac{d}{dx}\Big(\frac{1}{1 - x}\Big) \\ &= \sum_{n=1}^{\infty} n x^{n-1} \\ &= 1 + 2x + 3x^2 + \cdots. \end{aligned}$$
 
 Multiplying by $x$ gives $\displaystyle\sum_{n=1}^{\infty} n x^n = \frac{x}{(1 - x)^2}$. At $x = \tfrac12$,
 
@@ -405,7 +406,7 @@ Integrate from 0 to 1. The integral of a finite sum is the sum of the integrals,
 
 $$\ln 2 = \sum_{k=0}^{n-1} \frac{(-1)^k}{k + 1} + (-1)^n \int_0^1 \frac{t^n}{1 + t}\,dt.$$
 
-The sum is $1 - \tfrac12 + \cdots + \tfrac{(-1)^{n-1}}{n}$. For $0 \le t \le 1$, $0 \le \dfrac{t^n}{1 + t} \le t^n$, so the last integral lies between 0 and $\int_0^1 t^n\,dt = \dfrac{1}{n + 1}$ (the bounds of Module 9). This is the first inequality, and since $\dfrac{1}{n + 1} \to 0$, the partial sums approach $\ln 2$. For $\dfrac{\pi}{4}$, put $t^2$ for $t$ in the identity:
+The sum is $1 - \tfrac12 + \cdots + \tfrac{(-1)^{n-1}}{n}$. For $0 \le t \le 1$, $0 \le \dfrac{t^n}{1 + t} \le t^n$, so the last integral lies between 0 and $\int_0^1 t^n\,dt = \dfrac{1}{n + 1}$ (the comparison theorem of Module 9). This is the first inequality, and since $\dfrac{1}{n + 1} \to 0$, the partial sums approach $\ln 2$. For $\dfrac{\pi}{4}$, put $t^2$ for $t$ in the identity:
 
 $$\frac{1}{1 + t^2} = \sum_{k=0}^{n-1} (-1)^k t^{2k} + (-1)^n\frac{t^{2n}}{1 + t^2}.$$
 
@@ -444,7 +445,7 @@ $$\sum_{n=0}^\infty c_n R^n = \lim_{x\to (a + R)^-}\, \sum_{n=0}^\infty c_n (x -
 The same holds at $x = a - R$, with the limit from the right.
 :::
 
-This series does not prove Abel's theorem; books on real analysis do. Its use is this. Suppose $f(x)$ equals the sum of its series inside the interval, $f$ is continuous at an endpoint, and the series converges there. Then the series equals $f$ at that endpoint too, because both are the limit of $f(x)$ as $x$ approaches the endpoint from inside. So, with no new work, $\ln(1 + x) = x - \tfrac{x^2}{2} + \cdots$ on $(-1, 1]$, and $\arctan x = x - \tfrac{x^3}{3} + \cdots$ on $[-1, 1]$; at $x = -1$ the series of $\arctan$ is $-\big(1 - \tfrac13 + \tfrac15 - \cdots\big)$, which converges by the alternating series test.
+This course does not prove Abel's theorem; books on real analysis do. Its use is this. Suppose $f(x)$ equals the sum of its series inside the interval, $f$ is continuous at an endpoint, and the series converges there. Then the series equals $f$ at that endpoint too, because both are the limit of $f(x)$ as $x$ approaches the endpoint from inside. So, with no new work, $\ln(1 + x) = x - \tfrac{x^2}{2} + \cdots$ on $(-1, 1]$, and $\arctan x = x - \tfrac{x^3}{3} + \cdots$ on $[-1, 1]$; at $x = -1$ the series of $\arctan$ is $-\big(1 - \tfrac13 + \tfrac15 - \cdots\big)$, which converges by the alternating series test.
 
 ```check
 holds(Sum((-1)**n/(2*n + 1), (n, 0, oo)).is_convergent()); same(atan(-1), -pi/4)
@@ -464,7 +465,7 @@ limit_is(2**n/n, n, oo, oo); same(log(1 + 2), log(3))
 
 So far every series has come from the geometric series. Most functions have nothing to do with it: $e^x$, for instance. Does $e^x$ have a power series, and how would you find it? If a function has a power series, its derivatives fix the coefficients. Take $f(x) = \sum c_n(x - a)^n$, with radius $R > 0$, and differentiate term by term, again and again (Theorem 15.2):
 
-$$\begin{aligned} f(x) &= c_0 + c_1(x - a) + c_2(x - a)^2 + c_3(x - a)^3 + \cdots \\ f'(x) &= c_1 + 2c_2(x - a) + 3c_3(x - a)^2 + \cdots \\ f''(x) &= 2c_2 + 3\cdot2\,c_3(x - a) + \cdots \\ f'''(x) &= 3\cdot2\cdot1\,c_3 + \cdots \end{aligned}$$
+$$\begin{aligned} f(x) &= c_0 + c_1(x - a) + c_2(x - a)^2 \\ &\qquad + c_3(x - a)^3 + \cdots \\ f'(x) &= c_1 + 2c_2(x - a) \\ &\qquad + 3c_3(x - a)^2 + \cdots \\ f''(x) &= 2c_2 + 3\cdot2\,c_3(x - a) + \cdots \\ f'''(x) &= 3\cdot2\cdot1\,c_3 + \cdots \end{aligned}$$
 
 At $x = a$ every term that contains $x - a$ is 0, so $f(a) = c_0$, $f'(a) = c_1$, $f''(a) = 2c_2$ and $f'''(a) = 3!\,c_3$.
 
@@ -504,7 +505,7 @@ Here $f^{(0)}$ means $f$ itself and $0! = 1$, so the formula gives $c_0 = f(a)$ 
 ::: definition Taylor series and Taylor polynomials
 Let $f$ have derivatives of every order at $a$. The **Taylor series** of $f$ about $a$ (or centred at $a$) is
 
-$$\begin{aligned} &\sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x - a)^n \\ &\quad= f(a) + f'(a)(x - a) + \frac{f''(a)}{2!}(x - a)^2 + \cdots. \end{aligned}$$
+$$\begin{aligned} &\sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x - a)^n \\ &\quad= f(a) + f'(a)(x - a) \\ &\qquad + \frac{f''(a)}{2!}(x - a)^2 + \cdots. \end{aligned}$$
 
 Its partial sum
 
@@ -524,12 +525,13 @@ Every derivative of $e^x$ is $e^x$ (Module 6), so $f^{(n)}(0) = e^0 = 1$ for eve
 
 $$\sum_{n=0}^\infty \frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots.$$
 
-By Example 15.2 it converges for every $x$: $R = \infty$. Its Taylor polynomials $T_1(x) = 1 + x$ and $T_2(x) = 1 + x + \tfrac12 x^2$ are the approximations of Example 7.13 ([Section 7.5](module_07_EN.html#the-rule)), where L'Hôpital's rule showed that $e^x - 1 - x \approx \tfrac12 x^2$ near 0. Section 15.5 proves that the series equals $e^x$ for every $x$; at $x = 1$ it gives $e = 1 + 1 + \tfrac{1}{2!} + \tfrac{1}{3!} + \cdots$.
+By Example 15.2 it converges for every $x$: $R = \infty$. Its Taylor polynomials $T_1(x) = 1 + x$ and $T_2(x) = 1 + x + \tfrac12 x^2$ are the approximations of Example 7.13 ([Section 7.5](module_07_EN.html#the-rule)), where L'Hôpital's rule showed that $e^x - 1 - x \approx \tfrac12 x^2$ near 0. Section 15.5 proves that the series equals $e^x$ for every $x$. At $x = 1$ it gives $e = 1 + 1 + \tfrac{1}{2!} + \tfrac{1}{3!} + \cdots$, and at $x = -1$ it gives $1/e = 1 - 1 + \tfrac{1}{2!} - \tfrac{1}{3!} + \cdots \approx 0.367879$, the sum estimated in Example 14.14.
 
 ```check
 same([diff(exp(x), x, j).subs(x, 0) for j in range(8)], [1]*8)
 same(series(exp(x), x, 0, 10).removeO(), sum(x**j/factorial(j) for j in range(10)))
 same(sum(x**j/factorial(j) for j in range(3)), 1 + x + x**2/2); limit_is((exp(x) - 1 - x)/x**2, x, 0, Rational(1, 2))
+same(summation((-1)**n/factorial(n), (n, 0, oo)), exp(-1)); rounds(exp(-1), '0.367879')
 ```
 :::
 
@@ -546,7 +548,7 @@ $$\begin{aligned} \cos x &= 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots \\ &= \
 
 (The equals signs anticipate Section 15.5, which proves them; so far these are the Maclaurin series.) For the sine series, the ratio of two consecutive nonzero terms is
 
-$$\abs{\frac{x^{2n+3}/(2n + 3)!}{x^{2n+1}/(2n + 1)!}} = \frac{x^2}{(2n + 2)(2n + 3)} \to 0,$$
+$$\begin{aligned} &\abs{\frac{x^{2n+3}/(2n + 3)!}{x^{2n+1}/(2n + 1)!}} \\ &\quad= \frac{x^2}{(2n + 2)(2n + 3)} \to 0, \end{aligned}$$
 
 so it converges for every $x$, and the cosine series likewise: $R = \infty$ for both. Each series is the term-by-term derivative of the other, up to a sign, as $(\sin x)' = \cos x$ and $(\cos x)' = -\sin x$ require. And the odd function $\sin$ has only odd powers, the even function $\cos$ only even ones.
 
@@ -572,11 +574,11 @@ $$\begin{aligned} f'(x) &= \tfrac12 x^{-1/2}, & f''(x) &= -\tfrac14 x^{-3/2}, \\
 
 At 4, since $4^{1/2} = 2$, $4^{3/2} = 8$ and $4^{5/2} = 32$, the values are $f(4) = 2$, $f'(4) = \tfrac14$, $f''(4) = -\tfrac{1}{32}$ and $f'''(4) = \tfrac{3}{256}$. Divide by $0!$, $1!$, $2!$ and $3!$:
 
-$$T_3(x) = 2 + \frac{x - 4}{4} - \frac{(x - 4)^2}{64} + \frac{(x - 4)^3}{512},$$
+$$\begin{aligned} T_3(x) = 2 &+ \frac{x - 4}{4} - \frac{(x - 4)^2}{64} \\ &+ \frac{(x - 4)^3}{512}, \end{aligned}$$
 
 and $T_1$ and $T_2$ are its first two and three terms. At $x = 4.1$, where $x - 4 = 0.1$,
 
-$$\begin{aligned} T_1(4.1) &= 2.025, \\ T_2(4.1) &= 2.025 - 0.00015625 \\ &= 2.02484375, \\ T_3(4.1) &= 2.02484375 + 0.000001953125 \\ &\approx 2.0248457. \end{aligned}$$
+$$\begin{aligned} T_1(4.1) &= 2.025, \\ T_2(4.1) &= 2.025 - 0.00015625 \\ &= 2.02484375, \\ T_3(4.1) &= T_2(4.1) + 0.000001953125 \\ &\approx 2.0248457. \end{aligned}$$
 
 A calculator gives $\sqrt{4.1} \approx 2.02484567$: the errors are about $-1.5 \times 10^{-4}$, $1.9 \times 10^{-6}$ and $-3.0 \times 10^{-8}$. Each new term gains about two correct digits here. $T_1$ is the linearisation of Example 7.5.
 
@@ -602,11 +604,11 @@ $$\begin{aligned} f'(x) &= k(1 + x)^{k-1}, \\ f''(x) &= k(k - 1)(1 + x)^{k-2}, \
 
 and in general $f^{(n)}(x) = k(k - 1)\cdots(k - n + 1)(1 + x)^{k-n}$. At 0, $f^{(n)}(0) = k(k - 1)\cdots(k - n + 1)$, so the Maclaurin coefficients are the **binomial coefficients**
 
-$$\binom{k}{n} = \frac{k(k - 1)\cdots(k - n + 1)}{n!}, \qquad \binom{k}{0} = 1,$$
+$$\begin{aligned} \binom{k}{n} &= \frac{k(k - 1)\cdots(k - n + 1)}{n!}, \\ \binom{k}{0} &= 1, \end{aligned}$$
 
 read "k choose n". The Maclaurin series of $(1 + x)^k$ is the **binomial series**
 
-$$\begin{aligned} \sum_{n=0}^\infty \binom{k}{n}x^n &= 1 + kx + \frac{k(k - 1)}{2!}x^2 \\ &\qquad + \frac{k(k - 1)(k - 2)}{3!}x^3 + \cdots. \end{aligned}$$
+$$\begin{aligned} \sum_{n=0}^\infty \binom{k}{n}x^n &= 1 + kx + \frac{k(k - 1)}{2!}x^2 \\ &\quad + \frac{k(k - 1)(k - 2)}{3!}x^3 + \cdots. \end{aligned}$$
 
 When $k$ is a whole number, $k \ge 0$, every coefficient with $n > k$ contains the factor $k - k = 0$, so the series stops: it is the binomial theorem of algebra, as in $(1 + x)^3 = 1 + 3x + 3x^2 + x^3$. For every other $k$ no coefficient is 0, and the ratio test gives
 
@@ -637,11 +639,11 @@ $$\begin{aligned} g'(x) &= \sum_{n=1}^\infty n\binom{k}{n}x^{n-1} \\ &= \sum_{n=
 
 From the definition, $\binom{k}{n+1} = \binom{k}{n}\dfrac{k - n}{n + 1}$, so $(n + 1)\binom{k}{n+1} = (k - n)\binom{k}{n}$. Also $x\,g'(x) = \sum n\binom{k}{n}x^n$ (the term with $n = 0$ is 0). Adding,
 
-$$\begin{aligned} (1 + x)\,g'(x) &= \sum_{n=0}^\infty \big[(k - n) + n\big]\binom{k}{n}x^n \\ &= k\,g(x). \end{aligned}$$
+$$\begin{aligned} &(1 + x)\,g'(x) \\ &\quad= \sum_{n=0}^\infty \big[(k - n) + n\big]\binom{k}{n}x^n \\ &\quad= k\,g(x). \end{aligned}$$
 
 Now let $h(x) = g(x)(1 + x)^{-k}$. By the product rule,
 
-$$\begin{aligned} h'(x) &= g'(x)(1 + x)^{-k} - k\,g(x)(1 + x)^{-k-1} \\ &= (1 + x)^{-k-1}\big[(1 + x)g'(x) - k\,g(x)\big] \\ &= 0 \end{aligned}$$
+$$\begin{aligned} h'(x) &= \frac{g'(x)}{(1 + x)^k} - \frac{k\,g(x)}{(1 + x)^{k+1}} \\ &= \frac{(1 + x)g'(x) - k\,g(x)}{(1 + x)^{k+1}} = 0 \end{aligned}$$
 
 for $\abs{x} < 1$. A function whose derivative is 0 on an interval is constant (Module 8), so $h(x) = h(0) = g(0) = 1$, that is, $g(x) = (1 + x)^k$.
 :::
@@ -894,7 +896,7 @@ $$\frac{f^{(k+1)}(t)}{k!}(x - t)^k - \frac{f^{(k)}(t)}{(k - 1)!}(x - t)^{k-1}.$$
 
 Added up, the second part of each of these cancels the first part of the one before: the sum **telescopes**, and only $\dfrac{f^{(n+1)}(t)}{n!}(x - t)^n$ survives. So
 
-$$\begin{aligned} g'(t) &= -\frac{f^{(n+1)}(t)}{n!}(x - t)^n + \frac{K}{n!}(x - t)^n \\ &= \frac{(x - t)^n}{n!}\big(K - f^{(n+1)}(t)\big). \end{aligned}$$
+$$\begin{aligned} g'(t) &= -\frac{f^{(n+1)}(t)}{n!}(x - t)^n \\ &\qquad + \frac{K}{n!}(x - t)^n \\ &= \frac{(x - t)^n}{n!}\big(K - f^{(n+1)}(t)\big). \end{aligned}$$
 
 The function $g$ is differentiable, and $g(a) = g(x) = 0$, so by Rolle's theorem (Module 8) $g'(c) = 0$ for some $c$ strictly between $a$ and $x$. There $(x - c)^n \ne 0$, so $K = f^{(n+1)}(c)$.
 :::
@@ -939,13 +941,13 @@ same(cancel((qq_.subs({dq[0]: 0, dq[1]: 0, dq[2]: 0}))/(x - a)**3), dq[3])
 
 **(a)** Every derivative of $\sin$ is $\pm\sin$ or $\pm\cos$, so $M = 1$ will do for every $n$. With $n = 5$, Taylor's inequality gives $\abs{R_5(0.5)} \le 0.5^6/6! \approx 2.2 \times 10^{-5}$. You can do better. The coefficient of $x^6$ in the series of $\sin x$ is 0, so $T_5 = T_6$, and with $n = 6$
 
-$$\begin{aligned} \abs{\sin 0.5 - T_5(0.5)} &= \abs{R_6(0.5)} \le \frac{0.5^7}{7!} \\ &= \frac{0.0078125}{5040} \approx 1.55 \times 10^{-6}. \end{aligned}$$
+$$\begin{aligned} &\abs{\sin 0.5 - T_5(0.5)} = \abs{R_6(0.5)} \\ &\quad\le \frac{0.5^7}{7!} = \frac{0.0078125}{5040} \\ &\quad\approx 1.55 \times 10^{-6}. \end{aligned}$$
 
 Indeed $T_5(0.5) = 0.5 - 0.0208333 + 0.0002604 = 0.4794271$, while $\sin 0.5 \approx 0.4794255$: the error is about $-1.54 \times 10^{-6}$, very close to the bound.
 
 **(b)** Here $n = 2$ and $f'''(t) = \tfrac38 t^{-5/2}$, which decreases as $t$ grows, so on $[4, 4.1]$ it is largest at $t = 4$: $M = \tfrac38\cdot 4^{-5/2} = \tfrac{3}{256}$. So
 
-$$\begin{aligned} \abs{\sqrt{4.1} - T_2(4.1)} &\le \frac{3/256}{3!}\,(0.1)^3 \\ &= \frac{1}{512\,000} \approx 1.95 \times 10^{-6}. \end{aligned}$$
+$$\begin{aligned} &\abs{\sqrt{4.1} - T_2(4.1)} \le \frac{3/256}{3!}\,(0.1)^3 \\ &\quad= \frac{1}{512\,000} \approx 1.95 \times 10^{-6}. \end{aligned}$$
 
 The actual error is about $1.92 \times 10^{-6}$. The Lagrange form also gives the sign: $R_2(4.1) = \dfrac{f'''(c)}{3!}(0.1)^3$ with $f'''(c) > 0$, so the remainder is positive, and $T_2(4.1) = 2.02484375$ is slightly too small.
 
@@ -969,7 +971,7 @@ Find a degree $n$ for which the Maclaurin polynomial $T_n$ of $e^x$ satisfies $\
 
 Every derivative of $e^x$ is $e^x$, and for $t$ between 0 and $x$, with $\abs{x} \le 1$, $e^t \le e^1 < 3$. So $M = 3$ will do, and
 
-$$\abs{e^x - T_n(x)} \le \frac{3}{(n + 1)!}\abs{x}^{n+1} \le \frac{3}{(n + 1)!}.$$
+$$\begin{aligned} \abs{e^x - T_n(x)} &\le \frac{3}{(n + 1)!}\abs{x}^{n+1} \\ &\le \frac{3}{(n + 1)!}. \end{aligned}$$
 
 This is less than $10^{-6}$ when $(n + 1)! > 3\,000\,000$. Since $9! = 362\,880$ and $10! = 3\,628\,800$, $n + 1 = 10$ is enough: $T_9$ is within $10^{-6}$ of $e^x$ on the whole interval. The bound is not wasteful here. At $x = 1$ the error of $T_8$ is about $3.1 \times 10^{-6}$, too large, while that of $T_9$ is about $3.0 \times 10^{-7}$.
 
@@ -1001,7 +1003,7 @@ Modules 4 and 7 stated how large the errors of three approximations are, and lef
    $$\frac{f(a + h) - f(a)}{h} - f'(a) = \frac{h}{2}f''(c)$$
    for some $c$ between $a$ and $a + h$.
 3. If $f'''$ exists and is continuous on an open interval containing $a - h$ and $a + h$, the error of the central difference is
-   $$\frac{f(a + h) - f(a - h)}{2h} - f'(a) = \frac{h^2}{6}f'''(c)$$
+   $$\begin{aligned} &\frac{f(a + h) - f(a - h)}{2h} - f'(a) \\ &\quad= \frac{h^2}{6}f'''(c) \end{aligned}$$
    for some $c$ between $a - h$ and $a + h$.
 :::
 
@@ -1083,7 +1085,7 @@ Figure 15.3 shows how flat its graph is near 0. In fact every derivative of $f$ 
 
 Why is every derivative at 0 equal to 0? First, for $x \ne 0$, $f^{(n)}(x) = p_n(1/x)\,e^{-1/x^2}$ for some polynomial $p_n$. This holds for $n = 0$ with $p_0 = 1$, and if it holds for $n$, the chain and product rules give
 
-$$f^{(n+1)}(x) = \Big[\frac{2}{x^3}\,p_n\Big(\frac1x\Big) - \frac{1}{x^2}\,p_n'\Big(\frac1x\Big)\Big]e^{-1/x^2},$$
+$$\begin{aligned} &f^{(n+1)}(x) \\ &\quad= \Big[\frac{2}{x^3}\,p_n\Big(\frac1x\Big) - \frac{1}{x^2}\,p_n'\Big(\frac1x\Big)\Big]e^{-1/x^2}, \end{aligned}$$
 
 which has the same form, with $p_{n+1}(u) = 2u^3p_n(u) - u^2p_n'(u)$. Second, for every whole number $m \ge 0$, $u^me^{-u^2} \to 0$ as $u \to \infty$ and as $u \to -\infty$, because exponentials grow faster than powers ([Section 7.7](module_07_EN.html#growth)): for $\abs{u} \ge 1$, $u^2 \ge \abs{u}$, so $\abs{u}^me^{-u^2} \le \abs{u}^me^{-\abs{u}}$. Now suppose $f^{(n)}(0) = 0$, as is true for $n = 0$. By the definition of the derivative, with $u = 1/x$,
 
@@ -1226,7 +1228,7 @@ $$\begin{aligned} &\ln(1 + x) - \ln(1 - x) \\ &\quad= 2x + \frac{2x^3}{3} + \fra
 
 and the left side is $\ln\dfrac{1 + x}{1 - x}$, by the laws of logarithms. Now $\dfrac{1 + x}{1 - x} = 2$ when $1 + x = 2 - 2x$, that is, $x = \tfrac13$. So
 
-$$\ln 2 = 2\Big(\frac13 + \frac{1}{3\cdot3^3} + \frac{1}{5\cdot3^5} + \frac{1}{7\cdot3^7} + \cdots\Big).$$
+$$\begin{aligned} \ln 2 = 2\Big(&\frac13 + \frac{1}{3\cdot3^3} + \frac{1}{5\cdot3^5} \\ &+ \frac{1}{7\cdot3^7} + \cdots\Big). \end{aligned}$$
 
 Each term is less than a ninth of the one before. If you stop after $n$ terms, the terms left out, $\dfrac{2x^{2k+1}}{2k + 1}$ for $k \ge n$, are at most $\dfrac{2x^{2n+1}}{2n + 1}$ times $1, x^2, x^4, \dots$, a geometric series, so the error is at most
 
@@ -1252,7 +1254,7 @@ same(Rational(1, 2*10**6), Rational(5, 10**7))                    # the error 1/
 
 ### Limits by series {#limits}
 
-Series turn many limits into algebra. Write $O(x^m)$, as in Module 4, for a quantity whose size is at most a constant times $\abs{x}^m$ for $x$ near 0. Taylor's inequality gives such statements for every function in this module: for instance $\sin x = x - \tfrac{x^3}{6} + O(x^5)$, since $T_3 = T_4$ for $\sin$ and $\abs{R_4(x)} \le \abs{x}^5/5!$. The rules for $x$ near 0 are those of big-O in Module 3: $x^k\,O(x^m) = O(x^{k+m})$, a sum of terms $O(x^m)$ is $O(x^m)$, and $O(x^m)$ is also $O(x^k)$ when $k \le m$.
+Series turn many limits into algebra. Write $O(x^m)$, as in Module 4, for a quantity whose size is at most a constant times $\abs{x}^m$ for $x$ near 0. Taylor's inequality gives such statements for every function in this module: for instance $\sin x = x - \tfrac{x^3}{6} + O(x^5)$, since $T_3 = T_4$ for $\sin$ and $\abs{R_4(x)} \le \abs{x}^5/5!$. Three rules follow from the definition, for $x$ near 0: $x^k\,O(x^m) = O(x^{k+m})$, a sum of terms $O(x^m)$ is $O(x^m)$, and $O(x^m)$ is also $O(x^k)$ when $k \le m$.
 
 ::: example Two limits
 Find (a) $\displaystyle\lim_{x\to0}\frac{\sin x - x}{x^3}$ and (b) $\displaystyle\lim_{x\to0}\frac{e^x\sin x - x - x^2}{x^3}$.
@@ -1265,7 +1267,7 @@ L'Hôpital's rule reaches the same answer only after three applications.
 
 **(b)** Multiply the series of $e^x$ and $\sin x$, keeping the terms up to $x^3$; every product of higher degree goes into $O(x^4)$:
 
-$$\begin{aligned} e^x\sin x &= \Big(1 + x + \frac{x^2}{2} + O(x^3)\Big) \\ &\qquad\times\Big(x - \frac{x^3}{6} + O(x^5)\Big) \\ &= x + x^2 + \Big(\frac12 - \frac16\Big)x^3 + O(x^4) \\ &= x + x^2 + \frac{x^3}{3} + O(x^4). \end{aligned}$$
+$$\begin{aligned} &e^x\sin x \\ &\quad= \Big(1 + x + \frac{x^2}{2} + O(x^3)\Big) \\ &\qquad\times\Big(x - \frac{x^3}{6} + O(x^5)\Big) \\ &\quad= x + x^2 + \Big(\frac12 - \frac16\Big)x^3 + O(x^4) \\ &\quad= x + x^2 + \frac{x^3}{3} + O(x^4). \end{aligned}$$
 
 So $\dfrac{e^x\sin x - x - x^2}{x^3} = \dfrac13 + O(x) \to \dfrac13$.
 
@@ -1410,9 +1412,9 @@ Three of the standard series look alike. The series of $e^x$ has every power of 
 The equation $x^2 + 1 = 0$ has no real solution, because $x^2 \ge 0$ for every real $x$. Mathematicians add a new number $i$ with $i^2 = -1$ and calculate with it as with a letter in algebra, replacing $i^2$ by $-1$ wherever it appears. Module 13 met such numbers as the complex roots of a characteristic equation; this section needs only the little about them that follows.
 
 ::: definition Complex numbers
-A **complex number** is a number $z = p + qi$, where $p$ and $q$ are real numbers and $i$, the **imaginary unit**, satisfies $i^2 = -1$. The real number $p$ is the **real part** of $z$, and $q$ its **imaginary part**. Complex numbers are added and multiplied like expressions in a letter $i$, with $i^2$ replaced by $-1$:
+A **complex number** is a number $z = p + qi$, where $p$ and $q$ are real numbers and $i$, the **imaginary unit**, satisfies $i^2 = -1$. The real number $p$ is the **real part** of $z$, and $q$ its **imaginary part**. Complex numbers are added and multiplied like expressions in a letter $i$, with $i^2$ replaced by $-1$: for $z = p + qi$ and $w = r + si$,
 
-$$\begin{aligned} (p + qi) + (r + si) &= (p + r) + (q + s)i, \\ (p + qi)(r + si) &= (pr - qs) + (ps + qr)i. \end{aligned}$$
+$$\begin{aligned} z + w &= (p + r) + (q + s)i, \\ zw &= (pr - qs) + (ps + qr)i. \end{aligned}$$
 
 Two complex numbers are equal when their real parts are equal and their imaginary parts are equal. The **modulus** of $z = p + qi$ is $\abs{z} = \sqrt{p^2 + q^2}$.
 :::
@@ -1439,7 +1441,7 @@ For every complex number $z$,
 $$e^z = \sum_{n=0}^\infty \frac{z^n}{n!} = 1 + z + \frac{z^2}{2!} + \frac{z^3}{3!} + \cdots.$$
 :::
 
-The series converges for every $z$, because $\abs{z^n/n!} = \abs{z}^n/n!$ and $\sum \abs{z}^n/n!$ converges (Example 15.2). For a real $z$ it is the familiar $e^x$, by Theorem 15.9. The law of exponents $e^{z+w} = e^z e^w$ holds for complex $z$ and $w$ too. Its proof multiplies the two series term by term and collects the terms with the binomial theorem; it rests on a theorem about multiplying absolutely convergent series, which this series does not prove.
+The series converges for every $z$, because $\abs{z^n/n!} = \abs{z}^n/n!$ and $\sum \abs{z}^n/n!$ converges (Example 15.2). For a real $z$ it is the familiar $e^x$, by Theorem 15.9. The law of exponents $e^{z+w} = e^z e^w$ holds for complex $z$ and $w$ too. Its proof multiplies the two series term by term and collects the terms with the binomial theorem; it rests on a theorem about multiplying absolutely convergent series, which this course does not prove.
 
 ```check
 same(summation(rc**n/factorial(n), (n, 0, oo)), exp(rc)); same(Abs((3 + 4*I)**3), Abs(3 + 4*I)**3); same(Abs((3 + 4*I)*(1 - 2*I)), Abs(3 + 4*I)*Abs(1 - 2*I))
@@ -1509,7 +1511,7 @@ same(expand((cos(xr2) + I*sin(xr2))*(cos(yr2) + I*sin(yr2))), (cos(xr2)*cos(yr2)
 same(expand_trig(cos(xr2 + yr2)), cos(xr2)*cos(yr2) - sin(xr2)*sin(yr2)); same(expand_trig(sin(xr2 + yr2)), sin(xr2)*cos(yr2) + cos(xr2)*sin(yr2))
 ```
 
-Complex numbers also answer the question of Section 15.2: why does the series of $1/(1 + x^2)$ stop converging at $x = \pm1$, where nothing happens to the function? Allow complex $z$ in $1/(1 + z^2)$: the denominator is 0 at $z = \pm i$, at distance 1 from 0 in the complex plane. A theorem of complex analysis, beyond this series, says that the Taylor series of a rational function in lowest terms, about a real $a$, has as its radius of convergence the distance from $a$ to the nearest complex number at which the denominator is 0. The function blows up at $\pm i$, out of sight of the real line, and the series cannot converge beyond that distance. About $a = 1$ the radius is $\abs{1 - i} = \sqrt2$. And since $\arctan x$ is an integral of $1/(1 + x^2)$, and integration keeps the radius (Theorem 15.2), the series of $\arctan x$ about $a$ has radius $\abs{a - i} = \sqrt{1 + a^2}$: the widget of Section 15.4 shows it.
+Complex numbers also answer the question of Section 15.2: why does the series of $1/(1 + x^2)$ stop converging at $x = \pm1$, where nothing happens to the function? Allow complex $z$ in $1/(1 + z^2)$: the denominator is 0 at $z = \pm i$, at distance 1 from 0 in the complex plane. A theorem of complex analysis, beyond this course, says that the Taylor series of a rational function in lowest terms, about a real $a$, has as its radius of convergence the distance from $a$ to the nearest complex number at which the denominator is 0. The function blows up at $\pm i$, out of sight of the real line, and the series cannot converge beyond that distance. About $a = 1$ the radius is $\abs{1 - i} = \sqrt2$. And since $\arctan x$ is an integral of $1/(1 + x^2)$, and integration keeps the radius (Theorem 15.2), the series of $\arctan x$ about $a$ has radius $\abs{a - i} = \sqrt{1 + a^2}$: the widget of Section 15.4 shows it.
 
 ```check
 zc = symbols('z'); same_set(solve(1 + zc**2, zc), [I, -I]); same(Abs(I), 1); same(Abs(1 - I), sqrt(2))
@@ -1566,7 +1568,7 @@ A mass on a spring with damping moves according to $y'' + 2y' + 10y = 0$, where 
 
 The characteristic equation $r^2 + 2r + 10 = 0$ has roots
 
-$$r = \frac{-2 \pm \sqrt{4 - 40}}{2} = \frac{-2 \pm 6i}{2} = -1 \pm 3i,$$
+$$\begin{aligned} r &= \frac{-2 \pm \sqrt{4 - 40}}{2} \\ &= \frac{-2 \pm 6i}{2} = -1 \pm 3i, \end{aligned}$$
 
 since $\sqrt{-36} = 6i$ in the sense above: $(6i)^2 = -36$. So $e^{(-1+3i)t} = e^{-t}(\cos 3t + i\sin 3t)$ is a complex solution, and its real and imaginary parts give the real solutions $e^{-t}\cos 3t$ and $e^{-t}\sin 3t$; Module 13's general solution is $y = e^{-t}(C_1\cos 3t + C_2\sin 3t)$. The motion is an oscillation with period $2\pi/3 \approx 2.09$ seconds, whose size is multiplied by $e^{-t}$: it halves every $\ln 2 \approx 0.69$ seconds.
 
@@ -1625,15 +1627,15 @@ rounds(pi - Float(3.141592653589793, 40), '1.22e-16'); rounds(sin(Float(3.141592
 
 ## What you learned {#summary}
 
-- A power series $\sum c_n(x - a)^n$ converges absolutely for $\abs{x - a} < R$ and diverges for $\abs{x - a} > R$; the radius $R$, possibly 0 or $\infty$, usually comes from the ratio test, as $1/\lim\abs{c_{n+1}/c_n}$. The two endpoints $a \pm R$ must be tested separately.
-- Substituting into the geometric series $1/(1 - u) = \sum u^n$, for $\abs{u} < 1$, gives series for $1/(1 + x)$, $1/(1 + x^2)$, $1/(2 - x)$ and many more; the condition $\abs{u} < 1$ must be translated too.
-- Inside the interval of convergence a power series can be differentiated and integrated term by term, with the same radius. Integrating gives $\ln(1 + x) = x - \tfrac{x^2}{2} + \cdots$ and $\arctan x = x - \tfrac{x^3}{3} + \cdots$; at the endpoints, $1 - \tfrac12 + \tfrac13 - \cdots = \ln 2$ and $1 - \tfrac13 + \tfrac15 - \cdots = \tfrac{\pi}{4}$, and Abel's theorem covers every series that converges at an endpoint.
-- If $f$ has a power series about $a$, its coefficients are $f^{(n)}(a)/n!$: it is the Taylor series of $f$ (the Maclaurin series when $a = 0$). The standard series are those of $1/(1 - x)$, $\ln(1 + x)$, $\arctan x$, $e^x$, $\sin x$, $\cos x$ and the binomial series of $(1 + x)^k$, with their intervals.
-- The Taylor polynomial $T_n$ matches $f$ and its first $n$ derivatives at $a$. Taylor's theorem: $f(x) = T_n(x) + \dfrac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1}$ for some $c$ between $a$ and $x$; so $\abs{f(x) - T_n(x)} \le \dfrac{M}{(n + 1)!}\abs{x - a}^{n+1}$ when $\abs{f^{(n+1)}} \le M$. It proves the error estimates of Modules 4 and 7.
+- A power series $\sum c_n(x - a)^n$ converges absolutely for $\abs{x - a} < R$ and diverges for $\abs{x - a} > R$. The radius $R$, possibly 0 or $\infty$, usually comes from the ratio test; the endpoints $a \pm R$ must be tested separately.
+- Substituting into the geometric series $1/(1 - u) = \sum u^n$, $\abs{u} < 1$, gives series for $1/(1 + x)$, $1/(1 + x^2)$ and many more, once the condition $\abs{u} < 1$ is translated.
+- Inside the interval of convergence a power series can be differentiated and integrated term by term, with the same radius. This gives the series of $\ln(1 + x)$ and $\arctan x$, and at the endpoints $1 - \tfrac12 + \tfrac13 - \cdots = \ln 2$ and $1 - \tfrac13 + \tfrac15 - \cdots = \tfrac{\pi}{4}$. Abel's theorem covers every series that converges at an endpoint.
+- If $f$ has a power series about $a$, its coefficients are $f^{(n)}(a)/n!$: it is the Taylor series of $f$ (the Maclaurin series when $a = 0$). Know the series of $1/(1 - x)$, $\ln(1 + x)$, $\arctan x$, $e^x$, $\sin x$, $\cos x$ and $(1 + x)^k$, with their intervals.
+- The Taylor polynomial $T_n$ matches $f$ and its first $n$ derivatives at $a$. Taylor's theorem: $f(x) = T_n(x) + \dfrac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1}$ for some $c$ between $a$ and $x$, so $\abs{f(x) - T_n(x)} \le \dfrac{M}{(n + 1)!}\abs{x - a}^{n+1}$ when $\abs{f^{(n+1)}} \le M$. It proves the error estimates of Modules 4 and 7.
 - A Taylor series equals $f$ exactly where the remainder tends to 0: for $e^x$, $\sin x$ and $\cos x$, at every $x$. A convergent Taylor series can have the wrong sum, as $e^{-1/x^2}$ shows.
-- Series compute $e$, $\pi$ (Machin's formula) and $\ln 2$, evaluate limits such as $\lim (\sin x - x)/x^3 = -\tfrac16$, give the approximations of physics, and, after range reduction, the polynomials of mathematics libraries.
-- With complex numbers, $e^{i\theta} = \cos\theta + i\sin\theta$ and $e^{i\pi} + 1 = 0$. Complex roots $a \pm bi$ of a characteristic equation give the oscillating solutions $e^{at}\cos bt$ and $e^{at}\sin bt$, and complex numbers explain radii of convergence such as that of $1/(1 + x^2)$.
-- SymPy: `sp.series(f, x, a, n)` gives the terms up to $(x - a)^{n-1}$, and `.removeO()` drops the $O$ term.
+- Series compute $e$, $\pi$ and $\ln 2$, turn limits into algebra, give the approximations of physics and, after range reduction, the polynomials of mathematics libraries.
+- $e^{i\theta} = \cos\theta + i\sin\theta$, so $e^{i\pi} + 1 = 0$. Complex roots $a \pm bi$ of a characteristic equation give the oscillations $e^{at}\cos bt$ and $e^{at}\sin bt$, and the complex zeros $\pm i$ of $1 + z^2$ explain the radius 1 of the series of $1/(1 + x^2)$.
+- SymPy: `sp.series(f, x, a, n)` gives the terms up to $(x - a)^{n-1}$; `.removeO()` drops the $O$ term.
 
 ## Exercises {#exercises}
 
@@ -1708,7 +1710,7 @@ same(summation((-1)**n/4**(n + 1), (n, 0, oo)), Rational(1, 5)); same(Rational(1
 
 **(c)** Every derivative of $\cos$ is $\pm\sin$ or $\pm\cos$, so $M = 1$ will do. The coefficient of $x^5$ is 0, so $T_4 = T_5$, and Taylor's inequality with $n = 5$ gives
 
-$$\begin{aligned} \abs{\cos 0.2 - T_4(0.2)} &\le \frac{0.2^6}{6!} \\ &= \frac{0.000064}{720} \approx 8.9 \times 10^{-8}. \end{aligned}$$
+$$\begin{aligned} &\abs{\cos 0.2 - T_4(0.2)} \le \frac{0.2^6}{6!} \\ &\quad= \frac{0.000064}{720} \approx 8.9 \times 10^{-8}. \end{aligned}$$
 
 A calculator gives $\cos 0.2 \approx 0.98006658$, so the error is about $-8.9 \times 10^{-8}$: the bound is almost exact, because the next term of the series, $-x^6/720$, makes up nearly all of the error. With $n = 4$ the inequality gives only $0.2^5/5! \approx 2.7 \times 10^{-6}$, true but thirty times larger.
 
@@ -1773,7 +1775,7 @@ Example 15.6 showed that $\displaystyle\sum_{n=1}^\infty n x^n = \frac{x}{(1 - x
 
 **(b)** Differentiate $\sum n x^n = \dfrac{x}{(1 - x)^2}$ term by term (Theorem 15.2, inside the radius 1). On the right, by the quotient rule, and then cancelling a factor $1 - x$:
 
-$$\begin{aligned} \frac{d}{dx}\,\frac{x}{(1 - x)^2} &= \frac{(1 - x)^2 + 2x(1 - x)}{(1 - x)^4} \\ &= \frac{(1 - x) + 2x}{(1 - x)^3} = \frac{1 + x}{(1 - x)^3}. \end{aligned}$$
+$$\begin{aligned} &\frac{d}{dx}\,\frac{x}{(1 - x)^2} \\ &\quad= \frac{(1 - x)^2 + 2x(1 - x)}{(1 - x)^4} \\ &\quad= \frac{(1 - x) + 2x}{(1 - x)^3} = \frac{1 + x}{(1 - x)^3}. \end{aligned}$$
 
 On the left the derivative is $\sum n^2 x^{n-1}$. Multiplying by $x$ gives $\sum n^2 x^n = \dfrac{x(1 + x)}{(1 - x)^3}$.
 
@@ -1803,7 +1805,7 @@ $$\binom{1/2}{n+1}\Big/\binom{1/2}{n} = \frac{\tfrac12 - n}{n + 1},$$
 
 which for $n \ge 1$ is negative and has size $\dfrac{n - \tfrac12}{n + 1} < 1$. So for $0 < x < 1$, from the term in $x$ on, each term has the opposite sign to the one before and is smaller in size (its size is multiplied by $\tfrac{n - 1/2}{n + 1}\,x < 1$), and the terms tend to 0. By the alternating series bound of Module 14, applied to the series from its second term on, the error is less than the first term left out:
 
-$$\abs{\binom{1/2}{4}x^4} = \frac{5}{128}(0.1)^4 \approx 3.9 \times 10^{-6}.$$
+$$\begin{aligned} \abs{\binom{1/2}{4}x^4} &= \frac{5}{128}(0.1)^4 \\ &\approx 3.9 \times 10^{-6}. \end{aligned}$$
 
 Indeed $\sqrt{1.1} \approx 1.0488088$, and the error of 1.0488125 is about $-3.7 \times 10^{-6}$.
 
@@ -1832,11 +1834,11 @@ rounds(sqrt(110), '10.488088')
 ::: solution
 **(a)** $T_3(x) = x - \dfrac{x^2}{2} + \dfrac{x^3}{3}$ and $0.8 = 1 + x$ with $x = -0.2$, so
 
-$$\begin{aligned} \ln 0.8 &\approx -0.2 - \frac{0.04}{2} + \frac{-0.008}{3} \\ &= -0.2 - 0.02 - 0.0026667 \\ &= -0.2226667. \end{aligned}$$
+$$\begin{aligned} &\ln 0.8 \approx -0.2 - \frac{0.04}{2} - \frac{0.008}{3} \\ &\quad= -0.2 - 0.02 - 0.0026667 \\ &\quad= -0.2226667. \end{aligned}$$
 
 **(b)** The derivatives of $f(x) = \ln(1 + x)$ are $\dfrac{1}{1 + x}$, $-\dfrac{1}{(1 + x)^2}$, $\dfrac{2}{(1 + x)^3}$ and $f^{(4)}(x) = -\dfrac{6}{(1 + x)^4}$. For $t$ between $-0.2$ and 0, $1 + t \ge 0.8$, so $\abs{f^{(4)}(t)} \le \dfrac{6}{0.8^4} = 14.6484375$, and
 
-$$\begin{aligned} \abs{\ln 0.8 - T_3(-0.2)} &\le \frac{14.6484375}{4!}\,(0.2)^4 \\ &\approx 0.00098. \end{aligned}$$
+$$\begin{aligned} &\abs{\ln 0.8 - T_3(-0.2)} \\ &\quad\le \frac{14.6484375}{4!}\,(0.2)^4 \\ &\quad\approx 0.00098. \end{aligned}$$
 
 **(c)** At $x = -0.2$ every term of the series, $-0.2 - 0.02 - 0.0026667 - 0.0004 - \cdots$, is negative: the series does not alternate, so the alternating series bound does not apply. It would have claimed an error less than the next term, 0.0004, which is false: $\ln 0.8 \approx -0.2231436$, and the error is about $-0.00048$. Taylor's inequality, which needs no alternating signs, gives the safe bound 0.00098. The Lagrange form even gives the sign: $f^{(4)} < 0$, so $R_3 < 0$ and $T_3$ overestimates.
 
@@ -1890,7 +1892,7 @@ Write $c = \cos\theta$ and $s = \sin\theta$, so that $e^{i\theta} = c + is$.
 
 **(b)** Expand the cube, with $i^2 = -1$ and $i^3 = -i$:
 
-$$\begin{aligned} (c + is)^3 &= c^3 + 3c^2(is) + 3c(is)^2 + (is)^3 \\ &= (c^3 - 3cs^2) + i(3c^2s - s^3). \end{aligned}$$
+$$\begin{aligned} (c + is)^3 &= c^3 + 3ic^2s \\ &\quad - 3cs^2 - is^3 \\ &= (c^3 - 3cs^2) \\ &\quad + i(3c^2s - s^3). \end{aligned}$$
 
 With $s^2 = 1 - c^2$, the real part is $c^3 - 3c(1 - c^2) = 4c^3 - 3c$; with $c^2 = 1 - s^2$, the imaginary part is $3(1 - s^2)s - s^3 = 3s - 4s^3$. Comparing with $e^{3i\theta} = \cos 3\theta + i\sin 3\theta$ gives both formulas.
 
@@ -1950,11 +1952,11 @@ Let $\alpha = \arctan\tfrac15$. Use the formula $\tan(u + v) = \dfrac{\tan u + \
 ::: solution
 **(a)** With $u = v$, the formula gives $\tan 2u = \dfrac{2\tan u}{1 - \tan^2u}$. So
 
-$$\begin{aligned} \tan 2\alpha &= \frac{2/5}{1 - 1/25} = \frac25\cdot\frac{25}{24} = \frac{5}{12}, \\ \tan 4\alpha &= \frac{10/12}{1 - 25/144} = \frac56\cdot\frac{144}{119} = \frac{120}{119}. \end{aligned}$$
+$$\begin{aligned} \tan 2\alpha &= \frac{2/5}{1 - 1/25} = \frac{5}{12}, \\ \tan 4\alpha &= \frac{10/12}{1 - 25/144} = \frac{120}{119}. \end{aligned}$$
 
 **(b)** With $-v$ in place of $v$, and $\tan(-v) = -\tan v$, the formula gives $\tan(u - v) = \dfrac{\tan u - \tan v}{1 + \tan u\tan v}$. With $u = 4\alpha$ and $v = \tfrac{\pi}{4}$, where $\tan\tfrac{\pi}{4} = 1$:
 
-$$\begin{aligned} \tan\Big(4\alpha - \frac{\pi}{4}\Big) &= \frac{120/119 - 1}{1 + 120/119} \\ &= \frac{1/119}{239/119} = \frac{1}{239}. \end{aligned}$$
+$$\begin{aligned} &\tan\Big(4\alpha - \frac{\pi}{4}\Big) \\ &\quad= \frac{120/119 - 1}{1 + 120/119} \\ &\quad= \frac{1/119}{239/119} = \frac{1}{239}. \end{aligned}$$
 
 To conclude that $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, the angle must lie in $\big(-\tfrac{\pi}{2}, \tfrac{\pi}{2}\big)$, the range of $\arctan$ (Module 6). For $x > 0$, $\arctan x = \int_0^x \dfrac{dt}{1 + t^2} < \int_0^x dt = x$, so $0 < \alpha < \tfrac15$, and $-\tfrac{\pi}{4} < 4\alpha - \tfrac{\pi}{4} < \tfrac45 - \tfrac{\pi}{4} < \tfrac{\pi}{2}$. So $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, which rearranges to Machin's formula.
 
@@ -1983,7 +1985,7 @@ Prove Theorem 7.3. Let $f(r) = 0$, let $f'$ and $f''$ be continuous on an open i
 ::: solution
 **(a)** Since $f'$ is continuous at $r$ and $f'(r) \ne 0$, there is a $\delta_1 > 0$ such that $\abs{f'(x) - f'(r)} < \tfrac12\abs{f'(r)}$, and so $\abs{f'(x)} > \tfrac12\abs{f'(r)} > 0$, for $\abs{x - r} \le \delta_1$ (taking $\delta_1$ so small that this closed interval lies in the open interval of the hypothesis). On the closed interval $[r - \delta_1, r + \delta_1]$ the continuous function $\abs{f''}$ has a largest value $B$, by the Extreme Value Theorem (Module 3). So for $x$ and $c$ in that interval
 
-$$\abs{\frac{f''(c)}{2f'(x)}} \le \frac{B}{2\cdot\tfrac12\abs{f'(r)}} = \frac{B}{\abs{f'(r)}} = K.$$
+$$\begin{aligned} \abs{\frac{f''(c)}{2f'(x)}} &\le \frac{B}{2\cdot\tfrac12\abs{f'(r)}} \\ &= \frac{B}{\abs{f'(r)}} = K. \end{aligned}$$
 
 If $K = 0$, take $\delta = \delta_1$; otherwise take $\delta$ the smaller of $\delta_1$ and $\dfrac{1}{2K}$. A smaller interval keeps both properties, and $K\delta \le \tfrac12$.
 

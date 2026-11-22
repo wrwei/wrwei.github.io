@@ -84,6 +84,33 @@ function styleCheck(f, src) {
   })
 }
 
+// A "$" that is not part of a formula, e.g. "$ x$" (a formula may not start or end with a space), is
+// shown to readers as a raw dollar sign. Literal dollars are written \$.
+function dollarCheck(lang, f, src) {
+  const { offset } = frontMatter(src)
+  const lines = src.split('\n')
+  // Blank out code fences and the front matter, keeping line breaks so that positions map to lines.
+  let fence = null
+  const kept = lines.map((ln, i) => {
+    const m = ln.match(/^\s*(`{3,})/)
+    if (m) { if (!fence) fence = m[1]; else if (ln.trim().startsWith(fence)) fence = null; return '' }
+    return fence || i < offset ? '' : ln
+  }).join('\n')
+  const text = kept
+    .replace(/`[^`\n]*`/g, m => ' '.repeat(m.length))                                   // inline code
+    .replace(/\$\$[\s\S]*?\$\$/g, m => m.replace(/[^\n]/g, ' '))                          // display mathematics
+    .replace(/\\\$/g, '  ')                                                             // escaped dollars
+    .replace(/\$(?![\s$])(?:\\.|[^$\\])*?(?<![\s\\])\$/g, m => m.replace(/[^\n]/g, ' '))  // inline mathematics
+  let pos = -1
+  const seen = new Set()
+  while ((pos = text.indexOf('$', pos + 1)) >= 0) {
+    const line = text.slice(0, pos).split('\n').length
+    if (seen.has(line)) continue
+    seen.add(line)
+    err(`${lang}/${f}:${line}`, 'a "$" that does not form a formula (no space may follow the opening $ or precede the closing one; write \\$ for a dollar sign)')
+  }
+}
+
 const pages = fs.readdirSync(path.join(ROOT, 'src', 'en')).filter(f => f.endsWith('.md') && !f.startsWith('zz_')).sort()
 const names = new Set(pages.map(f => f.replace(/\.md$/, '')))
 const skels = {}
@@ -99,6 +126,7 @@ for (const f of pages) {
     sk[lang] = lang === 'en' ? skels[f] : skeleton(src)
     for (let k = before; k < errors.length; k++) errors[k] = `${lang}/${f}:${errors[k]}`
     if (lang === 'en') styleCheck(f, src)
+    dollarCheck(lang, f, src)
     const s = sk[lang], where = `${lang}/${f}`
     const n = f.startsWith('module_') ? Number(f.slice(7, 9)) : null
     s.figures.forEach((fig, k) => {
