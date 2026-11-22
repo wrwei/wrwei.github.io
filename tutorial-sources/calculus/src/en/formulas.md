@@ -189,8 +189,17 @@ steps(sin(5*pi/6), sin(pi/6), Rational(1, 2)); steps(cos(2*pi/3), -cos(pi/3), Ra
 **Growth rates.** Write $f \ll g$ when $f/g \to 0$. As $x \to \infty$, and for $p > 0$ and $a > 1$,
 $$\ln x \ll x^p \ll a^x, \qquad\text{and for whole numbers } n\text{:}\quad a^n \ll n! \ll n^n.$$
 
+**L'Hôpital's rule** ([Module 7](module_07_EN.html), proved in [Module 8](module_08_EN.html)). Let $f$ and
+$g$ be differentiable on an open interval containing $a$, except perhaps at $a$, with $g'(x) \ne 0$ there.
+If $\dfrac{f(x)}{g(x)}$ has the form $\dfrac00$ or $\dfrac{\infty}{\infty}$ as $x \to a$, and
+$\dfrac{f'(x)}{g'(x)} \to L$, a real number, $\infty$ or $-\infty$, then $\dfrac{f(x)}{g(x)} \to L$. The same
+holds for one-sided limits and for $x \to \pm\infty$.
+
 ```check
 limit_is(sin(theta)/theta, theta, 0, 1)
+# L'Hopital's rule on instances of each form: 0/0, infinity/infinity, and a limit L = infinity
+for F_, G_, pt in ((sin(x), x, 0), (exp(x) - 1 - x, x**2, 0), (log(x), x, oo), (exp(x), x**2, oo)):
+    same(limit(F_/G_, x, pt, '+-') if pt == 0 else limit(F_/G_, x, pt), limit(diff(F_, x)/diff(G_, x), x, pt, '+-') if pt == 0 else limit(diff(F_, x)/diff(G_, x), x, pt))
 limit_is((1 - cos(theta))/theta, theta, 0, 0)
 limit_is((1 + 1/n)**n, n, oo, E)
 limit_is((1 + x/n)**n, n, oo, exp(x))
@@ -207,13 +216,15 @@ limit_is(x**pp/(1 + qq)**x, x, oo, 0); limit_is((1 + qq)**n/factorial(n), n, oo,
 
 ## Derivatives {#derivatives}
 
-### Definition and estimates {#derivative-definition}
+### Definition and approximation {#derivative-definition}
 
 | Name | Formula | Module |
 |---|---|---|
 | Derivative at ${a}$ | ${f'(a) = \lim\limits_{h \to 0} \dfrac{f(a + h) - f(a)}{h},}$ when the limit exists | [4](module_04_EN.html) |
 | Tangent line at ${a}$ | ${y = f(a) + f'(a)(x - a)}$ | [4](module_04_EN.html) |
 | Linear approximation | ${f(x) \approx f(a) + f'(a)(x - a)}$ for ${x}$ near ${a}$ | [7](module_07_EN.html) |
+| Differentials | ${dy = f'(x)\,dx;}$ ${\Delta y \approx dy}$ for small ${dx}$ | [7](module_07_EN.html) |
+| Newton's method | ${x_{n+1} = x_n - \dfrac{f(x_n)}{f'(x_n)},}$ while ${f'(x_n) \ne 0}$ | [7](module_07_EN.html) |
 | Forward difference | ${f'(a) \approx \dfrac{f(a + h) - f(a)}{h},}$ error about ${-\tfrac{h}{2}f''(a)}$ | [4](module_04_EN.html), [15](module_15_EN.html) |
 | Central difference | ${f'(a) \approx \dfrac{f(a + h) - f(a - h)}{2h},}$ error about ${-\tfrac{h^2}{6}f'''(a)}$ | [4](module_04_EN.html), [15](module_15_EN.html) |
 
@@ -226,6 +237,8 @@ $\varepsilon/h$, which is why steps of about $10^{-8}$ (forward) and $10^{-5}$ (
 same(limit(((a + h)**3 - a**3)/h, h, 0, '+-'), 3*a**2)          # the definition, for x^3
 same(expand(1 + 3*(x - 1)), 3*x - 2)                           # tangent line of x^3 at 1
 same(series(x**3, x, 1, 2).removeO(), 3*x - 2)                 # the same line is the linear approximation
+same(diff(x**3, x).subs(x, 2)*Rational(1, 100), Rational(12, 100)); same(Rational(201, 100)**3 - 8, Rational(120601, 1000000))   # dy and Delta y
+same(3 - (3**2 - 2)/(2*Integer(3)), Rational(11, 6))           # Newton for x^2 - 2 from x_0 = 3 (Module 7)
 fw = ((a + h)**3 - a**3)/h; ce = ((a + h)**3 - (a - h)**3)/(2*h)
 same(3*a**2 - fw, -3*a*h - h**2); same(3*a**2 - ce, -h**2)     # exact errors for x^3 (Module 4)
 same(-(h/2)*diff(x**3, x, 2).subs(x, a), -3*a*h); same(-(h**2/6)*diff(x**3, x, 3), -h**2)

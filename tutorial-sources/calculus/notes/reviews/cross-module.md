@@ -16,6 +16,11 @@ coordinator). Struck through when done.
   review). The riemann-sums widget is shared with Module 11: run its test after any change, and keep
   Module 11's widget paragraph true.
 - **Module 11:** links to Exercise 6.10 (`ex-6-10`), which keeps its id.
+- **Module 13:** line 338 says "Section 7.2 showed"; Module 7 only states it there: say "stated" (Module 7
+  review).
+- **Module 15:** Newton's method: Module 7 defines e_n = x_n − r (the error with its sign reversed) in
+  Theorem 7.3; keep that in Section 15.5 and Exercise 15.12, or change it together with Theorem 7.3
+  (Module 7 review).
 - **Module 15:** the theorem on difference quotients (about lines 1002–1035) states the errors of the
   forward and central differences as (h/2)f″(c) and (h²/6)f‴(c), the opposite sign to Section 4.7, which
   now uses error = f′(a) − estimate (Module 4 review): flip the theorem, its proof and its checks so that
@@ -30,5 +35,8 @@ coordinator). Struck through when done.
 - ~~Formula sheet: add the definition of the derivative and the forward and central differences (Module 4
   review), and an `arcsec` row; the inverse-function rule needs f continuous and one-to-one on an open
   interval (Module 6 review).~~ Done.
+- Optional: `sp.solve` appears in Modules 6 and 7 before Module 8 explains it (Module 8 review).
+- Keep the ids `module_04#ex-4-11` and `module_07#the-rule`: Module 8 links to them.
+- ~~Formula sheet: L'Hôpital's rule, differentials and Newton's step (Module 7 review).~~ Done.
 - At 360 px some display formulas still scroll inside their line (Module 1: about 10, Module 2: 2) and
   some tables scroll inside their frame (Module 1: 2, Module 3: 6). The brief allows both.
