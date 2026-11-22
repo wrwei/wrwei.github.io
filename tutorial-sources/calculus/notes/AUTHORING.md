@@ -200,7 +200,9 @@ changes sign, or compare with `N(Integral(...))`): its `doit()` has given wrong 
 of a vector with plain symbols contains `Abs`; declare the symbols `real=True`. `N(Integral(...))` of a
 multiple integral whose inner limits depend on an outer variable comes back unevaluated, without an
 error: integrate the inner integral first, or nest `mpmath.quad`. A value table evaluates such a
-nested `Sum` exactly. The scratchpad
+nested `Sum` exactly. `limit` of an exponential with a constant base at $-\infty$ is wrong in SymPy 1.14:
+`limit(2**x, x, -oo)` gives `oo` and `limit((1/2)**x, x, -oo)` gives 0; substitute $x = -t$ and let
+$t \to \infty$, or write the power as `exp(x*log(2))`. The scratchpad
 folder is shared by all authors: keep your scratch files in a subfolder named after your module.
 
 ### 6.2 Compute boxes (Python)
