@@ -9,8 +9,8 @@ export async function run(t) {
   // The start: x² on [0, 1], left rule, n = 4 — the rectangles of Example 9.1.
   t.check(await val(t, 'rs-approx') === '= 0.21875' && (await t.text('.rs-approx .rs-key')).endsWith('L₄') && await t.count('.rs-piece') === 4,
     'x² on [0, 1], left, n = 4: four rectangles and L₄ = 0.21875')
-  t.check(await val(t, 'rs-int') === '≈ 0.3333333333' && await val(t, 'rs-err') === '≈ −0.115' && await val(t, 'rs-dx') === '= 0.25',
-    'the integral ≈ 0.3333333333, the error ≈ −0.115, Δx = 0.25')
+  t.check(await val(t, 'rs-int') === '≈ 0.3333333333' && await val(t, 'rs-err') === '≈ 0.115' && await val(t, 'rs-dx') === '= 0.25',
+    'the integral ≈ 0.3333333333, the error ≈ 0.115, Δx = 0.25')
 
   // The other two sums of Example 9.1 and Section 9.3.
   await t.select('select >> nth=1', 'right')
@@ -21,7 +21,7 @@ export async function run(t) {
   // Doubling n: the midpoint error is divided by 4 (exactly, for x²); the left error by about 2.
   await t.click('Double n')
   let row = await lastRow(t)
-  t.check(await val(t, 'rs-approx') === '= 0.33203125' && row[0] === '8' && row[1] === '−0.0013' && row[2] === '4' && (await t.count('.rs-table tbody tr')) === 2,
+  t.check(await val(t, 'rs-approx') === '= 0.33203125' && row[0] === '8' && row[1] === '0.0013' && row[2] === '4' && (await t.count('.rs-table tbody tr')) === 2,
     `midpoint, n = 8: M₈ = 0.33203125 and the error ratio is 4 (row ${row.join(' | ')})`)
   await t.select('select >> nth=1', 'left')
   await t.click('Double n')
@@ -56,7 +56,7 @@ export async function run(t) {
   await t.set('input[type=range]', 4)
   await t.type('.rs-field input', 'x^3')
   await t.wait(400)
-  t.check(await val(t, 'rs-approx') === '= 3.875' && await val(t, 'rs-int') === '≈ 4' && await val(t, 'rs-err') === '≈ −0.125',
+  t.check(await val(t, 'rs-approx') === '= 3.875' && await val(t, 'rs-int') === '≈ 4' && await val(t, 'rs-err') === '≈ 0.125',
     'x³ on [0, 2], midpoint, n = 4: M₄ = 3.875, integral ≈ 4')
 
   // Bad input gives messages, not errors: an unfinished formula, a > b, a point where f is undefined, a pole.

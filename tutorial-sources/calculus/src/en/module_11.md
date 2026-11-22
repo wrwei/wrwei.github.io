@@ -492,7 +492,8 @@ $$\begin{aligned} &\frac{d}{dx}\ln\abs{\sec x + \tan x} \\ &\quad= \frac{\sec x\
 :::
 
 ```check
-same(sec(x) + tan(x), (1 + sin(x))/cos(x)); same_set(solve(1 + sin(x), x), [-pi/2, 3*pi/2]); same(cos(-pi/2), 0); same(cos(3*pi/2), 0)
+same(sec(x) + tan(x), (1 + sin(x))/cos(x)); same(cos(x)**2, 1 - sin(x)**2); same((1 - sin(x)**2).subs(sin(x), -1), 0)   # sin x = -1 forces cos x = 0
+nZ = symbols('n', integer=True); same(sin(2*nZ*pi - pi/2), -1); same(cos(2*nZ*pi - pi/2), 0)
 antideriv(log(sec(x) + tan(x)), sec(x), x); antideriv(log(-(sec(x) + tan(x))), sec(x), x)    # where sec + tan > 0, and where it is < 0
 steps(diff(sec(x) + tan(x), x)/(sec(x) + tan(x)), (sec(x)*tan(x) + sec(x)**2)/(sec(x) + tan(x)), sec(x))
 ```
@@ -549,6 +550,7 @@ Let $g$ have a continuous derivative on an interval $J$.
 Fq, gq = Function('F'), Function('g')
 same(diff(Fq(gq(theta)), theta), Subs(Derivative(Fq(u), u), u, gq(theta))*Derivative(gq(theta), theta))   # the chain rule behind (b)
 same(integrate(sqrt(1 - x**2), (x, 0, 1)), integrate(cos(theta)*cos(theta), (theta, 0, pi/2)))   # (a), an instance: x = sin(theta)
+near(N(Integral(sqrt(1 - x**2), (x, 0, 1)), 30), N(pi/4, 30), 1e-20); same(integrate(cos(theta)**2, (theta, 0, pi/2)), pi/4)
 ```
 
 Three substitutions cover the three square roots of the form $\sqrt{\pm x^2 \pm a^2}$ that can be real. In each row $a > 0$:
@@ -595,6 +597,8 @@ same(2*rp**2*(Fc.subs(theta, pi/2) - Fc.subs(theta, -pi/2)), pi*rp**2); same(Fc.
 same_set(solve(Eq(x**2/ap**2 + y**2/bp**2, 1), y), [bp/ap*sqrt(ap**2 - x**2), -bp/ap*sqrt(ap**2 - x**2)])
 steps(bp/ap*Integral(2*sqrt(ap**2 - x**2), (x, -ap, ap)), bp/ap*pi*ap**2, pi*ap*bp)
 same((pi*ap*bp).subs({ap: rp, bp: rp}), pi*rp**2)
+near(N(Integral(2*sqrt(4 - x**2), (x, -2, 2)), 30), N(4*pi, 30), 1e-20)                  # independent numerical value, r = 2
+near(N(Rational(3, 2)*Integral(2*sqrt(4 - x**2), (x, -2, 2)), 30), N(pi*2*3, 30), 1e-20)   # a = 2, b = 3
 ```
 :::
 
@@ -1333,6 +1337,7 @@ This is at most $10^{-6}$ when $n^2 \ge \tfrac{10^6}{6} \approx 166{,}667$. Sinc
 
 ```check
 same(diff(1/x, x, 2), 2/x**3); same(maximum(2/x**3, x, Interval(1, 2)), 2); holds(minimum(2/x**3, x, Interval(1, 2)) > 0)
+same(diff(2/x**3, x), -6/x**4); same((2/x**3).subs(x, 1), 2); same((2/x**3).subs(x, 2), Rational(1, 4))   # decreasing, from 2 to 1/4
 rounds(Rational(10**6, 6), '166667'); same(408**2, 166464); same(409**2, 167281)
 holds(Rational(1, 6*408**2) > Rational(1, 10**6)); holds(Rational(1, 6*409**2) <= Rational(1, 10**6))
 holds(Rational(10**6, 12) > 83333); same(288**2, 82944); same(289**2, 83521)
@@ -1440,7 +1445,7 @@ $$\abs{E_S} \le \frac{K(b - a)^5}{180n^4}.$$
 The proof uses the idea of the Going deeper box with a longer calculation, and this series omits it. The bound agrees with Theorem 11.9: for a cubic, $f^{(4)} = 0$, so $K = 0$ and the error is 0. It shrinks like $\tfrac{1}{n^4}$, so doubling $n$ divides it by about $2^4 = 16$. For $\ln 2$, $f^{(4)}(x) = \tfrac{24}{x^5} \le 24$ on $[1, 2]$, and $\tfrac{24}{180n^4} \le 10^{-6}$ needs $n^4 \ge 133{,}334$, that is, $n \ge 19.11$. With $n$ even, $n = 20$ suffices: twenty subintervals, where the trapezoidal rule needed 409.
 
 ```check
-same(diff(1/x, x, 4), 24/x**5); same(maximum(24/x**5, x, Interval(1, 2)), 24)
+same(diff(1/x, x, 4), 24/x**5); same(maximum(24/x**5, x, Interval(1, 2)), 24); same(diff(24/x**5, x), -120/x**6); same((24/x**5).subs(x, 1), 24)
 same(Kq*(bq_ - aq)**5/(180*nq**4)/(Kq*(bq_ - aq)**5/(180*(2*nq)**4)), 16)
 holds(Rational(24*10**6, 180) > 133333); rounds(Rational(24*10**6, 180)**Rational(1, 4), '19.11')
 holds(Rational(24, 180*20**4) <= Rational(1, 10**6)); holds(Rational(24, 180*18**4) > Rational(1, 10**6))
@@ -1522,7 +1527,7 @@ Simpson's rule. Left: with $n = 4$, two parabolas (purple, dashed), each through
 :::
 
 ::: widget name=riemann-sums
-Choose $e^x$ on $[0, 1]$, the trapezoid rule and $n = 4$: the shaded trapezoids hug the curve, and $T_4 \approx 1.72722$ is a little more than the integral $e - 1 \approx 1.71828$. Press **Double n** three times. The table keeps the error at each $n$ and the ratio of each error to the next: close to 4 every time. (The widget's error is the approximation minus the integral, the opposite sign of the errors in this section; the ratios are the same.) Switch to the midpoint rule and do the same: the errors are about half as large, with the opposite sign, and the ratios are again close to 4. Then choose Simpson's rule: the purple curves are the parabolas, and the ratios are close to 16. Two experiments to finish. Choose **type your own**, keep $x^3 - x$ on $[0, 2]$ and choose Simpson's rule: the error is 0, to within rounding error, for every even $n$ (Theorem 11.9). And choose $\sqrt x$ on $[0, 1]$ with Simpson's rule: the ratios are only about 2.8, because the derivatives of $\sqrt x$ are unbounded near 0, and Theorem 11.10 does not apply.
+Choose $e^x$ on $[0, 1]$, the trapezoid rule and $n = 4$: the shaded trapezoids hug the curve, and $T_4 \approx 1.72722$ is a little more than the integral $e - 1 \approx 1.71828$. Press **Double n** three times. The table keeps the error at each $n$ and the ratio of each error to the next: close to 4 every time. Switch to the midpoint rule and do the same: the errors are about half as large, with the opposite sign, and the ratios are again close to 4. Then choose Simpson's rule: the purple curves are the parabolas, and the ratios are close to 16. Two experiments to finish. Choose **type your own**, keep $x^3 - x$ on $[0, 2]$ and choose Simpson's rule: the error is 0, to within rounding error, for every even $n$ (Theorem 11.9). And choose $\sqrt x$ on $[0, 1]$ with Simpson's rule: the ratios are only about 2.8, because the derivatives of $\sqrt x$ are unbounded near 0, and Theorem 11.10 does not apply.
 :::
 
 ```check
@@ -1778,9 +1783,13 @@ antideriv(Rational(9, 2)*asin(x/3) - x*sqrt(9 - x**2)/2, x**2/sqrt(9 - x**2), x)
 same(9*tan(theta)**2 + 9, 9*sec(theta)**2); same(3*sec(theta)**2/(27*sec(theta)**3), cos(theta)/9)
 same(sin(atan(x/3)), x/sqrt(x**2 + 9)); antideriv(x/(9*sqrt(x**2 + 9)), 1/(x**2 + 9)**Rational(3, 2), x)
 same(sec(pi/4), sqrt(2)); same(tan(pi/4), 1); same(sqrt(1 + tan(theta)**2)*sec(theta)**2, sqrt(sec(theta)**2)*sec(theta)**2)
+holds(cos(pi/4) > 0); same(diff(cos(theta), theta), -sin(theta))     # cos decreases on [0, pi/4] from 1 to cos(pi/4) > 0, so sec > 0 there
+for th_ in (0, Rational(1, 4), Rational(1, 2), Rational(3, 4), pi/4):
+    near(sqrt(1 + tan(th_)**2), sec(th_), 1e-25)
 Fs3 = sec(theta)*tan(theta)/2 + log(sec(theta) + tan(theta))/2
 same(Fs3.subs(theta, pi/4) - Fs3.subs(theta, 0), sqrt(2)/2 + log(sqrt(2) + 1)/2); same(Fs3.subs(theta, 0), 0)
 same(integrate(sqrt(1 + x**2), (x, 0, 1)), sqrt(2)/2 + log(1 + sqrt(2))/2); rounds(sqrt(2)/2 + log(1 + sqrt(2))/2, '1.1478')
+near(N(Integral(sqrt(1 + x**2), (x, 0, 1)), 30), N(sqrt(2)/2 + log(1 + sqrt(2))/2, 30), 1e-20)
 same(sqrt(1 + diff(x**2/2, x)**2), sqrt(1 + x**2))
 ```
 :::
@@ -1874,6 +1883,7 @@ Let $f(x) = e^{-x^2}$.
 fe_ = exp(-x**2)
 same(diff(fe_, x), -2*x*exp(-x**2)); same(diff(fe_, x, 2), (4*x**2 - 2)*exp(-x**2)); same(diff(fe_, x, 3), (12*x - 8*x**3)*exp(-x**2)); same(diff(fe_, x, 4), (16*x**4 - 48*x**2 + 12)*exp(-x**2))
 same(function_range(4*x**2 - 2, x, Interval(0, 1)), Interval(-2, 2)); holds(exp(-Rational(1, 1)) > 0)
+same(diff(4*x**2 - 2, x), 8*x); same((4*x**2 - 2).subs(x, 0), -2); same((4*x**2 - 2).subs(x, 1), 2)   # increasing on [0, 1]
 sq_ = symbols('s'); same(diff(16*sq_**2 - 48*sq_ + 12, sq_), 32*sq_ - 48); same((16*sq_**2 - 48*sq_ + 12).subs(sq_, 0), 12); same((16*sq_**2 - 48*sq_ + 12).subs(sq_, 1), -20)
 same(function_range(16*sq_**2 - 48*sq_ + 12, sq_, Interval(0, 1)), Interval(-20, 12))
 holds(Rational(2*10**6, 12) > 166666); holds(Rational(2, 12*409**2) <= Rational(1, 10**6)); holds(Rational(2, 12*408**2) > Rational(1, 10**6))
@@ -1883,6 +1893,7 @@ rounds(abs(eT[4]), '1.5e-5'); rounds(abs(eS[2]), '1.25e-7'); rounds(abs(eS[1]), 
 nT = sqrt(abs(eT[0])*16/Rational(1, 10**6)); holds(240 < nT < 260)
 holds(abs(eS[2]) < 1e-6); holds(abs(eS[1]) > 1e-6)
 fe4 = (16*x**4 - 48*x**2 + 12)*exp(-x**2); same(maximum(fe4, x, Interval(0, 1)), 12); holds(minimum(fe4, x, Interval(0, 1)) > -12)
+same(diff(fe4, x), -8*x*(4*x**4 - 20*x**2 + 15)*exp(-x**2)); holds(all(-12 < fe4.subs(x, Rational(k_, 100)) <= 12 for k_ in range(101)))
 holds(Rational(12, 180*18**4) <= Rational(1, 10**6)); holds(Rational(12, 180*16**4) > Rational(1, 10**6))
 ```
 :::
@@ -1999,6 +2010,7 @@ same(diff(x - hq, x), 1); same((x - hq).subs(x, hq), 0); same(-((x - hq).subs(x,
 same(diff(x + hq, x), 1); same((x + hq).subs(x, -hq), 0); same(diff((x + hq)**2/2, x), x + hq)
 same(Rational(1, 2)*(integrate((hq - x)**2, (x, 0, hq)) + integrate((hq + x)**2, (x, -hq, 0))), hq**3/3)
 same(integrate((hq - x)**2, (x, 0, hq)), hq**3/3); same(hq**3/3, (2*hq)**3/24)
+near(N(Integral((1 - Abs(x))**2, (x, -1, 1)), 30)/2, Rational(1, 3), 1e-12)                  # h = 1, with the absolute value, numerically
 same(integrate(sin(mq + t), (t, -hq, hq)), integrate(sin(x), (x, mq - hq, mq + hq)))      # translation: g(t) = f(m + t), an instance
 same(nq*(Kq/24)*((bq_ - aq)/nq)**3, Kq*(bq_ - aq)**3/(24*nq**2))
 ```

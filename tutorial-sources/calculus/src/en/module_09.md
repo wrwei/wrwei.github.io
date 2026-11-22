@@ -398,22 +398,22 @@ n | L_n | R_n | M_n
 100 | 0.32835 | 0.33835 | 0.333325
 ```
 
-All three close in on $\tfrac13 = 0.3333\ldots$: the left sums from below and the right sums from above, as for any increasing function, and the midpoint sums much faster than either. The errors show how fast:
+All three close in on $\tfrac13 = 0.3333\ldots$: the left sums from below and the right sums from above, as for any increasing function, and the midpoint sums much faster than either. The **error** of an approximation is the exact value minus the approximation: positive when the approximation is too small, negative when it is too large. The errors show how fast:
 
 ```valuetable
 n = 10, 20, 40, 80
-$R_n - \tfrac13$ = Sum((i/n)**2, (i, 1, n))/n - 1/3
-$M_n - \tfrac13$ = Sum(((i - 1/2)/n)**2, (i, 1, n))/n - 1/3
+$\tfrac13 - R_n$ = 1/3 - Sum((i/n)**2, (i, 1, n))/n
+$\tfrac13 - M_n$ = 1/3 - Sum(((i - 1/2)/n)**2, (i, 1, n))/n
 decimals = 8
 ---
-n | R_n - \tfrac13 | M_n - \tfrac13
-10 | 0.05166667 | -0.00083333
-20 | 0.02541667 | -0.00020833
-40 | 0.01260417 | -0.00005208
-80 | 0.00627604 | -0.00001302
+n | \tfrac13 - R_n | \tfrac13 - M_n
+10 | -0.05166667 | 0.00083333
+20 | -0.02541667 | 0.00020833
+40 | -0.01260417 | 0.00005208
+80 | -0.00627604 | 0.00001302
 ```
 
-Each time $n$ doubles, the error of $R_n$ is roughly halved, and so is that of $L_n$, which is almost the same size with the opposite sign; the error of $M_n$ is divided by exactly 4. The exact formulas found below explain this: the error of $R_n$ is about $\tfrac{1}{2n}$, and that of $M_n$ is exactly $-\tfrac{1}{12n^2}$. So a thousand times more rectangles make the left and right sums about a thousand times more accurate, but the midpoint sum a million times. Module 11 explains why, and builds the midpoint sum, the trapezoidal rule and Simpson's rule into practical methods of numerical integration.
+Each time $n$ doubles, the error of $R_n$ is roughly halved, and so is that of $L_n$, which is almost the same size with the opposite sign; the error of $M_n$ is divided by exactly 4. The exact formulas found below explain this: the error of $R_n$ is about $-\tfrac{1}{2n}$, and that of $M_n$ is exactly $\tfrac{1}{12n^2}$. So a thousand times more rectangles make the left and right sums about a thousand times more accurate, but the midpoint sum a million times. Module 11 explains why, and builds the midpoint sum, the trapezoidal rule and Simpson's rule into practical methods of numerical integration.
 
 ```check
 LL = lambda N_: Lsum(x9**2, 0, 1, N_); RR = lambda N_: Rsum(x9**2, 0, 1, N_); MM = lambda N_: Msum(x9**2, 0, 1, N_)
@@ -422,7 +422,7 @@ for N_ in (10, 20, 40):
     holds(2 < (RR(N_) - Rational(1, 3))/(RR(2*N_) - Rational(1, 3)) < 2.1)
     same((MM(N_) - Rational(1, 3))/(MM(2*N_) - Rational(1, 3)), 4)
 for N_ in (4, 10, 100):
-    same(RR(N_) - Rational(1, 3), Rational(1, 2*N_) + Rational(1, 6*N_**2)); same(MM(N_) - Rational(1, 3), -Rational(1, 12*N_**2))
+    same(Rational(1, 3) - RR(N_), -Rational(1, 2*N_) - Rational(1, 6*N_**2)); same(Rational(1, 3) - MM(N_), Rational(1, 12*N_**2))
 holds(LL(10) < LL(100)); holds(LL(100) < Rational(1, 3)); holds(Rational(1, 3) < RR(100)); holds(RR(100) < RR(10))
 ```
 
@@ -454,20 +454,20 @@ These are the three sums of Example 9.4. Now the errors of the midpoint sums, me
 import math
 prev = None
 for n in [10, 20, 40, 80]:
-    err = riemann(f, 1, 2, n, 'mid') - math.log(2)
+    err = math.log(2) - riemann(f, 1, 2, n, 'mid')
     note = '' if prev is None else f'   previous/this = {prev/err:.3f}'
     print(f'n = {n:2d}   error = {err:.3e}{note}')
     prev = err
 ```
 
 ```output
-n = 10   error = -3.118e-04
-n = 20   error = -7.808e-05   previous/this = 3.993
-n = 40   error = -1.953e-05   previous/this = 3.998
-n = 80   error = -4.883e-06   previous/this = 4.000
+n = 10   error = 3.118e-04
+n = 20   error = 7.808e-05   previous/this = 3.993
+n = 40   error = 1.953e-05   previous/this = 3.998
+n = 80   error = 4.883e-06   previous/this = 4.000
 ```
 
-The midpoint sums of $1/x$ are a little too small, and each doubling of $n$ divides the error by almost exactly 4, as for $x^2$.
+The errors are positive: the midpoint sums of $1/x$ are a little too small. Each doubling of $n$ divides the error by almost exactly 4, as for $x^2$.
 :::
 
 ::: widget name=riemann-sums

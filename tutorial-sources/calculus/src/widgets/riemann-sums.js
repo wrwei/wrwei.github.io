@@ -1,7 +1,8 @@
 /* riemann-sums (Modules 9 and 11): approximate the integral of f over [a, b] with n subintervals by the left,
  * right, midpoint, trapezoid or Simpson rule, see the rectangles (trapezoids, parabolic strips) that the rule
  * adds up, and compare the result with the integral itself, computed accurately by adaptive Simpson
- * quadrature (api.num.integrate). A table keeps the error at the last few values of n, with the ratio of
+ * quadrature (api.num.integrate). The error is the integral minus the approximation, as in the modules.
+ * A table keeps the error at the last few values of n, with the ratio of
  * successive errors when n has doubled: about 2 for the left and right sums, 4 for the midpoint and
  * trapezoid rules and 16 for Simpson's rule, for a smooth f. */
 CalcWidgets.register('riemann-sums', function (root, api) {
@@ -126,7 +127,7 @@ CalcWidgets.register('riemann-sums', function (root, api) {
     else out.approx = api.num.riemann(f, a, b, n, rule)
     out.exact = an.exact
     if (!isFinite(out.exact)) out.msg = t('The integral could not be computed accurately for this f.', '无法精确计算这个 f 的积分。')
-    out.err = out.approx - out.exact
+    out.err = out.exact - out.approx
     // Numbers below this size, relative to the scale (b − a)·max|f| of the sums, are lost in the rounding of
     // the arithmetic itself: an integral of 0 comes out as ±10⁻¹⁷ or so, and is shown as ≈ 0.
     out.noise = 5e-13 * (b - a) * sc.top
@@ -165,7 +166,7 @@ CalcWidgets.register('riemann-sums', function (root, api) {
     dx: row('rs-dx', 'Δx = (b − a)/n'),
     approx: row('rs-approx', ''),
     exact: row('rs-int', t('Integral (accurate numerical value)', '积分（高精度数值）')),
-    err: row('rs-err', t('Error = approximation − integral', '误差 = 近似值 − 积分')),
+    err: row('rs-err', t('Error = integral − approximation', '误差 = 积分 − 近似值')),
   }
   var readout = h('div', { class: 'rs-readout', 'aria-live': 'polite' }, R.dx.el, R.approx.el, R.exact.el, R.err.el)
   var msg = h('div', { class: 'rs-msg', 'aria-live': 'polite' })
