@@ -197,7 +197,10 @@ when the integrand has no elementary antiderivative, while `diff(Integral(...), 
 gives only $(0, \pi/2)$, without $(\pi, 3\pi/2)$; check a solution set by testing points in each piece
 (`near`, `sign`). Check an integral of `Abs(...)` another way too (split the interval where the inside
 changes sign, or compare with `N(Integral(...))`): its `doit()` has given wrong values. `Matrix.norm()`
-of a vector with plain symbols contains `Abs`; declare the symbols `real=True`. The scratchpad
+of a vector with plain symbols contains `Abs`; declare the symbols `real=True`. `N(Integral(...))` of a
+multiple integral whose inner limits depend on an outer variable comes back unevaluated, without an
+error: integrate the inner integral first, or nest `mpmath.quad`. A value table evaluates such a
+nested `Sum` exactly. The scratchpad
 folder is shared by all authors: keep your scratch files in a subfolder named after your module.
 
 ### 6.2 Compute boxes (Python)

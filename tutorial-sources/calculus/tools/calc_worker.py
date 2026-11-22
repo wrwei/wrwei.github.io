@@ -209,6 +209,10 @@ def compute_table(spec):
                 else:
                     ye = e.subs(var, val)
                     y = ye if ye.has(sp.zoo, sp.nan) else sp.N(ye, 40)
+                if y.has(sp.Sum, sp.Product, sp.Integral):
+                    # N leaves a nested sum (inner limits that depend on the outer index) unevaluated:
+                    # work it out exactly first.
+                    y = sp.N(e.subs(var, val).doit(), 40)
             except (ZeroDivisionError, ValueError):
                 row.append('undefined')
                 continue
