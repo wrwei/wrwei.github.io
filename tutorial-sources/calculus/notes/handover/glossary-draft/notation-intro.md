@@ -1,0 +1,1 @@
+The symbols of the series, part by part, in the order in which the modules introduce them, with the way the modules read them aloud. Letters such as $f$, $a$ and $x$ stand for any function, number or variable.
