@@ -257,7 +257,7 @@
       }
       return pts
     },
-    grad: function (f, x, y) { var hh = 1e-5; return [(f(x + hh, y) - f(x - hh, y)) / (2 * hh), (f(x, y + hh) - f(x, y - hh)) / (2 * hh)] },
+    grad: function (f, x, y) { var hx = 1e-5 * (1 + Math.abs(x)), hy = 1e-5 * (1 + Math.abs(y)); return [(f(x + hx, y) - f(x - hx, y)) / (2 * hx), (f(x, y + hy) - f(x, y - hy)) / (2 * hy)] },
   }
 
   // ------------------------------------------------------------------ the plot

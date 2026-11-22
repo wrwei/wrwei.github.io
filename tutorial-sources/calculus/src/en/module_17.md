@@ -312,7 +312,7 @@ $$g_x = y^2\cos(xy^2), \qquad g_y = 2xy\cos(xy^2).$$
 
 **(c)** By the quotient rule. With $y$ constant, the derivative of the denominator is $2x$, so
 
-$$q_x = \frac{(x^2 + y^2) - x \cdot 2x}{(x^2 + y^2)^2} = \frac{y^2 - x^2}{(x^2 + y^2)^2}.$$
+$$\begin{aligned} q_x &= \frac{(x^2 + y^2) - x \cdot 2x}{(x^2 + y^2)^2} \\ &= \frac{y^2 - x^2}{(x^2 + y^2)^2}. \end{aligned}$$
 
 With $x$ constant, the numerator is a constant, so
 
@@ -387,11 +387,11 @@ The functions met in this series have mixed partial derivatives given by formula
 ::: deeper The proof of Clairaut's theorem
 A first reading may skip this proof. It uses the Mean Value Theorem ([Theorem 8.4](module_08_EN.html#mvt)) four times. For a small $h \ne 0$, so small that the square with corners $(a, b)$ and $(a + h, b + h)$ lies in $D$, consider the combination of four values
 
-$$\Delta(h) = f(a + h, b + h) - f(a + h, b) - f(a, b + h) + f(a, b).$$
+$$\begin{aligned} \Delta(h) &= f(a + h, b + h) - f(a + h, b) \\ &\quad - f(a, b + h) + f(a, b). \end{aligned}$$
 
 **First grouping.** Let $G(x) = f(x, b + h) - f(x, b)$, so that $\Delta(h) = G(a + h) - G(a)$. The partial derivative $f_x$ exists on $D$ (it must, for $f_{xy}$ to exist there), so $G$ is differentiable, with $G'(x) = f_x(x, b + h) - f_x(x, b)$. By the Mean Value Theorem there is a number $c$ between $a$ and $a + h$ with
 
-$$\Delta(h) = h\,G'(c) = h\big(f_x(c, b + h) - f_x(c, b)\big).$$
+$$\begin{aligned} \Delta(h) &= h\,G'(c) \\ &= h\big(f_x(c, b + h) - f_x(c, b)\big). \end{aligned}$$
 
 The function $y \mapsto f_x(c, y)$ has the derivative $f_{xy}(c, y)$, so by the Mean Value Theorem again there is a number $d$ between $b$ and $b + h$ with $f_x(c, b + h) - f_x(c, b) = h\,f_{xy}(c, d)$. So $\Delta(h) = h^2 f_{xy}(c, d)$.
 
@@ -407,7 +407,7 @@ same(G_(a + h) - G_(a), D_); same(H_(b + h) - H_(b), D_)
 ```
 :::
 
-Many laws of physics are equations between partial derivatives, called **partial differential equations**. The temperature $u(x, t)$ at position $x$ along a thin rod at time $t$ obeys the **heat equation** $u_t = k\,u_{xx}$ for a constant $k > 0$ that depends on the material; steady temperatures in a flat plate obey **Laplace's equation** $u_{xx} + u_{yy} = 0$ (Exercise 17.9). Solving such equations is beyond this course, but checking a solution needs only partial derivatives: $u = e^{-t}\sin x$ satisfies the heat equation with $k = 1$, since $u_t = -e^{-t}\sin x$ and $u_{xx} = -e^{-t}\sin x$.
+Many laws of physics are equations between partial derivatives, called **partial differential equations**. The temperature $u(x, t)$ at position $x$ along a thin insulated rod at time $t$ obeys the **heat equation** $u_t = k\,u_{xx}$ for a constant $k > 0$ that depends on the material; steady temperatures in a flat plate obey **Laplace's equation** $u_{xx} + u_{yy} = 0$ (Exercise 17.9). Solving such equations is beyond this course, but checking a solution needs only partial derivatives: $u = e^{-t}\sin x$ satisfies the heat equation with $k = 1$, since $u_t = -e^{-t}\sin x$ and $u_{xx} = -e^{-t}\sin x$.
 
 ```check
 uh = exp(-t)*sin(x)
@@ -463,7 +463,7 @@ Which plane? A plane through the point $P(a, b, c)$ that is not vertical has an 
 ::: definition Tangent plane
 Suppose that the partial derivatives of $f$ exist on a disc centred at $(a, b)$ and are continuous at $(a, b)$. The **tangent plane** to the surface $z = f(x, y)$ at the point $P(a, b, f(a, b))$ is the plane
 
-$$z = f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b).$$
+$$\begin{aligned} z = f(a, b) &+ f_x(a, b)(x - a) \\ &+ f_y(a, b)(y - b). \end{aligned}$$
 :::
 
 The condition of continuity makes sure that this plane fits the surface in every direction, not only in the two directions of the slices; the subsection on differentiability below explains why it is needed.
@@ -477,7 +477,7 @@ $$\begin{aligned} z &= 3 - 2(x - 1) - 4(y - 1), \\ \text{that is,}\quad z &= 9 -
 
 It passes through $P$: $9 - 2 - 4 = 3$. The surface lies below it, because the difference is
 
-$$(6 - x^2 - 2y^2) - (9 - 2x - 4y) = -(x - 1)^2 - 2(y - 1)^2,$$
+$$\begin{aligned} &(6 - x^2 - 2y^2) - (9 - 2x - 4y) \\ &\quad= -(x - 1)^2 - 2(y - 1)^2, \end{aligned}$$
 
 which is negative except at $(1, 1)$. Like the graph of a concave down function and its tangent lines (Module 8), the surface bends away below its tangent plane (Figure 17.2, right).
 
@@ -490,11 +490,11 @@ same(expand(fd - (9 - 2*x - 4*y)), expand(-(x - 1)**2 - 2*(y - 1)**2))
 
 The function whose graph is the tangent plane,
 
-$$L(x, y) = f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b),$$
+$$\begin{aligned} L(x, y) = f(a, b) &+ f_x(a, b)(x - a) \\ &+ f_y(a, b)(y - b), \end{aligned}$$
 
 is the **linearisation** of $f$ at $(a, b)$, and $f(x, y) \approx L(x, y)$ for $(x, y)$ near $(a, b)$ is the **linear approximation** of $f$ at $(a, b)$. With $\Delta x = x - a$ and $\Delta y = y - b$ it reads
 
-$$f(a + \Delta x, b + \Delta y) \approx f(a, b) + f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y:$$
+$$\begin{aligned} f(a + \Delta x, b + \Delta y) &\approx f(a, b) \\ &\quad + f_x(a, b)\,\Delta x \\ &\quad + f_y(a, b)\,\Delta y: \end{aligned}$$
 
 each variable contributes its own rate times its own change.
 
@@ -579,21 +579,21 @@ The proof is in the Going deeper box below. Theorem 17.5 is how differentiabilit
 ::: deeper Partial derivatives are not enough
 A first reading may skip this box. Let $f(x, y) = \dfrac{xy}{x^2 + y^2}$ for $(x, y) \ne (0, 0)$ and $f(0, 0) = 0$, the function of Example 17.3. On both axes $f$ is 0, so
 
-$$f_x(0, 0) = \lim_{h\to0}\frac{f(h, 0) - f(0, 0)}{h} = \lim_{h\to0}\frac{0 - 0}{h} = 0,$$
+$$\begin{aligned} f_x(0, 0) &= \lim_{h\to0}\frac{f(h, 0) - f(0, 0)}{h} \\ &= \lim_{h\to0}\frac{0 - 0}{h} = 0, \end{aligned}$$
 
-and $f_y(0, 0) = 0$ in the same way. Both partial derivatives exist, and the linearisation at the origin is $L(x, y) = 0$. But $f$ is not continuous at the origin (Section 17.2), so by Theorem 17.4 it is not differentiable there, and the plane $z = 0$ is no tangent plane: along the line $y = x$ the surface stays at height $\tfrac12$, however close to the origin. The partial derivatives see only the slices along the two axes, and this surface is flat along them and nowhere else near the origin.
+and $f_y(0, 0) = 0$ in the same way. Both partial derivatives exist, and the linearisation at the origin is $L(x, y) = 0$. But $f$ is not continuous at the origin (Section 17.2), so by Theorem 17.4 it is not differentiable there, and the plane $z = 0$ is no tangent plane: along the line $y = x$ the surface stays at height $\tfrac12$, however close to the origin. The partial derivatives see only the slices along the two axes, where this surface has height 0; along the other lines through the origin it has other heights.
 
 **Proof of Theorem 17.5.** Let $(x, y)$ be in the disc, and write $\Delta x = x - a$, $\Delta y = y - b$ and $\rho = \sqrt{\Delta x^2 + \Delta y^2}$. Go from $(a, b)$ to $(x, y)$ in two legs, first changing $y$, then $x$:
 
-$$f(x, y) - f(a, b) = \big[f(x, y) - f(a, y)\big] + \big[f(a, y) - f(a, b)\big].$$
+$$\begin{aligned} f(x, y) - f(a, b) &= \big[f(x, y) - f(a, y)\big] \\ &\quad + \big[f(a, y) - f(a, b)\big]. \end{aligned}$$
 
-By the Mean Value Theorem, applied to $f$ as a function of $x$ alone on the first leg and of $y$ alone on the second, the brackets are $f_x(c, y)\,\Delta x$ and $f_y(a, d)\,\Delta y$, for some $c$ between $a$ and $x$ and some $d$ between $b$ and $y$. Subtract $f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y$ from both sides:
+By the Mean Value Theorem, applied to $f$ as a function of $x$ alone in the first bracket and of $y$ alone in the second, the brackets are $f_x(c, y)\,\Delta x$ and $f_y(a, d)\,\Delta y$, for some $c$ between $a$ and $x$ and some $d$ between $b$ and $y$. Subtract $f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y$ from both sides:
 
-$$E(x, y) = \big[f_x(c, y) - f_x(a, b)\big]\Delta x + \big[f_y(a, d) - f_y(a, b)\big]\Delta y.$$
+$$\begin{aligned} E(x, y) &= \big[f_x(c, y) - f_x(a, b)\big]\Delta x \\ &\quad + \big[f_y(a, d) - f_y(a, b)\big]\Delta y. \end{aligned}$$
 
 Since $\abs{\Delta x} \le \rho$ and $\abs{\Delta y} \le \rho$,
 
-$$\frac{\abs{E(x, y)}}{\rho} \le \abs{f_x(c, y) - f_x(a, b)} + \abs{f_y(a, d) - f_y(a, b)}.$$
+$$\begin{aligned} \frac{\abs{E(x, y)}}{\rho} &\le \abs{f_x(c, y) - f_x(a, b)} \\ &\quad + \abs{f_y(a, d) - f_y(a, b)}. \end{aligned}$$
 
 As $(x, y) \to (a, b)$, the points $(c, y)$ and $(a, d)$ approach $(a, b)$ too, so by the continuity of $f_x$ and $f_y$ at $(a, b)$ the right side tends to 0. So does $\abs{E}/\rho$: $f$ is differentiable at $(a, b)$.
 
@@ -622,11 +622,11 @@ The radius and the height of a can are measured as $r = 3$ cm and $h = 10$ cm, w
 
 $dV = V_r\,dr + V_h\,dh = 2\pi rh\,dr + \pi r^2\,dh$, and at $(3, 10)$, $V_r = 60\pi$ and $V_h = 9\pi$. The error is largest when both terms have the same sign:
 
-$$\abs{dV} \le 60\pi(0.02) + 9\pi(0.05) = 1.2\pi + 0.45\pi = 1.65\pi \approx 5.18 \text{ cm}^3.$$
+$$\begin{aligned} \abs{dV} &\le 60\pi(0.02) + 9\pi(0.05) \\ &= 1.2\pi + 0.45\pi = 1.65\pi \approx 5.18 \text{ cm}^3. \end{aligned}$$
 
 So the computed volume, $90\pi \approx 282.7$ cm³, may be off by about 5.2 cm³. Dividing $dV$ by $V = \pi r^2 h$ gives a neat rule for the relative error:
 
-$$\frac{dV}{V} = \frac{2\pi rh\,dr + \pi r^2\,dh}{\pi r^2 h} = 2\,\frac{dr}{r} + \frac{dh}{h},$$
+$$\begin{aligned} \frac{dV}{V} &= \frac{2\pi rh\,dr + \pi r^2\,dh}{\pi r^2 h} \\ &= 2\,\frac{dr}{r} + \frac{dh}{h}, \end{aligned}$$
 
 here at most $2 \cdot \tfrac{0.02}{3} + \tfrac{0.05}{10} \approx 0.0133 + 0.005 = 0.0183$, about 1.8%. The relative error in the radius counts twice, because the radius appears squared.
 
@@ -675,11 +675,11 @@ The radius of a cylinder grows at 0.1 cm/s while its height shrinks at 0.3 cm/s.
 
 By Theorem 17.6,
 
-$$\frac{dV}{dt} = \frac{\partial V}{\partial r}\,\frac{dr}{dt} + \frac{\partial V}{\partial h}\,\frac{dh}{dt} = 2\pi rh\,\frac{dr}{dt} + \pi r^2\,\frac{dh}{dt}.$$
+$$\begin{aligned} \frac{dV}{dt} &= \frac{\partial V}{\partial r}\,\frac{dr}{dt} + \frac{\partial V}{\partial h}\,\frac{dh}{dt} \\ &= 2\pi rh\,\frac{dr}{dt} + \pi r^2\,\frac{dh}{dt}. \end{aligned}$$
 
 At this moment $\partial V/\partial r = 60\pi$, $\partial V/\partial h = 9\pi$, $dr/dt = 0.1$ and $dh/dt = -0.3$, so
 
-$$\frac{dV}{dt} = 60\pi(0.1) + 9\pi(-0.3) = 6\pi - 2.7\pi = 3.3\pi \approx 10.37 \text{ cm}^3/\text{s}.$$
+$$\begin{aligned} \frac{dV}{dt} &= 60\pi(0.1) + 9\pi(-0.3) = 6\pi - 2.7\pi \\ &= 3.3\pi \approx 10.37 \text{ cm}^3/\text{s}. \end{aligned}$$
 
 The volume is growing. The height shrinks three times as fast as the radius grows, but the volume is more than six times as sensitive to the radius.
 
@@ -724,7 +724,7 @@ $$\begin{aligned} \frac{\partial z}{\partial r} &= 2xy\cos\theta + x^2\sin\theta
 
 At $r = 2$ and $\theta = \pi/6$, $x = 2\cos\frac{\pi}{6} = \sqrt3$ and $y = 2\sin\frac{\pi}{6} = 1$, so
 
-$$\begin{aligned} \frac{\partial z}{\partial r} &= 2\sqrt3\cdot\frac{\sqrt3}{2} + 3\cdot\frac12 = 3 + \frac32 = \frac92, \\ \frac{\partial z}{\partial \theta} &= -2\sqrt3\cdot 2\cdot\frac12 + 3\cdot 2\cdot\frac{\sqrt3}{2} = -2\sqrt3 + 3\sqrt3 = \sqrt3. \end{aligned}$$
+$$\begin{aligned} \frac{\partial z}{\partial r} &= 2\sqrt3\cdot\frac{\sqrt3}{2} + 3\cdot\frac12 = 3 + \frac32 = \frac92, \\ \frac{\partial z}{\partial \theta} &= -2\sqrt3\cdot 2\cdot\frac12 + 3\cdot 2\cdot\frac{\sqrt3}{2} \\ &= -2\sqrt3 + 3\sqrt3 = \sqrt3. \end{aligned}$$
 
 Check: substituting first, $z = r^3\cos^2\theta\sin\theta$, so $\partial z/\partial r = 3r^2\cos^2\theta\sin\theta = 3 \cdot 4 \cdot \tfrac34 \cdot \tfrac12 = \tfrac92$. The chain rule needs no such substitution, which for a complicated $f$ may be impractical.
 
@@ -806,7 +806,7 @@ $$D_{\vb{u}} f(a, b) = \lim_{h\to0}\frac{f(a + hu_1, b + hu_2) - f(a, b)}{h},$$
 provided that the limit exists.
 :::
 
-$D_{\vb{u}} f$ reads "D sub u of f". The point $(a + hu_1, b + hu_2)$ lies at a distance $\abs{h}$ from $(a, b)$ in the direction of $\vb{u}$, because $\norm{\vb{u}} = 1$; so $D_{\vb{u}} f(a, b)$ is the rate of change of $f$ per unit of distance as you move from $(a, b)$ in that direction. For $\vb{u} = \vb{i} = \langle 1, 0\rangle$ it is $f_x(a, b)$, and for $\vb{u} = \vb{j} = \langle 0, 1\rangle$ it is $f_y(a, b)$.
+$D_{\vb{u}} f$ reads "D sub u of f". The point $(a + hu_1, b + hu_2)$ lies on the line through $(a, b)$ in the direction of $\vb{u}$, at a distance $\abs{h}$ from $(a, b)$, because $\norm{\vb{u}} = 1$; so $D_{\vb{u}} f(a, b)$ is the rate of change of $f$ per unit of distance as you move from $(a, b)$ in that direction. For $\vb{u} = \vb{i} = \langle 1, 0\rangle$ it is $f_x(a, b)$, and for $\vb{u} = \vb{j} = \langle 0, 1\rangle$ it is $f_y(a, b)$.
 
 ::: definition Gradient
 The **gradient** of $f$ at $(a, b)$ is the vector of its partial derivatives,
@@ -821,13 +821,13 @@ The symbol $\nabla$ is called "nabla", and $\nabla f$ reads "del f" or "grad f".
 ::: theorem Directional derivatives from the gradient
 If $f$ is differentiable at $(a, b)$, then $f$ has a directional derivative at $(a, b)$ in the direction of every unit vector $\vb{u} = \langle u_1, u_2\rangle$, and
 
-$$D_{\vb{u}} f(a, b) = \nabla f(a, b)\cdot\vb{u} = f_x(a, b)\,u_1 + f_y(a, b)\,u_2.$$
+$$\begin{aligned} D_{\vb{u}} f(a, b) &= \nabla f(a, b)\cdot\vb{u} \\ &= f_x(a, b)\,u_1 + f_y(a, b)\,u_2. \end{aligned}$$
 :::
 
 ::: proof
 Let $g(h) = f(a + hu_1, b + hu_2)$. The limit that defines $D_{\vb{u}} f(a, b)$ is $\lim_{h\to0}\dfrac{g(h) - g(0)}{h} = g'(0)$. Here $g$ is $f$ composed with $x(h) = a + hu_1$ and $y(h) = b + hu_2$, whose derivatives are $u_1$ and $u_2$. By the chain rule (Theorem 17.6), $g'(0)$ exists and
 
-$$g'(0) = f_x(a, b)\,u_1 + f_y(a, b)\,u_2 = \nabla f(a, b)\cdot\vb{u}.$$
+$$\begin{aligned} g'(0) &= f_x(a, b)\,u_1 + f_y(a, b)\,u_2 \\ &= \nabla f(a, b)\cdot\vb{u}. \end{aligned}$$
 :::
 
 ::: example A directional derivative
@@ -835,7 +835,7 @@ Let $f(x, y) = xe^y$. Find the rate of change of $f$ at $(2, 0)$ in the directio
 
 $f_x = e^y$ and $f_y = xe^y$ are continuous, so $f$ is differentiable (Theorem 17.5), and $\nabla f(2, 0) = \langle e^0, 2e^0\rangle = \langle 1, 2\rangle$. The direction from $(2, 0)$ to $(5, 4)$ is $\vb{v} = \langle 3, 4\rangle$, of length 5, so the unit vector in that direction is $\vb{u} = \vb{v}/\norm{\vb{v}} = \big\langle \tfrac35, \tfrac45\big\rangle$. By Theorem 17.9,
 
-$$D_{\vb{u}} f(2, 0) = \langle 1, 2\rangle\cdot\big\langle \tfrac35, \tfrac45\big\rangle = \frac35 + \frac85 = \frac{11}{5} = 2.2.$$
+$$\begin{aligned} D_{\vb{u}} f(2, 0) &= \langle 1, 2\rangle\cdot\big\langle \tfrac35, \tfrac45\big\rangle \\ &= \frac35 + \frac85 = \frac{11}{5} = 2.2. \end{aligned}$$
 
 Moving from $(2, 0)$ towards $(5, 4)$, $f$ increases at 2.2 units per unit of distance, faster than along either axis ($f_x = 1$, $f_y = 2$).
 
@@ -862,7 +862,7 @@ Let $f$ be differentiable at $(a, b)$, with $\nabla f(a, b) \ne \vb{0}$. Among a
 ::: proof
 Let $\theta$ be the angle between $\nabla f(a, b)$ and $\vb{u}$. By Theorem 17.9 and the angle form of the dot product (Module 16),
 
-$$D_{\vb{u}} f(a, b) = \nabla f(a, b)\cdot\vb{u} = \norm{\nabla f(a, b)}\,\norm{\vb{u}}\cos\theta = \norm{\nabla f(a, b)}\cos\theta,$$
+$$\begin{aligned} D_{\vb{u}} f(a, b) &= \nabla f(a, b)\cdot\vb{u} \\ &= \norm{\nabla f(a, b)}\,\norm{\vb{u}}\cos\theta \\ &= \norm{\nabla f(a, b)}\cos\theta, \end{aligned}$$
 
 since $\norm{\vb{u}} = 1$. As $\vb{u}$ turns, only $\cos\theta$ changes. It is largest, 1, exactly when $\theta = 0$; smallest, $-1$, exactly when $\theta = \pi$; and 0 when $\theta = \pi/2$.
 :::
@@ -917,7 +917,7 @@ Everything in this section holds for functions of three variables, with $\nabla 
 ::: definition Tangent plane to a level surface
 Let $F$ be a function of three variables, differentiable at a point $P(x_0, y_0, z_0)$ of the level surface $F(x, y, z) = k$, with $\nabla F(P) \ne \vb{0}$. The **tangent plane** to the surface at $P$ is the plane through $P$ with normal vector $\nabla F(P)$:
 
-$$F_x(P)(x - x_0) + F_y(P)(y - y_0) + F_z(P)(z - z_0) = 0.$$
+$$\begin{aligned} &F_x(P)(x - x_0) + F_y(P)(y - y_0) \\ &\quad + F_z(P)(z - z_0) = 0. \end{aligned}$$
 :::
 
 The graph $z = f(x, y)$ is the level surface $F(x, y, z) = f(x, y) - z = 0$, with $\nabla F = \langle f_x, f_y, -1\rangle$; at $P(a, b, c)$ Definition 17.11 gives $f_x(a, b)(x - a) + f_y(a, b)(y - b) - (z - c) = 0$, the tangent plane of Definition 17.6 again.
@@ -935,7 +935,7 @@ Find the tangent plane to the surface $x^2 + 2y^2 + 3z^2 = 6$ at $P(1, 1, 1)$, a
 
 The point is on the surface, since $1 + 2 + 3 = 6$. With $F(x, y, z) = x^2 + 2y^2 + 3z^2$, $\nabla F = \langle 2x, 4y, 6z\rangle$, so $\nabla F(1, 1, 1) = \langle 2, 4, 6\rangle$, and the tangent plane is
 
-$$2(x - 1) + 4(y - 1) + 6(z - 1) = 0, \quad\text{that is,}\quad x + 2y + 3z = 6.$$
+$$\begin{aligned} 2(x - 1) + 4(y - 1) + 6(z - 1) &= 0, \\ \text{that is,}\quad x + 2y + 3z &= 6. \end{aligned}$$
 
 By implicit differentiation (Section 17.5), $\dfrac{\partial z}{\partial x} = -\dfrac{F_x}{F_z} = -\dfrac{2}{6} = -\dfrac13$ and $\dfrac{\partial z}{\partial y} = -\dfrac{F_y}{F_z} = -\dfrac46 = -\dfrac23$. The two answers agree: solved for $z$, the tangent plane is $z = 2 - \tfrac13 x - \tfrac23 y$, with exactly these slopes.
 
@@ -986,7 +986,8 @@ alpha = np.radians(np.arange(0, 360, 0.5))      # the angles of u = <cos a, sin 
 D = gx*np.cos(alpha) + gy*np.sin(alpha)         # D_u f for each direction
 k = np.argmax(D)
 print(f"largest D_u f: {D[k]:.6f}, at {np.degrees(alpha[k])} degrees")
-print(f"|grad f| = {np.hypot(gx, gy):.6f}, at {np.degrees(np.arctan2(gy, gx)):.4f} degrees")
+angle = np.degrees(np.arctan2(gy, gx))           # the direction of grad f
+print(f"|grad f| = {np.hypot(gx, gy):.6f}, at {angle:.4f} degrees")
 ```
 
 ```output
@@ -1036,7 +1037,7 @@ $$\vb{x}_1 = \langle 3, 1\rangle - 0.1\,\langle 6, 6\rangle = \langle 2.4, 0.4\r
 
 and $f$ drops from 12 to $5.76 + 0.48 = 6.24$. Second step: $\nabla f(2.4, 0.4) = \langle 4.8, 2.4\rangle$, so $\vb{x}_2 = \langle 1.92, 0.16\rangle$, where $f = 3.7632$. Each step multiplies each coordinate by a fixed factor,
 
-$$x_{k+1} = x_k - 2\eta x_k = (1 - 2\eta)x_k, \qquad y_{k+1} = (1 - 6\eta)y_k,$$
+$$\begin{aligned} x_{k+1} &= x_k - 2\eta x_k = (1 - 2\eta)x_k, \\ y_{k+1} &= y_k - 6\eta y_k = (1 - 6\eta)y_k, \end{aligned}$$
 
 so with $\eta = 0.1$, $x_k = 3(0.8)^k$ and $y_k = (0.4)^k$:
 
@@ -1153,7 +1154,7 @@ In machine learning, $\vb{x}$ is the list of a model's parameters, its weights, 
 The loss of a neural network is computed by a long chain of simple operations: multiplications by weights, sums, and simple functions of one variable. [Section 5.8](module_05_EN.html#autodiff) showed how a program can differentiate such a computation with dual numbers, carrying derivatives forwards, one input at a time. With a million parameters that takes a million runs. **Backpropagation** finds the derivative of the loss with respect to every parameter in one backward pass, at a cost of a small multiple of computing the loss itself. It is the chain rule of Section 17.5, organised on a graph.
 
 ::: definition Computational graph
-A **computational graph** of a computation has a node for each input and for each intermediate result, and an arrow from each node to each node computed directly from it. The nodes that a node points to are its **children**. Each arrow carries a **local derivative**: the partial derivative of the child with respect to the node the arrow comes from. If the computation ends with the number $L$, the **adjoint** of a node $v$ is $\bar v = \partial L/\partial v$, read "v bar".
+A **computational graph** of a computation has a node for each input and for each intermediate result, and an arrow from each node to each node computed directly from it. The nodes that a node points to are its **children**, and the nodes it is computed from are its **parents**. Each arrow carries a **local derivative**: the partial derivative of the child with respect to the node the arrow comes from. If the computation ends with the number $L$, the **adjoint** of a node $v$ is $\bar v = \partial L/\partial v$, read "v bar".
 :::
 
 The graph is evaluated in two passes.
@@ -1222,7 +1223,8 @@ class Var:
         return Var(self.value + other.value, [(self, 1.0), (other, 1.0)])
     def __mul__(self, other):
         other = other if isinstance(other, Var) else Var(other)
-        return Var(self.value*other.value, [(self, other.value), (other, self.value)])
+        a, b = self.value, other.value
+        return Var(a*b, [(self, b), (other, a)])
     def __sub__(self, other):
         return self + (-1.0)*other
     __radd__, __rmul__ = __add__, __mul__
@@ -1246,15 +1248,20 @@ def backward(out):
             p.grad += v.grad*local
 ```
 
-Example 17.16:
+Example 17.16, with the loss computed by an ordinary Python function:
 
 ```python
-w, b = Var(0.0), Var(0.0)
 data = [(1, 1), (2, 3)]                 # the points (x, t)
-L = 0
-for x, t in data:
-    e = w*x + b - t                     # the error at this point
-    L = L + e*e
+
+def loss(w, b):
+    L = 0
+    for x, t in data:
+        e = w*x + b - t                 # the error at this point
+        L = L + e*e
+    return L
+
+w, b = Var(0.0), Var(0.0)
+L = loss(w, b)
 backward(L)
 print(L.value, w.grad, b.grad)
 ```
@@ -1283,23 +1290,21 @@ Training is a loop of forward pass, backward pass and gradient descent step:
 ```python
 w, b = Var(0.0), Var(0.0)
 for step in range(1, 501):
-    L = 0
-    for x, t in data:
-        e = w*x + b - t
-        L = L + e*e
+    L = loss(w, b)
     backward(L)
     if step in (1, 2, 3, 10, 100, 500):
-        print(f"step {step:3d}: L = {L.value:.3g} at w = {w.value:.4f}, b = {b.value:.4f}")
+        Lv, wv, bv = L.value, w.value, b.value
+        print(f"step {step:3d}: L = {Lv:.3g}, w = {wv:.4f}, b = {bv:.4f}")
     w, b = Var(w.value - 0.05*w.grad), Var(b.value - 0.05*b.grad)
 ```
 
 ```output
-step   1: L = 10 at w = 0.0000, b = 0.0000
-step   2: L = 1.45 at w = 0.7000, b = 0.4000
-step   3: L = 0.59 at w = 0.9300, b = 0.5100
-step  10: L = 0.405 at w = 1.1239, b = 0.4175
-step 100: L = 0.0288 at w = 1.7666, b = -0.6224
-step 500: L = 2.25e-07 at w = 1.9993, b = -0.9989
+step   1: L = 10, w = 0.0000, b = 0.0000
+step   2: L = 1.45, w = 0.7000, b = 0.4000
+step   3: L = 0.59, w = 0.9300, b = 0.5100
+step  10: L = 0.405, w = 1.1239, b = 0.4175
+step 100: L = 0.0288, w = 1.7666, b = -0.6224
+step 500: L = 2.25e-07, w = 1.9993, b = -0.9989
 ```
 
 The second line is the step of Example 17.16. The loss falls fast at first and then slowly: after 100 steps it is still 0.0288, and only after some hundreds of steps do $w$ and $b$ settle near 2 and $-1$. The valley of this loss is long and narrow, the situation that Module 18 explains.
@@ -1383,7 +1388,7 @@ same(diff(h_e2, x), y**2/z); same(diff(h_e2, y), 2*x*y/z); same(diff(h_e2, z), -
 
 **(b)** Direct substitution gives $\tfrac00$. The function depends on $x$ and $y$ only through $s = x^2 + y^2$, so rationalise as in [Section 2.5](module_02_EN.html#rationalise): for $s > 0$,
 
-$$\frac{s}{\sqrt{s + 1} - 1} = \frac{s\big(\sqrt{s + 1} + 1\big)}{(s + 1) - 1} = \sqrt{s + 1} + 1.$$
+$$\begin{aligned} \frac{s}{\sqrt{s + 1} - 1} &= \frac{s\big(\sqrt{s + 1} + 1\big)}{(s + 1) - 1} \\ &= \sqrt{s + 1} + 1. \end{aligned}$$
 
 As $(x, y) \to (0, 0)$, $s \to 0$, and $\sqrt{x^2 + y^2 + 1} + 1$ is continuous with the value 2 at the origin. The limit is 2.
 
@@ -1431,9 +1436,9 @@ Show that $\lim_{(x, y)\to(0, 0)} \dfrac{x^3 + y^3}{x^2 + y^2} = 0$.
 ::: solution
 Let $(x, y) \ne (0, 0)$, and let $\rho = \sqrt{x^2 + y^2}$ be its distance from the origin. Since $\abs{x} \le \rho$, $\abs{x^3} = \abs{x}\,x^2 \le \rho\,x^2$; in the same way $\abs{y^3} \le \rho\,y^2$. So
 
-$$\abs{\frac{x^3 + y^3}{x^2 + y^2}} \le \frac{\abs{x^3} + \abs{y^3}}{x^2 + y^2} \le \frac{\rho\,(x^2 + y^2)}{x^2 + y^2} = \rho.$$
+$$\begin{aligned} \abs{\frac{x^3 + y^3}{x^2 + y^2}} &\le \frac{\abs{x^3} + \abs{y^3}}{x^2 + y^2} \\ &\le \frac{\rho\,(x^2 + y^2)}{x^2 + y^2} = \rho. \end{aligned}$$
 
-As $(x, y) \to (0, 0)$, $\rho \to 0$, so by the squeeze theorem (Theorem 17.2, with $g = \rho$ and $L = 0$) the limit is 0. Checking paths would only have suggested the answer: along $y = mx$ the function is $\dfrac{(1 + m^3)x}{1 + m^2}$, which tends to 0, but Example 17.3's pitfall shows that lines alone prove nothing.
+As $(x, y) \to (0, 0)$, $\rho \to 0$, so by the squeeze theorem (Theorem 17.2, with $g = \rho$ and $L = 0$) the limit is 0. Checking paths would only have suggested the answer: along $y = mx$ the function is $\dfrac{(1 + m^3)x}{1 + m^2}$, which tends to 0, but the pitfall after Example 17.3 shows that lines alone prove nothing.
 
 ```check
 xr2, yr2 = symbols('x y', real=True)
@@ -1507,7 +1512,7 @@ The point $(1, 2, 3)$ lies on the surface $xyz = 6$.
 ::: solution
 **(a)** With $F(x, y, z) = xyz$, $\nabla F = \langle yz, xz, xy\rangle$, so $\nabla F(1, 2, 3) = \langle 6, 3, 2\rangle$. The tangent plane is
 
-$$6(x - 1) + 3(y - 2) + 2(z - 3) = 0, \quad\text{that is,}\quad 6x + 3y + 2z = 18.$$
+$$\begin{aligned} 6(x - 1) + 3(y - 2) + 2(z - 3) &= 0, \\ \text{that is,}\quad 6x + 3y + 2z &= 18. \end{aligned}$$
 
 **(b)** $F_z(1, 2, 3) = 2 \ne 0$, so $\dfrac{\partial z}{\partial x} = -\dfrac{F_x}{F_z} = -\dfrac62 = -3$ and $\dfrac{\partial z}{\partial y} = -\dfrac{F_y}{F_z} = -\dfrac32$.
 
@@ -1532,7 +1537,7 @@ Show that $u(x, y) = \ln(x^2 + y^2)$ satisfies Laplace's equation $u_{xx} + u_{y
 ::: solution
 From Exercise 17.2(b), $u_x = \dfrac{2x}{x^2 + y^2}$ and $u_y = \dfrac{2y}{x^2 + y^2}$. By the quotient rule, holding $y$ fixed,
 
-$$u_{xx} = \frac{2(x^2 + y^2) - 2x\cdot 2x}{(x^2 + y^2)^2} = \frac{2(y^2 - x^2)}{(x^2 + y^2)^2},$$
+$$\begin{aligned} u_{xx} &= \frac{2(x^2 + y^2) - 2x\cdot 2x}{(x^2 + y^2)^2} \\ &= \frac{2(y^2 - x^2)}{(x^2 + y^2)^2}, \end{aligned}$$
 
 and in the same way, holding $x$ fixed, $u_{yy} = \dfrac{2(x^2 - y^2)}{(x^2 + y^2)^2}$. The two cancel: $u_{xx} + u_{yy} = 0$.
 
@@ -1561,11 +1566,11 @@ Let $f(x, y) = \dfrac{xy(x^2 - y^2)}{x^2 + y^2}$ for $(x, y) \ne (0, 0)$, and $f
 ::: solution
 **(a)** Fix $y \ne 0$. Since $f(0, y) = 0$, the definition gives
 
-$$f_x(0, y) = \lim_{h\to0}\frac{f(h, y) - 0}{h} = \lim_{h\to0}\frac{y(h^2 - y^2)}{h^2 + y^2} = \frac{y(-y^2)}{y^2} = -y,$$
+$$\begin{aligned} f_x(0, y) &= \lim_{h\to0}\frac{f(h, y) - 0}{h} = \lim_{h\to0}\frac{y(h^2 - y^2)}{h^2 + y^2} \\ &= \frac{y(-y^2)}{y^2} = -y, \end{aligned}$$
 
 by direct substitution, since the denominator tends to $y^2 \ne 0$. For $y = 0$: $f(h, 0) = 0$ for every $h$, so $f_x(0, 0) = 0 = -0$. So $f_x(0, y) = -y$ for every $y$. In the same way, for $x \ne 0$, since $f(x, 0) = 0$,
 
-$$f_y(x, 0) = \lim_{h\to0}\frac{f(x, h)}{h} = \lim_{h\to0}\frac{x(x^2 - h^2)}{x^2 + h^2} = x,$$
+$$\begin{aligned} f_y(x, 0) &= \lim_{h\to0}\frac{f(x, h)}{h} \\ &= \lim_{h\to0}\frac{x(x^2 - h^2)}{x^2 + h^2} = x, \end{aligned}$$
 
 and $f_y(0, 0) = 0$ because $f(0, h) = 0$. So $f_y(x, 0) = x$ for every $x$.
 

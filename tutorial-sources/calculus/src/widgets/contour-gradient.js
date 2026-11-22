@@ -161,7 +161,8 @@ CalcWidgets.register('contour-gradient', function (root, api) {
       out.appendChild(line('cg-warn', t('f is not defined at the point ' + pt + ': pick another point.', 'f 在点 ' + pt + ' 处没有定义：请换一个点。')))
       return
     }
-    out.appendChild(line(null, t('Point ', '点 ') + '(x, y) = ' + pt + '    f(x, y) ' + eq(fv) + fmt(fv)))
+    var nb = function (str) { return str.replace(/ /g, '\u00a0') }        // keep "f(x, y) = 1.25" on one line
+    out.appendChild(line(null, nb(t('Point ', '点 ') + '(x, y) = ' + pt) + '    ' + nb('f(x, y) ' + eq(fv) + fmt(fv))))
     var g = gradAt(x, y)
     if (!g) {
       out.appendChild(line('cg-warn', t('The gradient cannot be computed here (f is not defined on both sides of the point).', '这里无法计算梯度（f 在该点两侧没有定义）。')))

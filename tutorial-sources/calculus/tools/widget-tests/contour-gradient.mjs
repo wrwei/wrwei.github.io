@@ -1,8 +1,8 @@
 export const page = 'module_17'
 
-// The readout as one string; the number that follows a label in it (with − read as -); the live values of the
+// The readout as one string (no-break spaces as spaces); the number that follows a label in it (with − read as -); the live values of the
 // controls (properties, not attributes).
-const readout = async t => (await t.texts('.cg-readout div')).join(' | ')
+const readout = async t => (await t.texts('.cg-readout div')).join(' | ').replace(/\u00a0/g, ' ')   // no-break spaces read as spaces
 const after = (s, label) => { const m = s.split(label)[1]; return m == null ? NaN : Number(m.trim().split(/[\s|]/)[0].replace('−', '-')) }
 const live = (t, sel) => t.page.$$eval(t.root + ' ' + sel, els => els.map(e => e.value))
 
