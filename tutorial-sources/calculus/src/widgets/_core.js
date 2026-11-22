@@ -213,21 +213,25 @@
     deriv2: function (f, x) { var hh = 1e-4 * (1 + Math.abs(x)); return (f(x + hh) - 2 * f(x) + f(x - hh)) / (hh * hh) },
     // Adaptive Simpson. tol is absolute, but never finer than 1e-12 of the first estimate; at most
     // maxEvals evaluations of f (default 200000), so a badly behaved integrand cannot hang the page.
+    // Adaptive Simpson. NaN when it runs out of evaluations (maxEvals, default 200 000) before every piece
+    // meets the tolerance: the pieces left unrefined would make the value wrong without any sign of it.
     integrate: function (f, a, b, tol, maxEvals) {
-      var evals = 0, budget = maxEvals || 200000
+      var evals = 0, budget = maxEvals || 200000, spent = false
       function F(x) { evals++; return f(x) }
       function simp(a, b, fa, fm, fb) { return (b - a) / 6 * (fa + 4 * fm + fb) }
       function rec(a, b, fa, fm, fb, whole, tol, depth) {
         var m = (a + b) / 2, lm = (a + m) / 2, rm = (m + b) / 2
         var flm = F(lm), frm = F(rm)
         var left = simp(a, m, fa, flm, fm), right = simp(m, b, fm, frm, fb)
-        if (depth > 40 || evals > budget || Math.abs(left + right - whole) <= 15 * tol) return left + right + (left + right - whole) / 15
+        if (evals > budget) { spent = true; return left + right }
+        if (depth > 40 || Math.abs(left + right - whole) <= 15 * tol) return left + right + (left + right - whole) / 15
         return rec(a, m, fa, flm, fm, left, tol / 2, depth + 1) + rec(m, b, fm, frm, fb, right, tol / 2, depth + 1)
       }
       if (a === b) return 0
       var fa = F(a), fb = F(b), fm = F((a + b) / 2), whole = simp(a, b, fa, fm, fb)
       tol = Math.max(tol || 1e-10, 1e-12 * Math.abs(whole))
-      return rec(a, b, fa, fm, fb, whole, tol, 0)
+      var r = rec(a, b, fa, fm, fb, whole, tol, 0)
+      return spent ? NaN : r
     },
     riemann: function (f, a, b, n, rule) {
       var dx = (b - a) / n, s = 0
