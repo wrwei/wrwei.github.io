@@ -866,7 +866,7 @@ $$\begin{aligned} &\operatorname{curl}(\nabla f) \\ &\quad= \big\langle f_{zy} -
 
 and each component is 0 by Clairaut's theorem. In the same way,
 
-$$\begin{aligned} &\operatorname{div}(\operatorname{curl}\vb{F}) \\ &\quad= (R_y - Q_z)_x + (P_z - R_x)_y + (Q_x - P_y)_z \\ &\quad= R_{yx} - Q_{zx} + P_{zy} - R_{xy} + Q_{xz} - P_{yz}, \end{aligned}$$
+$$\begin{aligned} &\operatorname{div}(\operatorname{curl}\vb{F}) \\ &\quad= (R_y - Q_z)_x + (P_z - R_x)_y \\ &\qquad + (Q_x - P_y)_z \\ &\quad= R_{yx} - Q_{zx} + P_{zy} \\ &\qquad - R_{xy} + Q_{xz} - P_{yz}, \end{aligned}$$
 
 and the six terms cancel in pairs, by Clairaut's theorem again.
 :::
@@ -1178,7 +1178,7 @@ It is also called Gauss's theorem. In words: the net rate at which a fluid flows
 ::: proof of the divergence theorem for a box
 Let $E$ be the box $a_1 \le x \le b_1$, $a_2 \le y \le b_2$, $a_3 \le z \le b_3$, and write $\vb{F} = \langle P, 0, 0\rangle + \langle 0, Q, 0\rangle + \langle 0, 0, R\rangle$. Both sides of the theorem are sums of the corresponding terms for these three fields, so take $\langle 0, 0, R\rangle$. On the four side faces of the box $\vb{n}$ is horizontal, and $\langle 0, 0, R\rangle\cdot\vb{n} = 0$. On the top $\vb{n} = \vb{k}$, and on the bottom $\vb{n} = -\vb{k}$. With $Z$ the rectangle $a_1 \le x \le b_1$, $a_2 \le y \le b_2$,
 
-$$\begin{aligned} &\iint_S \langle 0, 0, R\rangle\cdot d\vb{S} \\ &\quad= \iint_Z \big[R(x, y, b_3) - R(x, y, a_3)\big]\,dA \\ &\quad= \iint_Z \int_{a_3}^{b_3} \frac{\partial R}{\partial z}\,dz\,dA = \iiint_E \frac{\partial R}{\partial z}\,dV, \end{aligned}$$
+$$\begin{aligned} &\iint_S \langle 0, 0, R\rangle\cdot d\vb{S} \\ &\quad= \iint_Z \big[R(x, y, b_3) - R(x, y, a_3)\big]\,dA \\ &\quad= \iint_Z \int_{a_3}^{b_3} \frac{\partial R}{\partial z}\,dz\,dA \\ &\quad= \iiint_E \frac{\partial R}{\partial z}\,dV, \end{aligned}$$
 
 by Part 2 of the Fundamental Theorem in $z$ and Fubini's theorem. In the same way the flux of $\langle P, 0, 0\rangle$ is $\iiint_E P_x\,dV$, and that of $\langle 0, Q, 0\rangle$ is $\iiint_E Q_y\,dV$. Adding the three gives the theorem.
 :::
@@ -1326,7 +1326,7 @@ same(integrate(simplify(Eq_.subs({x: Sa[0], y: Sa[1], z: Sa[2]}, simultaneous=Tr
 
 [Module 1](module_01_EN.html#about) began with a car's speedometer and odometer, and with a promise: calculus is about rates and accumulation, and the Fundamental Theorem of Calculus connects them. This module has proved or stated four more theorems of the same kind. Side by side:
 
-| Theorem: the region | Integral of a derivative over the region = values on its boundary |
+| Theorem and region | Integral of a derivative over the region = values on its boundary |
 |---|---|
 | Fundamental Theorem (Module 10): an interval $[a, b]$ | $\displaystyle\int_a^b F'(x)\,dx = F(b) - F(a)$ |
 | Line integrals (Theorem 20.2): a curve from $A$ to $B$ | $\displaystyle\int_C \nabla f\cdot d\vb{r} = f(B) - f(A)$ |
@@ -1410,7 +1410,7 @@ A wire is wound along one turn of the helix $\vb{r}(t) = \langle 3\cos t, 3\sin 
 
 **(b)** On the wire $z = 4t$, so
 
-$$\begin{aligned} \int_C z\,ds &= \int_0^{2\pi} 4t\cdot 5\,dt \\ &= 20\Big[\frac{t^2}{2}\Big]_0^{2\pi} = 40\pi^2 \approx 394.8. \end{aligned}$$
+$$\begin{aligned} \int_C z\,ds &= \int_0^{2\pi} 4t\cdot 5\,dt \\ &= 20\Big[\frac{t^2}{2}\Big]_0^{2\pi} \\ &= 40\pi^2 \approx 394.8. \end{aligned}$$
 
 The average height is $40\pi^2/(10\pi) = 4\pi \approx 12.57$ cm: half the height of the top of the wire, $8\pi$, because the wire climbs at a steady rate.
 
@@ -1467,7 +1467,7 @@ Let $\vb{F}(x, y, z) = \langle x^2y, -xy^2, z\rangle$.
 ::: solution
 **(a)** With $P = x^2y$, $Q = -xy^2$ and $R = z$:
 
-$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 0 - 0,\ 0 - 0,\ -y^2 - x^2\rangle \\ &= \langle 0, 0, -(x^2 + y^2)\rangle, \\ \operatorname{div}\vb{F} &= 2xy - 2xy + 1 = 1. \end{aligned}$$
+$$\begin{aligned} &\operatorname{curl}\vb{F} \\ &\quad= \langle 0 - 0,\ 0 - 0,\ -y^2 - x^2\rangle \\ &\quad= \langle 0, 0, -(x^2 + y^2)\rangle, \\ &\operatorname{div}\vb{F} = 2xy - 2xy + 1 = 1. \end{aligned}$$
 
 **(b)** No. If $\vb{F} = \nabla f$, then $f$ would have continuous second partial derivatives (the first partial derivatives of $P$, $Q$ and $R$), so $\operatorname{curl}\vb{F} = \operatorname{curl}(\nabla f) = \vb{0}$ by Theorem 20.8. But at $(1, 0, 0)$, $\operatorname{curl}\vb{F} = \langle 0, 0, -1\rangle$.
 
@@ -1499,7 +1499,7 @@ Check: $f_x = 3x^2y + y$ and $f_y = x^3 + x + 2y$.
 
 **(c)** The curve runs from $\vb{r}(0) = (0, 1)$ to $\vb{r}(1) = (1, 2)$. By Theorem 20.2,
 
-$$\begin{aligned} \int_C \vb{F}\cdot d\vb{r} &= f(1, 2) - f(0, 1) \\ &= (2 + 2 + 4) - (0 + 0 + 1) = 7. \end{aligned}$$
+$$\begin{aligned} &\int_C \vb{F}\cdot d\vb{r} = f(1, 2) - f(0, 1) \\ &\quad= (2 + 2 + 4) - (0 + 0 + 1) \\ &\quad= 7. \end{aligned}$$
 
 Computing $\int_0^1 \vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,dt$ directly gives 7 too, after expanding a polynomial of degree 8.
 
@@ -1527,7 +1527,7 @@ Let $\vb{F}(x, y, z) = \langle 2xy + z^2,\ x^2 + 2yz,\ y^2 + 2xz\rangle$.
 ::: solution
 **(a)**
 
-$$\begin{aligned} \operatorname{curl}\vb{F} &= \big\langle 2y - 2y,\ 2z - 2z,\ 2x - 2x\big\rangle \\ &= \vb{0}. \end{aligned}$$
+$$\begin{aligned} &\operatorname{curl}\vb{F} \\ &\enspace= \langle 2y - 2y, 2z - 2z, 2x - 2x\rangle \\ &\enspace= \vb{0}. \end{aligned}$$
 
 Space is simply connected, so $\vb{F}$ is conservative (Section 20.5).
 
@@ -1590,9 +1590,9 @@ so $A = \tfrac12(0 + 12 + 17 + 0) = \tfrac{29}{2} = 14.5$. The diagonal from $(0
 
 **(b)** Here $dx = -3\cos^2 t\sin t\,dt$ and $dy = 3\sin^2 t\cos t\,dt$, and the astroid is traced anticlockwise. So
 
-$$\begin{aligned} &x\,dy - y\,dx \\ &\quad= \big(3\cos^4 t\sin^2 t + 3\sin^4 t\cos^2 t\big)\,dt \\ &\quad= 3\sin^2 t\cos^2 t\,\big(\cos^2 t + \sin^2 t\big)\,dt \\ &\quad= \tfrac34\sin^2 2t\,dt, \end{aligned}$$
+$$\begin{aligned} &x\,dy - y\,dx \\ &\quad= \big(3\cos^4 t\sin^2 t \\ &\qquad\quad + 3\sin^4 t\cos^2 t\big)\,dt \\ &\quad= 3\sin^2 t\cos^2 t\,dt \\ &\quad= \tfrac34\sin^2 2t\,dt, \end{aligned}$$
 
-using $\sin 2t = 2\sin t\cos t$. Since $\int_0^{2\pi} \sin^2 2t\,dt = \pi$,
+taking out the factor $3\sin^2 t\cos^2 t$ and using $\cos^2 t + \sin^2 t = 1$ and $\sin 2t = 2\sin t\cos t$. Since $\int_0^{2\pi} \sin^2 2t\,dt = \pi$,
 
 $$\begin{aligned} A &= \frac12\int_0^{2\pi} \frac34\sin^2 2t\,dt \\ &= \frac{3\pi}{8} \approx 1.178. \end{aligned}$$
 
@@ -1641,7 +1641,7 @@ Let $\vb{F} = \big\langle -y^3,\ x^3,\ e^z\sin(xy)\big\rangle$, let $H$ be the h
 ::: solution
 **(a)** Both surfaces have the same boundary, the unit circle $C$, and with both normals pointing upwards the positive orientation of $C$ is anticlockwise seen from above, for both. By Stokes' theorem both fluxes equal $\oint_C \vb{F}\cdot d\vb{r}$. With $\vb{r}(t) = \langle\cos t, \sin t, 0\rangle$, $\vb{F}\big(\vb{r}(t)\big) = \langle -\sin^3 t, \cos^3 t, \sin(\cos t\sin t)\rangle$ and $\vb{r}'(t) = \langle -\sin t, \cos t, 0\rangle$, so the integrand is $\sin^4 t + \cos^4 t$. Since
 
-$$\begin{aligned} &\sin^4 t + \cos^4 t \\ &\quad= \big(\sin^2 t + \cos^2 t\big)^2 - 2\sin^2 t\cos^2 t \\ &\quad= 1 - \tfrac12\sin^2 2t, \end{aligned}$$
+$$\begin{aligned} &\sin^4 t + \cos^4 t \\ &\quad= \big(\sin^2 t + \cos^2 t\big)^2 \\ &\qquad - 2\sin^2 t\cos^2 t \\ &\quad= 1 - \tfrac12\sin^2 2t, \end{aligned}$$
 
 the circulation is $2\pi - \tfrac12\cdot\pi = \tfrac{3\pi}{2}$. Over the flat disc the computation is short too: $\operatorname{curl}\vb{F}\cdot\vb{k} = Q_x - P_y = 3x^2 + 3y^2$, and $\int_0^{2\pi}\int_0^1 3r^2\cdot r\,dr\,d\theta = \tfrac{3\pi}{2}$. On the hemisphere, by contrast, $\operatorname{curl}\vb{F}$ has the components $xe^z\cos(xy)$ and $-ye^z\cos(xy)$ as well, and the direct computation is unpleasant.
 
