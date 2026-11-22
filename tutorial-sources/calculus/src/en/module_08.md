@@ -607,7 +607,7 @@ Top: the sigmoid $y = \sigma(x)$ with tangent lines at four points. For $x < 0$ 
 Let $f$ be differentiable on an open interval $I$. The graph of $f$ is **concave up** on $I$ if $f'$ is increasing on $I$, and **concave down** on $I$ if $f'$ is decreasing on $I$.
 :::
 
-In optimisation and machine learning a function whose graph is concave up is called **convex**, and one whose graph is concave down is called **concave**. Since $f''$ is the derivative of $f'$, Theorem 8.8 applied to $f'$ gives a test.
+In optimisation and machine learning a function whose graph is concave up is called **convex**, and one whose graph is concave down is called **concave**. Those two words are a little broader: they also allow straight stretches, so a straight line counts as both convex and concave. Since $f''$ is the derivative of $f'$, Theorem 8.8 applied to $f'$ gives a test.
 
 ::: theorem The concavity test
 If $f''(x) > 0$ for every $x$ in an open interval $I$, the graph of $f$ is concave up on $I$. If $f''(x) < 0$ for every $x$ in $I$, it is concave down on $I$.
@@ -658,7 +658,7 @@ For $\sigma(x) = \dfrac{1}{1 + e^{-x}}$, show that $\sigma' = \sigma(1 - \sigma)
 
 Since $1 - \sigma(x) = \dfrac{1 + e^{-x} - 1}{1 + e^{-x}} = \dfrac{e^{-x}}{1 + e^{-x}}$,
 
-$$\sigma(x)\big(1 - \sigma(x)\big) = \frac{1}{1 + e^{-x}}\cdot\frac{e^{-x}}{1 + e^{-x}} = \frac{e^{-x}}{(1 + e^{-x})^2} = \sigma'(x).$$
+$$\begin{aligned} \sigma(x)\big(1 - \sigma(x)\big) &= \frac{1}{1 + e^{-x}}\cdot\frac{e^{-x}}{1 + e^{-x}} \\ &= \frac{e^{-x}}{(1 + e^{-x})^2} = \sigma'(x). \end{aligned}$$
 
 Differentiate $\sigma' = \sigma - \sigma^2$, using the chain rule on $\sigma^2$:
 
@@ -732,6 +732,7 @@ steps(diff(f810, x), 4*x**3 - 12*x**2, 4*x**2*(x - 3)); steps(diff(f810, x, 2), 
 same_set(solve(diff(f810, x), x), [0, 3]); same(diff(f810, x, 2).subs(x, 3), 36); same(108 - 72, 36)
 same(f810.subs(x, 3), -27); same(81 - 108, -27); same(diff(f810, x, 2).subs(x, 0), 0)
 same(solve_univariate_inequality(diff(f810, x) < 0, x, relational=False), Union(Interval.open(-oo, 0), Interval.open(0, 3)))
+same(solve_univariate_inequality(diff(f810, x) > 0, x, relational=False), Interval.open(3, oo))
 same(minimum(f810, x, S.Reals), -27)
 same(solve_univariate_inequality(diff(f810, x, 2) < 0, x, relational=False), Interval.open(0, 2))
 same(solve_univariate_inequality(diff(f810, x, 2) > 0, x, relational=False), Union(Interval.open(-oo, 0), Interval.open(2, oo)))
@@ -740,7 +741,7 @@ same(f810.subs(x, 0), 0); same(f810.subs(x, 2), -16)
 :::
 
 ::: tip
-Which test should you use? The second derivative test is quick when $f''$ is easy to compute, and it decides most critical numbers where $f'(c) = 0$. The first derivative test always decides, also where $f''(c) = 0$ and where $f'(c)$ does not exist, and its sign chart tells you where $f$ increases and decreases as well.
+Which test should you use? The second derivative test is quick when $f''$ is easy to compute, and it decides most critical numbers where $f'(c) = 0$. The first derivative test decides whenever $f'$ keeps one sign on each side of $c$, as it does for every function in this module, also where $f''(c) = 0$ and where $f'(c)$ does not exist; and its sign chart tells you where $f$ increases and decreases as well.
 :::
 
 ## Curve sketching {#sketching}

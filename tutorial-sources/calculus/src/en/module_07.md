@@ -726,13 +726,16 @@ $$\lim_{n\to\infty}\frac{e_{n+1}}{e_n^2} = \frac{f''(r)}{2f'(r)}$$
 
 $$e_{n+1} \approx \frac{f''(x_n)}{2f'(x_n)}\,e_n^2.$$
 
-Taylor's theorem (Module 15) controls the error of the first $\approx$ and turns this idea into a proof. For $f(x) = x^2 - a$ the constant is $\dfrac{2}{2 \cdot 2\sqrt a} = \dfrac{1}{2\sqrt a}$, as in Theorem 7.2; for $\sqrt2$ it is $1/(2\sqrt2) \approx 0.354$, and in Example 7.9 the errors indeed give $e_5/e_4^2 \approx 0.354$.
+Taylor's theorem (Module 15) controls the error of the first $\approx$ and turns this idea into a proof. For $f(x) = x^2 - a$ the constant is $\dfrac{2}{2 \cdot 2\sqrt a} = \dfrac{1}{2\sqrt a}$, as in Theorem 7.2; for $\sqrt2$ it is $1/(2\sqrt2) \approx 0.354$, and the iterates of Example 7.9 indeed give $e_5/e_4^2 \approx 0.354$.
 
 ```check
 rr_, xn1, d1 = symbols('r x_n1 d1')
 Ln = lambda X: fn_s + d1*(X - xn_s)
 xnext = solve(Ln(x), x)[0]
 same(Ln(rr_), d1*(rr_ - xnext))                          # L_n(r) = f'(x_n)(r - x_{n+1})
+same(d1*(rr_ - xnext), -d1*(xnext - rr_))                # = -f'(x_n) e_{n+1}
+en_, en1_, f2_ = symbols('e_n e_n1 f2')                  # f2 stands for f''(x_n)
+same(solve(Eq(-d1*en1_, -f2_/2*en_**2), en1_), [f2_/(2*d1)*en_**2])      # equating the two expressions
 same((diff(x**2 - ap_, x, 2)/(2*diff(x**2 - ap_, x))).subs(x, sqrt(ap_)), 1/(2*sqrt(ap_)))
 rounds(1/(2*sqrt(2)), '0.354'); rounds((it2[5] - sqrt(2))/(it2[4] - sqrt(2))**2, '0.354')
 ```

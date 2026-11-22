@@ -952,7 +952,7 @@ $$\vb{r}(u, v) = \big\langle x(u, v), y(u, v), z(u, v)\big\rangle$$
 for $(u, v)$ in a region $D$ of the $uv$-plane. The function $\vb{r}$ is a **parametrisation** of $S$.
 :::
 
-Three examples will be used again and again:
+Three examples recur:
 
 - the sphere of radius $a$ centred at the origin, from the spherical coordinates of Module 19 with $\rho = a$: $\vb{r}(\varphi, \theta) = \langle a\sin\varphi\cos\theta, a\sin\varphi\sin\theta, a\cos\varphi\rangle$, $0 \le \varphi \le \pi$, $0 \le \theta \le 2\pi$;
 - the cylinder $x^2 + y^2 = a^2$, $0 \le z \le h$: $\vb{r}(\theta, z) = \langle a\cos\theta, a\sin\theta, z\rangle$, $0 \le \theta \le 2\pi$, $0 \le z \le h$;
@@ -994,7 +994,7 @@ A parametric surface: the sphere of Example 20.11. A small rectangle of sides $\
 
 ### Surface area {#surface-area}
 
-Cut $D$ into small rectangles of sides $\Delta u$ and $\Delta v$. The one with corner $(u, v)$ is carried to a small curved patch of $S$ with corners $\vb{r}(u, v)$, $\vb{r}(u + \Delta u, v)$, $\vb{r}(u, v + \Delta v)$ and $\vb{r}(u + \Delta u, v + \Delta v)$. Since $\vb{r}(u + \Delta u, v) - \vb{r}(u, v) \approx \vb{r}_u\,\Delta u$ and $\vb{r}(u, v + \Delta v) - \vb{r}(u, v) \approx \vb{r}_v\,\Delta v$, the patch is close to the parallelogram spanned by $\vb{r}_u\,\Delta u$ and $\vb{r}_v\,\Delta v$, whose area is $\norm{\vb{r}_u\times\vb{r}_v}\,\Delta u\,\Delta v$ (Module 16). Adding over the patches:
+Cut $D$ into small rectangles of sides $\Delta u$ and $\Delta v$. The one with corner $(u, v)$ is carried to a small curved patch of $S$ with a corner at $\vb{r}(u, v)$. Since $\vb{r}(u + \Delta u, v) - \vb{r}(u, v) \approx \vb{r}_u\,\Delta u$ and $\vb{r}(u, v + \Delta v) - \vb{r}(u, v) \approx \vb{r}_v\,\Delta v$, the patch is close to the parallelogram spanned by $\vb{r}_u\,\Delta u$ and $\vb{r}_v\,\Delta v$, whose area is $\norm{\vb{r}_u\times\vb{r}_v}\,\Delta u\,\Delta v$ (Module 16). Adding over the patches:
 
 ::: definition Surface area
 If $S$ is traced once by a smooth parametrisation $\vb{r}(u, v)$, $(u, v)$ in $D$, its **surface area** is
@@ -1296,7 +1296,7 @@ same(integrate(div3(G3).subs({x: rs_*S1[0], y: rs_*S1[1], z: rs_*S1[2]}, simulta
 
 ### Maxwell's equations {#maxwell}
 
-The classic application of these theorems is electromagnetism. Maxwell's equations describe how electric and magnetic fields $\vb{E}$ and $\vb{B}$ are produced by charges and currents, and how they change in time. In a vacuum, in SI units, they can be stated in integral form, about fluxes and circulations. For every closed surface $S$, with $Q$ the electric charge inside it,
+The classic application of these theorems is electromagnetism. Maxwell's equations describe how electric and magnetic fields $\vb{E}$ and $\vb{B}$ are produced by charges and currents, and how they change in time. In a vacuum, in SI units, their integral form is about fluxes and circulations. For every closed surface $S$, with $Q$ the electric charge inside it,
 
 $$\iint_S \vb{E}\cdot d\vb{S} = \frac{Q}{\varepsilon_0} \quad\text{(Gauss's law)}, \qquad \iint_S \vb{B}\cdot d\vb{S} = 0,$$
 

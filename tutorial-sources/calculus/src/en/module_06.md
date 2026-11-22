@@ -747,7 +747,7 @@ same(th_.subs(Hh, 100), pi/4); rounds(Rational(5, 1000)*180/pi, '0.29')
 ::: note
 Three more inverse functions, ${\arccot}$, $\arcsec$ and ${\arccsc}$, are used less, and books disagree about their ranges. The values of the secant are the numbers $x$ with $\abs{x} \ge 1$. For such $x$, this series takes $\arcsec x$ to be the angle $y$ in $[0, \pi/2) \cup (\pi/2, \pi]$ with $\sec y = x$, that is, $\arcsec x = \arccos(1/x)$. For $\abs{x} > 1$ the chain rule then gives
 
-$$\begin{aligned} \frac{d}{dx}\arcsec x &= -\frac{1}{\sqrt{1 - 1/x^2}}\cdot\Big(-\frac{1}{x^2}\Big) \\ &= \frac{1}{x^2\sqrt{1 - 1/x^2}} \\ &= \frac{1}{\abs{x}\sqrt{x^2 - 1}}, \end{aligned}$$
+$$\begin{aligned} &\frac{d}{dx}\arcsec x \\ &\quad= -\frac{1}{\sqrt{1 - 1/x^2}}\cdot\Big(-\frac{1}{x^2}\Big) \\ &\quad= \frac{1}{x^2\sqrt{1 - 1/x^2}} = \frac{1}{\abs{x}\sqrt{x^2 - 1}}, \end{aligned}$$
 
 because $x^2 = \abs{x}\sqrt{x^2}$ (Module 1) and $\sqrt{x^2}\sqrt{1 - 1/x^2} = \sqrt{x^2 - 1}$. The absolute value matters: $\arcsec$ increases on both pieces of its domain, so its slope is positive for $x < -1$ too. Other books choose the range $[0, \pi/2) \cup [\pi, 3\pi/2)$, and then the derivative is $\dfrac{1}{x\sqrt{x^2 - 1}}$, negative for $x < -1$. When you meet one of these functions elsewhere, check which range the book uses.
 :::
@@ -1536,7 +1536,7 @@ Section 6.1 wrote $m(a)$ for the slope of $a^x$ at $x = 0$, and Section 6.3 prov
 ::: solution
 **(a)** For $h \ne 0$, subtract and add $a^h$ in the numerator, and split the fraction:
 
-$$\begin{aligned} \frac{(ab)^h - 1}{h} &= \frac{a^hb^h - a^h + a^h - 1}{h} \\ &= a^h\cdot\frac{b^h - 1}{h} + \frac{a^h - 1}{h}. \end{aligned}$$
+$$\begin{aligned} &\frac{(ab)^h - 1}{h} \\ &\quad= \frac{a^hb^h - a^h + a^h - 1}{h} \\ &\quad= a^h\cdot\frac{b^h - 1}{h} + \frac{a^h - 1}{h}. \end{aligned}$$
 
 As $h \to 0$, the two fractions on the right approach $m(b)$ and $m(a)$. The factor $a^h$ approaches $a^0 = 1$: since $m(a)$ exists, $a^x$ is differentiable at 0, and so continuous there (Module 4). By the limit laws for sums and products, the right side approaches $1\cdot m(b) + m(a)$. So $m(ab)$ exists, and $m(ab) = m(a) + m(b)$.
 
