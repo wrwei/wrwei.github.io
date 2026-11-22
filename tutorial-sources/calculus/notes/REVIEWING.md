@@ -2,7 +2,8 @@
 
 You review finished module pages with fresh eyes, as the last check before publication, and you fix
 what you find. Read `notes/AUTHORING.md` (the rules the authors followed), `PLAN.md`, `notes/FACTS.md`
-and `src/en/module_01.md` (the reference module) first. Paths are relative to
+and `src/en/module_01.md` (the reference module) first, and `notes/reviews/cross-module.md`: the series-wide
+decisions made during the reviews, and the items other reviewers found in your module. Paths are relative to
 `tutorial-sources/calculus/`; set `CALC_PYTHON` as AUTHORING.md says.
 
 ## What to check, in order of importance
