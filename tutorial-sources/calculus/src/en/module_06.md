@@ -207,7 +207,7 @@ Differentiate (a) $e^{3x}$, (b) $x^2e^{-x}$ and (c) $10^x$, and (d) find the tan
 
 **(b)** By the product rule, and (a) with $k = -1$:
 
-$$\frac{d}{dx}\big(x^2e^{-x}\big) = 2x\,e^{-x} + x^2\big(-e^{-x}\big) = \big(2x - x^2\big)e^{-x}.$$
+$$\begin{aligned} \frac{d}{dx}\big(x^2e^{-x}\big) &= 2x\,e^{-x} + x^2\big(-e^{-x}\big) \\ &= \big(2x - x^2\big)e^{-x}. \end{aligned}$$
 
 **(c)** By Theorem 6.3 with $a = 10$, $\dfrac{d}{dx}10^x = 10^x\ln 10 \approx 2.303 \cdot 10^x$.
 
@@ -338,7 +338,7 @@ To turn the picture into a theorem you need one fact about continuity, which thi
 ::: theorem The derivative of an inverse function
 Let $f$ be continuous and one-to-one on an open interval $I$, and let $a$ be a point of $I$ where $f$ is differentiable with $f'(a) \ne 0$. Then $f^{-1}$ is differentiable at $b = f(a)$, and
 
-$$(f^{-1})'(b) = \frac{1}{f'(a)}, \quad\text{that is,}\quad (f^{-1})'(b) = \frac{1}{f'\big(f^{-1}(b)\big)}.$$
+$$(f^{-1})'(b) = \frac{1}{f'(a)} = \frac{1}{f'\big(f^{-1}(b)\big)}.$$
 :::
 
 ::: proof
@@ -416,7 +416,7 @@ same(diff(log(x), x).subs(x, 1), 1)
 
 The graph of $\ln x$ (Figure 6.2) climbs steeply near 0, where $1/x$ is large, and flattens out as $x$ grows; but its slope $1/x$ is never 0, so $\ln x$ goes on increasing, more and more slowly. At $x = 1$ its slope is 1, the mirror image of the slope 1 of $e^x$ at 0. With the chain rule, for a differentiable function $u$ of $x$,
 
-$$\frac{d}{dx}\ln u = \frac{u'}{u} \ \text{ where } u > 0, \qquad \frac{d}{dx}\ln\abs{u} = \frac{u'}{u} \ \text{ where } u \ne 0.$$
+$$\begin{aligned} \frac{d}{dx}\ln u &= \frac{u'}{u} \quad \text{where } u > 0, \\ \frac{d}{dx}\ln\abs{u} &= \frac{u'}{u} \quad \text{where } u \ne 0. \end{aligned}$$
 
 ```check
 uF = Function('u')
@@ -482,7 +482,11 @@ limit_is(log(1 + h)/h, h, 0, 1); same(log(1), 0)
 ::: theorem $e$ as a limit
 For every real number $x$,
 
-$$\lim_{n\to\infty}\Big(1 + \frac{x}{n}\Big)^n = e^x, \quad\text{and in particular}\quad \lim_{n\to\infty}\Big(1 + \frac1n\Big)^n = e.$$
+$$\lim_{n\to\infty}\Big(1 + \frac{x}{n}\Big)^n = e^x,$$
+
+and in particular
+
+$$\lim_{n\to\infty}\Big(1 + \frac1n\Big)^n = e.$$
 :::
 
 ::: proof
@@ -544,7 +548,9 @@ same(solve(exp(Rational(5, 100)*tp) - 2, tp), [log(2)/Rational(5, 100)]); rounds
 
 The circle $x^2 + y^2 = 25$, of radius 5 centred at the origin, is not the graph of a function: it fails the vertical line test of Module 1. But near the point $(3, 4)$ it is one: the upper half of the circle is the graph of $y = \sqrt{25 - x^2}$, and the chain rule gives its slope,
 
-$$\frac{dy}{dx} = \frac{-2x}{2\sqrt{25 - x^2}} = -\frac{x}{\sqrt{25 - x^2}}, \quad\text{which at } x = 3 \text{ is } {-\frac34}.$$
+$$\frac{dy}{dx} = \frac{-2x}{2\sqrt{25 - x^2}} = -\frac{x}{\sqrt{25 - x^2}},$$
+
+which at $x = 3$ is $-\tfrac{3}{\sqrt{16}} = -\tfrac34$.
 
 You can find this slope without solving for $y$. Near $(3, 4)$, think of $y$ as a function of $x$, $y = y(x)$, whose graph is that part of the circle. Then $x^2 + y(x)^2 = 25$ for every $x$ near 3: the two sides are the same function of $x$, so they have the same derivative. Differentiate both sides with respect to $x$, with the chain rule on $y^2$:
 
@@ -553,7 +559,7 @@ $$2x + 2y\,\frac{dy}{dx} = 0, \quad\text{so}\quad \frac{dy}{dx} = -\frac{x}{y} \
 At $(3, 4)$ this gives $-\tfrac34$ again. The same formula works at every point of the circle with $y \ne 0$: at $(3, -4)$, on the lower half, the slope is $+\tfrac34$. This is **implicit differentiation**: the equation defines $y$ as a function of $x$ only *implicitly*, and you differentiate the equation as it stands. The answer has a geometric meaning (Figure 6.3, left): the radius from the origin to $(x, y)$ has slope $y/x$, and the product of the two slopes is $(y/x)(-x/y) = -1$, so the tangent line is perpendicular to the radius, as school geometry says it must be.
 
 ```check
-same(diff(sqrt(25 - x**2), x), -x/sqrt(25 - x**2)); same((-x/sqrt(25 - x**2)).subs(x, 3), -Rational(3, 4))
+same(diff(sqrt(25 - x**2), x), -x/sqrt(25 - x**2)); same((-x/sqrt(25 - x**2)).subs(x, 3), -3/sqrt(16)); same(-3/sqrt(16), -Rational(3, 4))
 Yf = Function('Y')
 same(diff(x**2 + Yf(x)**2, x), 2*x + 2*Yf(x)*diff(Yf(x), x))
 same(idiff(x**2 + y**2 - 25, y, x), -x/y)
@@ -589,15 +595,15 @@ At $(3, 3)$, $x^3 + y^3 = 27 + 27 = 54$ and $6xy = 6 \cdot 3 \cdot 3 = 54$, so t
 
 $$3x^2 + 3y^2\,y' = 6y + 6x\,y'.$$
 
-Collect the terms with $y'$ on the left and factor:
+Collect the terms with $y'$ on the left and factor, then divide by $3y^2 - 6x = 3\big(y^2 - 2x\big)$ where it is not 0:
 
-$$\big(3y^2 - 6x\big)\,y' = 6y - 3x^2, \quad\text{so}\quad y' = \frac{2y - x^2}{y^2 - 2x} \quad \big(y^2 \ne 2x\big).$$
+$$\begin{aligned} \big(3y^2 - 6x\big)\,y' &= 6y - 3x^2, \\ y' &= \frac{2y - x^2}{y^2 - 2x} \quad \big(y^2 \ne 2x\big). \end{aligned}$$
 
 At $(3, 3)$, $y' = \dfrac{6 - 9}{9 - 6} = -1$, and the tangent line is $y - 3 = -(x - 3)$, that is, $y = 6 - x$.
 
-The tangent line is horizontal where $y' = 0$: where the numerator $2y - x^2$ is 0 and the denominator is not. Substitute $y = x^2/2$ into the equation of the curve:
+The tangent line is horizontal where $y' = 0$: where the numerator $2y - x^2$ is 0 and the denominator is not. Substitute $y = x^2/2$ into the equation of the curve, subtract $x^3$ from both sides, and multiply by 8:
 
-$$x^3 + \frac{x^6}{8} = 6x\cdot\frac{x^2}{2} = 3x^3, \quad\text{so}\quad \frac{x^6}{8} = 2x^3, \quad\text{that is,}\quad x^3\big(x^3 - 16\big) = 0.$$
+$$\begin{aligned} x^3 + \frac{x^6}{8} &= 6x\cdot\frac{x^2}{2} = 3x^3, \\ x^6 &= 16x^3, \quad\text{that is,}\quad x^3\big(x^3 - 16\big) = 0. \end{aligned}$$
 
 The root $x = 0$ gives the origin, where the denominator $y^2 - 2x$ is 0 too, so the formula says nothing there: the curve crosses itself. The other root, $x^3 = 16$, gives $x = 16^{1/3} = 2^{4/3} \approx 2.520$ and $y = \tfrac12 x^2 = \tfrac12 \cdot 2^{8/3} = 2^{5/3} \approx 3.175$. There the denominator is $2^{10/3} - 2 \cdot 2^{4/3} = 2^{10/3} - 2^{7/3} = 2^{7/3}$, which is not 0. So the tangent line is horizontal at exactly one point, $\big(2^{4/3}, 2^{5/3}\big)$, the top of the loop. Swapping $x$ and $y$ leaves the equation unchanged, so the mirror point $\big(2^{5/3}, 2^{4/3}\big)$ has a vertical tangent line.
 
@@ -609,7 +615,9 @@ yd = symbols('yd')
 same(solve(Eq((3*y**2 - 6*x)*yd, 6*y - 3*x**2), yd)[0], (2*y - x**2)/(y**2 - 2*x))
 same(idiff(fol, y, x), (2*y - x**2)/(y**2 - 2*x))
 same(((2*y - x**2)/(y**2 - 2*x)).subs({x: 3, y: 3}), -1); same(expand(3 - (x - 3)), 6 - x)
-same(expand(x**3 + (x**2/2)**3 - 6*x*(x**2/2)), x**6/8 - 2*x**3); same(factor(x**6 - 16*x**3), x**3*(x**3 - 16))
+same(3*y**2 - 6*x, 3*(y**2 - 2*x))
+same(expand(x**3 + (x**2/2)**3 - 6*x*(x**2/2)), x**6/8 - 2*x**3); same(expand(8*(x**6/8 - 2*x**3)), x**6 - 16*x**3)
+same(factor(x**6 - 16*x**3), x**3*(x**3 - 16))
 x0 = Integer(2)**Rational(4, 3); y0 = Integer(2)**Rational(5, 3)
 same(Integer(16)**Rational(1, 3), x0); same(x0**2/2, y0); rounds(x0, '2.520'); rounds(y0, '3.175'); rounds(x0, '2.52'); rounds(y0, '3.17')
 steps(y0**2 - 2*x0, Integer(2)**Rational(10, 3) - Integer(2)**Rational(7, 3), Integer(2)**Rational(7, 3))
@@ -891,7 +899,7 @@ Two combinations of $e^x$ and $e^{-x}$ turn up so often in science and engineeri
 ::: definition Hyperbolic functions
 For every real $x$,
 
-$$\sinh x = \frac{e^x - e^{-x}}{2}, \qquad \cosh x = \frac{e^x + e^{-x}}{2}, \qquad \tanh x = \frac{\sinh x}{\cosh x} = \frac{e^x - e^{-x}}{e^x + e^{-x}}.$$
+$$\begin{aligned} \sinh x &= \frac{e^x - e^{-x}}{2}, \qquad \cosh x = \frac{e^x + e^{-x}}{2}, \\ \tanh x &= \frac{\sinh x}{\cosh x} = \frac{e^x - e^{-x}}{e^x + e^{-x}}. \end{aligned}$$
 
 They are the **hyperbolic sine**, **hyperbolic cosine** and **hyperbolic tangent**, read "hyperbolic sine of x" and so on.
 :::
@@ -917,13 +925,15 @@ $$\cosh^2 x - \sinh^2 x = 1,$$
 
 and
 
-$$\frac{d}{dx}\sinh x = \cosh x, \qquad \frac{d}{dx}\cosh x = \sinh x, \qquad \frac{d}{dx}\tanh x = \frac{1}{\cosh^2 x} = 1 - \tanh^2 x.$$
+$$\begin{aligned} \frac{d}{dx}\sinh x &= \cosh x, \qquad \frac{d}{dx}\cosh x = \sinh x, \\ \frac{d}{dx}\tanh x &= \frac{1}{\cosh^2 x} = 1 - \tanh^2 x. \end{aligned}$$
 :::
 
 ::: proof
 Expand the squares, using $e^x e^{-x} = 1$:
 
-$$\cosh^2 x - \sinh^2 x = \frac{e^{2x} + 2 + e^{-2x}}{4} - \frac{e^{2x} - 2 + e^{-2x}}{4} = \frac44 = 1.$$
+$$\begin{aligned} \cosh^2 x &= \frac{e^{2x} + 2 + e^{-2x}}{4}, \\ \sinh^2 x &= \frac{e^{2x} - 2 + e^{-2x}}{4}. \end{aligned}$$
+
+In the difference $\cosh^2 x - \sinh^2 x$ everything cancels except $\tfrac24 - \big(-\tfrac24\big) = 1$.
 
 Since $\dfrac{d}{dx}e^{-x} = -e^{-x}$, the derivative of $\sinh x$ is $\dfrac{e^x + e^{-x}}{2} = \cosh x$, and that of $\cosh x$ is $\dfrac{e^x - e^{-x}}{2} = \sinh x$. By the quotient rule and the identity,
 
@@ -934,7 +944,7 @@ and dividing the identity by $\cosh^2 x$ gives $1 - \tanh^2 x = \dfrac{1}{\cosh^
 
 ```check
 same(expand(((exp(x) + exp(-x))/2)**2), (exp(2*x) + 2 + exp(-2*x))/4); same(expand(((exp(x) - exp(-x))/2)**2), (exp(2*x) - 2 + exp(-2*x))/4)
-steps(cosh(x)**2 - sinh(x)**2, (exp(2*x) + 2 + exp(-2*x))/4 - (exp(2*x) - 2 + exp(-2*x))/4, 1)
+steps(cosh(x)**2 - sinh(x)**2, (exp(2*x) + 2 + exp(-2*x))/4 - (exp(2*x) - 2 + exp(-2*x))/4, 1); same(Rational(2, 4) - (-Rational(2, 4)), 1)
 same(diff((exp(x) - exp(-x))/2, x), (exp(x) + exp(-x))/2); same(diff((exp(x) + exp(-x))/2, x), (exp(x) - exp(-x))/2)
 same(diff(sinh(x), x), cosh(x)); same(diff(cosh(x), x), sinh(x))
 steps(diff(tanh(x), x), (cosh(x)*cosh(x) - sinh(x)*sinh(x))/cosh(x)**2, 1/cosh(x)**2, 1 - tanh(x)**2)
@@ -1152,7 +1162,9 @@ $$3x^2e^{2x} + x^3\cdot 2e^{2x} = x^2e^{2x}(3 + 2x).$$
 
 **(e)** $\log_2 x = \dfrac{\ln x}{\ln 2}$, so its derivative is $\dfrac{1}{x\ln 2}$.
 
-**(f)** By the chain rule with the inner function $x^2$, and $\cosh' = {\sinh}$: $\sinh\big(x^2\big)\cdot 2x = 2x\sinh\big(x^2\big)$.
+**(f)** By the chain rule with the inner function $x^2$, and $\cosh' = {\sinh}$:
+
+$$\frac{d}{dx}\cosh\big(x^2\big) = \sinh\big(x^2\big)\cdot 2x = 2x\sinh\big(x^2\big).$$
 
 ```check
 same(diff(exp(-4*x), x), -4*exp(-4*x))
@@ -1171,14 +1183,18 @@ same(diff(cosh(x**2), x), 2*x*sinh(x**2))
 - (c) A calculator in radian mode shows $\sin^{-1}(0.5) = 0.5236$ (rounded). What is this number, and why is it different from $\dfrac{1}{\sin 0.5} \approx 2.0858$?
 
 ::: solution
-**(a)** $\sin\dfrac{\pi}{3} = \dfrac{\sqrt3}{2}$ and $\dfrac{\pi}{3}$ lies in $[-\pi/2, \pi/2]$, so $\arcsin\dfrac{\sqrt3}{2} = \dfrac{\pi}{3}$. $\cos\dfrac{\pi}{4} = \dfrac{\sqrt2}{2}$, so $\cos\Big(\pi - \dfrac{\pi}{4}\Big) = -\dfrac{\sqrt2}{2}$, and $\dfrac{3\pi}{4}$ lies in $[0, \pi]$: $\arccos\Big(-\dfrac{\sqrt2}{2}\Big) = \dfrac{3\pi}{4}$. $\tan\dfrac{\pi}{3} = \sqrt3$ and the tangent is odd, so $\tan\Big(-\dfrac{\pi}{3}\Big) = -\sqrt3$, with $-\dfrac{\pi}{3}$ in $(-\pi/2, \pi/2)$: $\arctan\big(-\sqrt3\big) = -\dfrac{\pi}{3}$.
+**(a)** In each case, find an angle with the right sine, cosine or tangent, and check that it lies in the range of the inverse function.
+
+- $\sin\tfrac{\pi}{3} = \tfrac{\sqrt3}{2}$, and $\tfrac{\pi}{3}$ lies in $[-\pi/2, \pi/2]$: $\arcsin\tfrac{\sqrt3}{2} = \tfrac{\pi}{3}$.
+- $\cos\tfrac{3\pi}{4} = \cos\big(\pi - \tfrac{\pi}{4}\big) = -\cos\tfrac{\pi}{4} = -\tfrac{\sqrt2}{2}$, and $\tfrac{3\pi}{4}$ lies in $[0, \pi]$: $\arccos\big({-\tfrac{\sqrt2}{2}}\big) = \tfrac{3\pi}{4}$.
+- The tangent is odd, so $\tan\big({-\tfrac{\pi}{3}}\big) = -\tan\tfrac{\pi}{3} = -\sqrt3$, and $-\tfrac{\pi}{3}$ lies in $(-\pi/2, \pi/2)$: $\arctan\big({-\sqrt3}\big) = -\tfrac{\pi}{3}$.
 
 **(b)** $\cos\Big(-\dfrac{\pi}{4}\Big) = \cos\dfrac{\pi}{4} = \dfrac{\sqrt2}{2}$, and $\arccos\dfrac{\sqrt2}{2} = \dfrac{\pi}{4}$. The answer is $\dfrac{\pi}{4}$, not $-\dfrac{\pi}{4}$: $\arccos$ returns angles in $[0, \pi]$ only.
 
 **(c)** $\sin^{-1}$ on the calculator is ${\arcsin}$: $\arcsin 0.5 = \dfrac{\pi}{6} \approx 0.5236$, the angle (in radians) whose sine is 0.5. The number $\dfrac{1}{\sin 0.5}$ is the reciprocal of the sine of the angle 0.5, that is, $\csc 0.5$: the $-1$ in $\sin^{-1}$ is not an exponent.
 
 ```check
-same(asin(sqrt(3)/2), pi/3); same(cos(pi - pi/4), -sqrt(2)/2); same(acos(-sqrt(2)/2), 3*pi/4)
+same(asin(sqrt(3)/2), pi/3); same(3*pi/4, pi - pi/4); same(cos(3*pi/4), -cos(pi/4)); same(cos(pi - pi/4), -sqrt(2)/2); same(acos(-sqrt(2)/2), 3*pi/4)
 same(tan(-pi/3), -sqrt(3)); same(atan(-sqrt(3)), -pi/3)
 same(cos(-pi/4), sqrt(2)/2); same(acos(cos(-pi/4)), pi/4)
 same(asin(Rational(1, 2)), pi/6); rounds(pi/6, '0.5236'); rounds(1/sin(Rational(1, 2)), '2.0858'); same(1/sin(Rational(1, 2)), csc(Rational(1, 2)))
@@ -1198,7 +1214,9 @@ Collect the terms with $y'$: $(x + 2y)\,y' = -(2x + y)$, so
 
 $$y' = -\frac{2x + y}{x + 2y} \quad (x + 2y \ne 0).$$
 
-At $(1, 2)$: $y' = -\dfrac{2 + 2}{1 + 4} = -\dfrac45$. The tangent line is $y - 2 = -\dfrac45(x - 1)$, that is, $y = -\dfrac45x + \dfrac{14}{5}$.
+At $(1, 2)$: $y' = -\dfrac{2 + 2}{1 + 4} = -\dfrac45$. The tangent line is
+
+$$y - 2 = -\frac45(x - 1), \quad\text{that is,}\quad y = -\frac45x + \frac{14}{5}.$$
 
 ```check
 cur = x**2 + x*y + y**2 - 7
@@ -1220,7 +1238,11 @@ Let $f(x) = x + e^x$.
 ::: solution
 **(a)** Let $x_1 < x_2$. Then $e^{x_1} < e^{x_2}$, because $e^x$ increases ($e > 1$), so $x_1 + e^{x_1} < x_2 + e^{x_2}$: $f$ is strictly increasing, and so one-to-one ([Exercise 1.10](module_01_EN.html#ex-1-10)). It is also differentiable, hence continuous, on $\R$, with $f'(x) = 1 + e^x$, which is never 0, so Theorem 6.4 applies at every point.
 
-**(b)** $f(0) = 0 + 1 = 1$, so $(f^{-1})'(1) = \dfrac{1}{f'(0)} = \dfrac{1}{1 + 1} = \dfrac12$. And $f(1) = 1 + e$, so $(f^{-1})'(1 + e) = \dfrac{1}{f'(1)} = \dfrac{1}{1 + e} \approx 0.2689$. The common slip is to write $(f^{-1})'(1) = \dfrac{1}{f'(1)}$: the slope of $f$ must be taken at the mirror point $f^{-1}(1) = 0$.
+**(b)** $f(0) = 0 + 1 = 1$ and $f(1) = 1 + e$, so
+
+$$\begin{aligned} (f^{-1})'(1) &= \frac{1}{f'(0)} = \frac{1}{1 + 1} = \frac12, \\ (f^{-1})'(1 + e) &= \frac{1}{f'(1)} = \frac{1}{1 + e} \approx 0.2689. \end{aligned}$$
+
+The common slip is to write $(f^{-1})'(1) = \dfrac{1}{f'(1)}$: the slope of $f$ must be taken at the mirror point $f^{-1}(1) = 0$.
 
 **(c)** The point $(1, 0)$ is on the graph of $f^{-1}$ because $f(0) = 1$, and the slope there is $\tfrac12$ by (b). The tangent line is $y - 0 = \tfrac12(x - 1)$, that is, $y = \dfrac{x - 1}{2}$.
 
@@ -1243,10 +1265,10 @@ same(Rational(1, 2)*(x - 1), (x - 1)/2)
 
 ::: solution
 **(a)** $y > 0$, and $\ln y = \sin x\,\ln x$. By the product rule,
-$$\frac{y'}{y} = \cos x\,\ln x + \frac{\sin x}{x}, \quad\text{so}\quad y' = x^{\sin x}\Big(\cos x\,\ln x + \frac{\sin x}{x}\Big).$$
+$$\begin{aligned} \frac{y'}{y} &= \cos x\,\ln x + \frac{\sin x}{x}, \\ y' &= x^{\sin x}\Big(\cos x\,\ln x + \frac{\sin x}{x}\Big). \end{aligned}$$
 
 **(b)** $\ln y = \dfrac{\ln x}{x}$. By the quotient rule,
-$$\frac{y'}{y} = \frac{\tfrac1x\cdot x - \ln x\cdot 1}{x^2} = \frac{1 - \ln x}{x^2}, \quad\text{so}\quad y' = x^{1/x}\,\frac{1 - \ln x}{x^2}.$$
+$$\begin{aligned} \frac{y'}{y} &= \frac{\tfrac1x\cdot x - \ln x\cdot 1}{x^2} = \frac{1 - \ln x}{x^2}, \\ y' &= x^{1/x}\,\frac{1 - \ln x}{x^2}. \end{aligned}$$
 Since $x^{1/x} > 0$ and $x^2 > 0$, $y' = 0$ exactly when $\ln x = 1$, that is, at $x = e$, where $y = e^{1/e} \approx 1.4447$. The horizontal tangent line is at $\big(e, e^{1/e}\big)$. (Module 8 shows that this is the highest point of the graph: no number $x^{1/x}$ exceeds $e^{1/e}$.)
 
 **(c)** Near $x = 0$ every factor is positive, so
@@ -1281,7 +1303,11 @@ since $3\sqrt{1 - x^2/9} = \sqrt{9(1 - x^2/9)} = \sqrt{9 - x^2}$.
 
 **(c)** By the chain rule,
 $$\frac{d}{dx}\arctan\frac1x = \frac{1}{1 + 1/x^2}\cdot\Big(-\frac{1}{x^2}\Big) = -\frac{1}{x^2 + 1},$$
-which cancels the derivative $\dfrac{1}{1 + x^2}$ of $\arctan x$: the sum has derivative 0. At $x = 1$ the sum is $\dfrac{\pi}{4} + \dfrac{\pi}{4} = \dfrac{\pi}{2}$; at $x = -1$ it is $-\dfrac{\pi}{4} - \dfrac{\pi}{4} = -\dfrac{\pi}{2}$. A function with derivative 0 on an interval is constant there (Module 8 proves this), so $\arctan x + \arctan\dfrac1x = \dfrac{\pi}{2}$ for every $x > 0$ and $-\dfrac{\pi}{2}$ for every $x < 0$. The two constants differ because the domain, $(-\infty, 0) \cup (0, \infty)$, is not one interval.
+which cancels the derivative $\dfrac{1}{1 + x^2}$ of $\arctan x$: the sum has derivative 0. At $x = 1$ the sum is $\tfrac{\pi}{4} + \tfrac{\pi}{4} = \tfrac{\pi}{2}$; at $x = -1$ it is $-\tfrac{\pi}{4} - \tfrac{\pi}{4} = -\tfrac{\pi}{2}$. A function with derivative 0 on an interval is constant there (Module 8 proves this), so
+
+$$\arctan x + \arctan\frac1x = \begin{cases} \pi/2 & \text{for every } x > 0, \\ -\pi/2 & \text{for every } x < 0. \end{cases}$$
+
+The two constants differ because the domain, $(-\infty, 0) \cup (0, \infty)$, is not one interval.
 
 ```check
 steps(diff(asin(x/3), x), 1/sqrt(1 - x**2/9)*Rational(1, 3), 1/sqrt(9 - x**2))
@@ -1331,11 +1357,11 @@ For the circle $x^2 + y^2 = 25$, Section 6.4 found $y' = -x/y$.
 
 ::: solution
 **(a)** Differentiate $y' = -\dfrac{x}{y}$ with the quotient rule, remembering that $y$ is a function of $x$:
-$$y'' = -\frac{1\cdot y - x\,y'}{y^2} = -\frac{y - x(-x/y)}{y^2} = -\frac{y^2 + x^2}{y^3} = -\frac{25}{y^3},$$
+$$\begin{aligned} y'' &= -\frac{1\cdot y - x\,y'}{y^2} = -\frac{y - x(-x/y)}{y^2} \\ &= -\frac{y^2 + x^2}{y^3} = -\frac{25}{y^3}, \end{aligned}$$
 where the third step multiplies the top and the bottom by $y$, and the last uses $x^2 + y^2 = 25$ on the curve.
 
 **(b)** On the upper half, $y = (25 - x^2)^{1/2}$, so $y' = -x(25 - x^2)^{-1/2}$ and, by the product and chain rules,
-$$y'' = -(25 - x^2)^{-1/2} - x^2(25 - x^2)^{-3/2} = -\frac{(25 - x^2) + x^2}{(25 - x^2)^{3/2}} = -\frac{25}{(25 - x^2)^{3/2}}.$$
+$$\begin{aligned} y'' &= -(25 - x^2)^{-1/2} - x^2(25 - x^2)^{-3/2} \\ &= -\frac{(25 - x^2) + x^2}{(25 - x^2)^{3/2}} = -\frac{25}{(25 - x^2)^{3/2}}. \end{aligned}$$
 At $x = 3$, $(25 - 9)^{3/2} = 16^{3/2} = 64$, so $y'' = -\dfrac{25}{64}$; and (a) gives $-\dfrac{25}{4^3} = -\dfrac{25}{64}$ too.
 
 **(c)** On the upper half $y > 0$, so $y'' < 0$: the slope decreases as $x$ increases, and the curve bends downwards. On the lower half $y < 0$, so $y'' > 0$, and the curve bends upwards. Module 8 calls this concavity.
@@ -1387,14 +1413,22 @@ $$\operatorname{arsinh} x = \ln\big(x + \sqrt{x^2 + 1}\big).$$
 - (c) Differentiate $\ln\big(x + \sqrt{x^2 + 1}\big)$ directly, and check that you get the same answer.
 
 ::: solution
-**(a)** Let $x_1 < x_2$. Then $e^{x_1} < e^{x_2}$ and $e^{-x_1} > e^{-x_2}$, so $e^{x_1} - e^{-x_1} < e^{x_2} - e^{-x_2}$: $\sinh x_1 < \sinh x_2$. Now let $x$ be any real number and solve $\dfrac{e^y - e^{-y}}{2} = x$. Multiply by $2e^y$: $e^{2y} - 1 = 2xe^y$. With $u = e^y$ this is the quadratic $u^2 - 2xu - 1 = 0$, with roots $u = x \pm \sqrt{x^2 + 1}$. Since $\sqrt{x^2 + 1} > \sqrt{x^2} = {\abs{x}}$, the root $x - \sqrt{x^2 + 1}$ is negative and cannot be $e^y$, while $x + \sqrt{x^2 + 1}$ is positive. So there is exactly one solution, $y = \ln\big(x + \sqrt{x^2 + 1}\big)$: every real $x$ is a value of ${\sinh}$, taken once, and this $y$ is $\operatorname{arsinh} x$.
+**(a)** Let $x_1 < x_2$. Then $e^{x_1} < e^{x_2}$ and $e^{-x_1} > e^{-x_2}$, so $e^{x_1} - e^{-x_1} < e^{x_2} - e^{-x_2}$, that is, $\sinh x_1 < \sinh x_2$. Now let $x$ be any real number, and solve $\sinh y = x$ for $y$: multiply $\dfrac{e^y - e^{-y}}{2} = x$ by $2e^y$ to get
+
+$$e^{2y} - 1 = 2xe^y.$$
+
+With $u = e^y$ this is the quadratic $u^2 - 2xu - 1 = 0$, whose roots are $u = x \pm \sqrt{x^2 + 1}$. Since $\sqrt{x^2 + 1} > \sqrt{x^2} = {\abs{x}}$, the root $x - \sqrt{x^2 + 1}$ is negative and cannot be $e^y$, while $x + \sqrt{x^2 + 1}$ is positive. So there is exactly one solution,
+
+$$y = \ln\big(x + \sqrt{x^2 + 1}\big):$$
+
+every real $x$ is a value of ${\sinh}$, taken once, and this $y$ is $\operatorname{arsinh} x$.
 
 **(b)** $\sinh$ is differentiable, hence continuous, and one-to-one on the open interval $\R$, and its derivative $\cosh y \ge 1$ is never 0. By Theorem 6.4, with $y = \operatorname{arsinh} x$,
 $$\frac{d}{dx}\operatorname{arsinh} x = \frac{1}{\cosh y}.$$
 By the identity, $\cosh^2 y = 1 + \sinh^2 y = 1 + x^2$, and $\cosh y > 0$, so $\cosh y = \sqrt{1 + x^2}$.
 
 **(c)** By the chain rule, $\dfrac{d}{dx}\sqrt{x^2 + 1} = \dfrac{x}{\sqrt{x^2 + 1}}$, so
-$$\frac{d}{dx}\ln\big(x + \sqrt{x^2 + 1}\big) = \frac{1 + \dfrac{x}{\sqrt{x^2 + 1}}}{x + \sqrt{x^2 + 1}} = \frac{\dfrac{\sqrt{x^2 + 1} + x}{\sqrt{x^2 + 1}}}{x + \sqrt{x^2 + 1}} = \frac{1}{\sqrt{x^2 + 1}},$$
+$$\begin{aligned} \frac{d}{dx}\ln\big(x + \sqrt{x^2 + 1}\big) &= \frac{1 + \dfrac{x}{\sqrt{x^2 + 1}}}{x + \sqrt{x^2 + 1}} \\ &= \frac{\sqrt{x^2 + 1} + x}{\sqrt{x^2 + 1}\,\big(x + \sqrt{x^2 + 1}\big)} = \frac{1}{\sqrt{x^2 + 1}}, \end{aligned}$$
 the same as (b). Python and SymPy call this function `asinh`; many books write $\sinh^{-1}x$.
 
 ```check
@@ -1408,7 +1442,7 @@ holds(all(v_ - sqrt(v_**2 + 1) < 0 and v_ + sqrt(v_**2 + 1) > 0 for v_ in (-7, -
 same(sinh(log(xr + sqrt(xr**2 + 1))).rewrite(exp), xr); same(asinh(xr).rewrite(log), log(xr + sqrt(xr**2 + 1)))
 same(1/cosh(asinh(x)), 1/sqrt(1 + x**2)); same(diff(asinh(x), x), 1/sqrt(1 + x**2))
 same(diff(sqrt(x**2 + 1), x), x/sqrt(x**2 + 1))
-steps(diff(log(x + sqrt(x**2 + 1)), x), (1 + x/sqrt(x**2 + 1))/(x + sqrt(x**2 + 1)), ((sqrt(x**2 + 1) + x)/sqrt(x**2 + 1))/(x + sqrt(x**2 + 1)), 1/sqrt(x**2 + 1))
+steps(diff(log(x + sqrt(x**2 + 1)), x), (1 + x/sqrt(x**2 + 1))/(x + sqrt(x**2 + 1)), (sqrt(x**2 + 1) + x)/(sqrt(x**2 + 1)*(x + sqrt(x**2 + 1))), 1/sqrt(x**2 + 1))
 ```
 :::
 ::::
@@ -1422,11 +1456,19 @@ The **astroid** is the curve $x^{2/3} + y^{2/3} = 1$. Consider the part of it wi
 
 ::: solution
 **(a)** Differentiate both sides, with the power rule for real exponents (Theorem 6.8) and the chain rule on $y^{2/3}$:
-$$\frac23x^{-1/3} + \frac23y^{-1/3}\,y' = 0, \quad\text{so}\quad y' = -\frac{x^{-1/3}}{y^{-1/3}} = -\frac{y^{1/3}}{x^{1/3}}.$$
+$$\begin{aligned} \frac23x^{-1/3} + \frac23y^{-1/3}\,y' &= 0, \\ y' &= -\frac{x^{-1/3}}{y^{-1/3}} = -\frac{y^{1/3}}{x^{1/3}}. \end{aligned}$$
 
-**(b)** The tangent line at $(x_0, y_0)$ is $y - y_0 = -\dfrac{y_0^{1/3}}{x_0^{1/3}}(x - x_0)$. Put $y = 0$ and multiply by $\dfrac{x_0^{1/3}}{y_0^{1/3}}$: $x - x_0 = y_0 \cdot \dfrac{x_0^{1/3}}{y_0^{1/3}} = x_0^{1/3}y_0^{2/3}$, so
+**(b)** The tangent line at $(x_0, y_0)$ is
+
+$$y - y_0 = -\frac{y_0^{1/3}}{x_0^{1/3}}(x - x_0).$$
+
+Put $y = 0$, and multiply both sides by $-x_0^{1/3}/y_0^{1/3}$: $x - x_0 = y_0 \cdot x_0^{1/3}/y_0^{1/3} = x_0^{1/3}y_0^{2/3}$, so
+
 $$x = x_0 + x_0^{1/3}y_0^{2/3} = x_0^{1/3}\big(x_0^{2/3} + y_0^{2/3}\big) = x_0^{1/3},$$
-because $(x_0, y_0)$ is on the curve. Put $x = 0$ instead: $y = y_0 + \dfrac{y_0^{1/3}}{x_0^{1/3}}x_0 = y_0 + y_0^{1/3}x_0^{2/3} = y_0^{1/3}\big(y_0^{2/3} + x_0^{2/3}\big) = y_0^{1/3}$.
+
+because $x_0^{2/3} + y_0^{2/3} = 1$ on the curve. Put $x = 0$ instead:
+
+$$y = y_0 + \frac{y_0^{1/3}}{x_0^{1/3}}\,x_0 = y_0 + y_0^{1/3}x_0^{2/3} = y_0^{1/3}\big(y_0^{2/3} + x_0^{2/3}\big) = y_0^{1/3}.$$
 
 **(c)** By Pythagoras, the distance between $\big(x_0^{1/3}, 0\big)$ and $\big(0, y_0^{1/3}\big)$ is
 $$\sqrt{\big(x_0^{1/3}\big)^2 + \big(y_0^{1/3}\big)^2} = \sqrt{x_0^{2/3} + y_0^{2/3}} = \sqrt1 = 1.$$
@@ -1439,7 +1481,9 @@ same(idiff(xq_**Rational(2, 3) + yq_**Rational(2, 3) - 1, yq_, xq_), -yq_**Ratio
 same(diff(xq_**Rational(2, 3), xq_), Rational(2, 3)*xq_**Rational(-1, 3))
 tan_ = y0p - y0p**Rational(1, 3)/x0p**Rational(1, 3)*(x - x0p)
 xint = solve(tan_, x)[0]; yint = tan_.subs(x, 0)
+same(y0p*x0p**Rational(1, 3)/y0p**Rational(1, 3), x0p**Rational(1, 3)*y0p**Rational(2, 3))
 same(xint, x0p + x0p**Rational(1, 3)*y0p**Rational(2, 3)); same(expand(x0p**Rational(1, 3)*(x0p**Rational(2, 3) + y0p**Rational(2, 3))), xint)
+same(yint, y0p + y0p**Rational(1, 3)/x0p**Rational(1, 3)*x0p); same(yint, y0p + y0p**Rational(1, 3)*x0p**Rational(2, 3))
 same(expand(yint), expand(y0p**Rational(1, 3)*(y0p**Rational(2, 3) + x0p**Rational(2, 3))))
 for p_, q_ in ((Rational(3, 5), Rational(4, 5)), (Rational(5, 13), Rational(12, 13)), (Rational(8, 17), Rational(15, 17))):
     pt = {x0p: p_**3, y0p: q_**3}                                          # points of the astroid: p^2 + q^2 = 1
