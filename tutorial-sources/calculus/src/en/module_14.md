@@ -15,7 +15,7 @@ goals:
 
 ## Sequences {#sequences}
 
-Calculus keeps producing lists of numbers that are meant to close in on something. Newton's method for $\sqrt2$ gave $1, \tfrac32, \tfrac{17}{12}, \tfrac{577}{408}, \dots$ ([Module 7](module_07_EN.html#newton)); interest added $n$ times a year turned £1 into $(1 + \tfrac1n)^n$ pounds, for $n = 1, 2, 3, \dots$ ([Module 6](module_06_EN.html#compound-interest)); the bisection method gave intervals half as long at every step ([Module 3](module_03_EN.html#bisection)). Each is a sequence, and the question about each is the same: does it settle down to a limit? This module, which opens Part IV of the series, answers that question first. Then it turns to the one that gives Part IV its name: what does it mean to add up infinitely many numbers?
+Calculus keeps producing lists of numbers that are meant to close in on something. Newton's method for $\sqrt2$ gave $1, \tfrac32, \tfrac{17}{12}, \tfrac{577}{408}, \dots$ ([Module 7](module_07_EN.html#newton)); interest at 100% a year, added $n$ times a year, turned £1 into $(1 + \tfrac1n)^n$ pounds, for $n = 1, 2, 3, \dots$ ([Module 6](module_06_EN.html#compound-interest)); the bisection method gave intervals half as long at every step ([Module 3](module_03_EN.html#bisection)). Each is a sequence, and the question about each is the same: does it settle down to a limit? This module, which opens Part IV of the course, answers that question first. Then it turns to the one that gives Part IV its name: what does it mean to add up infinitely many numbers?
 
 ::: definition Sequence
 A **sequence** is an infinite list of numbers in a definite order,
@@ -123,7 +123,7 @@ Limits of sequences obey the same laws as limits of functions, with the same pro
 ::: theorem Limit laws for sequences
 Suppose that $a_n \to L$ and $b_n \to M$, and let $c$ be a constant. Then
 
-$$a_n + b_n \to L + M, \qquad a_n - b_n \to L - M, \qquad c\,a_n \to cL, \qquad a_n b_n \to LM,$$
+$$\begin{aligned} a_n + b_n &\to L + M, & a_n - b_n &\to L - M, \\ c\,a_n &\to cL, & a_n b_n &\to LM, \end{aligned}$$
 
 and $\dfrac{a_n}{b_n} \to \dfrac{L}{M}$ if $M \ne 0$. If $a_n \to L$ and the function $f$ is continuous at $L$, then $f(a_n) \to f(L)$.
 :::
@@ -271,7 +271,7 @@ holds(all(sqrt(2) - floor(sqrt(2)*10**j)/Integer(10)**j < Rational(1, 10**j) for
 A sequence $(a_n)$ is **increasing** if $a_n \le a_{n+1}$ for every $n$, and **decreasing** if $a_n \ge a_{n+1}$ for every $n$; it is **monotone** if it is one or the other. It is **bounded above** if there is a number $M$, an **upper bound**, with $a_n \le M$ for every $n$; **bounded below** if there is a number $m$, a **lower bound**, with $a_n \ge m$ for every $n$; and **bounded** if it is both.
 :::
 
-Some books call these sequences "non-decreasing" and "non-increasing", and keep "increasing" for sequences with $a_n < a_{n+1}$; this series says **strictly increasing** for those.
+Some books call these sequences "non-decreasing" and "non-increasing", and keep "increasing" for sequences with $a_n < a_{n+1}$; this module says **strictly increasing** for those.
 
 ### The Monotone Convergence Theorem {#mct}
 
@@ -279,7 +279,7 @@ Some books call these sequences "non-decreasing" and "non-increasing", and keep 
 An increasing sequence that is bounded above converges, and its limit is at least every term and at most every upper bound. A decreasing sequence that is bounded below converges, and its limit is at most every term and at least every lower bound.
 :::
 
-This theorem is not proved from anything earlier in the series. It is a form of the **completeness** of the real numbers, the property that the number line has no gaps, which the proof of the Intermediate Value Theorem needed in [Module 3](module_03_EN.html#ivt). Courses in real analysis either construct the real numbers and prove completeness, or take it as an axiom, a basic property from which the rest is proved; this series takes the Monotone Convergence Theorem as its starting point. The decimal approximations of $\sqrt2$ show why it is a property of the real numbers and not of numbers in general. Every term is a fraction, and the sequence is increasing and bounded above, yet no fraction is its limit, because $\sqrt2$ is irrational. Among the fractions alone, the sequence closes in on a gap, and has no limit.
+This theorem is not proved from anything earlier in the course. It is a form of the **completeness** of the real numbers, the property that the number line has no gaps, which the proof of the Intermediate Value Theorem needed in [Module 3](module_03_EN.html#ivt). Courses in real analysis either construct the real numbers and prove completeness, or take it as an axiom, a basic property from which the rest is proved; this course takes the Monotone Convergence Theorem as its starting point. The decimal approximations of $\sqrt2$ show why it is a property of the real numbers and not of numbers in general. Every term is a fraction, and the sequence is increasing and bounded above, yet no fraction is its limit, because $\sqrt2$ is irrational. Among the fractions alone, the sequence closes in on a gap, and has no limit.
 
 The second half of each statement can be proved. Limits keep non-strict inequalities: if $a_n \le M$ for every $n$ and $a_n \to L$, then $L \le M$. Indeed, if $L$ were greater than $M$, the challenge $\varepsilon = L - M$ would give terms with $a_n > L - \varepsilon = M$. Applied to an upper bound $M$, this says that the limit is at most $M$. Applied to the terms $a_m$, $a_{m+1}, \dots$, which are all at least $a_m$ when the sequence increases, it says that the limit is at least $a_m$.
 
@@ -311,7 +311,7 @@ Newton's method for $\sqrt2$ is the recursion $x_0 = 1$, $x_{n+1} = \tfrac12\big
 
 To find $L$, take limits on both sides of the recursion. The left side, $x_{n+1}$, is the same sequence shifted by one place, so it also tends to $L$. On the right, $L \ne 0$, so the limit laws give $\tfrac12\big(x_n + 2/x_n\big) \to \tfrac12\big(L + 2/L\big)$. Therefore
 
-$$L = \frac12\Big(L + \frac2L\Big), \quad\text{so}\quad 2L = L + \frac2L, \quad L = \frac2L, \quad L^2 = 2.$$
+$$\begin{aligned} L &= \frac12\Big(L + \frac2L\Big), \quad\text{so} \\ 2L &= L + \frac2L, \quad L = \frac2L, \quad L^2 = 2. \end{aligned}$$
 
 Since $L \ge \sqrt2 > 0$, $L = \sqrt2$. Module 7 proved more, with its formula for the error: how fast the iterates approach $\sqrt2$. This argument needs no formula for the error, and the same three steps work for many recursions that have none.
 
@@ -320,7 +320,8 @@ itn = [Integer(1)]
 for _ in range(8):
     itn.append((itn[-1] + 2/itn[-1])/2)
 same(itn[1:4], [Rational(3, 2), Rational(17, 12), Rational(577, 408)])
-holds(all(itn[j]**2 >= 2 for j in range(1, 9)))         # x_n >= sqrt(2), compared through squares; holds(all(itn[j + 1] <= itn[j] for j in range(1, 8)))
+holds(all(itn[j]**2 >= 2 for j in range(1, 9)))         # x_n >= sqrt(2), compared through squares
+holds(all(itn[j + 1] <= itn[j] for j in range(1, 8)))   # decreasing from x_1 on
 Lp = symbols('L', positive=True)
 same(solve(Eq(Lp, (Lp + 2/Lp)/2), Lp), [sqrt(2)])
 steps(2*Lp - (Lp + 2/Lp), Lp - 2/Lp); same(solve(Eq(Lp, 2/Lp), Lp), [sqrt(2)])
@@ -348,19 +349,19 @@ a_{n} | a_n\text{ in decimals} | 2 - a_n
 \sqrt{\sqrt{\sqrt{\sqrt{3} + 2} + 2} + 2} | 1.99572 | 0.00428215
 ```
 
-They seem to increase towards 2. Prove it in three steps.
+They seem to increase towards 2, and Figure 14.2 pictures how. Prove it in three steps.
 
 *Bounded.* Every term is positive, since $a_1 = 1$ and square roots of positive numbers are positive. And every term is below 2: $a_1 = 1 < 2$, and if $a_n < 2$, then $2 + a_n < 4$, so $a_{n+1} = \sqrt{2 + a_n} < \sqrt4 = 2$. By induction, $0 < a_n < 2$ for every $n$.
 
 *Increasing.* Compare the squares. For $0 < a_n < 2$,
 
-$$a_{n+1}^2 - a_n^2 = 2 + a_n - a_n^2 = (2 - a_n)(1 + a_n) > 0,$$
+$$\begin{aligned} a_{n+1}^2 - a_n^2 &= 2 + a_n - a_n^2 \\ &= (2 - a_n)(1 + a_n) > 0, \end{aligned}$$
 
 because both factors are positive. So $a_{n+1}^2 > a_n^2$, and since both terms are positive, $a_{n+1} > a_n$.
 
 *The limit.* By the Monotone Convergence Theorem the sequence converges to a number $L$ with $1 = a_1 \le L \le 2$. The square root is continuous, so $\sqrt{2 + a_n} \to \sqrt{2 + L}$, and taking limits on both sides of the recursion gives $L = \sqrt{2 + L}$. Squaring, $L^2 - L - 2 = 0$, that is, $(L - 2)(L + 1) = 0$, so $L = 2$ or $L = -1$. Since $L \ge 1$, the limit is 2.
 
-The table shows how fast: from the third term on, each step divides the distance to 2 by almost exactly 4. The reason is the identity $2 - a_{n+1} = \dfrac{(2 - a_n)}{2 + a_{n+1}}$ (multiply $2 - \sqrt{2 + a_n}$ above and below by $2 + \sqrt{2 + a_n}$), and $2 + a_{n+1} \to 4$.
+The table shows how fast: after the first step, each step divides the distance to 2 by almost exactly 4. The reason is the identity $2 - a_{n+1} = \dfrac{2 - a_n}{2 + a_{n+1}}$ (multiply $2 - \sqrt{2 + a_n}$ above and below by $2 + \sqrt{2 + a_n}$), and $2 + a_{n+1} \to 4$.
 
 ```check
 sq = [Integer(1)]
@@ -481,7 +482,7 @@ $$\sum_{n=1}^{\infty} a_n = S \quad\text{means}\quad \lim_{N\to\infty} S_N = S.$
 Otherwise the series **diverges**.
 :::
 
-An infinite sum is a limit: you cannot add infinitely many numbers one by one, but you can add the first $N$ and ask what happens as $N$ grows. The sigma notation is that of Module 9, with $\infty$ as the upper limit. A series may start at another index, often $n = 0$. In this series $S_N$ always means the sum of the first $N$ terms, so for $\sum_{n=0}^{\infty} a_n$ it is $a_0 + a_1 + \cdots + a_{N-1}$.
+An infinite sum is a limit: you cannot add infinitely many numbers one by one, but you can add the first $N$ and ask what happens as $N$ grows. The sigma notation is that of Module 9, with $\infty$ as the upper limit. A series may start at another index, often $n = 0$. Throughout this module, $S_N$ means the sum of the first $N$ terms, so for $\sum_{n=0}^{\infty} a_n$ it is $a_0 + a_1 + \cdots + a_{N-1}$.
 
 Every series involves two sequences: its terms $a_n$ and its partial sums $S_N$. Keep them apart. In Zeno's series the terms $1/2^n$ tend to 0, while the partial sums tend to 1, the sum.
 
@@ -552,7 +553,7 @@ Find the sum of each series, or show that it diverges:
 
 **(a)** The first term, at $n = 1$, is $3 \cdot \big(-\tfrac23\big) = -2$, and each term is $-\tfrac23$ times the one before. So the series is geometric with $a = -2$ and $r = -\tfrac23$, and $\abs{r} < 1$:
 
-$$\sum_{n=1}^{\infty} 3\Big(-\frac23\Big)^n = \frac{-2}{1 - (-2/3)} = \frac{-2}{5/3} = -\frac65.$$
+$$\begin{aligned} \sum_{n=1}^{\infty} 3\Big(-\frac23\Big)^n &= \frac{-2}{1 - (-2/3)} \\ &= \frac{-2}{5/3} = -\frac65. \end{aligned}$$
 
 The common slip is to take $a = 3$, the coefficient, which gives $\tfrac95$: the formula needs the first term of the series, here the term with $n = 1$.
 
@@ -575,7 +576,7 @@ $$\frac{27/100}{1 - 1/100} = \frac{27/100}{99/100} = \frac{27}{99} = \frac{3}{11
 
 For the second number, only the digits 45 repeat, from the second decimal place on:
 
-$$\begin{aligned} 2.3454545\ldots &= 2.3 + \Big(\frac{45}{1000} + \frac{45}{100\,000} + \cdots\Big) \\ &= \frac{23}{10} + \frac{45/1000}{1 - 1/100} = \frac{23}{10} + \frac{1}{22} = \frac{129}{55}. \end{aligned}$$
+$$\begin{aligned} 2.3454545\ldots &= 2.3 + \Big(\frac{45}{1000} + \frac{45}{100\,000} + \cdots\Big) \\ &= \frac{23}{10} + \frac{45/1000}{1 - 1/100} \\ &= \frac{23}{10} + \frac{1}{22} = \frac{129}{55}. \end{aligned}$$
 
 The same reasoning gives $0.999\ldots = \dfrac{9/10}{1 - 1/10} = 1$. An infinite decimal is the sum of a series, and the partial sums $0.9, 0.99, 0.999, \dots$ converge to 1: $0.999\ldots$ and 1 are the same number, written in two ways.
 
@@ -604,7 +605,7 @@ same(1/(1 - 2), -1); same([sum(2**j for j in range(Nn)) for Nn in range(1, 10)],
 
 For most series there is no formula for $S_N$. Geometric series are one exception; telescoping series are another. Their terms are differences, $a_n = b_n - b_{n+1}$, and in the partial sums everything cancels except the two ends, like the sections of a collapsing telescope:
 
-$$S_N = (b_1 - b_2) + (b_2 - b_3) + \cdots + (b_N - b_{N+1}) = b_1 - b_{N+1}.$$
+$$\begin{aligned} S_N &= (b_1 - b_2) + (b_2 - b_3) + \cdots \\ &\qquad + (b_N - b_{N+1}) \\ &= b_1 - b_{N+1}. \end{aligned}$$
 
 So the series converges exactly when $b_n$ has a limit, and then its sum is $b_1 - \lim b_n$. The standard example is
 
@@ -624,13 +625,13 @@ same(sum(bs(j) - bs(j + 1) for j in range(1, 7)), bs(1) - bs(7))
 
 **(a)** By partial fractions (Module 11), $\dfrac{1}{n(n + 2)} = \dfrac12\Big(\dfrac1n - \dfrac{1}{n + 2}\Big)$; check by combining the right side, $\tfrac12\cdot\dfrac{(n + 2) - n}{n(n + 2)}$. Now each negative part cancels with a positive part two places later:
 
-$$\begin{aligned} S_N &= \frac12\Big[\Big(1 - \frac13\Big) + \Big(\frac12 - \frac14\Big) + \Big(\frac13 - \frac15\Big) + \cdots + \Big(\frac1N - \frac{1}{N + 2}\Big)\Big] \\ &= \frac12\Big(1 + \frac12 - \frac{1}{N + 1} - \frac{1}{N + 2}\Big). \end{aligned}$$
+$$\begin{aligned} S_N &= \frac12\Big[\Big(1 - \frac13\Big) + \Big(\frac12 - \frac14\Big) + \Big(\frac13 - \frac15\Big) \\ &\qquad + \cdots + \Big(\frac1N - \frac{1}{N + 2}\Big)\Big] \\ &= \frac12\Big(1 + \frac12 - \frac{1}{N + 1} - \frac{1}{N + 2}\Big). \end{aligned}$$
 
 Only the first two positive parts and the last two negative ones survive. As $N \to \infty$, $S_N \to \tfrac12 \cdot \tfrac32 = \tfrac34$.
 
 **(b)** $\ln\big(1 + \tfrac1n\big) = \ln\dfrac{n + 1}{n} = \ln(n + 1) - \ln n$, by the laws of logarithms. So the series telescopes:
 
-$$S_N = (\ln 2 - \ln 1) + (\ln 3 - \ln 2) + \cdots + \big(\ln(N + 1) - \ln N\big) = \ln(N + 1),$$
+$$\begin{aligned} S_N &= (\ln 2 - \ln 1) + (\ln 3 - \ln 2) + \cdots \\ &\qquad + \big(\ln(N + 1) - \ln N\big) \\ &= \ln(N + 1), \end{aligned}$$
 
 since $\ln 1 = 0$. As $N \to \infty$, $\ln(N + 1) \to \infty$: the series diverges, although its terms tend to $\ln 1 = 0$.
 
@@ -672,7 +673,7 @@ print(sp.summation(3*sp.Rational(-2, 3)**n, (n, 1, sp.oo)))
 -6/5
 ```
 
-These are the telescoping sum of Section 14.3, the partial fractions of Example 14.8 and the sum of Example 14.6. For a geometric series with an unknown ratio, SymPy states the condition:
+These are the telescoping sum of Section 14.3, the partial fractions of Example 14.8 (with the two fractions in SymPy's order) and the sum of Example 14.6. For a geometric series with an unknown ratio, SymPy states the condition:
 
 ```python
 r = sp.symbols('r')
@@ -752,7 +753,7 @@ Its terms tend to 0, and its partial sums grow very slowly:
 
 ```valuetable
 N = 10, 100, 1000, 10000, 100000, 1000000
-$S_N = 1 + \tfrac12 + \cdots + \tfrac1N$ = harmonic(N)
+$S_N = 1 + \tfrac12 + \cdots + \tfrac1N$ = harmonic(N*Float(1, 40))
 digits = 6
 ---
 N | S_N = 1 + \tfrac12 + \cdots + \tfrac1N
@@ -780,7 +781,7 @@ The partial sums of $\sum 1/n$ tend to infinity.
 ::: proof
 The terms are positive, so the partial sums increase. Group the terms after the first two into blocks that end at the powers of 2:
 
-$$S_{2^k} = 1 + \frac12 + \Big(\frac13 + \frac14\Big) + \Big(\frac15 + \cdots + \frac18\Big) + \cdots + \Big(\frac{1}{2^{k-1} + 1} + \cdots + \frac{1}{2^k}\Big).$$
+$$\begin{aligned} S_{2^k} &= 1 + \frac12 + \Big(\frac13 + \frac14\Big) + \Big(\frac15 + \cdots + \frac18\Big) \\ &\qquad + \cdots + \Big(\frac{1}{2^{k-1} + 1} + \cdots + \frac{1}{2^k}\Big). \end{aligned}$$
 
 The block that ends at $2^j$ has $2^{j-1}$ terms, and each is at least the last one, $1/2^j$. So each block is at least $2^{j-1}/2^j = \tfrac12$: for instance $\tfrac13 + \tfrac14 \ge \tfrac14 + \tfrac14 = \tfrac12$, and $\tfrac15 + \tfrac16 + \tfrac17 + \tfrac18 \ge 4 \cdot \tfrac18 = \tfrac12$. There are $k - 1$ blocks, so
 
@@ -798,7 +799,7 @@ for kk in range(1, 15):
     holds(harmonic(2**kk) >= 1 + Rational(kk, 2))
 ```
 
-The proof shows how slowly the sums grow. It guarantees that $S_N$ passes 10 by $N = 2^{18} = 262{,}144$; in fact it first passes 10 at $N = 12{,}367$ (the compute box of Section 14.5 finds this). To pass 100, more than $10^{42}$ terms are needed (Section 14.5).
+The proof shows how slowly the sums grow. It guarantees that $S_N$ is at least 10 by $N = 2^{18} = 262{,}144$; in fact it first passes 10 at $N = 12{,}367$ (the compute box of Section 14.5 finds this). To pass 100, more than $10^{42}$ terms are needed (Section 14.5).
 
 ```check
 same(2**18, 262144); holds(1 + Rational(18, 2) >= 10)
@@ -834,7 +835,7 @@ $$\frac{1}{2^2} + \frac{1}{3^2} + \cdots + \frac{1}{N^2} \le \int_1^N \frac{dx}{
 
 So $S_N < 2$ for every $N$: the partial sums increase and are bounded above, and $\sum 1/n^2$ converges. On the right of Figure 14.4, the rectangle on $[n, n + 1]$ has height $1/n$, the value of $1/x$ at its left end, so it lies above the curve, and
 
-$$S_N = 1 + \frac12 + \cdots + \frac1N \ge \int_1^{N+1}\frac{dx}{x} = \ln(N + 1) \to \infty:$$
+$$\begin{aligned} S_N &= 1 + \frac12 + \cdots + \frac1N \\ &\ge \int_1^{N+1}\frac{dx}{x} = \ln(N + 1) \to \infty: \end{aligned}$$
 
 a second proof that the harmonic series diverges.
 
@@ -917,17 +918,17 @@ Both start at $n = 2$, since $\ln 1 = 0$. On $[2, \infty)$, $x\ln x$ and $x(\ln 
 
 **(a)** For $t > 2$,
 
-$$\int_2^t \frac{dx}{x\ln x} = \int_{\ln 2}^{\ln t}\frac{du}{u} = \ln(\ln t) - \ln(\ln 2) \to \infty \quad (t \to \infty).$$
+$$\begin{aligned} \int_2^t \frac{dx}{x\ln x} &= \int_{\ln 2}^{\ln t}\frac{du}{u} \\ &= \ln(\ln t) - \ln(\ln 2) \to \infty \quad (t \to \infty). \end{aligned}$$
 
 The integral diverges, so the series diverges.
 
 **(b)** For $t > 2$,
 
-$$\int_2^t \frac{dx}{x(\ln x)^2} = \int_{\ln 2}^{\ln t}\frac{du}{u^2} = \frac{1}{\ln 2} - \frac{1}{\ln t} \to \frac{1}{\ln 2} \quad (t \to \infty).$$
+$$\begin{aligned} \int_2^t \frac{dx}{x(\ln x)^2} &= \int_{\ln 2}^{\ln t}\frac{du}{u^2} \\ &= \frac{1}{\ln 2} - \frac{1}{\ln t} \to \frac{1}{\ln 2} \quad (t \to \infty). \end{aligned}$$
 
 The integral converges, so the series converges.
 
-The series in (a) diverges even more slowly than the harmonic series: by the integral test, $S_N \le \dfrac{1}{2\ln 2} + \ln(\ln N) - \ln(\ln 2)$, so its partial sums stay below 10 for the first $10^{3000}$ terms and more.
+The series in (a) diverges even more slowly than the harmonic series. By the integral test (started at $n = 2$), the sum of its terms up to $n = N$ is at most $\dfrac{1}{2\ln 2} + \ln(\ln N) - \ln(\ln 2)$, so its partial sums stay below 10 for the first $10^{3000}$ terms and more.
 
 ```check
 tq = symbols('t', positive=True); xg = symbols('x', positive=True)
@@ -969,14 +970,15 @@ Estimate $\sum_{n=1}^{\infty} 1/n^2$ from its first 10 terms, with a guaranteed 
 
 The partial sum is $S_{10} = 1 + \tfrac14 + \cdots + \tfrac{1}{100} \approx 1.549768$. With $f(x) = 1/x^2$, $\int_N^{\infty} dx/x^2 = 1/N$, so the theorem gives
 
-$$\frac{1}{11} \le R_{10} \le \frac{1}{10}, \qquad\text{so}\qquad 1.640677 \le S \le 1.649768.$$
+$$\begin{aligned} \frac{1}{11} &\le R_{10} \le \frac{1}{10}, \quad\text{so} \\ 1.640677 &\le S \le 1.649768. \end{aligned}$$
 
-The partial sum alone is wrong in the second decimal place, but the interval pins $S$ down to within 0.01. Its midpoint, $S \approx 1.645222$, has an error of at most half the width of the interval, about 0.0045; the true error is $0.000288$, since $S = \pi^2/6 \approx 1.644934$.
+The partial sum alone is off by almost 0.1, but the interval pins $S$ down to within 0.01. Its midpoint, $S \approx 1.645222$, has an error of at most half the width of the interval, about 0.0045; the true error is $0.000288$, since $S = \pi^2/6 \approx 1.644934$.
 
 The difference is dramatic for high accuracy. For an error of at most $10^{-6}$, the partial sum alone needs about a million terms, because $R_N \ge 1/(N + 1)$. The midpoint estimate has an error of at most half the width of the interval, $\tfrac12\big(\tfrac1N - \tfrac{1}{N + 1}\big) = \dfrac{1}{2N(N + 1)}$, which is at most $10^{-6}$ once $N \ge 707$.
 
 ```check
 S10 = harmonic(10, 2); same(S10, sum(Rational(1, j**2) for j in range(1, 11))); rounds(S10, '1.549768')
+holds(pi**2/6 - S10 > Rational(9, 100)); holds(pi**2/6 - S10 < Rational(1, 10))     # off by almost 0.1
 same(integrate(1/x**2, (x, Np, oo)), 1/Np)
 rounds(S10 + Rational(1, 11), '1.640677'); rounds(S10 + Rational(1, 10), '1.649768')
 holds(S10 + Rational(1, 11) <= pi**2/6); holds(pi**2/6 <= S10 + Rational(1, 10)); holds(Rational(1, 10) - Rational(1, 11) < Rational(1, 100))
@@ -1077,7 +1079,7 @@ $$0 < \frac{5}{2n^2 + 4n + 3} < \frac{5}{2n^2} = \frac52\cdot\frac{1}{n^2}.$$
 
 $\sum \tfrac52\cdot\tfrac{1}{n^2}$ converges ($p = 2$, and the sum law), so the series converges by the comparison test.
 
-**(b)** For $n \ge 3$, $\ln n > 1$, because $3 > e$; so $\dfrac{\ln n}{n} > \dfrac1n \ge 0$. The harmonic series diverges, so this series diverges, by part (b) of the test with the roles of the two series swapped: the smaller series $\sum 1/n$ diverges, so the larger one does too.
+**(b)** For $n \ge 3$, $\ln n > 1$, because $3 > e$; so $\dfrac{\ln n}{n} > \dfrac1n \ge 0$. The harmonic series diverges, so by part (b) of the comparison test, with $a_n = 1/n$ and $b_n = (\ln n)/n$ from $n = 3$ on, this series diverges too: the smaller series diverges, so the larger one does.
 
 ```check
 for j in range(1, 200):
@@ -1198,19 +1200,19 @@ converges. Its sum $S$ lies between any two consecutive partial sums, so
 
 $$\abs{S - S_N} \le b_{N+1}:$$
 
-the error of $S_N$ is at most the first term left out, and the error $S - S_N$ has the sign of that term. The same holds with every sign reversed, or with the series starting at another index.
+the error of $S_N$ is at most the first term left out, and $S - S_N$ lies between 0 and that term, $(-1)^N b_{N+1}$. The same holds with every sign reversed, or with the series starting at another index.
 :::
 
 ::: proof
 *The even partial sums increase and are bounded above.* $S_{2m+2} = S_{2m} + (b_{2m+1} - b_{2m+2}) \ge S_{2m}$, because $b_{2m+2} \le b_{2m+1}$. Grouping the terms differently,
 
-$$S_{2m} = b_1 - (b_2 - b_3) - (b_4 - b_5) - \cdots - (b_{2m-2} - b_{2m-1}) - b_{2m} \le b_1,$$
+$$\begin{aligned} S_{2m} &= b_1 - (b_2 - b_3) - (b_4 - b_5) - \cdots \\ &\qquad - (b_{2m-2} - b_{2m-1}) - b_{2m} \le b_1, \end{aligned}$$
 
 because every bracket, and $b_{2m}$, is at least 0. By the Monotone Convergence Theorem, $S_{2m} \to S$ for some number $S$, with $S_{2m} \le S$ for every $m$.
 
 *The odd partial sums decrease towards the same limit.* $S_{2m+1} = S_{2m-1} - (b_{2m} - b_{2m+1}) \le S_{2m-1}$, and $S_{2m+1} = S_{2m} + b_{2m+1} \to S + 0 = S$. A decreasing sequence is at least its limit, so $S \le S_{2m+1}$ for every $m$.
 
-*So $S_N \to S$.* Given $\varepsilon > 0$, the even partial sums are within $\varepsilon$ of $S$ beyond some index, and the odd ones beyond another; beyond the larger of the two, all of them are. Finally $S_{2m} \le S \le S_{2m+1}$ and $S_{2m} \le S \le S_{2m-1}$: $S$ lies between $S_N$ and $S_{N+1}$ for every $N$. Therefore $\abs{S - S_N} \le \abs{S_{N+1} - S_N} = b_{N+1}$, and $S - S_N$ has the sign of $S_{N+1} - S_N = (-1)^N b_{N+1}$.
+*So $S_N \to S$.* Given $\varepsilon > 0$, the even partial sums are within $\varepsilon$ of $S$ beyond some index, and the odd ones beyond another; beyond the larger of the two, all of them are. Finally $S_{2m} \le S \le S_{2m+1}$ and $S_{2m} \le S \le S_{2m-1}$: $S$ lies between $S_N$ and $S_{N+1}$ for every $N$. Therefore $\abs{S - S_N} \le \abs{S_{N+1} - S_N} = b_{N+1}$, and $S - S_N$ lies between 0 and $S_{N+1} - S_N = (-1)^N b_{N+1}$.
 :::
 
 ```check
@@ -1233,9 +1235,9 @@ Here $b_n = 1/n!$ for $n \ge 0$. These numbers are positive; they decrease, sinc
 
 The first term left out must be at most 0.001. Since $\tfrac{1}{6!} = \tfrac{1}{720} \approx 0.00139$ is too big and $\tfrac{1}{7!} = \tfrac{1}{5040} \approx 0.000198$ is small enough, add the terms up to $n = 6$:
 
-$$S_7 = 1 - 1 + \frac12 - \frac16 + \frac{1}{24} - \frac{1}{120} + \frac{1}{720} = \frac{53}{144} \approx 0.368056.$$
+$$\begin{aligned} S_7 &= 1 - 1 + \frac12 - \frac16 + \frac{1}{24} \\ &\qquad - \frac{1}{120} + \frac{1}{720} \\ &= \frac{53}{144} \approx 0.368056. \end{aligned}$$
 
-The error is at most $\tfrac{1}{5040} \approx 0.000198$, and it has the sign of the first term left out, $-\tfrac{1}{5040}$, so the sum lies a little below $S_7$:
+The error is at most $\tfrac{1}{5040} \approx 0.000198$, and $S - S_7$ lies between 0 and the first term left out, $-\tfrac{1}{5040}$, so the sum lies a little below $S_7$:
 
 $$0.367857 \le S \le 0.368056.$$
 
@@ -1272,10 +1274,10 @@ Some series have terms of both signs that do not alternate, such as
 
 $$\sum_{n=1}^{\infty}\frac{\sin n}{n^2} = \frac{\sin 1}{1} + \frac{\sin 2}{4} + \frac{\sin 3}{9} + \cdots,$$
 
-whose terms start with three positive ones (since $1$, $2$ and $3$ lie between 0 and $\pi$) and then four negative ones. The alternating series test does not apply. But the sizes of the terms are at most $1/n^2$, and that settles it.
+whose terms start with three positive ones (since $1$, $2$ and $3$ lie between 0 and $\pi$) and then three negative ones (since $4$, $5$ and $6$ lie between $\pi$ and $2\pi$). The alternating series test does not apply. But the sizes of the terms are at most $1/n^2$, and that settles it.
 
 ```check
-same([sign(sin(j)) for j in range(1, 8)], [1, 1, 1, -1, -1, -1, 1]); holds(Integer(3) < pi)
+same([sign(sin(j)) for j in range(1, 8)], [1, 1, 1, -1, -1, -1, 1]); holds(Integer(3) < pi); holds(pi < 4); holds(Integer(6) < 2*pi); holds(2*pi < 7)
 ```
 
 ::: definition Absolute and conditional convergence
@@ -1322,7 +1324,7 @@ $$1 - \frac12 - \frac14 + \frac13 - \frac16 - \frac18 + \frac15 - \frac{1}{10} -
 
 Every term appears exactly once: the $k$th group is $\tfrac{1}{2k - 1} - \tfrac{1}{4k - 2} - \tfrac{1}{4k}$, and between them the groups use each odd denominator once and each even one once. In each group, the first two terms combine, $\tfrac{1}{2k - 1} - \tfrac{1}{4k - 2} = \tfrac{1}{4k - 2}$, so the sum of the first $3K$ terms is
 
-$$\sum_{k=1}^{K}\Big(\frac{1}{4k - 2} - \frac{1}{4k}\Big) = \frac12\sum_{k=1}^{K}\Big(\frac{1}{2k - 1} - \frac{1}{2k}\Big) = \frac12 S_{2K},$$
+$$\begin{aligned} &\sum_{k=1}^{K}\Big(\frac{1}{4k - 2} - \frac{1}{4k}\Big) \\ &\quad= \frac12\sum_{k=1}^{K}\Big(\frac{1}{2k - 1} - \frac{1}{2k}\Big) = \frac12 S_{2K}, \end{aligned}$$
 
 half of a partial sum of the alternating harmonic series. It tends to $\tfrac12\ln 2$. The sums of $3K + 1$ and $3K + 2$ terms differ from it by at most $\tfrac{1}{2K + 1}$, which tends to 0, so the rearranged series converges to $\tfrac12 \ln 2$: the same terms, half the sum.
 
@@ -1330,9 +1332,13 @@ half of a partial sum of the alternating harmonic series. It tends to $\tfrac12\
 kk_ = symbols('k', positive=True, integer=True)
 same(1/(2*kk_ - 1) - 1/(4*kk_ - 2), 1/(4*kk_ - 2)); same(1/(4*kk_ - 2) - 1/(4*kk_), (1/(2*kk_ - 1) - 1/(2*kk_))/2)
 rearr = lambda K: sum(Rational(1, 2*k_ - 1) - Rational(1, 4*k_ - 2) - Rational(1, 4*k_) for k_ in range(1, K + 1))
+terms_r = []                                                 # the rearranged series, term by term
+for k_ in range(1, 41):
+    terms_r += [Rational(1, 2*k_ - 1), -Rational(1, 4*k_ - 2), -Rational(1, 4*k_)]
+T_ = [sum(terms_r[:m_]) for m_ in range(0, len(terms_r) + 1)]  # T_[m] = the sum of the first m terms
 for K in range(1, 30):
-    same(rearr(K), altS(2*K)/2)
-    holds(Abs(Rational(1, 2*K + 1)) <= Rational(1, 2*K + 1)); same(Rational(1, 2*K + 1) - Rational(1, 4*K + 2), Rational(1, 4*K + 2))
+    same(rearr(K), altS(2*K)/2); same(T_[3*K], altS(2*K)/2)
+    holds(Abs(T_[3*K + 1] - T_[3*K]) <= Rational(1, 2*K + 1)); holds(Abs(T_[3*K + 2] - T_[3*K]) <= Rational(1, 2*K + 1))
 dens = sorted([2*k_ - 1 for k_ in range(1, 51)] + [4*k_ - 2 for k_ in range(1, 51)] + [4*k_ for k_ in range(1, 51)])
 same(dens[:100], list(range(1, 101)))                       # every denominator once (up to 100)
 rounds(log(2)/2, '0.3466')
@@ -1392,13 +1398,13 @@ Decide whether these converge: (a) $\displaystyle\sum_{n=1}^{\infty}\frac{n}{2^n
 
 **(a)** The ratio of consecutive terms is
 
-$$\abs{\frac{a_{n+1}}{a_n}} = \frac{n + 1}{2^{n+1}}\cdot\frac{2^n}{n} = \frac{n + 1}{2n} = \frac12\Big(1 + \frac1n\Big) \to \frac12 < 1.$$
+$$\begin{aligned} \abs{\frac{a_{n+1}}{a_n}} &= \frac{n + 1}{2^{n+1}}\cdot\frac{2^n}{n} = \frac{n + 1}{2n} \\ &= \frac12\Big(1 + \frac1n\Big) \to \frac12 < 1. \end{aligned}$$
 
 The series converges (SymPy finds that its sum is 2).
 
 **(b)** Use $(n + 1)! = (n + 1)\,n!$:
 
-$$\abs{\frac{a_{n+1}}{a_n}} = \frac{(n + 1)!}{(n + 1)^{n+1}}\cdot\frac{n^n}{n!} = \frac{(n + 1)\,n^n}{(n + 1)^{n+1}} = \Big(\frac{n}{n + 1}\Big)^n = \frac{1}{(1 + 1/n)^n} \to \frac1e.$$
+$$\begin{aligned} \abs{\frac{a_{n+1}}{a_n}} &= \frac{(n + 1)!}{(n + 1)^{n+1}}\cdot\frac{n^n}{n!} = \frac{(n + 1)\,n^n}{(n + 1)^{n+1}} \\ &= \Big(\frac{n}{n + 1}\Big)^n = \frac{1}{(1 + 1/n)^n} \to \frac1e. \end{aligned}$$
 
 Since $\tfrac1e < 1$, the series converges.
 
@@ -1480,7 +1486,7 @@ Decide whether each series converges, and say which test shows it.
 
 **(f)** Step 5. $f(x) = \dfrac{1}{x\sqrt{\ln x}}$ is continuous, positive and decreasing on $[2, \infty)$, because $x\sqrt{\ln x}$ is positive and increasing there. With $u = \ln x$,
 
-$$\int_2^t\frac{dx}{x\sqrt{\ln x}} = \int_{\ln 2}^{\ln t}\frac{du}{\sqrt u} = 2\sqrt{\ln t} - 2\sqrt{\ln 2} \to \infty,$$
+$$\begin{aligned} \int_2^t\frac{dx}{x\sqrt{\ln x}} &= \int_{\ln 2}^{\ln t}\frac{du}{\sqrt u} \\ &= 2\sqrt{\ln t} - 2\sqrt{\ln 2} \to \infty, \end{aligned}$$
 
 so the series diverges by the integral test.
 
@@ -1569,7 +1575,7 @@ holds(all(sqrt(j + 1) + sqrt(j) > 2*sqrt(j) for j in range(1, 100))); limit_is(1
 
 **(c)** $0.181818\ldots = \dfrac{18}{100} + \dfrac{18}{100^2} + \cdots = \dfrac{18/100}{1 - 1/100} = \dfrac{18}{99} = \dfrac{2}{11}$. And
 
-$$0.4999\ldots = \frac{4}{10} + \Big(\frac{9}{100} + \frac{9}{1000} + \cdots\Big) = \frac{4}{10} + \frac{9/100}{1 - 1/10} = \frac{4}{10} + \frac{1}{10} = \frac12.$$
+$$\begin{aligned} 0.4999\ldots &= \frac{4}{10} + \Big(\frac{9}{100} + \frac{9}{1000} + \cdots\Big) \\ &= \frac{4}{10} + \frac{9/100}{1 - 1/10} = \frac{4}{10} + \frac{1}{10} = \frac12. \end{aligned}$$
 
 **(d)** The ball falls 2 m. Then it rises 1.5 m and falls 1.5 m, rises 1.125 m and falls 1.125 m, and so on: each height after the first is travelled twice. The heights $1.5, 1.125, \dots$ form a geometric series with $a = 1.5$ and $r = \tfrac34$, so the total distance is
 
@@ -1623,7 +1629,7 @@ same([(-1)**j for j in range(1, 5)], [-1, 1, -1, 1])
 ::: solution
 **(a)** Over the common denominator $(n - 1)(n + 1) = n^2 - 1$, the right side is $\dfrac{(n + 1) - (n - 1)}{n^2 - 1} = \dfrac{2}{n^2 - 1}$. Each negative part cancels with a positive part two places later, so the sum of the terms from $n = 2$ to $n = N$ is
 
-$$\Big(1 - \frac13\Big) + \Big(\frac12 - \frac14\Big) + \Big(\frac13 - \frac15\Big) + \cdots + \Big(\frac{1}{N - 1} - \frac{1}{N + 1}\Big) = 1 + \frac12 - \frac1N - \frac{1}{N + 1},$$
+$$\begin{aligned} &\Big(1 - \frac13\Big) + \Big(\frac12 - \frac14\Big) + \Big(\frac13 - \frac15\Big) + \cdots \\ &\qquad + \Big(\frac{1}{N - 1} - \frac{1}{N + 1}\Big) \\ &\quad= 1 + \frac12 - \frac1N - \frac{1}{N + 1}, \end{aligned}$$
 
 which tends to $\tfrac32$. The sum is $\tfrac32$. Do not split the series into $\sum \tfrac{1}{n - 1} - \sum \tfrac{1}{n + 1}$: both of those diverge, and the sum laws apply only to convergent series.
 
@@ -1675,7 +1681,7 @@ Let $a_1 = 1.5$ and $a_{n+1} = \dfrac{a_n^2 + 2}{3}$.
 
 **(b)** By induction. $a_1 = 1.5$ lies between 1 and 2. If $1 < a_n < 2$, then $1 < a_n^2 < 4$, so $3 < a_n^2 + 2 < 6$ and $1 < a_{n+1} < 2$. So $1 < a_n < 2$ for every $n$. Next,
 
-$$a_{n+1} - a_n = \frac{a_n^2 - 3a_n + 2}{3} = \frac{(a_n - 1)(a_n - 2)}{3} < 0,$$
+$$\begin{aligned} a_{n+1} - a_n &= \frac{a_n^2 - 3a_n + 2}{3} \\ &= \frac{(a_n - 1)(a_n - 2)}{3} < 0, \end{aligned}$$
 
 because $a_n - 1 > 0$ and $a_n - 2 < 0$. So the sequence decreases.
 
@@ -1766,9 +1772,9 @@ Let $S = \displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n-1}}{n\,2^n} = \frac12 - \
 
 **(b)** The first term left out must be less than 0.001, that is, $(N + 1)2^{N+1} > 1000$. For $N + 1 = 7$, $7 \cdot 128 = 896$ is too small; for $N + 1 = 8$, $8 \cdot 256 = 2048$ is enough. So 7 terms:
 
-$$S_7 = \frac12 - \frac18 + \frac{1}{24} - \frac{1}{64} + \frac{1}{160} - \frac{1}{384} + \frac{1}{896} = \frac{909}{2240} \approx 0.405804.$$
+$$\begin{aligned} S_7 &= \frac12 - \frac18 + \frac{1}{24} - \frac{1}{64} \\ &\qquad + \frac{1}{160} - \frac{1}{384} + \frac{1}{896} \\ &= \frac{909}{2240} \approx 0.405804. \end{aligned}$$
 
-The error is at most $b_8 = \tfrac{1}{2048} \approx 0.000488$, and it has the sign of the first term left out, $-\tfrac{1}{2048}$. So
+The error is at most $b_8 = \tfrac{1}{2048} \approx 0.000488$, and $S - S_7$ lies between 0 and the first term left out, $-\tfrac{1}{2048}$. So
 
 $$0.405315 \le S \le 0.405804.$$
 
@@ -1800,7 +1806,7 @@ holds(S7c - Rational(1, 2048) <= log(Rational(3, 2))); holds(log(Rational(3, 2))
 
 **(d)** $\dfrac{a_{n+1}}{a_n} = \dfrac{n + 1}{2n} = \dfrac12 + \dfrac{1}{2n}$, which decreases as $n$ grows, so for $n \ge 11$ it is at most $\dfrac12 + \dfrac{1}{22} = \dfrac{6}{11}$. Then $a_{12} \le \tfrac{6}{11}a_{11}$, $a_{13} \le \big(\tfrac{6}{11}\big)^2 a_{11}$, and so on, so the remainder is at most a geometric series:
 
-$$R_{10} = a_{11} + a_{12} + \cdots \le a_{11}\Big(1 + \frac{6}{11} + \Big(\frac{6}{11}\Big)^2 + \cdots\Big) = \frac{a_{11}}{1 - 6/11} = \frac{11}{2048}\cdot\frac{11}{5} = \frac{121}{10\,240} \approx 0.01182.$$
+$$\begin{aligned} R_{10} &= a_{11} + a_{12} + \cdots \\ &\le a_{11}\Big(1 + \frac{6}{11} + \Big(\frac{6}{11}\Big)^2 + \cdots\Big) \\ &= \frac{a_{11}}{1 - 6/11} = \frac{11}{2048}\cdot\frac{11}{5} \\ &= \frac{121}{10\,240} \approx 0.01182. \end{aligned}$$
 
 The true remainder is $\tfrac{3}{256} \approx 0.01172$: the bound is less than 1% too large.
 
@@ -1831,7 +1837,7 @@ Let $H_N = 1 + \tfrac12 + \cdots + \tfrac1N$ and $d_N = H_N - \ln N$.
 
 **(c)** The odd terms of $H_{2N}$ are those of $S_{2N}$ with a plus sign, and the even terms those with a minus sign, so $S_{2N} = H_{2N} - 2\big(\tfrac12 + \tfrac14 + \cdots + \tfrac{1}{2N}\big)$. And $2\big(\tfrac12 + \tfrac14 + \cdots + \tfrac{1}{2N}\big) = 1 + \tfrac12 + \cdots + \tfrac1N = H_N$. So $S_{2N} = H_{2N} - H_N$. Now write each harmonic number as $d$ plus a logarithm:
 
-$$S_{2N} = \big(d_{2N} + \ln(2N)\big) - \big(d_N + \ln N\big) = d_{2N} - d_N + \ln 2,$$
+$$\begin{aligned} S_{2N} &= \big(d_{2N} + \ln(2N)\big) - \big(d_N + \ln N\big) \\ &= d_{2N} - d_N + \ln 2, \end{aligned}$$
 
 because $\ln(2N) - \ln N = \ln 2$. As $N \to \infty$, $d_N \to \gamma$ and $d_{2N} \to \gamma$ (every $d_n$ with $n$ beyond some index is within $\varepsilon$ of $\gamma$, and $2N$ passes that index too), so $S_{2N} \to \gamma - \gamma + \ln 2 = \ln 2$. Also $S_{2N+1} = S_{2N} + \tfrac{1}{2N + 1} \to \ln 2$. The even and the odd partial sums both tend to $\ln 2$, so the whole sequence of partial sums does: $\sum (-1)^{n-1}/n = \ln 2$. Module 15 reaches the same value with power series.
 

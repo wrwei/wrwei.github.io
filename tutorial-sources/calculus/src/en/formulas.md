@@ -818,8 +818,8 @@ hold only from some $n$ on: the first terms of a series do not affect whether it
 | Limit comparison | ${a_n > 0,}$ ${b_n > 0}$ and ${\lim\limits_{n\to\infty} \dfrac{a_n}{b_n} = L}$ with ${0 < L < \infty}$ | ${\sum a_n}$ and ${\sum b_n}$ both converge or both diverge |
 | Alternating series | ${a_n = (-1)^{n-1}b_n}$ with ${b_n > 0,}$ ${b_{n+1} \le b_n}$ and ${b_n \to 0}$ | ${\sum a_n}$ converges, and its sum ${S}$ satisfies ${\abs{S - S_N} \le b_{N+1}}$ |
 | Absolute convergence | ${\sum \abs{a_n}}$ converges | ${\sum a_n}$ converges. The converse is false: ${\sum (-1)^{n-1}/n}$ converges, ${\sum 1/n}$ does not |
-| Ratio | ${L = \lim\limits_{n\to\infty} \abs{\dfrac{a_{n+1}}{a_n}}}$ | ${L < 1}$: ${\sum a_n}$ converges absolutely; ${L > 1}$ or ${L = \infty}$: it diverges; ${L = 1}$: no conclusion |
-| Root | ${L = \lim\limits_{n\to\infty} \abs{a_n}^{1/n}}$ | the same three conclusions as the ratio test |
+| Ratio | ${\rho = \lim\limits_{n\to\infty} \abs{\dfrac{a_{n+1}}{a_n}}}$ | ${\rho < 1}$: ${\sum a_n}$ converges absolutely; ${\rho > 1}$ or ${\rho = \infty}$: it diverges; ${\rho = 1}$: no conclusion |
+| Root | ${\rho = \lim\limits_{n\to\infty} \abs{a_n}^{1/n}}$ | the same three conclusions as the ratio test |
 
 ```check
 # divergence test, and a_n -> 0 is not enough
@@ -842,11 +842,11 @@ for N_ in (5, 10, 50):
     holds(Abs(log(2) - sum(Rational((-1)**(j - 1), j) for j in range(1, N_ + 1))) <= Rational(1, N_ + 1))
 # absolute convergence: sum (-1)^(n-1)/n^2 converges (to pi^2/12) because sum 1/n^2 does
 same(summation((-1)**(n - 1)/n**2, (n, 1, oo)), pi**2/12)
-# ratio test: 1/n! (L = 0, sum e), 2^n/n (L = 2, diverges), 1/n and 1/n^2 (L = 1 for both)
+# ratio test: 1/n! (rho = 0, sum e), 2^n/n (rho = 2, diverges), 1/n and 1/n^2 (rho = 1 for both)
 same(factorial(nn)/factorial(nn + 1), 1/(nn + 1)); limit_is(1/(n + 1), n, oo, 0); same(summation(1/factorial(n), (n, 0, oo)), E)
 limit_is((2**(n + 1)/(n + 1))/(2**n/n), n, oo, 2); limit_is(2**n/n, n, oo, oo)
 limit_is(n/(n + 1), n, oo, 1); limit_is(n**2/(n + 1)**2, n, oo, 1)
-# root test: (n/(2n + 1))^n has L = 1/2; indeed n/(2n + 1) < 1/2, so the terms are below (1/2)^n
+# root test: (n/(2n + 1))^n has rho = 1/2; indeed n/(2n + 1) < 1/2, so the terms are below (1/2)^n
 limit_is(n/(2*n + 1), n, oo, Rational(1, 2)); same(Rational(1, 2) - nn/(2*nn + 1), 1/(2*(2*nn + 1)))
 ```
 

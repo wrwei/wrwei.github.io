@@ -36,6 +36,8 @@ Only well-established facts, stated without spurious precision:
   published the first account of the differential calculus in 1684 and of the integral calculus in
   1686; his notation ($dx$, $\int$) is the one we use. The two developed calculus independently; the
   priority dispute that followed was bitter.
+- Zeno of Elea (5th century BC) posed paradoxes of motion, among them the one of covering half a
+  distance, then half of what is left, and so on: Module 14's geometric series answers it.
 - Archimedes (3rd century BC) found areas and volumes with the method of exhaustion, an ancestor of
   the limit of Riemann sums.
 - Cauchy (1820s) and Weierstrass (1860s–1870s) gave calculus its rigorous ε–δ foundation; Riemann
