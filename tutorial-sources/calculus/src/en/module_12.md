@@ -20,9 +20,9 @@ Suppose a metal rod 2 metres long is thicker towards one end, so that its **dens
 
 $$\rho(x) = 1 + x^2 \text{ kg/m}$$
 
-at the point $x$ metres from the thin end. (The rod is hypothetical; $\rho$ is the Greek letter "rho".) What is its mass? If the density were constant, the mass would be density times length. It is not constant, but along a short piece of the rod it hardly changes. So slice the rod into $n$ pieces of length $\Delta x = 2/n$, with ends $x_0 = 0, x_1, \dots, x_n = 2$. The $i$th piece has a density close to $\rho(x_{i-1})$, its value at the piece's left end, so its mass is about $\rho(x_{i-1})\,\Delta x$. Adding the pieces, the mass of the rod is about
+at the point $x$ metres from the thin end. (The rod is hypothetical; $\rho$ is the Greek letter "rho".) What is its mass? If the density were constant, the mass would be density times length. It is not constant, but along a short piece of the rod it hardly changes. So slice the rod into $n$ pieces of length $\Delta x = 2/n$, with ends $x_0 = 0, x_1, \dots, x_n = 2$. The $i$th piece has a density close to $\rho(x_{i-1})$, its value at the piece's left end, so its mass is about $\rho(x_{i-1})\,\Delta x$. Adding the pieces gives an estimate $L_n$ of the mass of the rod; using the right ends instead gives another, $R_n$:
 
-$$L_n = \sum_{i=1}^{n} \rho(x_{i-1})\,\Delta x, \quad\text{or, with right ends,}\quad R_n = \sum_{i=1}^{n} \rho(x_i)\,\Delta x.$$
+$$\begin{aligned} L_n &= \sum_{i=1}^{n} \rho(x_{i-1})\,\Delta x, \\ R_n &= \sum_{i=1}^{n} \rho(x_i)\,\Delta x. \end{aligned}$$
 
 ```valuetable
 n = 4, 10, 100, 1000
@@ -39,7 +39,7 @@ n | L_n | R_n
 
 The density increases along the rod, so each piece is heavier than its left-end estimate and lighter than its right-end estimate: the true mass $M$ satisfies $L_n \le M \le R_n$ for every $n$. Both sums are Riemann sums of $\rho$ on $[0, 2]$, so both approach $\int_0^2 \rho(x)\,dx$ as $n \to \infty$ (Module 9), and $M$, squeezed between them, must equal that integral:
 
-$$M = \int_0^2 (1 + x^2)\,dx = \Big[x + \frac{x^3}{3}\Big]_0^2 = 2 + \frac83 = \frac{14}{3} \approx 4.667 \text{ kg}.$$
+$$\begin{aligned} M &= \int_0^2 (1 + x^2)\,dx = \Big[x + \frac{x^3}{3}\Big]_0^2 \\ &= 2 + \frac83 = \frac{14}{3} \approx 4.667 \text{ kg}. \end{aligned}$$
 
 The table agrees: for $n = 1000$ the two sums pin the mass between 4.66267 and 4.67067 kg.
 
@@ -103,7 +103,7 @@ Find the area of the region enclosed by the parabolas $y = 4 - x^2$ and $y = x^2
 
 The curves meet where $4 - x^2 = x^2 - 2x$, that is, $2x^2 - 2x - 4 = 0$, or $x^2 - x - 2 = 0$. This factors as $(x - 2)(x + 1) = 0$, so the curves meet at $x = -1$ and $x = 2$. Between two meeting points the same curve stays on top (otherwise the continuous function $f - g$ would be 0 somewhere in between, by the Intermediate Value Theorem of Module 3), so test one point: at $x = 0$, $4 - x^2 = 4$ and $x^2 - 2x = 0$, so $y = 4 - x^2$ is the top. Top minus bottom is $(4 - x^2) - (x^2 - 2x) = 4 + 2x - 2x^2$, and
 
-$$\begin{aligned} A &= \int_{-1}^{2} \big(4 + 2x - 2x^2\big)\,dx = \Big[4x + x^2 - \frac{2x^3}{3}\Big]_{-1}^{2} \\ &= \frac{20}{3} - \Big(-\frac{7}{3}\Big) = 9. \end{aligned}$$
+$$\begin{aligned} A &= \int_{-1}^{2} \big(4 + 2x - 2x^2\big)\,dx \\ &= \Big[4x + x^2 - \frac{2x^3}{3}\Big]_{-1}^{2} \\ &= \frac{20}{3} - \Big(-\frac{7}{3}\Big) = 9. \end{aligned}$$
 
 ```check
 same_set(solve(Eq(4 - x**2, x**2 - 2*x), x), [-1, 2]); same(factor(x**2 - x - 2), (x - 2)*(x + 1))
@@ -121,7 +121,7 @@ Find the area of the region between $y = \sin x$ and $y = \cos x$ for $0 \le x \
 
 The curves cross where $\sin x = \cos x$, that is, $\tan x = 1$; in $[0, \pi]$ that happens only at $x = \pi/4$. At $x = 0$, $\cos x = 1$ and $\sin x = 0$, so $\cos x$ is on top on $[0, \pi/4]$; at $x = \pi/2$, $\sin x = 1$ and $\cos x = 0$, so $\sin x$ is on top on $[\pi/4, \pi]$. Hence
 
-$$\begin{aligned} A &= \int_0^{\pi/4} (\cos x - \sin x)\,dx + \int_{\pi/4}^{\pi} (\sin x - \cos x)\,dx \\ &= \big[\sin x + \cos x\big]_0^{\pi/4} + \big[-\cos x - \sin x\big]_{\pi/4}^{\pi} \\ &= \big(\sqrt2 - 1\big) + \big(1 + \sqrt2\big) = 2\sqrt2 \approx 2.828. \end{aligned}$$
+$$\begin{aligned} A &= \int_0^{\pi/4} (\cos x - \sin x)\,dx \\ &\qquad + \int_{\pi/4}^{\pi} (\sin x - \cos x)\,dx \\ &= \big[\sin x + \cos x\big]_0^{\pi/4} \\ &\qquad + \big[-\cos x - \sin x\big]_{\pi/4}^{\pi} \\ &= \big(\sqrt2 - 1\big) + \big(1 + \sqrt2\big) \\ &= 2\sqrt2 \approx 2.828. \end{aligned}$$
 
 ```check
 same(solveset(tan(x) - 1, x, Interval(0, pi)), FiniteSet(pi/4))
@@ -154,11 +154,11 @@ Find the area of the region between $x = y^2$ and $y = x - 2$, with horizontal s
 
 **Horizontal strips.** Write the line as $x = y + 2$. The curves meet where $y^2 = y + 2$, that is, $(y - 2)(y + 1) = 0$: at $y = -1$ and $y = 2$, the points $(1, -1)$ and $(4, 2)$. At $y = 0$ the line is at $x = 2$ and the parabola at $x = 0$, so the line is on the right:
 
-$$\begin{aligned} A &= \int_{-1}^{2} \big((y + 2) - y^2\big)\,dy = \Big[\frac{y^2}{2} + 2y - \frac{y^3}{3}\Big]_{-1}^{2} \\ &= \frac{10}{3} - \Big(-\frac{7}{6}\Big) = \frac{9}{2}. \end{aligned}$$
+$$\begin{aligned} A &= \int_{-1}^{2} \big((y + 2) - y^2\big)\,dy \\ &= \Big[\frac{y^2}{2} + 2y - \frac{y^3}{3}\Big]_{-1}^{2} \\ &= \frac{10}{3} - \Big(-\frac{7}{6}\Big) = \frac{9}{2}. \end{aligned}$$
 
 **Vertical strips.** From $x = 0$ to $x = 1$ a strip runs from $-\sqrt x$ to $\sqrt x$; from $x = 1$ to $x = 4$, from $x - 2$ to $\sqrt x$. With the antiderivatives $\tfrac43 x^{3/2}$ and $\tfrac23 x^{3/2} - \tfrac12 x^2 + 2x$,
 
-$$\begin{aligned} A &= \int_0^1 2\sqrt x\,dx + \int_1^4 \big(\sqrt x - x + 2\big)\,dx \\ &= \frac43 + \frac{19}{6} = \frac{9}{2}. \end{aligned}$$
+$$\begin{aligned} A &= \int_0^1 2\sqrt x\,dx \\ &\qquad + \int_1^4 \big(\sqrt x - x + 2\big)\,dx \\ &= \frac43 + \frac{19}{6} = \frac{9}{2}. \end{aligned}$$
 
 The same area, as it must be, with more work.
 
@@ -226,7 +226,7 @@ Find the volume of a ball of radius $a$.
 
 The ball is swept out by the half disc under $y = \sqrt{a^2 - x^2}$, $-a \le x \le a$. Here $f(x)^2 = a^2 - x^2$, so the square root disappears:
 
-$$\begin{aligned} V &= \pi\int_{-a}^{a} \big(a^2 - x^2\big)\,dx = \pi\Big[a^2x - \frac{x^3}{3}\Big]_{-a}^{a} \\ &= \pi\Big(\frac{2a^3}{3} + \frac{2a^3}{3}\Big) = \frac43\pi a^3. \end{aligned}$$
+$$\begin{aligned} V &= \pi\int_{-a}^{a} \big(a^2 - x^2\big)\,dx \\ &= \pi\Big[a^2x - \frac{x^3}{3}\Big]_{-a}^{a} \\ &= \pi\Big(\frac{2a^3}{3} + \frac{2a^3}{3}\Big) = \frac43\pi a^3. \end{aligned}$$
 
 ```check
 aq = symbols('a', positive=True)
@@ -239,7 +239,7 @@ same(pi*integrate(aq**2 - x**2, (x, -aq, aq)), Rational(4, 3)*pi*aq**3)
 
 If the region does not reach the axis, the solid has a hole. Let the region lie between $y = R(x)$ and $y = r(x)$, with $0 \le r(x) \le R(x)$. The cross-section at $x$ is then a **washer**, a disc of radius $R(x)$ with a hole of radius $r(x)$ (Figure 12.2), of area $\pi R(x)^2 - \pi r(x)^2$, and
 
-$$V = \pi\int_a^b \big(R(x)^2 - r(x)^2\big)\,dx \qquad\text{(washers)}.$$
+$$V = \pi\int_a^b \big(R(x)^2 - r(x)^2\big)\,dx \quad\text{(washers)}.$$
 
 The **outer radius** $R(x)$ is the distance from the axis to the farther boundary, and the **inner radius** $r(x)$ the distance to the nearer one.
 
@@ -252,7 +252,7 @@ Find the volume of the solid swept out when the region between $y = \sqrt x$ and
 
 The curves meet where $\sqrt x = x^2$; squaring, $x = x^4$, that is, $x(x^3 - 1) = 0$, so at $x = 0$ and $x = 1$. For $0 < x < 1$, $\sqrt x > x^2$ (at $x = \tfrac14$, $\tfrac12 > \tfrac{1}{16}$), so $R(x) = \sqrt x$ and $r(x) = x^2$:
 
-$$V = \pi\int_0^1 \big(x - x^4\big)\,dx = \pi\Big(\frac12 - \frac15\Big) = \frac{3\pi}{10} \approx 0.942.$$
+$$\begin{aligned} V &= \pi\int_0^1 \big(x - x^4\big)\,dx = \pi\Big(\frac12 - \frac15\Big) \\ &= \frac{3\pi}{10} \approx 0.942. \end{aligned}$$
 
 ```check
 same(solveset(x - x**4, x, S.Reals), FiniteSet(0, 1)); same_set(solve(Eq(sqrt(x), x**2), x), [0, 1])
@@ -282,7 +282,7 @@ The same reasoning works for any axis: slice perpendicular to the axis, and meas
 
 **(a)** The water is the solid swept out by the region between the $y$-axis and the parabola, for $0 \le y \le h$. Its slice at height $y$ is a disc whose radius is the $x \ge 0$ with $x^2 = y$, that is, $\sqrt y$. So
 
-$$V = \pi\int_0^h \big(\sqrt y\big)^2\,dy = \pi\int_0^h y\,dy = \frac{\pi h^2}{2}.$$
+$$\begin{aligned} V &= \pi\int_0^h \big(\sqrt y\big)^2\,dy \\ &= \pi\int_0^h y\,dy = \frac{\pi h^2}{2}. \end{aligned}$$
 
 The cylinder with the same height $h$ and the same top radius $\sqrt h$ holds $\pi\big(\sqrt h\big)^2 h = \pi h^2$: the bowl holds exactly half as much.
 
@@ -338,7 +338,7 @@ Find the volume of the solid swept out when the region under $y = 4x - x^3$, $0 
 
 The region lies above the $x$-axis: $4x - x^3 = x(2 - x)(2 + x) \ge 0$ for $0 \le x \le 2$. By shells, with radius $x$ and height $4x - x^3$,
 
-$$\begin{aligned} V &= 2\pi\int_0^2 x\big(4x - x^3\big)\,dx = 2\pi\int_0^2 \big(4x^2 - x^4\big)\,dx \\ &= 2\pi\Big(\frac{32}{3} - \frac{32}{5}\Big) = \frac{128\pi}{15} \approx 26.81. \end{aligned}$$
+$$\begin{aligned} V &= 2\pi\int_0^2 x\big(4x - x^3\big)\,dx \\ &= 2\pi\int_0^2 \big(4x^2 - x^4\big)\,dx \\ &= 2\pi\Big(\frac{32}{3} - \frac{32}{5}\Big) = \frac{128\pi}{15} \approx 26.81. \end{aligned}$$
 
 ```check
 same(factor(4*x - x**3), -x*(x - 2)*(x + 2)); holds(all((4*x - x**3).subs(x, v) >= 0 for v in (0, Rational(1, 2), 1, Rational(3, 2), 2)))
@@ -437,7 +437,7 @@ $$L = \int_a^b \sqrt{1 + f'(x)^2}\,dx.$$
 ::: proof
 By the Mean Value Theorem (Module 8), applied to $f$ on $[x_{i-1}, x_i]$, there is a point $x_i^*$ in that interval with $\Delta y_i = f'(x_i^*)\,\Delta x$. So the $i$th chord has length
 
-$$\sqrt{(\Delta x)^2 + f'(x_i^*)^2(\Delta x)^2} = \sqrt{1 + f'(x_i^*)^2}\,\Delta x,$$
+$$\begin{aligned} &\sqrt{(\Delta x)^2 + f'(x_i^*)^2(\Delta x)^2} \\ &\qquad= \sqrt{1 + f'(x_i^*)^2}\,\Delta x, \end{aligned}$$
 
 and the polygon has length $\sum_{i=1}^{n} \sqrt{1 + f'(x_i^*)^2}\,\Delta x$. This is a Riemann sum of the function $\sqrt{1 + f'(x)^2}$, which is continuous on $[a, b]$ because $f'$ is. So, as $n \to \infty$, the polygon lengths approach $\int_a^b \sqrt{1 + f'(x)^2}\,dx$ (Module 9).
 :::
@@ -454,7 +454,7 @@ A cable or chain hanging under its own weight takes the shape of a **catenary**,
 
 Here $f'(x) = \sinh x$, and the identity $\cosh^2 x - \sinh^2 x = 1$ (Module 6) gives $1 + \sinh^2 x = \cosh^2 x$. Since $\cosh x > 0$, $\sqrt{1 + f'(x)^2} = \cosh x$, and
 
-$$L = \int_{-1}^{1} \cosh x\,dx = \big[\sinh x\big]_{-1}^{1} = 2\sinh 1 = e - e^{-1} \approx 2.350.$$
+$$\begin{aligned} L &= \int_{-1}^{1} \cosh x\,dx = \big[\sinh x\big]_{-1}^{1} \\ &= 2\sinh 1 = e - e^{-1} \approx 2.350. \end{aligned}$$
 
 In metres: a cable 2.350 m long, hung from two hooks 2 m apart at a height of $\cosh 1 \approx 1.543$ m, sags to a lowest point 1 m above the ground.
 
@@ -473,7 +473,7 @@ Find the length of $y = \sin x$, $0 \le x \le \pi$.
 
 Here $f'(x) = \cos x$, so $L = \int_0^\pi \sqrt{1 + \cos^2 x}\,dx$. This integrand has no elementary antiderivative (the integral belongs to the family of elliptic integrals), so evaluate it with Simpson's rule (Module 11). With $n = 4$ and $\Delta x = \pi/4$ you need $g(x) = \sqrt{1 + \cos^2 x}$ at five points: $g(0) = g(\pi) = \sqrt2$, $g(\pi/4) = g(3\pi/4) = \sqrt{3/2}$ and $g(\pi/2) = 1$. So
 
-$$\begin{aligned} S_4 &= \frac{\pi/4}{3}\Big[\sqrt2 + 4\sqrt{\tfrac32} + 2 \cdot 1 + 4\sqrt{\tfrac32} + \sqrt2\Big] \\ &= \frac{\pi}{12}\Big(2\sqrt2 + 8\sqrt{\tfrac32} + 2\Big) \approx 3.8292. \end{aligned}$$
+$$\begin{aligned} S_4 &= \frac{\pi/4}{3}\Big[\sqrt2 + 4\sqrt{\tfrac32} + 2 \cdot 1 \\ &\qquad + 4\sqrt{\tfrac32} + \sqrt2\Big] \\ &= \frac{\pi}{12}\Big(2\sqrt2 + 8\sqrt{\tfrac32} + 2\Big) \\ &\approx 3.8292. \end{aligned}$$
 
 With more points, Simpson's rule gives $S_8 \approx 3.82028$ and $S_{16} \approx 3.8201978$ (the Compute it box below), so the arch has length $L \approx 3.8202$, as the polygons suggested. That is about 21.6% longer than its base, $\pi$: a corrugated metal sheet whose profile is a sine wave needs that much more flat sheet than its width.
 
@@ -607,7 +607,7 @@ A rope 20 m long, with a mass of 0.4 kg per metre, hangs from the top of a build
 
 Measure the depth $y$ downwards from the top. The piece of rope between depths $y$ and $y + \Delta y$ has mass $0.4\,\Delta y$ kg and weight $0.4 \times 9.8\,\Delta y = 3.92\,\Delta y$ N, and it is lifted about $y$ metres. So its work is about $3.92\,y\,\Delta y$ J, and
 
-$$W = \int_0^{20} 3.92\,y\,dy = 3.92 \times \frac{20^2}{2} = 784 \text{ J}.$$
+$$\begin{aligned} W &= \int_0^{20} 3.92\,y\,dy \\ &= 3.92 \times \frac{20^2}{2} = 784 \text{ J}. \end{aligned}$$
 
 Slicing the motion instead gives the same answer: when $x$ metres have been pulled up, the hanging part weighs $3.92(20 - x)$ N, and $\int_0^{20} 3.92(20 - x)\,dx = 784$ J.
 
@@ -643,7 +643,7 @@ Let $y$ be the height above the vertex (Figure 12.4, right). As in Example 7.2, 
 
 and it is lifted $4 - y$ metres, to the top. So
 
-$$\begin{aligned} W &= \int_0^4 2450\pi y^2(4 - y)\,dy = 2450\pi\Big[\frac{4y^3}{3} - \frac{y^4}{4}\Big]_0^4 \\ &= 2450\pi\Big(\frac{256}{3} - 64\Big) = \frac{156\,800\pi}{3} \approx 1.64 \times 10^5 \text{ J}, \end{aligned}$$
+$$\begin{aligned} W &= \int_0^4 2450\pi y^2(4 - y)\,dy \\ &= 2450\pi\Big[\frac{4y^3}{3} - \frac{y^4}{4}\Big]_0^4 \\ &= 2450\pi\Big(\frac{256}{3} - 64\Big) \\ &= \frac{156\,800\pi}{3} \approx 1.64 \times 10^5 \text{ J}, \end{aligned}$$
 
 about 164 kJ. A pump of 500 watts, that is, 500 joules per second, would need about 5.5 minutes, if it wasted no energy.
 
@@ -686,7 +686,7 @@ Find the centre of mass of the rod of Section 12.1, whose density is $\rho(x) = 
 
 Its mass is $M = \tfrac{14}{3}$ kg. Its moment is
 
-$$\int_0^2 x\big(1 + x^2\big)\,dx = \Big[\frac{x^2}{2} + \frac{x^4}{4}\Big]_0^2 = 2 + 4 = 6 \text{ kg m},$$
+$$\begin{aligned} \int_0^2 x\big(1 + x^2\big)\,dx &= \Big[\frac{x^2}{2} + \frac{x^4}{4}\Big]_0^2 \\ &= 2 + 4 = 6 \text{ kg m}, \end{aligned}$$
 
 so $\bar x = 6 \big/ \tfrac{14}{3} = \tfrac{9}{7} \approx 1.29$ m from the thin end: beyond the middle of the rod, towards its denser end, as it should be.
 
@@ -714,7 +714,7 @@ Find the centroid of the half disc $x^2 + y^2 \le a^2$, $y \ge 0$.
 
 The half disc is symmetric about the $y$-axis, so $\bar x = 0$. Its area is $A = \tfrac12\pi a^2$, and with $f(x) = \sqrt{a^2 - x^2}$ and $g(x) = 0$,
 
-$$\begin{aligned} \bar y &= \frac{2}{\pi a^2}\int_{-a}^{a} \frac12\big(a^2 - x^2\big)\,dx = \frac{2}{\pi a^2}\cdot\frac12\cdot\frac{4a^3}{3} \\ &= \frac{4a}{3\pi} \approx 0.424a. \end{aligned}$$
+$$\begin{aligned} \bar y &= \frac{2}{\pi a^2}\int_{-a}^{a} \frac12\big(a^2 - x^2\big)\,dx \\ &= \frac{2}{\pi a^2}\cdot\frac12\cdot\frac{4a^3}{3} = \frac{4a}{3\pi} \approx 0.424a. \end{aligned}$$
 
 A half-disc plate balances on a point 42% of the way up its radius, below the halfway mark, because more of its area lies near the straight edge.
 
@@ -766,7 +766,7 @@ $$\int_a^\infty f(x)\,dx = \lim_{t\to\infty}\int_a^t f(x)\,dx.$$
 
 The improper integral **converges** if this limit exists (as a finite number), and **diverges** otherwise. In the same way, for $f$ continuous on $(-\infty, b]$, $\int_{-\infty}^b f(x)\,dx = \lim_{t\to-\infty}\int_t^b f(x)\,dx$. For $f$ continuous on $\R$,
 
-$$\int_{-\infty}^{\infty} f(x)\,dx = \int_{-\infty}^{c} f(x)\,dx + \int_{c}^{\infty} f(x)\,dx,$$
+$$\begin{aligned} \int_{-\infty}^{\infty} f(x)\,dx &= \int_{-\infty}^{c} f(x)\,dx \\ &\qquad + \int_{c}^{\infty} f(x)\,dx, \end{aligned}$$
 
 for any number $c$, provided both integrals on the right converge; if either diverges, so does the integral on the left.
 :::
@@ -816,7 +816,7 @@ Evaluate (a) $\displaystyle\int_0^1 \frac{dx}{\sqrt x}$ and (b) $\displaystyle\i
 
 **(b)** $\ln x \to -\infty$ as $x \to 0^+$. An antiderivative of $\ln x$ is $x\ln x - x$ (by parts, Module 11), so
 
-$$\int_t^1 \ln x\,dx = (0 - 1) - (t\ln t - t) = -1 - t\ln t + t.$$
+$$\begin{aligned} \int_t^1 \ln x\,dx &= (0 - 1) - (t\ln t - t) \\ &= -1 - t\ln t + t. \end{aligned}$$
 
 As $t \to 0^+$, $t\ln t \to 0$ ([Example 7.15](module_07_EN.html#products-differences)), so the integral converges, to $-1$. The region between the graph and the $x$-axis is infinitely deep, yet its area is 1; the integral is negative because the region lies below the axis.
 
@@ -902,9 +902,9 @@ The condition $f \ge 0$ matters: $f(x) = -1$ and $g(x) = 1/x^2$ satisfy $f \le g
 ::: proof
 (a) Let $F(t) = \int_a^t f(x)\,dx$ for $t \ge a$, and let $G = \int_a^\infty g(x)\,dx$. Since $f \ge 0$, $F$ is increasing: making $t$ larger adds the integral of a non-negative function. In the same way $\int_a^t g(x)\,dx$ increases with $t$, towards its limit $G$, so it is at most $G$. Since $f \le g$, the comparison property of integrals (Module 9) gives
 
-$$F(t) \le \int_a^t g(x)\,dx \le G \quad\text{for every } t \ge a.$$
+$$F(t) \le \int_a^t g(x)\,dx \le G$$
 
-So $F(t)$ rises as $t$ grows but never passes $G$. A function that increases and is bounded above has a limit as $t \to \infty$, no larger than the bound. This is a basic property of the real numbers, their **completeness**, which this series takes for granted; Module 14 states it for sequences, as the monotone convergence theorem. So $\int_a^\infty f(x)\,dx = \lim_{t\to\infty} F(t)$ exists and is at most $G$.
+for every $t \ge a$. So $F(t)$ rises as $t$ grows but never passes $G$. A function that increases and is bounded above has a limit as $t \to \infty$, no larger than the bound. This is a basic property of the real numbers, their **completeness**, which this series takes for granted; Module 14 states it for sequences, as the monotone convergence theorem. So $\int_a^\infty f(x)\,dx = \lim_{t\to\infty} F(t)$ exists and is at most $G$.
 
 (b) If $\int_a^\infty g$ converged, then by (a) so would $\int_a^\infty f$.
 :::
@@ -960,7 +960,7 @@ Rotate the region under $y = 1/x$, $x \ge 1$, about the $x$-axis. The solid, a h
 
 By discs, with an improper integral,
 
-$$V = \pi\int_1^\infty \Big(\frac1x\Big)^2\,dx = \pi\int_1^\infty \frac{dx}{x^2} = \pi \cdot 1 = \pi,$$
+$$\begin{aligned} V &= \pi\int_1^\infty \Big(\frac1x\Big)^2\,dx = \pi\int_1^\infty \frac{dx}{x^2} \\ &= \pi \cdot 1 = \pi, \end{aligned}$$
 
 by Theorem 12.2 with $p = 2$. The horn has a finite volume, $\pi$ cubic units, although the region that sweeps it out has infinite area: $\int_1^\infty dx/x$ diverges.
 
@@ -1065,11 +1065,11 @@ Find the constant $c$ for which $f(x) = cx(2 - x)$ for $0 \le x \le 2$, and $f(x
 
 For $c \ge 0$, $f \ge 0$, since $x(2 - x) \ge 0$ on $[0, 2]$. The total area must be 1:
 
-$$\int_0^2 cx(2 - x)\,dx = c\Big[x^2 - \frac{x^3}{3}\Big]_0^2 = c\Big(4 - \frac83\Big) = \frac{4c}{3} = 1,$$
+$$\begin{aligned} &\int_0^2 cx(2 - x)\,dx = c\Big[x^2 - \frac{x^3}{3}\Big]_0^2 \\ &\qquad= c\Big(4 - \frac83\Big) = \frac{4c}{3} = 1, \end{aligned}$$
 
 so $c = \tfrac34$. Then, since $f = 0$ to the left of 0,
 
-$$P\Big(X \le \frac12\Big) = \frac34\int_0^{1/2} \big(2x - x^2\big)\,dx = \frac34\Big(\frac14 - \frac{1}{24}\Big) = \frac{5}{32} \approx 0.156.$$
+$$\begin{aligned} P\Big(X \le \frac12\Big) &= \frac34\int_0^{1/2} \big(2x - x^2\big)\,dx \\ &= \frac34\Big(\frac14 - \frac{1}{24}\Big) \\ &= \frac{5}{32} \approx 0.156. \end{aligned}$$
 
 ```check
 antideriv(x**2 - x**3/3, x*(2 - x), x); same(integrate(c*x*(2 - x), (x, 0, 2)), 4*c/3); same(solve(Eq(4*c/3, 1), c), [Rational(3, 4)])
@@ -1122,7 +1122,7 @@ $$P(X > t) = \int_t^\infty \lambda e^{-\lambda x}\,dx = e^{-\lambda t}:$$
 
 the chance of waiting longer than $t$ decays exponentially (Module 6). For the mean, substitute $u = \lambda x$ and use Example 12.16(b):
 
-$$E(X) = \int_0^\infty x\,\lambda e^{-\lambda x}\,dx = \frac{1}{\lambda}\int_0^\infty ue^{-u}\,du = \frac1\lambda.$$
+$$\begin{aligned} E(X) &= \int_0^\infty x\,\lambda e^{-\lambda x}\,dx \\ &= \frac{1}{\lambda}\int_0^\infty ue^{-u}\,du = \frac1\lambda. \end{aligned}$$
 
 At an average of $\lambda$ events per second, the average wait is $1/\lambda$ seconds.
 
@@ -1169,7 +1169,7 @@ $$P(X > s + t \mid X > s) = P(X > t).$$
 ::: proof
 If $X > s + t$ then $X > s$, so the event "$X > s + t$ and $X > s$" is the event $X > s + t$. Therefore
 
-$$P(X > s + t \mid X > s) = \frac{P(X > s + t)}{P(X > s)} = \frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} = e^{-\lambda t} = P(X > t).$$
+$$\begin{aligned} &P(X > s + t \mid X > s) \\ &\quad= \frac{P(X > s + t)}{P(X > s)} = \frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} \\ &\quad= e^{-\lambda t} = P(X > t). \end{aligned}$$
 :::
 
 ```check
@@ -1235,7 +1235,7 @@ $$\operatorname{erf}(x) = \frac{2}{\sqrt\pi}\int_0^x e^{-t^2}\,dt,$$
 
 which calculators and programming languages provide (in Python, `math.erf`). Since $\varphi$ is even, $P(-c \le Z \le c) = 2\int_0^c \varphi(z)\,dz$ for $c > 0$, and the substitution $z = \sqrt2\,t$ turns this into an error function:
 
-$$\begin{aligned} P(-c \le Z \le c) &= \frac{2}{\sqrt{2\pi}}\int_0^{c} e^{-z^2/2}\,dz \\ &= \frac{2}{\sqrt\pi}\int_0^{c/\sqrt2} e^{-t^2}\,dt = \operatorname{erf}\Big(\frac{c}{\sqrt2}\Big). \end{aligned}$$
+$$\begin{aligned} P(-c \le Z \le c) &= \frac{2}{\sqrt{2\pi}}\int_0^{c} e^{-z^2/2}\,dz \\ &= \frac{2}{\sqrt\pi}\int_0^{c/\sqrt2} e^{-t^2}\,dt \\ &= \operatorname{erf}\Big(\frac{c}{\sqrt2}\Big). \end{aligned}$$
 
 ```valuetable
 c = 1, 1.645, 1.96, 2, 2.576, 3
@@ -1266,11 +1266,11 @@ Suppose a thermometer's error, its reading minus the true temperature, is normal
 
 **(a)** Standardise with $z = x/0.4$: $0.5$ °C becomes $z = 1.25$, so
 
-$$P(-0.5 \le X \le 0.5) = P(-1.25 \le Z \le 1.25) = \operatorname{erf}\Big(\frac{1.25}{\sqrt2}\Big) \approx 0.789.$$
+$$\begin{aligned} &P(-0.5 \le X \le 0.5) \\ &\qquad= P(-1.25 \le Z \le 1.25) \\ &\qquad= \operatorname{erf}\Big(\frac{1.25}{\sqrt2}\Big) \approx 0.789. \end{aligned}$$
 
 **(b)** Now 1 °C becomes $z = 2.5$, and the error is more than 1 °C either way exactly when it is not within 1 °C:
 
-$$P(\abs{X} > 1) = 1 - P(-2.5 \le Z \le 2.5) = 1 - \operatorname{erf}\Big(\frac{2.5}{\sqrt2}\Big) \approx 0.0124,$$
+$$\begin{aligned} P(\abs{X} > 1) &= 1 - P(-2.5 \le Z \le 2.5) \\ &= 1 - \operatorname{erf}\Big(\frac{2.5}{\sqrt2}\Big) \approx 0.0124, \end{aligned}$$
 
 so about 1.2% of the readings are that far off.
 
@@ -1354,7 +1354,7 @@ Find the area of the region enclosed by the curves $y = x^3$ and $y = x$. Explai
 ::: solution
 The curves meet where $x^3 = x$, that is, $x(x - 1)(x + 1) = 0$: at $x = -1$, 0 and 1. On $[0, 1]$, at $x = \tfrac12$, the line gives $\tfrac12$ and the cubic $\tfrac18$, so the line is on top. On $[-1, 0]$, at $x = -\tfrac12$, the cubic gives $-\tfrac18$ and the line $-\tfrac12$, so the cubic is on top. Split at the crossing:
 
-$$\begin{aligned} A &= \int_{-1}^{0} \big(x^3 - x\big)\,dx + \int_0^1 \big(x - x^3\big)\,dx \\ &= \Big[\frac{x^4}{4} - \frac{x^2}{2}\Big]_{-1}^{0} + \Big[\frac{x^2}{2} - \frac{x^4}{4}\Big]_0^1 \\ &= \frac14 + \frac14 = \frac12. \end{aligned}$$
+$$\begin{aligned} A &= \int_{-1}^{0} \big(x^3 - x\big)\,dx \\ &\qquad + \int_0^1 \big(x - x^3\big)\,dx \\ &= \Big[\frac{x^4}{4} - \frac{x^2}{2}\Big]_{-1}^{0} \\ &\qquad + \Big[\frac{x^2}{2} - \frac{x^4}{4}\Big]_0^1 \\ &= \frac14 + \frac14 = \frac12. \end{aligned}$$
 
 $\int_{-1}^{1}(x - x^3)\,dx = 0$, because on $[-1, 0]$ the line is below the cubic and that part counts as $-\tfrac14$: the integral is a net (signed) area, not the area. The region consists of two pieces, mirror images of each other through the origin, each of area $\tfrac14$.
 
@@ -1374,11 +1374,11 @@ The region under $y = \sqrt x$, $0 \le x \le 4$, rotates (a) about the $x$-axis 
 ::: solution
 **(a)** Discs of radius $\sqrt x$:
 
-$$V = \pi\int_0^4 \big(\sqrt x\big)^2\,dx = \pi\int_0^4 x\,dx = \pi\cdot\frac{16}{2} = 8\pi \approx 25.13.$$
+$$\begin{aligned} V &= \pi\int_0^4 \big(\sqrt x\big)^2\,dx \\ &= \pi\int_0^4 x\,dx \\ &= \pi\cdot\frac{16}{2} = 8\pi \approx 25.13. \end{aligned}$$
 
 **(b)** A strip at $x$ has radius $x$ and height $\sqrt x$:
 
-$$V = 2\pi\int_0^4 x\sqrt x\,dx = 2\pi\int_0^4 x^{3/2}\,dx = 2\pi\cdot\frac25\cdot 4^{5/2} = 2\pi\cdot\frac25\cdot 32 = \frac{128\pi}{5} \approx 80.42.$$
+$$\begin{aligned} V &= 2\pi\int_0^4 x\sqrt x\,dx \\ &= 2\pi\int_0^4 x^{3/2}\,dx \\ &= 2\pi\cdot\frac25\cdot 4^{5/2} = 2\pi\cdot\frac25\cdot 32 \\ &= \frac{128\pi}{5} \approx 80.42. \end{aligned}$$
 
 A check with washers: at height $y$, for $0 \le y \le 2$, the region runs from $x = y^2$ to $x = 4$, so $R = 4$, $r = y^2$, and $\pi\int_0^2 \big(16 - y^4\big)\,dy = \pi\big(32 - \tfrac{32}{5}\big) = \tfrac{128\pi}{5}$.
 
@@ -1397,7 +1397,7 @@ A spring has a natural length of 20 cm. A force of 12 N holds it at a length of 
 ::: solution
 Work in metres. At 25 cm the spring is stretched $0.05$ m, so Hooke's law gives $12 = k \times 0.05$ and $k = 240$ N/m. Stretching from 25 cm to 35 cm takes the stretch from 0.05 m to 0.15 m:
 
-$$W = \int_{0.05}^{0.15} 240x\,dx = \big[120x^2\big]_{0.05}^{0.15} = 120\,(0.0225 - 0.0025) = 2.4 \text{ J}.$$
+$$\begin{aligned} W &= \int_{0.05}^{0.15} 240x\,dx \\ &= \big[120x^2\big]_{0.05}^{0.15} \\ &= 120\,(0.0225 - 0.0025) \\ &= 2.4 \text{ J}. \end{aligned}$$
 
 The common wrong answer integrates over the lengths, from 0.25 to 0.35, and gets $120(0.1225 - 0.0625) = 7.2$ J; but Hooke's law is about the stretch beyond the natural length, not the length itself.
 
@@ -1426,9 +1426,9 @@ Decide whether each integral converges, and find its value if it does.
 
 **(d)** The integrand is unbounded near $x = 4$. An antiderivative of $(4 - x)^{-1/2}$ is $-2\sqrt{4 - x}$ (substitute $u = 4 - x$), so for $0 < t < 4$
 
-$$\int_0^t \frac{dx}{\sqrt{4 - x}} = 4 - 2\sqrt{4 - t} \to 4 \quad\text{as } t \to 4^-.$$
+$$\int_0^t \frac{dx}{\sqrt{4 - x}} = 4 - 2\sqrt{4 - t},$$
 
-It converges, to 4.
+which approaches 4 as $t \to 4^-$. It converges, to 4.
 
 ```check
 same(integrate(x**Rational(-3, 2), (x, 1, t)), 2 - 2/sqrt(t)); limit_is(2 - 2/sqrt(t), t, oo, 2); same(1/(Rational(3, 2) - 1), 2)
@@ -1447,7 +1447,7 @@ Find the area of the region enclosed by the parabola $x = y^2 - 4$ and the line 
 ::: solution
 Write the line as $x = 2 - y$. The curves meet where $y^2 - 4 = 2 - y$, that is, $y^2 + y - 6 = 0$, or $(y + 3)(y - 2) = 0$: at $y = -3$ and $y = 2$, the points $(5, -3)$ and $(0, 2)$. At $y = 0$ the line is at $x = 2$ and the parabola at $x = -4$, so the line is on the right. Right minus left is $(2 - y) - (y^2 - 4) = 6 - y - y^2$, and
 
-$$\begin{aligned} A &= \int_{-3}^{2} \big(6 - y - y^2\big)\,dy = \Big[6y - \frac{y^2}{2} - \frac{y^3}{3}\Big]_{-3}^{2} \\ &= \frac{22}{3} - \Big(-\frac{27}{2}\Big) = \frac{125}{6} \approx 20.83. \end{aligned}$$
+$$\begin{aligned} A &= \int_{-3}^{2} \big(6 - y - y^2\big)\,dy \\ &= \Big[6y - \frac{y^2}{2} - \frac{y^3}{3}\Big]_{-3}^{2} \\ &= \frac{22}{3} - \Big(-\frac{27}{2}\Big) \\ &= \frac{125}{6} \approx 20.83. \end{aligned}$$
 
 With vertical strips, the lower boundary is the lower half of the parabola, $y = -\sqrt{x + 4}$, all the way, but the upper boundary changes at $x = 0$: for $-4 \le x \le 0$ it is the upper half of the parabola, $y = \sqrt{x + 4}$, and for $0 \le x \le 5$ it is the line $y = 2 - x$. That means two integrals, both with square roots.
 
@@ -1469,15 +1469,15 @@ same(integrate(sqrt(x + 4) - (-sqrt(x + 4)), (x, -4, 0)) + integrate(2 - x - (-s
 ::: solution
 **(a)** $f'(x) = \dfrac{x}{2} - \dfrac{1}{2x}$, so
 
-$$\begin{aligned} 1 + f'(x)^2 &= 1 + \frac{x^2}{4} - \frac12 + \frac{1}{4x^2} \\ &= \frac{x^2}{4} + \frac12 + \frac{1}{4x^2} = \Big(\frac{x}{2} + \frac{1}{2x}\Big)^2. \end{aligned}$$
+$$\begin{aligned} 1 + f'(x)^2 &= 1 + \frac{x^2}{4} - \frac12 + \frac{1}{4x^2} \\ &= \frac{x^2}{4} + \frac12 + \frac{1}{4x^2} \\ &= \Big(\frac{x}{2} + \frac{1}{2x}\Big)^2. \end{aligned}$$
 
 For $x > 0$ the bracket is positive, so the square root is $\dfrac{x}{2} + \dfrac{1}{2x}$, and
 
-$$L = \int_1^e \Big(\frac{x}{2} + \frac{1}{2x}\Big)\,dx = \Big[\frac{x^2}{4} + \frac{\ln x}{2}\Big]_1^e = \frac{e^2}{4} + \frac12 - \frac14 = \frac{e^2 + 1}{4} \approx 2.097.$$
+$$\begin{aligned} L &= \int_1^e \Big(\frac{x}{2} + \frac{1}{2x}\Big)\,dx \\ &= \Big[\frac{x^2}{4} + \frac{\ln x}{2}\Big]_1^e \\ &= \frac{e^2}{4} + \frac12 - \frac14 \\ &= \frac{e^2 + 1}{4} \approx 2.097. \end{aligned}$$
 
 **(b)** $f'(x) = 3x^2$, so $L = \int_0^1 \sqrt{1 + 9x^4}\,dx$, which has no elementary antiderivative. With $n = 4$, $\Delta x = 0.25$, and $g(x) = \sqrt{1 + 9x^4}$: $g(0) = 1$, $g(0.25) \approx 1.01743$, $g(0.5) = 1.25$, $g(0.75) \approx 1.96154$ and $g(1) = \sqrt{10} \approx 3.16228$. Simpson's rule gives
 
-$$\begin{aligned} S_4 &= \frac{0.25}{3}\big[1 + 4(1.01743) + 2(1.25) \\ &\qquad + 4(1.96154) + 3.16228\big] \approx 1.5482. \end{aligned}$$
+$$\begin{aligned} S_4 &= \frac{0.25}{3}\big[1 + 4(1.01743) \\ &\qquad + 2(1.25) + 4(1.96154) \\ &\qquad + 3.16228\big] \approx 1.5482. \end{aligned}$$
 
 A more accurate value is $L \approx 1.5479$.
 
@@ -1499,7 +1499,7 @@ A cylindrical tank with a vertical axis has radius 1 m and height 3 m. It holds 
 ::: solution
 Let $y$ be the height above the bottom. The layer of water between heights $y$ and $y + \Delta y$, for $0 \le y \le 2$, is a disc of radius 1 m and thickness $\Delta y$: volume $\pi\,\Delta y$ m³, mass $1000\pi\,\Delta y$ kg, weight $9800\pi\,\Delta y$ N. It is lifted $3 - y$ metres, to the top of the tank. So
 
-$$W = \int_0^2 9800\pi(3 - y)\,dy = 9800\pi\Big[3y - \frac{y^2}{2}\Big]_0^2 = 9800\pi(6 - 2) = 39\,200\pi \approx 1.23 \times 10^5 \text{ J}.$$
+$$\begin{aligned} W &= \int_0^2 9800\pi(3 - y)\,dy \\ &= 9800\pi\Big[3y - \frac{y^2}{2}\Big]_0^2 \\ &= 9800\pi(6 - 2) = 39\,200\pi \\ &\approx 1.23 \times 10^5 \text{ J}. \end{aligned}$$
 
 A check with the centre of mass: the water has mass $2000\pi$ kg and its centre of mass is 1 m above the bottom; emptying the tank raises it, on average, to the top, 2 m higher, and $2000\pi \times 9.8 \times 2 = 39\,200\pi$ J. Two slips to avoid: the distance is $3 - y$, to the top of the tank, not $2 - y$, to the surface of the water; and the limits are 0 and 2, where the water is, not 0 and 3.
 
@@ -1518,7 +1518,7 @@ Find the centroid of the region between $y = x$ and $y = x^2$, $0 \le x \le 1$, 
 ::: solution
 For $0 \le x \le 1$, $x \ge x^2$, so $f(x) = x$ and $g(x) = x^2$. The area is $A = \int_0^1 (x - x^2)\,dx = \tfrac12 - \tfrac13 = \tfrac16$. Then
 
-$$\begin{aligned} \bar x &= 6\int_0^1 x\big(x - x^2\big)\,dx = 6\Big(\frac13 - \frac14\Big) = \frac12, \\ \bar y &= 6\int_0^1 \frac12\big(x^2 - x^4\big)\,dx = 3\Big(\frac13 - \frac15\Big) = \frac25. \end{aligned}$$
+$$\begin{aligned} \bar x &= 6\int_0^1 x\big(x - x^2\big)\,dx \\ &= 6\Big(\frac13 - \frac14\Big) = \frac12, \\ \bar y &= 6\int_0^1 \frac12\big(x^2 - x^4\big)\,dx \\ &= 3\Big(\frac13 - \frac15\Big) = \frac25. \end{aligned}$$
 
 The centroid is $\big(\tfrac12, \tfrac25\big)$. At $x = \tfrac12$ the region runs from $y = \tfrac14$ to $y = \tfrac12$, and $\tfrac25 = 0.4$ lies between them, so the centroid is inside the region.
 
@@ -1543,7 +1543,7 @@ The lifetime, in hours, of a type of electronic component has the exponential de
 
 **(b)** By the memoryless property (Theorem 12.5) with $s = 1000$ and $t = 3000$,
 
-$$P(X > 4000 \mid X > 1000) = P(X > 3000) \approx 0.223.$$
+$$\begin{aligned} &P(X > 4000 \mid X > 1000) \\ &\qquad= P(X > 3000) \approx 0.223. \end{aligned}$$
 
 Directly: $\dfrac{P(X > 4000)}{P(X > 1000)} = \dfrac{e^{-2}}{e^{-0.5}} = e^{-1.5}$. The component's past 1000 hours make no difference.
 
@@ -1565,7 +1565,7 @@ same(solve(Eq(1 - exp(-mm/2000), Rational(1, 2)), mm), [2000*log(2)]); rounds(20
 ::: solution
 **(a)** By washers, with outer radius $f(x)$ and inner radius $g(x)$, $V = \pi\int_a^b \big(f(x)^2 - g(x)^2\big)\,dx$. By the definition of the centroid (Definition 12.6),
 
-$$\bar yA = \int_a^b \frac12\big(f(x)^2 - g(x)^2\big)\,dx = \frac{V}{2\pi},$$
+$$\begin{aligned} \bar yA &= \int_a^b \frac12\big(f(x)^2 - g(x)^2\big)\,dx \\ &= \frac{V}{2\pi}, \end{aligned}$$
 
 so $V = 2\pi\bar yA$. The centroid travels round a circle of radius $\bar y$, of length $2\pi\bar y$.
 
@@ -1577,7 +1577,7 @@ $$V = 2\pi R \cdot \pi a^2 = 2\pi^2Ra^2.$$
 
 With washers: the disc is $x^2 + (y - R)^2 \le a^2$, so at $x$ it runs from $y = R - \sqrt{a^2 - x^2}$ to $y = R + \sqrt{a^2 - x^2}$, and both are at least $R - a > 0$. The difference of the squared radii is $\big(R + \sqrt{a^2 - x^2}\big)^2 - \big(R - \sqrt{a^2 - x^2}\big)^2 = 4R\sqrt{a^2 - x^2}$, so
 
-$$V = \pi\int_{-a}^{a} 4R\sqrt{a^2 - x^2}\,dx = 4\pi R \cdot \frac{\pi a^2}{2} = 2\pi^2Ra^2,$$
+$$\begin{aligned} V &= \pi\int_{-a}^{a} 4R\sqrt{a^2 - x^2}\,dx \\ &= 4\pi R \cdot \frac{\pi a^2}{2} = 2\pi^2Ra^2, \end{aligned}$$
 
 because $\int_{-a}^{a} \sqrt{a^2 - x^2}\,dx$ is the area of a half disc of radius $a$.
 
@@ -1605,11 +1605,11 @@ Let $f$ be strictly decreasing on $[0, b]$, with $f'$ continuous, $f(0) = h$ and
 
 **(b)** Substitute $y = f(x)$, $dy = f'(x)\,dx$ (Module 10). When $x = 0$, $y = h$; when $x = b$, $y = 0$; and $g(y) = g\big(f(x)\big) = x$. So
 
-$$\pi\int_0^h g(y)^2\,dy = -\pi\int_h^0 g(y)^2\,dy = -\pi\int_0^b x^2f'(x)\,dx.$$
+$$\begin{aligned} &\pi\int_0^h g(y)^2\,dy \\ &\quad= -\pi\int_h^0 g(y)^2\,dy \\ &\quad= -\pi\int_0^b x^2f'(x)\,dx. \end{aligned}$$
 
 Integrate by parts (Module 11) with $u = x^2$ and $dv = f'(x)\,dx$, so $du = 2x\,dx$ and $v = f(x)$:
 
-$$\int_0^b x^2f'(x)\,dx = \big[x^2f(x)\big]_0^b - \int_0^b 2x\,f(x)\,dx = -2\int_0^b x\,f(x)\,dx,$$
+$$\begin{aligned} &\int_0^b x^2f'(x)\,dx \\ &\quad= \big[x^2f(x)\big]_0^b - \int_0^b 2x\,f(x)\,dx \\ &\quad= -2\int_0^b x\,f(x)\,dx, \end{aligned}$$
 
 because $b^2f(b) = 0$ and $0^2f(0) = 0$. Therefore $\pi\int_0^h g(y)^2\,dy = 2\pi\int_0^b x\,f(x)\,dx$.
 
@@ -1637,19 +1637,19 @@ Let $\varphi(z) = \dfrac{1}{\sqrt{2\pi}}e^{-z^2/2}$.
 ::: solution
 **(a)** By the chain rule, $\varphi'(z) = -z\varphi(z)$. By the product rule,
 
-$$\varphi''(z) = -\varphi(z) - z\varphi'(z) = -\varphi(z) + z^2\varphi(z) = \big(z^2 - 1\big)\varphi(z).$$
+$$\begin{aligned} \varphi''(z) &= -\varphi(z) - z\varphi'(z) \\ &= -\varphi(z) + z^2\varphi(z) \\ &= \big(z^2 - 1\big)\varphi(z). \end{aligned}$$
 
 Since $\varphi(z) > 0$, $\varphi''$ has the sign of $z^2 - 1$: negative for $\abs{z} < 1$ (concave down) and positive for $\abs{z} > 1$ (concave up). So the concavity changes at $z = \pm1$, the points of inflection. The normal density is $f(x) = \tfrac1\sigma\varphi\big(\tfrac{x - \mu}{\sigma}\big)$, so by the chain rule $f''(x) = \tfrac{1}{\sigma^3}\varphi''\big(\tfrac{x - \mu}{\sigma}\big)$, which changes sign where $\tfrac{x - \mu}{\sigma} = \pm1$: at $x = \mu \pm \sigma$.
 
 **(b)** With $u = z$ and $dv = z\varphi(z)\,dz$, $du = dz$ and $v = -\varphi(z)$ (by (a), $\varphi' = -z\varphi$). For $t > 0$,
 
-$$\int_0^t z^2\varphi(z)\,dz = \big[-z\varphi(z)\big]_0^t + \int_0^t \varphi(z)\,dz = -t\varphi(t) + \int_0^t \varphi(z)\,dz.$$
+$$\begin{aligned} &\int_0^t z^2\varphi(z)\,dz \\ &\quad= \big[-z\varphi(z)\big]_0^t + \int_0^t \varphi(z)\,dz \\ &\quad= -t\varphi(t) + \int_0^t \varphi(z)\,dz. \end{aligned}$$
 
 As $t \to \infty$, $t\varphi(t) \to 0$: for $t \ge 2$, $t^2/2 \ge t$, so $0 < te^{-t^2/2} \le te^{-t}$, which approaches 0 (Theorem 7.7). And $\int_0^t \varphi \to \tfrac12$, half the total area 1, since $\varphi$ is even. So $\int_0^\infty z^2\varphi(z)\,dz = \tfrac12$, and since $z^2\varphi(z)$ is even, $\int_{-\infty}^{\infty} z^2\varphi(z)\,dz = 1$.
 
 **(c)** Substitute $z = (x - \mu)/\sigma$, so $x - \mu = \sigma z$ and $dx = \sigma\,dz$:
 
-$$\int_{-\infty}^{\infty} (x - \mu)^2\,\frac1\sigma\varphi\Big(\frac{x - \mu}{\sigma}\Big)\,dx = \int_{-\infty}^{\infty} \sigma^2z^2\varphi(z)\,dz = \sigma^2.$$
+$$\begin{aligned} &\int_{-\infty}^{\infty} (x - \mu)^2\,\frac1\sigma\varphi\Big(\frac{x - \mu}{\sigma}\Big)\,dx \\ &\qquad= \int_{-\infty}^{\infty} \sigma^2z^2\varphi(z)\,dz = \sigma^2. \end{aligned}$$
 
 ```check
 same(diff(phi12, z), -z*phi12); same(diff(phi12, z, 2), (z**2 - 1)*phi12)

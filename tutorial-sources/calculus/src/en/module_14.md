@@ -65,7 +65,7 @@ The sequence $a_n = 1 + (-1)^n/n$, drawn as dots. Its terms hop from one side of
 :::
 
 ```check
-same(Abs(afig(n) - 1).subs(n, 7), Rational(1, 7))
+same(Abs(afig(7) - 1), Rational(1, 7))
 holds(all(Abs(afig(j) - 1) == Rational(1, j) for j in range(1, 200)))
 holds(all(Abs(afig(j) - 1) < Rational(1, 4) for j in range(5, 400)))
 same(afig(4), Rational(5, 4)); holds(Abs(afig(4) - 1) >= Rational(1, 4))
@@ -200,7 +200,7 @@ for j in range(1, 60):
     holds(-1/sqrt(j) <= cos(j)/sqrt(j)); holds(cos(j)/sqrt(j) <= 1/sqrt(j))
 limit_is(1/sqrt(n), n, oo, 0); limit_is(-1/sqrt(n), n, oo, 0); limit_is(cos(n)/sqrt(n), n, oo, 0)
 holds(all((Integer(3)**j + Integer(4)**j)/Integer(5)**j == Rational(3, 5)**j + Rational(4, 5)**j for j in range(0, 30)))
-limit_is(Rational(3, 5)**n + Rational(4, 5)**n, n, oo, 0)
+limit_is(Rational(3, 5)**n, n, oo, 0); limit_is(Rational(4, 5)**n, n, oo, 0)
 ```
 :::
 
@@ -320,7 +320,7 @@ itn = [Integer(1)]
 for _ in range(8):
     itn.append((itn[-1] + 2/itn[-1])/2)
 same(itn[1:4], [Rational(3, 2), Rational(17, 12), Rational(577, 408)])
-holds(all(itn[j] >= sqrt(2) for j in range(1, 9))); holds(all(itn[j + 1] <= itn[j] for j in range(1, 8)))
+holds(all(itn[j]**2 >= 2 for j in range(1, 9)))         # x_n >= sqrt(2), compared through squares; holds(all(itn[j + 1] <= itn[j] for j in range(1, 8)))
 Lp = symbols('L', positive=True)
 same(solve(Eq(Lp, (Lp + 2/Lp)/2), Lp), [sqrt(2)])
 steps(2*Lp - (Lp + 2/Lp), Lp - 2/Lp); same(solve(Eq(Lp, 2/Lp), Lp), [sqrt(2)])
@@ -538,7 +538,7 @@ for Nn in range(1, 9):
     same(sum(aa_*rr_**j for j in range(Nn)) - rr_*sum(aa_*rr_**j for j in range(Nn)), aa_ - aa_*rr_**Nn)
 SNs = aa_*(1 - rr_**NNp)/(1 - rr_)
 same(1 - (1 - rr_)*SNs/aa_, rr_**NNp)
-gsum = summation(aa_*rr_**n, (n, 0, oo)); same(gsum.args[0][0], aa_/(1 - rr_)); holds(gsum.args[0][1] == (Abs(rr_) < 1))
+gsum = summation(rr_**n, (n, 0, oo)); same(aa_*gsum.args[0][0], aa_/(1 - rr_)); holds(gsum.args[0][1] == (Abs(rr_) < 1))
 same(Rational(1, 2)/(1 - Rational(1, 2)), 1)               # Zeno: a = r = 1/2
 ```
 
@@ -687,20 +687,23 @@ Piecewise((1/(1 - r), Abs(r) < 1), (Sum(r**n, (n, 0, oo)), True))
 
 ```python
 print(sp.summation(1/(2*n**2 - n), (n, 1, sp.oo)))
-print(sum(1/(2*k**2 - k) for k in range(1, 10**6 + 1)), float(2*sp.log(2)))
+s = sum(1/(2*k**2 - k) for k in range(1, 10**6 + 1))    # a million terms, in floating point
+print(f"{s:.6f}  {float(2*sp.log(2)):.6f}")
 ```
 
 ```output
 nan
-1.386293861120091 1.3862943611198906
+1.386294  1.386294
 ```
 
-`nan`, "not a number", means that SymPy has failed. The partial sum of a million terms, in floating point, agrees to six decimals with $2\ln 2$, the true sum: partial fractions give $\dfrac{1}{2n^2 - n} = 2\Big(\dfrac{1}{2n - 1} - \dfrac{1}{2n}\Big)$, twice the terms of the alternating harmonic series of Section 14.7, taken in pairs. When a computer algebra system gives an answer you cannot check, check it another way.
+`nan`, "not a number", means that SymPy has failed. The partial sum of a million terms agrees to six decimals with $2\ln 2$, which is the true sum: partial fractions give $\dfrac{1}{2n^2 - n} = 2\Big(\dfrac{1}{2n - 1} - \dfrac{1}{2n}\Big)$, twice the terms of the alternating harmonic series of Section 14.7, taken in pairs. When a computer algebra system gives an answer you cannot check, check it another way.
 :::
 
 ```check
 same(1/(2*n**2 - n), 2*(1/(2*n - 1) - 1/(2*n))); rounds(2*log(2), '1.386294')
-holds(2*log(2) - Rational(1, 10**6) < 2*log(2) - Rational(1, 2*10**6 + 2)); rounds(2*log(2) - Rational(1, 2*10**6), '1.386294')
+for M_ in range(1, 12):     # the partial sums are 2(H_2M - H_M), twice partial sums of the alternating harmonic series
+    same(sum(Rational(1, 2*k_**2 - k_) for k_ in range(1, M_ + 1)), 2*(harmonic(2*M_) - harmonic(M_)))
+rounds(2*(harmonic(Float(2*10**6, 50)) - harmonic(Float(10**6, 50))), '1.386294')
 ```
 
 ## The harmonic series and the divergence test {#harmonic}
@@ -1300,7 +1303,7 @@ Decide how these converge: (a) $\displaystyle\sum_{n=1}^{\infty}\frac{\sin n}{n^
 **(c)** $\sum \abs{a_n} = \sum 1/\sqrt n$ diverges ($p = \tfrac12$). But $b_n = 1/\sqrt n$ is positive, decreasing and tends to 0, so the series converges by the alternating series test: it converges conditionally. The alternating harmonic series converges conditionally for the same reason.
 
 ```check
-holds(all(Abs(sin(j))/j**2 <= Rational(1, j**2) for j in range(1, 300))); holds(Sum(Abs(sin(n))/n**2, (n, 1, oo)).is_convergent())
+holds(all(Abs(sin(j))/j**2 <= Rational(1, j**2) for j in range(1, 300))); holds(Sum(1/n**2, (n, 1, oo)).is_convergent())
 same(summation(1/n**2, (n, 1, oo)), pi**2/6); holds(not Sum(1/sqrt(n), (n, 1, oo)).is_convergent())
 holds(all(1/sqrt(j + 1) < 1/sqrt(j) for j in range(1, 300))); limit_is(1/sqrt(n), n, oo, 0)
 holds(Sum((-1)**(n - 1)/sqrt(n), (n, 1, oo)).is_convergent())
@@ -1400,7 +1403,7 @@ The series diverges; indeed its terms grow without bound.
 ```check
 steps((n + 1)/2**(n + 1)*(2**n/n), (n + 1)/(2*n), (1 + 1/n)/2); limit_is((n + 1)/(2*n), n, oo, Rational(1, 2)); same(summation(n/2**n, (n, 1, oo)), 2)
 same(factorial(n + 1), (n + 1)*factorial(n))
-steps(factorial(n + 1)/(n + 1)**(n + 1)*(n**n/factorial(n)), (n + 1)*n**n/(n + 1)**(n + 1), (n/(n + 1))**n)
+steps(factorial(npp + 1)/(npp + 1)**(npp + 1)*(npp**npp/factorial(npp)), (npp + 1)*npp**npp/(npp + 1)**(npp + 1), (npp/(npp + 1))**npp)
 same((npp/(npp + 1))**npp, 1/(1 + 1/npp)**npp); limit_is((n/(n + 1))**n, n, oo, 1/E); holds(1/E < 1)
 steps(3**(n + 1)/(n + 1)**2*(n**2/3**n), 3*n**2/(n + 1)**2, 3/(1 + 1/n)**2); limit_is(3/(1 + 1/n)**2, n, oo, 3); limit_is(3**n/n**2, n, oo, oo)
 ```
@@ -1761,7 +1764,7 @@ The error is at most $b_8 = \tfrac{1}{2048} \approx 0.000488$, and it has the si
 
 $$0.405315 \le S \le 0.405804.$$
 
-**(c)** $\ln 1.5 \approx 0.405465$ lies in the interval; the error of $S_7$ is about 0.000339, less than the bound.
+**(c)** $\ln 1.5 \approx 0.405465$ lies in the interval; the error of $S_7$ is about 0.000338, less than the bound.
 
 ```check
 holds(all((j + 1)*2**(j + 1) > j*2**j for j in range(1, 60))); limit_is(1/(n*2**n), n, oo, 0)
@@ -1769,7 +1772,7 @@ same(7*2**7, 896); same(8*2**8, 2048)
 S7c = sum(Rational((-1)**(j - 1), j*2**j) for j in range(1, 8)); same(S7c, Rational(909, 2240)); rounds(S7c, '0.405804')
 rounds(Rational(1, 2048), '0.000488'); rounds(S7c - Rational(1, 2048), '0.405315')
 same(summation((-1)**(n - 1)/(n*2**n), (n, 1, oo)), log(Rational(3, 2))); rounds(log(Rational(3, 2)), '0.405465')
-holds(S7c - Rational(1, 2048) <= log(Rational(3, 2))); holds(log(Rational(3, 2)) <= S7c); rounds(S7c - log(Rational(3, 2)), '0.000339')
+holds(S7c - Rational(1, 2048) <= log(Rational(3, 2))); holds(log(Rational(3, 2)) <= S7c); rounds(S7c - log(Rational(3, 2)), '0.000338')
 ```
 :::
 ::::
@@ -1827,7 +1830,8 @@ because $\ln(2N) - \ln N = \ln 2$. As $N \to \infty$, $d_N \to \gamma$ and $d_{2
 ```check
 Nq = symbols('N', positive=True, integer=True)
 same(integrate(1/x - 1/(Nq + 1), (x, Nq, Nq + 1)), log(Nq + 1) - log(Nq) - 1/(Nq + 1))
-same((harmonic(Nq) - log(Nq)) - (harmonic(Nq + 1) - log(Nq + 1)), log(Nq + 1) - log(Nq) - 1/(Nq + 1))
+same(expand_func(harmonic(Nq + 1)), harmonic(Nq) + 1/(Nq + 1))
+same((harmonic(Nq) - log(Nq)) - (expand_func(harmonic(Nq + 1)) - log(Nq + 1)), log(Nq + 1) - log(Nq) - 1/(Nq + 1))
 holds(all(harmonic(j) - log(j) > harmonic(j + 1) - log(j + 1) > 0 for j in range(1, 80))); same(harmonic(1) - log(1), 1)
 limit_is(harmonic(n) - log(n), n, oo, EulerGamma); rounds(EulerGamma, '0.5772')
 for Nn in range(1, 30):

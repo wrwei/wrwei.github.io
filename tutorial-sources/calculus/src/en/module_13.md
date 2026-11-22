@@ -48,7 +48,7 @@ Show that $y = t - 1 + Ce^{-t}$ is a solution of $y' = t - y$ for every constant
 
 Differentiate: $y' = 1 - Ce^{-t}$. The right side of the equation is
 
-$$t - y = t - \big(t - 1 + Ce^{-t}\big) = 1 - Ce^{-t}.$$
+$$\begin{aligned} t - y &= t - \big(t - 1 + Ce^{-t}\big) \\ &= 1 - Ce^{-t}. \end{aligned}$$
 
 The two sides agree for every $t$, so every function of the family is a solution on $(-\infty, \infty)$. For the initial condition, $y(0) = 0 - 1 + C = C - 1$, which is 1 when $C = 2$. The solution is
 
@@ -262,7 +262,7 @@ Call this value $y_1$, and the new time $t_1 = t_0 + h$. At $(t_1, y_1)$ the equ
 ::: definition Euler's method
 To approximate the solution of $y' = F(t, y)$, $y(t_0) = y_0$, choose a step size $h > 0$ and compute, for $n = 0, 1, 2, \dots$,
 
-$$t_{n+1} = t_n + h, \qquad y_{n+1} = y_n + h\,F(t_n, y_n).$$
+$$\begin{aligned} t_{n+1} &= t_n + h, \\ y_{n+1} &= y_n + h\,F(t_n, y_n). \end{aligned}$$
 
 The number $y_n$ is the approximation to $y(t_n)$.
 :::
@@ -270,9 +270,9 @@ The number $y_n$ is the approximation to $y(t_n)$.
 ::: example Euler's method by hand
 Use Euler's method with $h = 0.5$ to approximate $y(2)$ for $y' = t - y$, $y(0) = 1$, and compare with the exact solution of Example 13.1.
 
-Here $F(t, y) = t - y$, and four steps of 0.5 lead from $t = 0$ to $t = 2$. Each row computes the slope at $(t_n, y_n)$ and takes a step along it:
+Here $F(t, y) = t - y$, and four steps of 0.5 lead from $t = 0$ to $t = 2$. Each row computes the slope at $(t_n, y_n)$ and takes a step along it, $y_{n+1} = y_n + 0.5 \times \text{slope}$:
 
-| $n$ | $t_n$ | $y_n$ | slope $t_n - y_n$ | $y_{n+1} = y_n + 0.5 \times \text{slope}$ |
+| $n$ | $t_n$ | $y_n$ | slope $t_n - y_n$ | $y_{n+1}$ |
 |---|---|---|---|---|
 | 0 | 0 | 1 | $-1$ | 0.5 |
 | 1 | 0.5 | 0.5 | 0 | 0.5 |
@@ -308,16 +308,16 @@ same(ts8[-1], 2); rounds(ys8[-1], '1.2002'); rounds(ex2 - ys8[-1], '0.070')
 
 ### How the error depends on the step {#euler-error}
 
-For $y' = y$, $y(0) = 1$, whose solution is $e^t$, Euler's method is especially transparent. Each step computes $y_{n+1} = y_n + h\,y_n = (1 + h)\,y_n$: it multiplies by $1 + h$. So $y_n = (1 + h)^n$. Reaching $t = 1$ takes $n = 1/h$ steps, so Euler's approximation to $y(1) = e$ is $(1 + h)^{1/h} = \big(1 + \tfrac1n\big)^n$: the compound interest of Module 6, with each step one compounding period. The table halves $h$ again and again:
+For $y' = y$, $y(0) = 1$, whose solution is $e^t$, Euler's method is especially transparent. Each step computes $y_{n+1} = y_n + h\,y_n = (1 + h)\,y_n$: it multiplies by $1 + h$. So $y_n = (1 + h)^n$. Reaching $t = 1$ takes $n = 1/h$ steps, so Euler's approximation to $y(1) = e$ is $(1 + h)^{1/h} = \big(1 + \tfrac1n\big)^n$: the compound interest of Module 6, with each step one compounding period. The table halves $h$ again and again; the error is $e - (1 + h)^{1/h}$:
 
 ```valuetable
 h = 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.001
 $(1 + h)^{1/h}$ = (1 + h)**(1/h)
-$\text{error } e - (1 + h)^{1/h}$ = E - (1 + h)**(1/h)
-$\dfrac{\text{error}}{h}$ = (E - (1 + h)**(1/h))/h
+$\text{error}$ = E - (1 + h)**(1/h)
+$\text{error}/h$ = (E - (1 + h)**(1/h))/h
 digits = 4
 ---
-h | (1 + h)^{1/h} | \text{error } e - (1 + h)^{1/h} | \dfrac{\text{error}}{h}
+h | (1 + h)^{1/h} | \text{error} | \text{error}/h
 0.5 | 2.25 | 0.4683 | 0.9366
 0.25 | 2.441 | 0.2769 | 1.108
 0.125 | 2.566 | 0.1525 | 1.220
@@ -346,13 +346,13 @@ Euler's method has **order 1**: at a fixed time, its error is about a constant t
 :::
 
 ::: deeper A bound for the error of Euler's method
-Suppose the solution $y$ of $y' = F(t, y)$, $y(t_0) = y_0$, satisfies $\abs{y''} \le M$ on $[t_0, T]$, and that $\abs{F_y(t, y)} \le L$ for $t_0 \le t \le T$ and every $y$, with $L > 0$. Then the errors $e_n = y(t_n) - y_n$ of Euler's method satisfy
+Suppose the solution $y$ of $y' = F(t, y)$, $y(t_0) = y_0$, satisfies $\abs{y''} \le M$ on $[t_0, T]$, and that $\abs{F_y(t, y)} \le L$ for $t_0 \le t \le T$ and every $y$, with $L > 0$. Then the errors $e_n = y(t_n) - y_n$ of Euler's method satisfy, whenever $t_n \le T$,
 
-$$\abs{e_n} \le \frac{Mh}{2L}\Big(e^{L(t_n - t_0)} - 1\Big) \quad\text{whenever } t_n \le T.$$
+$$\abs{e_n} \le \frac{Mh}{2L}\Big(e^{L(t_n - t_0)} - 1\Big).$$
 
 The bound is proportional to $h$. Here is why. By the error bound for linear approximation ([Section 7.2](module_07_EN.html#how-good); Module 15 proves it), $y(t_{n+1}) = y(t_n) + h\,y'(t_n) + \tau_n$ with $\abs{\tau_n} \le \tfrac{M}{2}h^2$, and $y'(t_n) = F\big(t_n, y(t_n)\big)$. Subtract $y_{n+1} = y_n + h\,F(t_n, y_n)$:
 
-$$e_{n+1} = e_n + h\Big[F\big(t_n, y(t_n)\big) - F(t_n, y_n)\Big] + \tau_n.$$
+$$\begin{aligned} e_{n+1} &= e_n + \tau_n \\ &\quad + h\Big[F\big(t_n, y(t_n)\big) - F(t_n, y_n)\Big]. \end{aligned}$$
 
 By the Mean Value Theorem (Module 8), applied to $F(t_n, y)$ as a function of $y$, the bracket is $F_y$ at some point between $y_n$ and $y(t_n)$, times $e_n$; so it is at most $L\abs{e_n}$ in size, and
 
@@ -360,7 +360,7 @@ $$\abs{e_{n+1}} \le (1 + hL)\abs{e_n} + \tfrac{M}{2}h^2.$$
 
 Start from $e_0 = 0$ and apply this $n$ times. With $q = 1 + hL$, and the sum $1 + q + \dots + q^{n-1} = \dfrac{q^n - 1}{q - 1}$ (multiply out $(q - 1)(1 + q + \dots + q^{n-1})$ to see it),
 
-$$\abs{e_n} \le \frac{M}{2}h^2\,\frac{(1 + hL)^n - 1}{hL} = \frac{Mh}{2L}\Big((1 + hL)^n - 1\Big).$$
+$$\begin{aligned} \abs{e_n} &\le \frac{M}{2}h^2\,\frac{(1 + hL)^n - 1}{hL} \\ &= \frac{Mh}{2L}\Big((1 + hL)^n - 1\Big). \end{aligned}$$
 
 Finally, $1 + hL \le e^{hL}$, because the graph of $e^x$ lies above its tangent line $y = 1 + x$ at 0 (it is concave up, Module 8). So $(1 + hL)^n \le e^{nhL} = e^{L(t_n - t_0)}$.
 
@@ -502,7 +502,7 @@ $y' = ky$, $y' = 2ty^2$, the cooling equation $T' = -k(T - T_s)$ and the equatio
 
 The method is quickest in Leibniz notation. Write $y'$ as $\dfrac{dy}{dt}$, move everything that contains $y$ to one side and everything that contains $t$ to the other, as if $dy$ and $dt$ were numbers, and integrate both sides:
 
-$$\frac{dy}{dt} = g(t)h(y) \quad\to\quad \frac{dy}{h(y)} = g(t)\,dt \quad\to\quad \int\frac{dy}{h(y)} = \int g(t)\,dt.$$
+$$\begin{aligned} \frac{dy}{dt} &= g(t)h(y), \\ \frac{dy}{h(y)} &= g(t)\,dt, \\ \int\frac{dy}{h(y)} &= \int g(t)\,dt. \end{aligned}$$
 
 Nothing so far allows you to split $\dfrac{dy}{dt}$ like a fraction: it is a single symbol for a limit ([Section 4.2](module_04_EN.html#derivative)). The chain rule is what makes the result right.
 
@@ -539,7 +539,7 @@ Solve $y' = 2ty^2$ with (a) $y(0) = 1$, (b) $y(0) = -1$, (c) $y(0) = 0$.
 
 Here $g(t) = 2t$ and $h(y) = y^2$. Where $y \ne 0$, separate and integrate:
 
-$$\int \frac{dy}{y^2} = \int 2t\,dt, \quad\text{so}\quad -\frac1y = t^2 + C \quad\text{and}\quad y = -\frac{1}{t^2 + C}.$$
+$$\begin{aligned} \int \frac{dy}{y^2} &= \int 2t\,dt, \\ -\frac1y &= t^2 + C, \\ y &= -\frac{1}{t^2 + C}. \end{aligned}$$
 
 **(a)** $y(0) = -\dfrac1C = 1$ gives $C = -1$, so $y = \dfrac{1}{1 - t^2}$. The formula makes sense for every $t \ne \pm1$, but a solution lives on an interval, and the one containing $t = 0$ is $(-1, 1)$. As $t$ approaches 1 or $-1$, $y$ grows without bound: the solution blows up (Figure 13.3). The parts of the graph with $\abs{t} > 1$ belong to other solutions of the equation, not to this one: nothing connects them to $y(0) = 1$.
 
@@ -585,7 +585,7 @@ $$y(t) = y(t_0)\,e^{k(t - t_0)} \quad\text{for every } t \text{ in } I.$$
 ::: proof
 If $y(t) = y(t_0)e^{k(t - t_0)}$, then $y' = ky$ by the chain rule. Conversely, suppose that $y' = ky$ on $I$, and let $w(t) = y(t)e^{-kt}$. By the product rule,
 
-$$w' = y'e^{-kt} - k\,y\,e^{-kt} = (y' - ky)\,e^{-kt} = 0$$
+$$\begin{aligned} w' &= y'e^{-kt} - k\,y\,e^{-kt} \\ &= (y' - ky)\,e^{-kt} = 0 \end{aligned}$$
 
 on $I$, so $w$ is constant on $I$ (Module 8): $w(t) = w(t_0)$, that is, $y(t)e^{-kt} = y(t_0)e^{-kt_0}$. Multiply both sides by $e^{kt}$.
 :::
@@ -791,9 +791,9 @@ To solve $y' + p(t)y = q(t)$:
 ::: example Solving $y' = t - y$
 Find the general solution of $y' = t - y$.
 
-In standard form, $y' + y = t$, so $p = 1$ and $\mu = e^{t}$. Multiply by $e^t$:
+In standard form, $y' + y = t$, so $p = 1$ and $\mu = e^{t}$. Multiply by $e^t$, and the left side becomes the derivative of a product:
 
-$$e^t y' + e^t y = te^t, \quad\text{that is,}\quad \big(e^t y\big)' = te^t.$$
+$$\begin{aligned} e^t y' + e^t y &= te^t, \\ \big(e^t y\big)' &= te^t. \end{aligned}$$
 
 Integrate by parts (Module 11), with $u = t$ and $dv = e^t\,dt$: $\displaystyle\int te^t\,dt = te^t - \int e^t\,dt = (t - 1)e^t + C$. So $e^t y = (t - 1)e^t + C$, and
 
@@ -848,7 +848,7 @@ Suppose $R = 10{,}000$ ohms, $C = 100$ microfarads $= 10^{-4}$ farads, $E = 5$ v
 
 Divide by $R$: $q' + \dfrac{q}{RC} = \dfrac{E}{R}$. Here $RC = 10^4 \cdot 10^{-4} = 1$ second and $E/R = 5 \times 10^{-4}$, so $q' + q = 5 \times 10^{-4}$, with $\mu = e^t$. Then $(e^tq)' = 5 \times 10^{-4}e^t$, and $e^tq = 5 \times 10^{-4}e^t + A$, where the constant is called $A$ because $C$ is taken. So $q = 5 \times 10^{-4} + Ae^{-t}$, and $q(0) = 0$ gives $A = -5 \times 10^{-4}$:
 
-$$q(t) = 5 \times 10^{-4}\big(1 - e^{-t}\big) \text{ coulombs}, \qquad \frac{q}{C} = 5\big(1 - e^{-t}\big) \text{ volts}.$$
+$$\begin{aligned} q(t) &= 5 \times 10^{-4}\big(1 - e^{-t}\big) \text{ coulombs}, \\ \frac{q}{C} &= 5\big(1 - e^{-t}\big) \text{ volts}. \end{aligned}$$
 
 After 1 second the capacitor is at $5(1 - e^{-1}) \approx 3.16$ volts, 63% of the way to 5 volts; after 5 seconds, at about 4.97 volts.
 
@@ -882,9 +882,9 @@ same(diff(t - 1 + c, t) - (t - (t - 1 + c)), c)
 
 ## Second-order linear equations {#second-order}
 
-Pull a mass on a spring and let go: it moves back and forth, less and less, and comes to rest. Think of a mass $m$ on a smooth horizontal table, attached to a spring, and let $x(t)$ be its distance from the rest position, positive when the spring is stretched. Two forces act on it. The spring pulls back with a force $-kx$ proportional to the displacement (**Hooke's law**; the constant $k > 0$ is the spring's stiffness). Friction, or a damper such as a car's shock absorber, resists the motion with a force $-cx'$ proportional to the velocity, with a **damping constant** $c \ge 0$. Mass times acceleration is the total force, so
+Pull a mass on a spring and let go: it moves back and forth, less and less, and comes to rest. Think of a mass $m$ on a smooth horizontal table, attached to a spring, and let $x(t)$ be its distance from the rest position, positive when the spring is stretched. Two forces act on it. The spring pulls back with a force $-kx$ proportional to the displacement (**Hooke's law**; the constant $k > 0$ is the spring's stiffness). Friction, or a damper such as a car's shock absorber, resists the motion with a force $-cx'$ proportional to the velocity, with a **damping constant** $c \ge 0$. Mass times acceleration is the total force, so $mx'' = -kx - cx'$, that is,
 
-$$mx'' = -kx - cx', \quad\text{that is,}\quad mx'' + cx' + kx = 0.$$
+$$mx'' + cx' + kx = 0.$$
 
 The same equation, with charge in place of displacement, describes an electric circuit with an inductor, a resistor and a capacitor: $Lq'' + Rq' + q/C = 0$.
 
@@ -908,9 +908,9 @@ If $y_1$ and $y_2$ are solutions of $ay'' + by' + cy = 0$, then so is $C_1y_1 + 
 :::
 
 ::: proof
-Derivatives of sums and constant multiples are the sums and constant multiples of the derivatives (Module 4), so
+Let $Y = C_1y_1 + C_2y_2$. Derivatives of sums and constant multiples are the sums and constant multiples of the derivatives (Module 4), so $Y' = C_1y_1' + C_2y_2'$ and $Y'' = C_1y_1'' + C_2y_2''$. Collect the terms with $C_1$ and those with $C_2$:
 
-$$\begin{aligned} &a(C_1y_1 + C_2y_2)'' + b(C_1y_1 + C_2y_2)' + c(C_1y_1 + C_2y_2) \\ &\quad= C_1\big(ay_1'' + by_1' + cy_1\big) + C_2\big(ay_2'' + by_2' + cy_2\big) \\ &\quad= C_1 \cdot 0 + C_2 \cdot 0 = 0. \end{aligned}$$
+$$\begin{aligned} &aY'' + bY' + cY \\ &\quad= C_1\big(ay_1'' + by_1' + cy_1\big) \\ &\qquad + C_2\big(ay_2'' + by_2' + cy_2\big) \\ &\quad= C_1 \cdot 0 + C_2 \cdot 0 = 0. \end{aligned}$$
 :::
 
 ::: theorem Existence and uniqueness for $ay'' + by' + cy = 0$
@@ -950,17 +950,21 @@ Let $a \ne 0$, $b$ and $c$ be constants. Every solution of $ay'' + by' + cy = 0$
 ::: proof
 **Each formula is a solution.** By Theorem 13.6 it is enough to check the two functions that each formula combines. In case 1, $e^{r_1t}$ and $e^{r_2t}$ are solutions, as shown above. In case 2, so is $e^{rt}$; for $y = te^{rt}$, the product rule gives $y' = (1 + rt)e^{rt}$ and $y'' = (2r + r^2t)e^{rt}$, so
 
-$$ay'' + by' + cy = \Big[\big(ar^2 + br + c\big)t + (2ar + b)\Big]e^{rt} = 0,$$
+$$\begin{aligned} &ay'' + by' + cy \\ &\quad= \Big[\big(ar^2 + br + c\big)t + (2ar + b)\Big]e^{rt} \\ &\quad= 0, \end{aligned}$$
 
 because $ar^2 + br + c = 0$ and $2ar + b = 0$ when $r = -b/(2a)$. In case 3, for $y = e^{\alpha t}\cos\beta t$,
 
-$$\begin{aligned} y' &= e^{\alpha t}\big(\alpha\cos\beta t - \beta\sin\beta t\big), \\ y'' &= e^{\alpha t}\big((\alpha^2 - \beta^2)\cos\beta t - 2\alpha\beta\sin\beta t\big), \end{aligned}$$
+$$\begin{aligned} y' &= e^{\alpha t}\big(\alpha\cos\beta t - \beta\sin\beta t\big), \\ y'' &= e^{\alpha t}\big((\alpha^2 - \beta^2)\cos\beta t \\ &\qquad - 2\alpha\beta\sin\beta t\big), \end{aligned}$$
 
-so
+so $ay'' + by' + cy = e^{\alpha t}\big(P\cos\beta t - Q\sin\beta t\big)$, where
 
-$$ay'' + by' + cy = e^{\alpha t}\Big[\big(a(\alpha^2 - \beta^2) + b\alpha + c\big)\cos\beta t - (2a\alpha + b)\beta\sin\beta t\Big].$$
+$$\begin{aligned} P &= a(\alpha^2 - \beta^2) + b\alpha + c, \\ Q &= (2a\alpha + b)\beta. \end{aligned}$$
 
-Here $2a\alpha + b = 0$, and $a(\alpha^2 - \beta^2) + b\alpha + c = \dfrac{b^2}{4a} - \dfrac{4ac - b^2}{4a} - \dfrac{b^2}{2a} + c = 0$. The same calculation works for $e^{\alpha t}\sin\beta t$.
+Here $2a\alpha + b = 0$, so $Q = 0$; and since $a\alpha^2 = \dfrac{b^2}{4a}$, $a\beta^2 = \dfrac{4ac - b^2}{4a}$ and $b\alpha = -\dfrac{b^2}{2a}$,
+
+$$P = \frac{b^2}{4a} - \frac{4ac - b^2}{4a} - \frac{b^2}{2a} + c = 0.$$
+
+The same calculation works for $e^{\alpha t}\sin\beta t$.
 
 **Every solution has this form.** Let $y$ be any solution, say on an interval that contains 0 (on another interval, use one of its points in place of 0; the algebra is the same, with extra exponential factors). In each case, choose the constants so that the formula has the same value and the same derivative as $y$ at $t = 0$. In case 1 that means $C_1 + C_2 = y(0)$ and $r_1C_1 + r_2C_2 = y'(0)$, which can be solved because $r_1 \ne r_2$; in case 2, $C_1 = y(0)$ and $rC_1 + C_2 = y'(0)$; in case 3, $C_1 = y(0)$ and $\alpha C_1 + \beta C_2 = y'(0)$, which can be solved because $\beta \ne 0$. Then $y$ and the formula solve the same initial value problem, so they are the same function, by Theorem 13.7.
 :::
@@ -976,7 +980,7 @@ same(L_(yc_), exp(al*t)*((a*(al**2 - be**2) + b*al + c)*cos(be*t) - (2*a*al + b)
 ap_ = symbols('a', positive=True); bq_, cq_ = symbols('b c', real=True)
 al3, be3 = -bq_/(2*ap_), sqrt(4*ap_*cq_ - bq_**2)/(2*ap_)
 steps(ap_*(al3**2 - be3**2) + bq_*al3 + cq_, bq_**2/(4*ap_) - (4*ap_*cq_ - bq_**2)/(4*ap_) - bq_**2/(2*ap_) + cq_, 0)
-same(2*ap_*al3 + bq_, 0)
+same(2*ap_*al3 + bq_, 0); same(ap_*al3**2, bq_**2/(4*ap_)); same(ap_*be3**2, (4*ap_*cq_ - bq_**2)/(4*ap_)); same(bq_*al3, -bq_**2/(2*ap_))
 Lp = lambda Y: ap_*diff(Y, t, 2) + bq_*diff(Y, t) + cq_*Y
 same(Lp(exp(al3*t)*sin(be3*t)), 0); same(Lp(exp(al3*t)*cos(be3*t)), 0)
 r1_, r2_ = symbols('r1 r2'); u0_, v0_ = symbols('u0 v0')
@@ -1267,9 +1271,15 @@ For $y' = y + t$, $y(0) = 1$:
 - (c) Without computing, about what error would $h = 0.125$ give?
 
 ::: solution
-**(a)** Here $F(t, y) = y + t$, and four steps of 0.25 reach $t = 1$:
+**(a)** Here $F(t, y) = y + t$, and four steps of 0.25 reach $t = 1$. Each step adds 0.25 times the slope: $y_{n+1} = y_n + 0.25\,(y_n + t_n)$.
 
-$$\begin{aligned} y_1 &= 1 + 0.25(1 + 0) = 1.25, \\ y_2 &= 1.25 + 0.25(1.25 + 0.25) = 1.625, \\ y_3 &= 1.625 + 0.25(1.625 + 0.5) = 2.15625, \\ y_4 &= 2.15625 + 0.25(2.15625 + 0.75) = 2.8828125. \end{aligned}$$
+| $n$ | $t_n$ | $y_n$ | slope $y_n + t_n$ |
+|---|---|---|---|
+| 0 | 0 | 1 | 1 |
+| 1 | 0.25 | 1.25 | 1.5 |
+| 2 | 0.5 | 1.625 | 2.125 |
+| 3 | 0.75 | 2.15625 | 2.90625 |
+| 4 | 1 | 2.8828125 | |
 
 So $y(1) \approx 2.8828$.
 
@@ -1285,6 +1295,8 @@ def eul_(F_, y0_, h_, n_):
         Y_, T_ = Y_ + h_*F_(T_, Y_), T_ + h_
     return Y_
 same([eul_(F3e, Integer(1), Rational(1, 4), k_) for k_ in range(1, 5)], [Rational(5, 4), Rational(13, 8), Rational(69, 32), Rational(369, 128)])
+same([Y_ + T_ for T_, Y_ in zip((0, Rational(1, 4), Rational(1, 2), Rational(3, 4)), (1, Rational(5, 4), Rational(13, 8), Rational(69, 32)))], [1, Rational(3, 2), Rational(17, 8), Rational(93, 32)])
+same([Rational(3, 2), Rational(17, 8), Rational(93, 32)], [Rational(15, 10), Rational(2125, 1000), Rational(290625, 100000)])
 same(Rational(369, 128), Rational(28828125, 10**7)); rounds(Rational(369, 128), '2.8828')
 y3e = 2*exp(t) - t - 1
 same(diff(y3e, t), y3e + t); same(y3e.subs(t, 0), 1); same(y3e.subs(t, 1), 2*E - 2); rounds(2*E - 2, '3.4366')
@@ -1307,7 +1319,7 @@ Solve:
 ::: solution
 **(a)** The solution cannot touch the equilibrium $y = 0$ (by Theorem 13.1, since $F = 3t^2y$ and $F_y = 3t^2$ are continuous), so it stays positive and you may divide by $y$. Separate and integrate:
 
-$$\int\frac{dy}{y} = \int 3t^2\,dt, \quad\text{so}\quad \ln y = t^3 + C \quad\text{and}\quad y = e^{C}e^{t^3}.$$
+$$\begin{aligned} \int\frac{dy}{y} &= \int 3t^2\,dt, \\ \ln y &= t^3 + C, \\ y &= e^{C}e^{t^3}. \end{aligned}$$
 
 $y(0) = e^C = 5$, so $y = 5e^{t^3}$. Check: $y' = 5e^{t^3} \cdot 3t^2 = 3t^2y$.
 
@@ -1331,13 +1343,13 @@ holds(checkodesol(Eq(yf(t).diff(t), t/yf(t)), Eq(yf(t), y4b))[0])
 A thermometer reading 5 °C is brought into a room at 22 °C. After 1 minute it reads 12 °C. Assuming Newton's law of cooling, when will it read 21 °C?
 
 ::: solution
-Newton's law covers warming too: when $T < T_s$, $T' = -k(T - T_s) > 0$. By Section 13.5, $T(t) = 22 + (5 - 22)e^{-kt} = 22 - 17e^{-kt}$. At $t = 1$:
+Newton's law covers warming too: when $T < T_s$, $T' = -k(T - T_s) > 0$. By Section 13.5, $T(t) = 22 + (5 - 22)e^{-kt} = 22 - 17e^{-kt}$, with $t$ in minutes. At $t = 1$:
 
-$$12 = 22 - 17e^{-k}, \quad\text{so}\quad e^{-k} = \frac{10}{17} \quad\text{and}\quad k = \ln 1.7 \approx 0.531 \text{ per minute}.$$
+$$\begin{aligned} 12 &= 22 - 17e^{-k}, \\ e^{-k} &= \frac{10}{17}, \\ k &= \ln 1.7 \approx 0.531. \end{aligned}$$
 
-For 21 °C: $22 - 17e^{-kt} = 21$ gives $e^{-kt} = \tfrac{1}{17}$, so
+For 21 °C: $22 - 17e^{-kt} = 21$ gives $e^{-kt} = \tfrac{1}{17}$, so $t = \dfrac{\ln 17}{k}$, that is,
 
-$$t = \frac{\ln 17}{k} = \frac{\ln 17}{\ln 1.7} \approx 5.34 \text{ minutes}.$$
+$$t = \frac{\ln 17}{\ln 1.7} \approx 5.34 \text{ minutes}.$$
 
 ```check
 k5e = log(Rational(17, 10)); T5e = 22 - 17*exp(-k5e*t)
@@ -1357,13 +1369,13 @@ Both equations have the form $y' = -k(y - A)$ of the key idea in Section 13.5, w
 
 **(a)** $y' = -0.03(y - 20)$, so
 
-$$y = 20 + (5 - 20)e^{-0.03t} = 20 - 15e^{-0.03t}.$$
+$$\begin{aligned} y &= 20 + (5 - 20)e^{-0.03t} \\ &= 20 - 15e^{-0.03t}. \end{aligned}$$
 
 The tank holds 15 kg when $15e^{-0.03t} = 5$, that is, $e^{-0.03t} = \tfrac13$, at $t = \dfrac{\ln 3}{0.03} \approx 36.6$ minutes.
 
-**(b)** $v' = -0.2(v - 49)$, so $v = 49 + (0 - 49)e^{-0.2t} = 49\big(1 - e^{-0.2t}\big)$. It reaches 95% of 49 m/s when $1 - e^{-0.2t} = 0.95$, that is, $e^{-0.2t} = 0.05$, at
+**(b)** $v' = -0.2(v - 49)$, so $v = 49 + (0 - 49)e^{-0.2t} = 49\big(1 - e^{-0.2t}\big)$. It reaches 95% of 49 m/s when $1 - e^{-0.2t} = 0.95$, that is, $e^{-0.2t} = 0.05$, at $t = \dfrac{\ln 20}{0.2}$:
 
-$$t = \frac{\ln 20}{0.2} = 5\ln 20 \approx 15.0 \text{ seconds}.$$
+$$t = 5\ln 20 \approx 15.0 \text{ seconds}.$$
 
 ```check
 y6a = 20 - 15*exp(-Rational(3, 100)*t)
@@ -1420,7 +1432,7 @@ $$r = \ln\frac94 \approx 0.811 \text{ per day}.$$
 
 **(c)** $y = 900$ means $1 + 9e^{-rt} = \tfrac{10}{9}$, so $e^{-rt} = \tfrac{1}{81}$ and
 
-$$t = \frac{\ln 81}{r} = \frac{\ln 81}{\ln(9/4)} = \frac{2\ln 3}{\ln 1.5} \approx 5.42 \text{ days}.$$
+$$\begin{aligned} t &= \frac{\ln 81}{r} = \frac{\ln 81}{\ln(9/4)} \\ &= \frac{2\ln 3}{\ln 1.5} \approx 5.42 \text{ days}. \end{aligned}$$
 
 This is exactly twice the time $\dfrac{\ln 9}{r} \approx 2.71$ days at which half the students have heard it: the logistic curve climbs from 100 to 500 as fast as from 500 to 900.
 
@@ -1480,9 +1492,9 @@ Run Euler's method with step $h$, where $0 < h < 1$, on $y' = t - y$, $y(0) = 1$
 ::: solution
 **(a)** For $n = 0$: $t_0 - 1 + 2(1 - h)^0 = 0 - 1 + 2 = 1 = y_0$. Now suppose that $y_n = t_n - 1 + 2(1 - h)^n$ for some $n$. Then
 
-$$\begin{aligned} y_{n+1} &= y_n + h(t_n - y_n) = (1 - h)y_n + ht_n \\ &= (1 - h)(t_n - 1) + 2(1 - h)^{n+1} + ht_n \\ &= t_n - 1 + h + 2(1 - h)^{n+1} \\ &= t_{n+1} - 1 + 2(1 - h)^{n+1}, \end{aligned}$$
+$$\begin{aligned} y_{n+1} &= y_n + h(t_n - y_n) \\ &= (1 - h)y_n + ht_n \\ &= (1 - h)(t_n - 1) + ht_n \\ &\qquad + 2(1 - h)^{n+1} \\ &= t_n - 1 + h + 2(1 - h)^{n+1} \\ &= t_{n+1} - 1 + 2(1 - h)^{n+1}, \end{aligned}$$
 
-where the third line expands $(1 - h)(t_n - 1) = t_n - 1 - ht_n + h$, and the last uses $t_{n+1} = t_n + h$. So the formula holds for $n + 1$, and by induction for every $n$.
+where the fourth step expands $(1 - h)(t_n - 1) + ht_n = t_n - 1 - ht_n + h + ht_n = t_n - 1 + h$, and the last uses $t_{n+1} = t_n + h$. So the formula holds for $n + 1$, and by induction for every $n$.
 
 **(b)** With $h = 2/n$, $t_n = 2$, so $y_n = 2 - 1 + 2\big(1 - \tfrac2n\big)^n = 1 + 2\big(1 - \tfrac2n\big)^n$. Module 6 proved that $\big(1 + \tfrac{x}{n}\big)^n \to e^x$ for every $x$; with $x = -2$, $\big(1 - \tfrac2n\big)^n \to e^{-2}$, so $y_n \to 1 + 2e^{-2} = y(2)$. (Or directly: $\ln\big(1 - \tfrac2n\big)^n = n\ln\big(1 - \tfrac2n\big) \to -2$, a limit of the form $\infty \cdot 0$ that [L'Hôpital's rule](module_07_EN.html#products-differences) settles.) Euler's method converges to the solution as the step shrinks.
 
@@ -1519,11 +1531,11 @@ $$\int\frac{dv}{2401 - v^2} = \int\frac{dt}{245}.$$
 
 By partial fractions, $\dfrac{1}{2401 - v^2} = \dfrac{1}{(49 - v)(49 + v)} = \dfrac{1}{98}\Big(\dfrac{1}{49 - v} + \dfrac{1}{49 + v}\Big)$, so the left side is
 
-$$\frac{1}{98}\Big(-\ln(49 - v) + \ln(49 + v)\Big) = \frac{1}{98}\ln\frac{49 + v}{49 - v}.$$
+$$\begin{aligned} &\frac{1}{98}\Big(-\ln(49 - v) + \ln(49 + v)\Big) \\ &\quad= \frac{1}{98}\ln\frac{49 + v}{49 - v}. \end{aligned}$$
 
 At $t = 0$, $v = 0$ and both sides are 0, so the constant is 0, and $\ln\dfrac{49 + v}{49 - v} = \dfrac{98t}{245} = \dfrac{2t}{5}$. Hence $\dfrac{49 + v}{49 - v} = e^{2t/5}$, so $49 + v = e^{2t/5}(49 - v)$, $v\big(1 + e^{2t/5}\big) = 49\big(e^{2t/5} - 1\big)$, and, multiplying the top and the bottom by $e^{-t/5}$,
 
-$$v = 49\,\frac{e^{2t/5} - 1}{e^{2t/5} + 1} = 49\,\frac{e^{t/5} - e^{-t/5}}{e^{t/5} + e^{-t/5}} = 49\tanh\frac{t}{5},$$
+$$\begin{aligned} v &= 49\,\frac{e^{2t/5} - 1}{e^{2t/5} + 1} \\ &= 49\,\frac{e^{t/5} - e^{-t/5}}{e^{t/5} + e^{-t/5}} \\ &= 49\tanh\frac{t}{5}, \end{aligned}$$
 
 since $\tanh x = \dfrac{\sinh x}{\cosh x} = \dfrac{e^x - e^{-x}}{e^x + e^{-x}}$ (Module 6).
 
@@ -1559,15 +1571,15 @@ An RC circuit with $R = 1$ ohm and $C = 1$ farad, so that its time constant is $
 ::: solution
 **(a)** The equation is in standard form with $p = 1$, so $\mu = e^t$ and $(e^tq)' = e^t\sin t$. Integrate by parts twice (Module 11). Let $J = \int e^t\sin t\,dt$. With $u = \sin t$ and $dv = e^t\,dt$, $J = e^t\sin t - \int e^t\cos t\,dt$; and with $u = \cos t$, $\int e^t\cos t\,dt = e^t\cos t + \int e^t\sin t\,dt = e^t\cos t + J$. So $J = e^t\sin t - e^t\cos t - J$, and
 
-$$\int e^t\sin t\,dt = \frac{e^t(\sin t - \cos t)}{2} + C.$$
+$$\begin{aligned} &\int e^t\sin t\,dt \\ &\quad= \frac{e^t(\sin t - \cos t)}{2} + C. \end{aligned}$$
 
 Then $e^tq = \tfrac12 e^t(\sin t - \cos t) + C$, so $q = \tfrac12(\sin t - \cos t) + Ce^{-t}$, and $q(0) = -\tfrac12 + C = 0$ gives $C = \tfrac12$:
 
 $$q(t) = \frac{\sin t - \cos t + e^{-t}}{2}.$$
 
-**(b)** After a few seconds $e^{-t}$ is negligible, and $q \approx \tfrac12(\sin t - \cos t)$. By the addition formula of [Section 1.4](module_01_EN.html#trig),
+**(b)** After a few seconds $e^{-t}$ is negligible, and $q \approx \tfrac12(\sin t - \cos t)$. By the addition formula of [Section 1.4](module_01_EN.html#trig), $\sin\big(t - \tfrac\pi4\big) = \sin t\cos\tfrac\pi4 - \cos t\sin\tfrac\pi4$, and $\cos\tfrac\pi4 = \sin\tfrac\pi4 = \tfrac{1}{\sqrt2}$, so
 
-$$\sin\Big(t - \frac\pi4\Big) = \sin t\cos\frac\pi4 - \cos t\sin\frac\pi4 = \frac{\sin t - \cos t}{\sqrt2},$$
+$$\sin\Big(t - \frac\pi4\Big) = \frac{\sin t - \cos t}{\sqrt2},$$
 
 so $\tfrac12(\sin t - \cos t) = \tfrac{1}{\sqrt2}\sin\big(t - \tfrac\pi4\big)$. The input has amplitude 1; the response has amplitude $\tfrac{1}{\sqrt2} \approx 0.707$ and lags an eighth of a period behind. With the input $\sin\omega t$ the same steps give the amplitude $1/\sqrt{1 + \omega^2}$: the faster the input oscillates, the smaller the response. That is what a low-pass filter does.
 
@@ -1578,7 +1590,8 @@ steps(Integral(exp(t)*cos(t), t), exp(t)*cos(t) + Integral(exp(t)*sin(t), t))
 antideriv(exp(t)*(sin(t) - cos(t))/2, exp(t)*sin(t), t)
 q12 = (sin(t) - cos(t) + exp(-t))/2
 same(diff(q12, t) + q12, sin(t)); same(q12.subs(t, 0), 0)
-same((sin(t) - cos(t))/2, sin(t - pi/4)/sqrt(2)); rounds(1/sqrt(2), '0.707')
+same(expand_trig(sin(t - pi/4)), sin(t)*cos(pi/4) - cos(t)*sin(pi/4)); same(cos(pi/4), 1/sqrt(2)); same(sin(pi/4), 1/sqrt(2))
+same(sin(t - pi/4), (sin(t) - cos(t))/sqrt(2)); same((sin(t) - cos(t))/2, sin(t - pi/4)/sqrt(2)); rounds(1/sqrt(2), '0.707')
 wq = symbols('omega', positive=True)
 qw = (sin(wq*t) - wq*cos(wq*t))/(1 + wq**2)
 same(diff(qw, t) + qw, sin(wq*t)); same(sqrt(1 + wq**2)/(1 + wq**2), 1/sqrt(1 + wq**2))

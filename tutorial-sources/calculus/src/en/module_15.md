@@ -1089,7 +1089,7 @@ because $u\,p_n(u)$ is a sum of constant multiples of powers of $u$. By inductio
 :::
 
 ::: figure id=fig-15-3
-Left: the graph of $f(x) = e^{-1/x^2}$, with $f(0) = 0$, rises from the origin towards the line $y = 1$ (dashed). Its Maclaurin series is 0 (orange): it converges everywhere, but equals $f$ only at $x = 0$. Right: near 0, with the vertical scale stretched about fifteen times, the graph is still flat: $f(0.25) = e^{-16} \approx 1.1 \times 10^{-7}$.
+Left: the graph of $f(x) = e^{-1/x^2}$, with $f(0) = 0$, rises from the origin towards the line $y = 1$ (dashed). Its Maclaurin series is 0 (orange): it converges everywhere, but equals $f$ only at $x = 0$. Right: zoomed in on 0, five times horizontally and about fifteen times vertically, the graph is still flat: $f(0.25) = e^{-16} \approx 1.1 \times 10^{-7}$.
 :::
 
 ```check
@@ -1105,4 +1105,290 @@ for m_ in range(6):
     limit_is(uu**m_*exp(-uu**2), uu, oo, 0); limit_is(uu**m_*exp(-uu**2), uu, -oo, 0)
 same(series(fE, x, 0, 10), O(x**10)); holds(fE.subs(x, Rational(1, 10)) > 0)
 rounds(exp(-16), '1.1e-7'); same(fE.subs(x, Rational(1, 4)), exp(-16))
+```
+
+## Computing with series {#applications}
+
+### e, π and ln 2 {#constants}
+
+By Theorem 15.9 at $x = 1$,
+
+$$e = \sum_{n=0}^\infty \frac{1}{n!} = 1 + 1 + \frac{1}{2!} + \frac{1}{3!} + \cdots.$$
+
+Its partial sums $s_n = \sum_{k=0}^{n} 1/k!$ close in fast:
+
+```valuetable
+n = 0, 1, 2, 3, 5, 8, 10, 12
+$s_n$ = E*uppergamma(n + 1, 1)/factorial(n)
+$e - s_n$ = E - E*uppergamma(n + 1, 1)/factorial(n)
+digits = 10
+---
+n | s_n | e - s_n
+0 | 1 | 1.718281828
+1 | 2 | 0.7182818285
+2 | 2.5 | 0.2182818285
+3 | 2.666666667 | 0.05161516179
+5 | 2.716666667 | 0.001615161792
+8 | 2.718278770 | 3.058617775\times10^{-6}
+10 | 2.718281801 | 2.731266076\times10^{-8}
+12 | 2.718281828 | 1.728766714\times10^{-10}
+```
+
+Taylor's theorem says how fast. With $a = 0$ and $x = 1$, $e - s_n = R_n(1) = e^c/(n + 1)!$ for some $c$ between 0 and 1, and $1 < e^c < e < 3$, so
+
+$$0 < e - s_n < \frac{3}{(n + 1)!}.$$
+
+For $n = 10$ the bound is $3/11! \approx 7.5 \times 10^{-8}$; the table shows an error of $2.7 \times 10^{-8}$. Thirteen terms ($s_{12}$) give $e$ to ten significant digits. Compare the compound-interest limit of [Section 6.1](module_06_EN.html#compound-interest), $(1 + 1/n)^n$, which with $n = 525\,600$ still gives only 2.718279.
+
+```check
+for N_ in range(13):                                   # the formula of the table is the partial sum
+    holds(expand(E*uppergamma(N_ + 1, 1)/factorial(N_)) == sum(Rational(1, factorial(j)) for j in range(N_ + 1)))
+cR = symbols('c', positive=True); holds(E < 3); holds(exp(1) > exp(Rational(1, 2)))
+rounds(Rational(3, factorial(11)), '7.5e-8'); rounds(E - sE(10), '2.7e-8'); holds(E - sE(10) < Rational(3, factorial(11)))
+rounds(sE(12), '2.718281828'); rounds(E, '2.718281828'); rounds((1 + Rational(1, 525600))**525600, '2.718279')
+```
+
+The series of Theorem 15.3 for $\pi$, $\tfrac{\pi}{4} = 1 - \tfrac13 + \tfrac15 - \cdots$, is hopeless for computing: its error bound $1/(2n + 1)$ drops below $10^{-6}$ only after half a million terms. The cure is to use $\arctan$ at small numbers, where its series converges fast. **Machin's formula**,
+
+$$\frac{\pi}{4} = 4\arctan\frac15 - \arctan\frac{1}{239},$$
+
+which Exercise 15.11 proves, needs $\arctan$ only at $\tfrac15$ and $\tfrac{1}{239}$. Each term of the series of $\arctan\tfrac15$ is about 25 times smaller than the one before. The series alternate, with terms that decrease in size, so the error of each partial sum is less than the first term left out. Five terms of the first series and two of the second give
+
+$$\begin{aligned} \arctan\tfrac15 &\approx \tfrac15 - \tfrac{1}{3\cdot5^3} + \tfrac{1}{5\cdot5^5} - \tfrac{1}{7\cdot5^7} + \tfrac{1}{9\cdot5^9}, \\ \arctan\tfrac{1}{239} &\approx \tfrac{1}{239} - \tfrac{1}{3\cdot239^3}, \end{aligned}$$
+
+with errors less than $\tfrac{1}{11\cdot5^{11}} \approx 1.9 \times 10^{-9}$ and $\tfrac{1}{5\cdot239^5} \approx 2.6 \times 10^{-13}$, and so $\pi \approx 3.14159268$, with an error of at most $16 \times 1.9 \times 10^{-9} + 4 \times 2.6 \times 10^{-13}$, less than $3 \times 10^{-8}$. Formulas of this kind computed $\pi$ to hundreds of digits by hand, and to millions by computer.
+
+```check
+holds(Rational(1, 2*500000 + 1) < Rational(1, 10**6)); holds(Rational(1, 2*499999 + 1) > Rational(1, 10**6))
+atn = lambda X, N: sum(Rational((-1)**j, 2*j + 1)*X**(2*j + 1) for j in range(N))
+holds(all(Rational(1, 5)**(2*j + 3)/(2*j + 3) < Rational(1, 25)*Rational(1, 5)**(2*j + 1)/(2*j + 1)*Rational(3, 1) for j in range(10)))
+rounds(Rational(1, 11*5**11), '1.9e-9'); rounds(Rational(1, 5*239**5), '2.6e-13')
+holds(Abs(atan(Rational(1, 5)) - atn(Rational(1, 5), 5)) < Rational(1, 11*5**11)); holds(Abs(atan(Rational(1, 239)) - atn(Rational(1, 239), 2)) < Rational(1, 5*239**5))
+pM = 4*(4*atn(Rational(1, 5), 5) - atn(Rational(1, 239), 2)); rounds(pM, '3.14159268')
+bound = 16*Rational(1, 11*5**11) + 4*Rational(1, 5*239**5); holds(bound < Rational(3, 10**8)); holds(Abs(pM - pi) < bound)
+same(4*(4*atan(Rational(1, 5)) - atan(Rational(1, 239))), pi)
+```
+
+::: compute Fifty digits of π
+Python's `fractions` module computes with exact fractions, so the partial sums of Machin's formula can be compared with $\pi$ to any number of digits (SymPy supplies $\pi$ for the comparison):
+
+```python
+from fractions import Fraction
+import sympy as sp
+
+def arctan_sum(x, terms):
+    """The first terms of x - x**3/3 + x**5/5 - ..., as an exact fraction."""
+    return sum(Fraction((-1)**k, 2*k + 1)*x**(2*k + 1) for k in range(terms))
+
+for terms in (2, 5, 10, 20, 36):
+    p = 4*(4*arctan_sum(Fraction(1, 5), terms) - arctan_sum(Fraction(1, 239), terms))
+    error = sp.Rational(p.numerator, p.denominator) - sp.pi
+    print(f"{terms:2d} terms of each series: error {sp.N(error, 2)}")
+print(sp.N(sp.Rational(p.numerator, p.denominator), 52))
+```
+
+```output
+ 2 terms of each series: error -0.0010
+ 5 terms of each series: error 2.9E-8
+10 terms of each series: error -1.5E-15
+20 terms of each series: error -8.3E-30
+36 terms of each series: error -2.0E-52
+3.141592653589793238462643383279502884197169399375106
+```
+
+Each extra term gains about 1.4 digits, because $\log_{10} 25 \approx 1.4$; 36 terms of each series give an error of about $2 \times 10^{-52}$, so the 52 digits printed are those of $\pi$. SymPy writes the powers of ten with a capital `E`.
+:::
+
+```check
+rounds(log(25, 10), '1.4')
+pF = 4*(4*atn(Rational(1, 5), 36) - atn(Rational(1, 239), 36)); holds(Abs(pF - pi) < Rational(3, 10**52)); holds(Abs(pF - pi) > Rational(1, 10**52))
+```
+
+For $\ln 2$ the alternating harmonic series is just as slow. A faster series comes from subtracting two logarithms. Replacing $x$ by $-x$ in the series of $\ln(1 + x)$ gives $\ln(1 - x) = -x - \tfrac{x^2}{2} - \tfrac{x^3}{3} - \cdots$ for $\abs{x} < 1$.
+
+::: example A fast series for $\ln 2$
+Show that for $\abs{x} < 1$
+
+$$\ln\frac{1 + x}{1 - x} = 2\Big(x + \frac{x^3}{3} + \frac{x^5}{5} + \cdots\Big),$$
+
+and use it to find $\ln 2$ to six decimal places.
+
+Subtract the two series, term by term (both converge for $\abs{x} < 1$). The even powers have the same coefficient in both and cancel; the odd powers have opposite coefficients and double:
+
+$$\ln(1 + x) - \ln(1 - x) = 2x + \frac{2x^3}{3} + \frac{2x^5}{5} + \cdots,$$
+
+and the left side is $\ln\dfrac{1 + x}{1 - x}$, by the laws of logarithms. Now $\dfrac{1 + x}{1 - x} = 2$ when $1 + x = 2 - 2x$, that is, $x = \tfrac13$. So
+
+$$\ln 2 = 2\Big(\frac13 + \frac{1}{3\cdot3^3} + \frac{1}{5\cdot3^5} + \frac{1}{7\cdot3^7} + \cdots\Big).$$
+
+Each term is less than a ninth of the one before. If you stop after $n$ terms, the terms left out, $\dfrac{2x^{2k+1}}{2k + 1}$ for $k \ge n$, are at most $\dfrac{2x^{2n+1}}{2n + 1}$ times $1, x^2, x^4, \dots$, a geometric series, so the error is at most
+
+$$\frac{2x^{2n+1}}{2n + 1}\cdot\frac{1}{1 - x^2} = \frac{2}{(2n + 1)\,3^{2n+1}}\cdot\frac98.$$
+
+For $n = 5$ this is about $1.2 \times 10^{-6}$, not quite enough; for $n = 6$ it is about $1.1 \times 10^{-7}$. Six terms give $0.69314707$, and since the error is positive and less than $1.1 \times 10^{-7}$, $\ln 2$ lies between $0.69314707$ and $0.69314718$: to six decimal places, $\ln 2 = 0.693147$. The alternating harmonic series would need about a million terms for the same accuracy.
+
+```check
+same(series(log(1 - x), x, 0, 8).removeO(), -sum(x**j/j for j in range(1, 8)))
+same(expand(series(log(1 + x) - log(1 - x), x, 0, 12).removeO()), 2*sum(x**(2*j + 1)/(2*j + 1) for j in range(6)))
+same(expand_log(log((1 + x)/(1 - x)), force=True), log(1 + x) - log(1 - x))
+same(solve(Eq((1 + x)/(1 - x), 2), x), [Rational(1, 3)])
+l2 = lambda N: 2*sum(Rational(1, (2*j + 1)*3**(2*j + 1)) for j in range(N))
+holds(all(Rational(1, (2*j + 3)*3**(2*j + 3)) < Rational(1, 9)*Rational(1, (2*j + 1)*3**(2*j + 1)) for j in range(10)))
+bd = lambda N: Rational(2, (2*N + 1)*3**(2*N + 1))*Rational(9, 8)
+same(bd(5), 2*Rational(1, 3)**11/11/(1 - Rational(1, 9))); rounds(bd(5), '1.2e-6'); rounds(bd(6), '1.1e-7')
+rounds(l2(6), '0.69314707'); holds(log(2) - l2(6) > 0); holds(log(2) - l2(6) < bd(6))
+holds(l2(6) + Rational(11, 10**8) < Rational(69314719, 10**8)); rounds(log(2), '0.693147')
+holds(Abs(log(2) - l2(5)) > Rational(5, 10**7))                  # five terms are not enough for six decimals
+holds(Rational(1, 10**6 + 1) < Rational(5, 10**7)*Rational(21, 10)) # the alternating harmonic bound 1/(n + 1) needs n near a million
+```
+:::
+
+### Limits by series {#limits}
+
+Series turn many limits into algebra. Write $O(x^m)$, as in Module 4, for a quantity whose size is at most a constant times $\abs{x}^m$ for $x$ near 0. Taylor's inequality gives such statements for every function in this module: for instance $\sin x = x - \tfrac{x^3}{6} + O(x^5)$, since $T_3 = T_4$ for $\sin$ and $\abs{R_4(x)} \le \abs{x}^5/5!$. The rules for $x$ near 0 are those of big-O in Module 3: $x^k\,O(x^m) = O(x^{k+m})$, a sum of terms $O(x^m)$ is $O(x^m)$, and $O(x^m)$ is also $O(x^k)$ when $k \le m$.
+
+::: example Two limits
+Find (a) $\displaystyle\lim_{x\to0}\frac{\sin x - x}{x^3}$ and (b) $\displaystyle\lim_{x\to0}\frac{e^x\sin x - x - x^2}{x^3}$.
+
+**(a)** Since $\sin x - x = -\tfrac{x^3}{6} + O(x^5)$,
+
+$$\frac{\sin x - x}{x^3} = -\frac16 + O(x^2) \to -\frac16.$$
+
+L'Hôpital's rule reaches the same answer only after three applications.
+
+**(b)** Multiply the series of $e^x$ and $\sin x$, keeping the terms up to $x^3$; every product of higher degree goes into $O(x^4)$:
+
+$$\begin{aligned} e^x\sin x &= \Big(1 + x + \frac{x^2}{2} + O(x^3)\Big)\Big(x - \frac{x^3}{6} + O(x^5)\Big) \\ &= x + x^2 + \Big(\frac12 - \frac16\Big)x^3 + O(x^4) = x + x^2 + \frac{x^3}{3} + O(x^4). \end{aligned}$$
+
+So $\dfrac{e^x\sin x - x - x^2}{x^3} = \dfrac13 + O(x) \to \dfrac13$.
+
+```check
+same(series(sin(x) - x, x, 0, 5).removeO(), -x**3/6); limit_is((sin(x) - x)/x**3, x, 0, -Rational(1, 6))
+same(series((sin(x) - x)/x**3 + Rational(1, 6), x, 0, 3).removeO(), x**2/120)
+same(series(exp(x)*sin(x), x, 0, 4).removeO(), x + x**2 + x**3/3)
+prod_ = expand((1 + x + x**2/2)*(x - x**3/6)); same(sum(prod_.coeff(x, j)*x**j for j in range(4)), x + x**2 + x**3/3)
+same(Rational(1, 2) - Rational(1, 6), Rational(1, 3)); limit_is((exp(x)*sin(x) - x - x**2)/x**3, x, 0, Rational(1, 3))
+F_ = sin(x) - x; G_ = x**3                                   # three rounds of L'Hopital: the forms stay 0/0 until the third
+same([diff(F_, x, j).subs(x, 0) for j in range(3)], [0, 0, 0]); same([diff(G_, x, j).subs(x, 0) for j in range(3)], [0, 0, 0])
+same(diff(F_, x, 3).subs(x, 0)/diff(G_, x, 3).subs(x, 0), -Rational(1, 6))
+```
+:::
+
+::: pitfall
+Keep enough terms. With $\sin x \approx x$ alone, the numerator of (a) becomes $x - x = 0$ and the limit seems to be 0. The first term that survives the cancellation decides the limit, so expand each function until a nonzero term of the order of the denominator appears, and carry the $O(\cdot)$ term to see what you have dropped.
+:::
+
+### Approximations in physics {#physics}
+
+Physicists replace functions by their first few Taylor terms all the time, and Taylor's theorem tells them what they lose.
+
+::: example Kinetic energy at low speed
+In special relativity, a body of mass $m$ moving at speed $v$ has kinetic energy
+
+$$E_k = mc^2\Big(\frac{1}{\sqrt{1 - v^2/c^2}} - 1\Big),$$
+
+where $c = 299\,792\,458$ m/s is the speed of light. Show that for small $v/c$ this is close to Newton's $\tfrac12 mv^2$, and estimate the relative error of Newton's formula.
+
+Put $x = v^2/c^2$ in Example 15.10(b), $\dfrac{1}{\sqrt{1 - x}} = 1 + \dfrac{x}{2} + \dfrac{3x^2}{8} + \cdots$:
+
+$$E_k = mc^2\Big(\frac{v^2}{2c^2} + \frac{3v^4}{8c^4} + \cdots\Big) = \frac12 mv^2 + \frac{3mv^4}{8c^2} + \cdots.$$
+
+Newton's formula is the first term. The second, divided by the first, is $\tfrac34\,v^2/c^2$: that is roughly the relative error of $\tfrac12mv^2$. At $v = 0.1c$ it is 0.75%; the exact values are $E_k \approx 0.0050378\,mc^2$ against $\tfrac12mv^2 = 0.005\,mc^2$, a relative error of 0.75% indeed. For any speed up to 300 m/s, $v^2/c^2 < 1.1 \times 10^{-12}$, and Newton's formula is right to about one part in a million million.
+
+```check
+same(series(1/sqrt(1 - x) - 1, x, 0, 3).removeO(), x/2 + 3*x**2/8)
+mm, vv, cc2 = symbols('m v c', positive=True)
+Ek = mm*cc2**2*(1/sqrt(1 - vv**2/cc2**2) - 1)
+same(series(Ek, vv, 0, 6).removeO(), mm*vv**2/2 + 3*mm*vv**4/(8*cc2**2))
+same((3*mm*vv**4/(8*cc2**2))/(mm*vv**2/2), Rational(3, 4)*vv**2/cc2**2)
+b_ = Rational(1, 10); g1 = 1/sqrt(1 - b_**2) - 1
+rounds(g1, '0.0050378'); same(b_**2/2, Rational(5, 1000)); rounds(100*(g1 - b_**2/2)/g1, '0.75'); same(100*Rational(3, 4)*b_**2, Rational(75, 100))
+holds((Rational(300, 299792458))**2 < Rational(11, 10**13))
+holds(Rational(3, 4)*(Rational(300, 299792458))**2 < Rational(1, 10**12))
+```
+:::
+
+The small-angle approximation $\sin\theta \approx \theta$ of Example 7.6 is the Taylor polynomial $T_1$ of the sine. Module 7 measured its relative error with a table; series explain the table. Since $\theta - \sin\theta = \tfrac{\theta^3}{6} + O(\theta^5)$ and $\sin\theta = \theta\big(1 + O(\theta^2)\big)$,
+
+$$\frac{\theta - \sin\theta}{\sin\theta} = \frac{\theta^2}{6} + O(\theta^4).$$
+
+At $\theta = 0.1$ this gives $0.001667$, against $0.001669$ in Module 7's table, and it explains why the error grew about a hundredfold for each tenfold increase in $\theta$. For a pendulum of length $L$, the small-angle approximation gives the familiar period $2\pi\sqrt{L/g}$, the same for every small swing. Physics texts show, by a longer calculation in which the binomial series appears inside an integral, that a swing of amplitude $\theta_0$ (in radians) takes
+
+$$T = 2\pi\sqrt{\frac{L}{g}}\,\Big(1 + \frac{\theta_0^2}{16} + \cdots\Big).$$
+
+So a swing of 0.1 radian (about $6^\circ$) takes about 0.06% longer than the small-angle formula says, and a swing of 0.5 radian about 1.6% longer.
+
+```check
+same(series((theta - sin(theta))/sin(theta), theta, 0, 4).removeO(), theta**2/6)
+rounds(Rational(1, 100)/6, '0.001667'); rounds((Rational(1, 10) - sin(Rational(1, 10)))/sin(Rational(1, 10)), '0.001669')
+mk = symbols('m', positive=True)
+same(series(2/pi*elliptic_k(sin(theta/2)**2), theta, 0, 4).removeO(), 1 + theta**2/16)   # the exact period, divided by 2 pi sqrt(L/g)
+rounds(Rational(1, 10)*180/pi, '6'); rounds(100*Rational(1, 100)/16, '0.06'); rounds(100*Rational(1, 4)/16, '1.6')
+rounds(100*(2/pi*elliptic_k(sin(Rational(1, 4))**2) - 1), '1.6')
+```
+
+### How computers evaluate functions {#libraries}
+
+A processor adds, subtracts, multiplies and divides; it has no circuit for $\sin x$ or $e^x$. Mathematics libraries, the code behind Python's `math.sin` and the sine of every programming language and spreadsheet, evaluate such functions with polynomials, in two steps.
+
+**Range reduction.** The Maclaurin series of $\sin$ converges for every $x$, but for large $x$ it is useless: at $x = 100$ its terms grow to about $10^{42}$ before they shrink, and in floating point their sum, a number between $-1$ and 1, is lost in the rounding. So the library first uses the symmetries of $\sin$ to make $x$ small. Write $x = k\cdot\tfrac{\pi}{2} + r$, with $k$ the whole number nearest to $x/(\pi/2)$, so that $\abs{r} \le \pi/4$. By the addition formulas of Module 1, $\sin x$ is $\sin r$, $\cos r$, $-\sin r$ or $-\cos r$, according as $k$ leaves the remainder 0, 1, 2 or 3 when divided by 4.
+
+**A polynomial.** For $\abs{r} \le \pi/4$ Taylor polynomials converge fast. Since $T_{15} = T_{16}$ for $\sin$, Taylor's inequality gives
+
+$$\abs{\sin r - T_{15}(r)} \le \frac{(\pi/4)^{17}}{17!} \approx 4.6 \times 10^{-17},$$
+
+below the precision of the computer's numbers, and $T_{16}$ does even better for $\cos r$. A polynomial is evaluated from the inside out, as $c_0 + u\big(c_1 + u(c_2 + \cdots)\big)$ with $u = r^2$, which takes one multiplication and one addition per coefficient: this is **Horner's rule**.
+
+```check
+mx = max(range(1, 300), key=lambda j: Rational(100)**j/factorial(j)); same(mx, 99)
+rounds(Rational(100)**100/factorial(100), '1e42'); same(Rational(100)**99/factorial(99), Rational(100)**100/factorial(100))
+for K_, val in ((0, sin(theta)), (1, cos(theta)), (2, -sin(theta)), (3, -cos(theta))):
+    same(expand_trig(sin(K_*pi/2 + theta)), val)
+same(series(sin(x), x, 0, 17).removeO(), series(sin(x), x, 0, 16).removeO())
+rounds((pi/4)**17/factorial(17), '4.6e-17'); holds((pi/4)**18/factorial(18) < (pi/4)**17/factorial(17))
+```
+
+Real libraries refine both steps. Their polynomials are not Taylor polynomials but **minimax polynomials**, whose coefficients are tuned to spread the error evenly over the interval, so that a lower degree reaches full precision. And they carry out the range reduction with extra digits of $\pi$, because for large $x$ the subtraction $x - k\pi/2$ cancels leading digits, as in Module 2. The exponential is handled the same way: write $x = k\ln 2 + r$ with $\abs{r} \le \tfrac12\ln 2$; then $e^x = 2^ke^r$, where $e^r$ comes from a polynomial and multiplying by $2^k$ only changes the exponent of a floating-point number.
+
+::: compute A sine function of your own
+Range reduction and a Taylor polynomial of degree 15 already make a good sine:
+
+```python
+import math
+
+S = [(-1)**j/math.factorial(2*j + 1) for j in range(8)]    # sin: r, r^3, ..., r^15
+C = [(-1)**j/math.factorial(2*j) for j in range(9)]        # cos: 1, r^2, ..., r^16
+
+def poly(coeffs, u):
+    """c0 + c1*u + c2*u**2 + ..., by Horner's rule."""
+    total = 0.0
+    for c in reversed(coeffs):
+        total = total*u + c
+    return total
+
+def my_sin(x):
+    k = round(x/(math.pi/2))           # x = k*(pi/2) + r with |r| <= pi/4
+    r = x - k*(math.pi/2)
+    s, c = r*poly(S, r*r), poly(C, r*r)
+    return [s, c, -s, -c][k % 4]
+
+for x in [0.5, 2.0, 10.0, 1000.0, 1e6]:
+    print(f"x = {x:>9}: my_sin = {my_sin(x):+.16f}, math.sin = {math.sin(x):+.16f}")
+```
+
+```output
+x =       0.5: my_sin = +0.4794255386042030, math.sin = +0.4794255386042030
+x =       2.0: my_sin = +0.9092974268256817, math.sin = +0.9092974268256817
+x =      10.0: my_sin = -0.5440211108893701, math.sin = -0.5440211108893698
+x =    1000.0: my_sin = +0.8268795405320475, math.sin = +0.8268795405320025
+x = 1000000.0: my_sin = -0.3499935020939287, math.sin = -0.3499935021712929
+```
+
+For $x = 0.5$ and 2 the two agree in every digit printed, and for $x = 10$ in all but the last. For larger $x$ they part company: the error of `my_sin` grows with $x$. The polynomial is not to blame; the reduction is. `math.pi/2` is $\pi/2$ rounded to about 16 digits, and $k$ times its error, with $k$ about $x/1.57$, ends up in $r$: for $x = 10^6$ that is an error near $10^{-10}$. Python's `math.sin` reduces with many more digits of $\pi$.
+:::
+
+```check
+holds(Abs(N(pi/2, 30) - Float(1.5707963267948966, 30)) < 10**-16); holds(Abs(N(pi/2, 30) - Float(1.5707963267948966, 30)) > 5*10**-17)
+rounds(1e6/1.5707963267948966*6.1e-17, '4e-11'); holds(Abs(-0.3499935020939287 - sin(Integer(10**6))) > 10**-11)
+holds(Abs(-0.3499935020939287 - sin(Integer(10**6))) < 10**-9)
 ```
