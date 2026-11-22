@@ -127,12 +127,14 @@ function mathPlugin(md) {
     if (/\s/.test(s[start + 1]) || /\s/.test(s[end - 1])) return false
     // Closing punctuation straight after the formula stays on the same line.
     const punct = (s.slice(end + 1).match(/^[，。；：、？！）」』”,.;:)!?]+/) || [''])[0]
+    // A word attached to the formula ("$x$-axis", "$n$th", "$f$'s") stays on the same line as it.
+    const suffix = punct ? '' : (s.slice(end + 1).match(/^(?:-[A-Za-z]+(?:-[A-Za-z]+)*|th\b|st\b|nd\b|rd\b|'s\b)/) || [''])[0]
     if (!silent) {
       const tok = state.push('math_inline', 'math', 0)
       tok.content = s.slice(start + 1, end)
-      tok.meta = { punct }
+      tok.meta = { punct, suffix }
     }
-    state.pos = end + 1 + punct.length
+    state.pos = end + 1 + punct.length + suffix.length
     return true
   })
   md.block.ruler.after('blockquote', 'math_block', (state, startLine, endLine, silent) => {
@@ -165,6 +167,8 @@ function mathPlugin(md) {
     // Punctuation straight after a formula ("$f(x)$,") is set inside it, so a line can never start with
     // it (a word joiner does not stop browsers breaking after KaTeX's inline-blocks). As \mathclose, it
     // gets no space before it, even after an operator such as \ln or an absolute value.
+    const suffix = (toks[i].meta && toks[i].meta.suffix) || ''
+    if (suffix) return `<span class="nobr">${tex(toks[i].content, false, env)}${escapeHtml(suffix)}</span>`
     return punct ? tex(`${toks[i].content}\\mathclose{\\text{${punct}}}`, false, env) : tex(toks[i].content, false, env)
   }
   md.renderer.rules.math_block = (toks, i, opts, env) => `<div class="math-display">${tex(toks[i].content, true, env)}</div>\n`

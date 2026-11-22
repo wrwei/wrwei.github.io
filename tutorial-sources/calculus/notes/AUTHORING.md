@@ -232,7 +232,8 @@ digits = 6
 The first line names the variable and its values (decimals, integers or SymPy expressions such as
 `pi/6`); each further line is a column, `$LATEX HEADER$ = SYMPY EXPRESSION`; options: `digits = N`
 (significant digits, default 6), `decimals = N` (fixed decimals instead), `layout = columns`
-(values across, for short wide tables). Values are computed exactly from the decimal inputs, with 40
+(values across, for short wide tables), `sci = no` (never scientific notation: by default a value below
+10⁻⁴ or from 10⁶ up is written as $a\times10^{k}$, which can mix formats within a column). Values are computed exactly from the decimal inputs, with 40
 digits, then rounded; a short exact value (1.9) is shown exactly. A value where the expression is
 undefined shows "undefined". `--update` writes the rows under a `---` line; never edit them.
 

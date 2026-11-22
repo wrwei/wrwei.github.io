@@ -21,6 +21,7 @@ page.on('pageerror', e => errors.push(String(e)))
 for (let i = 0; i < pairs.length; i += 2) {
   const file = path.join(ROOT, 'out', 'site', pairs[i])
   await page.goto('file://' + file, { waitUntil: 'load' })
+  await page.evaluate(async () => { document.querySelectorAll('img[loading=lazy]').forEach(i => { i.loading = 'eager' }); await Promise.all([...document.images].map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r }))) })   // figures loaded before capturing
   await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true }))   // folded solutions and trouble boxes
   const box = await page.evaluate((text) => {
     const sel = 'main details, main .callout, main .where, main .term, main .file, main table, main ul, main ol, main p, main h2, main h3, main .tabs, main figure, main div'

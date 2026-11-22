@@ -167,11 +167,13 @@
           if (n.op === '-') return function (v) { return A(v) - B(v) }
           if (n.op === '*') return function (v) { return A(v) * B(v) }
           if (n.op === '/') return function (v) { return A(v) / B(v) }
-          return function (v) {   // powers: real cube roots of negatives, x^(1/3) for x < 0
+          return function (v) {   // powers: a negative base with a rational exponent p/q, q odd, is real
             var a = A(v), b = B(v)
             if (a < 0 && !Number.isInteger(b)) {
-              var r = 1 / b
-              if (Number.isInteger(r) && Math.abs(r) % 2 === 1) return -Math.pow(-a, b)
+              for (var q = 3; q <= 15; q += 2) {          // x^(1/3) = -2 at -8, x^(2/3) = 4, x^(5/3) = -32
+                var p = Math.round(b * q)
+                if (Math.abs(b - p / q) < 1e-12) return (p % 2 === 0 ? 1 : -1) * Math.pow(-a, b)
+              }
             }
             return Math.pow(a, b)
           }
@@ -209,19 +211,23 @@
     fmt: fmt,
     deriv: function (f, x) { var hh = 1e-5 * (1 + Math.abs(x)); return (f(x + hh) - f(x - hh)) / (2 * hh) },
     deriv2: function (f, x) { var hh = 1e-4 * (1 + Math.abs(x)); return (f(x + hh) - 2 * f(x) + f(x - hh)) / (hh * hh) },
-    integrate: function (f, a, b, tol) {
-      tol = tol || 1e-10
+    // Adaptive Simpson. tol is absolute, but never finer than 1e-12 of the first estimate; at most
+    // maxEvals evaluations of f (default 200000), so a badly behaved integrand cannot hang the page.
+    integrate: function (f, a, b, tol, maxEvals) {
+      var evals = 0, budget = maxEvals || 200000
+      function F(x) { evals++; return f(x) }
       function simp(a, b, fa, fm, fb) { return (b - a) / 6 * (fa + 4 * fm + fb) }
       function rec(a, b, fa, fm, fb, whole, tol, depth) {
         var m = (a + b) / 2, lm = (a + m) / 2, rm = (m + b) / 2
-        var flm = f(lm), frm = f(rm)
+        var flm = F(lm), frm = F(rm)
         var left = simp(a, m, fa, flm, fm), right = simp(m, b, fm, frm, fb)
-        if (depth > 40 || Math.abs(left + right - whole) <= 15 * tol) return left + right + (left + right - whole) / 15
+        if (depth > 40 || evals > budget || Math.abs(left + right - whole) <= 15 * tol) return left + right + (left + right - whole) / 15
         return rec(a, m, fa, flm, fm, left, tol / 2, depth + 1) + rec(m, b, fm, frm, fb, right, tol / 2, depth + 1)
       }
       if (a === b) return 0
-      var fa = f(a), fb = f(b), fm = f((a + b) / 2)
-      return rec(a, b, fa, fm, fb, simp(a, b, fa, fm, fb), tol, 0)
+      var fa = F(a), fb = F(b), fm = F((a + b) / 2), whole = simp(a, b, fa, fm, fb)
+      tol = Math.max(tol || 1e-10, 1e-12 * Math.abs(whole))
+      return rec(a, b, fa, fm, fb, whole, tol, 0)
     },
     riemann: function (f, a, b, n, rule) {
       var dx = (b - a) / n, s = 0

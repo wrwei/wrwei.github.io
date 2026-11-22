@@ -51,12 +51,12 @@ holds(lo < Rational(1, 3)); holds(Rational(1, 3) < hi)
 ```
 :::
 
-Four strips leave a wide gap, but thinner strips close it. With 1000 strips the two totals are 0.3328335 and 0.3338335 (Section 9.3 computes them), and the gap is only $\tfrac{1}{1000}$. They close in on $\tfrac13$, and Section 9.3 proves that $A = \tfrac13$.
+Four strips leave a wide gap, but thinner strips close it. With 100 strips the two totals are 0.32835 and 0.33835 (Section 9.3 computes them), and the gap is only $\tfrac{1}{100}$. They close in on $\tfrac13$, and Section 9.3 proves that $A = \tfrac13$.
 
 ```check
-L1000 = Rational(1, 1000)*sum(Rational(k, 1000)**2 for k in range(1000))
-R1000 = L1000 + Rational(1, 1000)
-same(L1000, Rational(3328335, 10**7)); same(R1000, Rational(3338335, 10**7))
+L100 = Rational(1, 100)*sum(Rational(k, 100)**2 for k in range(100))
+R100 = Rational(1, 100)*sum(Rational(k, 100)**2 for k in range(1, 101))
+same(L100, Rational(32835, 10**5)); same(R100, Rational(33835, 10**5)); same(R100 - L100, Rational(1, 100))
 ```
 
 ### The distance problem {#distance-problem}
@@ -386,7 +386,7 @@ Left, right and midpoint sums for $f(x) = 1/x$ on $[1, 2]$ with $n = 4$ (Example
 How do the sums approach the area as $n$ grows? Here are the three sums for $f(x) = x^2$ on $[0, 1]$:
 
 ```valuetable
-n = 4, 10, 100, 1000
+n = 4, 10, 100
 $L_n$ = Sum((i/n)**2, (i, 0, n - 1))/n
 $R_n$ = Sum((i/n)**2, (i, 1, n))/n
 $M_n$ = Sum(((i - 1/2)/n)**2, (i, 1, n))/n
@@ -396,26 +396,24 @@ n | L_n | R_n | M_n
 4 | 0.21875 | 0.46875 | 0.328125
 10 | 0.285 | 0.385 | 0.3325
 100 | 0.32835 | 0.33835 | 0.333325
-1000 | 0.3328335 | 0.3338335 | 0.33333325
 ```
 
 All three close in on $\tfrac13 = 0.3333\ldots$: the left sums from below and the right sums from above, as for any increasing function, and the midpoint sums much faster than either. The errors show how fast:
 
 ```valuetable
 n = 10, 20, 40, 80
-$L_n - \tfrac13$ = Sum((i/n)**2, (i, 0, n - 1))/n - 1/3
 $R_n - \tfrac13$ = Sum((i/n)**2, (i, 1, n))/n - 1/3
 $M_n - \tfrac13$ = Sum(((i - 1/2)/n)**2, (i, 1, n))/n - 1/3
 decimals = 8
 ---
-n | L_n - \tfrac13 | R_n - \tfrac13 | M_n - \tfrac13
-10 | -0.04833333 | 0.05166667 | -0.00083333
-20 | -0.02458333 | 0.02541667 | -0.00020833
-40 | -0.01239583 | 0.01260417 | -0.00005208
-80 | -0.00622396 | 0.00627604 | -0.00001302
+n | R_n - \tfrac13 | M_n - \tfrac13
+10 | 0.05166667 | -0.00083333
+20 | 0.02541667 | -0.00020833
+40 | 0.01260417 | -0.00005208
+80 | 0.00627604 | -0.00001302
 ```
 
-Each time $n$ doubles, the errors of $L_n$ and $R_n$ are roughly halved, and the error of $M_n$ is divided by exactly 4. The exact formulas found below explain this: the error of $R_n$ is about $\tfrac{1}{2n}$, and that of $M_n$ is exactly $-\tfrac{1}{12n^2}$. So a thousand times more rectangles make the left and right sums about a thousand times more accurate, but the midpoint sum a million times. Module 11 explains why, and builds the midpoint sum, the trapezoidal rule and Simpson's rule into practical methods of numerical integration.
+Each time $n$ doubles, the error of $R_n$ is roughly halved, and so is that of $L_n$, which is almost the same size with the opposite sign; the error of $M_n$ is divided by exactly 4. The exact formulas found below explain this: the error of $R_n$ is about $\tfrac{1}{2n}$, and that of $M_n$ is exactly $-\tfrac{1}{12n^2}$. So a thousand times more rectangles make the left and right sums about a thousand times more accurate, but the midpoint sum a million times. Module 11 explains why, and builds the midpoint sum, the trapezoidal rule and Simpson's rule into practical methods of numerical integration.
 
 ```check
 LL = lambda N_: Lsum(x9**2, 0, 1, N_); RR = lambda N_: Rsum(x9**2, 0, 1, N_); MM = lambda N_: Msum(x9**2, 0, 1, N_)
@@ -1070,7 +1068,7 @@ Here are the exact integrals of this module, from 0 to $b$, for $b > 0$:
 | $x^3$ | $\dfrac{b^4}{4}$ | Exercise 9.5 |
 | $9.8x$ | $4.9b^2$ | a triangle, Section 9.1 |
 
-Treat each answer as a function of the upper limit $b$, and differentiate it with the power rule of Module 4: $\big(\tfrac{b^2}{2}\big)' = b$, $\big(\tfrac{b^3}{3}\big)' = b^2$, $\big(\tfrac{b^4}{4}\big)' = b^3$ and $\big(4.9b^2\big)' = 9.8b$. Each time the integrand comes back, with $b$ in place of $x$. For the falling ball this is no surprise: the area under the velocity graph up to time $b$ is the distance fallen, $s(b) = 4.9b^2$, and the derivative of the distance is the velocity.
+Treat each answer as a function of the upper limit $b$, and differentiate it with the [power rule](module_04_EN.html#power-rule) of Module 4: $\big(\tfrac{b^2}{2}\big)' = b$, $\big(\tfrac{b^3}{3}\big)' = b^2$, $\big(\tfrac{b^4}{4}\big)' = b^3$ and $\big(4.9b^2\big)' = 9.8b$. Each time the integrand comes back, with $b$ in place of $x$. For the falling ball this is no surprise: the area under the velocity graph up to time $b$ is the distance fallen, $s(b) = 4.9b^2$, and the derivative of the distance is the velocity.
 
 ```check
 for F_, f_ in ((bp**2/2, x), (bp**3/3, x**2), (bp**4/4, x**3), (Rational(49, 10)*bp**2, Rational(98, 10)*x)):
@@ -1081,7 +1079,7 @@ The pattern is the **Fundamental Theorem of Calculus**, the subject of Module 10
 
 $$\int_a^b f(x)\,dx = F(b) - F(a).$$
 
-With it, $\int_0^1 x^2\,dx = \tfrac{1^3}{3} - \tfrac{0^3}{3} = \tfrac13$ takes one line, with no sums and no limits. It also reaches integrals that this module could only estimate. Since $(\ln x)' = \tfrac1x$ for $x > 0$ (Module 6), $\int_1^2 \tfrac{dx}{x} = \ln 2 - \ln 1 = \ln 2 \approx 0.693147$, the number that the sums of Example 9.4 approached; and since $(-\cos x)' = \sin x$ (Module 5), $\int_0^\pi \sin x\,dx = -\cos\pi + \cos 0 = 2$.
+With it, $\int_0^1 x^2\,dx = \tfrac{1^3}{3} - \tfrac{0^3}{3} = \tfrac13$ takes one line, with no sums and no limits. It also reaches integrals that this module could only estimate. Since $(\ln x)' = \tfrac1x$ for $x > 0$ (Module 6), $\int_1^2 \tfrac{dx}{x} = \ln 2 - \ln 1 = \ln 2 \approx 0.693147$, the number that the sums of Example 9.4 approached; and since $(-\cos x)' = \sin x$ ([Module 5](module_05_EN.html#trig)), $\int_0^\pi \sin x\,dx = -\cos\pi + \cos 0 = 2$.
 
 ```check
 same(diff(log(x), x), 1/x); same(log(2) - log(1), log(2)); same(diff(-cos(x), x), sin(x)); same(-cos(pi) + cos(0), 2)
