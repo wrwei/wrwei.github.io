@@ -1329,7 +1329,7 @@ The simulated mean is close to $1/\lambda = 0.5$, the fraction of waits longer t
 
 ## What you learned {#summary}
 
-- **Slice, approximate, add, take the limit.** A quantity spread over $[a, b]$ whose slice near $x$ holds about $q(x)\,\Delta x$ is $\int_a^b q(x)\,dx$. The approximation must be squeezed between the least and greatest values of $q$ on each slice; check the units of $q(x)\,dx$.
+- **Slice, approximate, add, take the limit.** A quantity spread over $[a, b]$ whose slice near $x$ holds about $q(x)\,\Delta x$ is $\int_a^b q(x)\,dx$. The true amount in each slice must lie between $\Delta x$ times the least and the greatest values of $q$ there; check the units of $q(x)\,dx$.
 - **Areas**: $\int_a^b (\text{top} - \text{bottom})\,dx$ with vertical strips, $\int_c^d (\text{right} - \text{left})\,dy$ with horizontal strips. Find where the curves meet, and split where they cross.
 - **Volumes**: $\int_a^b A(x)\,dx$ for known cross-sections (a pyramid or cone is $\tfrac13$ base times height). For solids of revolution: discs $\pi\int f^2$, washers $\pi\int (R^2 - r^2)$, shells $2\pi\int (\text{radius})(\text{height})$, with radii measured from the axis.
 - **Arc length**: $L = \int_a^b \sqrt{1 + f'(x)^2}\,dx$, the limit of the lengths of inscribed polygons (Pythagoras and the Mean Value Theorem). Most arc length integrals need numerical evaluation.

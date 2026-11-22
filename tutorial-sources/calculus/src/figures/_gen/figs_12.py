@@ -110,13 +110,19 @@ def fig_12_2(L):
     ax.plot([-0.15, 1.3], [0, 0], [0, 0], color=C['navy'], lw=1.3, zorder=8)
     ax.text(1.36, 0, -0.03, r'$x$', color=C['navy'], fontsize=13, zorder=9)
     ax.text(0.08, 0, 0.5, r'$y = \sqrt{x}$', color=C['blue'], fontsize=11, zorder=9, ha='right')
-    ax.text(0.9, 0, 0.5, r'$y = x^2$', color=C['purple'], fontsize=11, zorder=9)
     ax.set_xlim(0, 1.15)
     ax.set_ylim(-1.0, 1.0)
     ax.set_zlim(-1.0, 1.0)
     ax.set_box_aspect((1.15, 2.0, 2.0), zoom=1.3)
     ax.view_init(elev=20, azim=-60)
     ax.set_axis_off()
+    # Label the lower boundary from free space, with a leader line to a point of the curve.
+    from mpl_toolkits.mplot3d import proj3d
+    fig.canvas.draw()
+    px, py, _ = proj3d.proj_transform(0.86, 0.0, 0.86**2, ax.get_proj())
+    ax.annotate(r'$y = x^2$', xy=(px, py), xytext=(70, 30), textcoords='offset points', color=C['purple'],
+                fontsize=11, ha='left', va='center', zorder=10,
+                arrowprops=dict(arrowstyle='-', color=C['purple'], lw=1.0, shrinkA=2, shrinkB=1))
 
     # The washer face, seen along the x-axis.
     a2 = fig.add_axes([0.63, 0.1, 0.35, 0.78])

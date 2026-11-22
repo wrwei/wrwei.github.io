@@ -13,6 +13,7 @@
 import contextlib
 import io
 import json
+import signal
 import sys
 import time
 import traceback
@@ -135,8 +136,17 @@ def fmt_number(v, digits=6, decimals=None, sci=None):
         return f'{format(r.scaleb(-e), "f")}\\times10^{{{e}}}'
 
 
+class CellTimeout(Exception):
+    pass
+
+
+def _on_alarm(signum, frame):
+    raise CellTimeout('a value took longer than 30 s to compute: simplify the formula or use fewer values')
+
+
 def compute_table(spec):
     import sympy as sp
+    signal.signal(signal.SIGALRM, _on_alarm)
     lines = [l for l in spec if l.strip()]
     opts = {'digits': 6, 'decimals': None, 'layout': 'rows', 'sci': None}
     var_line, cols = None, []
@@ -176,12 +186,25 @@ def compute_table(spec):
             shown = sp.latex(val)
         row = [shown]
         for e in exprs:
+            signal.alarm(30)   # a cell that takes longer is reported, not waited for
             try:
                 # Substitute the input as a 60-digit number and evaluate normally: 0/0 gives nan
                 # ("undefined"), exact zeros stay zero, and nothing builds huge exact rationals
                 # (as (1 + 1/n)**n at n = 10**6 would with an exact n).
                 # A symbolic input (pi/2) is substituted exactly, so tan(pi/2) is undefined, not huge.
-                if decimal:
+                if decimal and val.is_Integer:
+                    # Whole numbers stay exact (a Sum up to n needs an integer n). Where n is in an
+                    # exponent, as in (1 + 1/n)**n at n = 10**6, substitute without evaluating, so that the
+                    # value is computed numerically rather than as a huge exact fraction; elsewhere evaluate,
+                    # so that 0/0 is recognised as undefined.
+                    if any(var in p_.exp.free_symbols for p_ in e.atoms(sp.Pow)):
+                        with sp.evaluate(False):
+                            ye = e.subs(var, val)
+                        y = sp.N(ye, 40)
+                    else:
+                        ye = e.subs(var, val)
+                        y = ye if ye.has(sp.zoo, sp.nan) else sp.N(ye, 40)
+                elif decimal:
                     y = sp.N(e.subs(var, sp.N(val, 60)), 40)
                 else:
                     ye = e.subs(var, val)
@@ -200,6 +223,8 @@ def compute_table(spec):
                 if exact == 0 or exact.equals(0):
                     y = sp.Integer(0)
             row.append(fmt_number(y, opts['digits'], opts['decimals'], opts['sci']))
+            signal.alarm(0)
+        signal.alarm(0)
         rows.append(row)
     return rows
 
