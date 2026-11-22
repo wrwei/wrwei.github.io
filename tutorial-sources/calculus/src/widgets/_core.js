@@ -445,7 +445,8 @@
     }
     P.field = function (F, o) {
       o = o || {}
-      var v = P.view, nx = o.n || 15, cell = (v[1] - v[0]) / nx, ny = Math.max(2, Math.round((v[3] - v[2]) / cell))
+      // Cells square on the screen (in pixels), whatever the shape of the view in data units.
+      var v = P.view, nx = o.n || 15, cell = (v[1] - v[0]) / nx, ny = Math.max(2, Math.round(nx * (P.H - 16) / (P.W - 16)))
       var vecs = [], maxLen = 0, i, j
       for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) {
         var x = v[0] + (i + 0.5) * cell, y = v[2] + (j + 0.5) * (v[3] - v[2]) / ny, w

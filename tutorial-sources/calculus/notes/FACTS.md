@@ -25,6 +25,7 @@ Module 1 to match.
 |---|---|
 | SymPy's recommended installation is `pip install sympy`; the current version is 1.14.0 (released 27 April 2025). Installing SymPy with pip also installs mpmath. | https://docs.sympy.org/latest/install.html; PyPI JSON API |
 | NumPy 2.5.5 (15 November 2026) needs Python 3.12 or later; matplotlib 3.11.2 (11 September 2026) needs 3.11 or later. Both publish ready-built wheels for CPython 3.12, 3.13, 3.14 and 3.15 on Windows, macOS and Linux. mpmath 1.4.1 (15 March 2026). | PyPI JSON API (`https://pypi.org/pypi/NAME/json`) |
+| SciPy's `solve_ivp` uses, unless told otherwise, `method='RK45'`: "Explicit Runge-Kutta method of order 5(4)", which adapts its step size to meet a tolerance (Module 13 mentions it; the series does not install SciPy). | SciPy 1.18.1 source, `scipy/integrate/_ivp/ivp.py` (the signature of `solve_ivp` and its docstring), checked 22 November 2026 |
 | The outputs on the pages were produced with Python 3.11.18, SymPy 1.14.0, mpmath 1.3.0, NumPy 2.4.6 and matplotlib 3.11.2 (the build machine has Python 3.11, and NumPy 2.5 needs 3.12). | `tools/requirements.txt` |
 
 ## History

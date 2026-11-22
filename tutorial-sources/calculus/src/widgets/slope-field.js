@@ -165,7 +165,9 @@ CalcWidgets.register('slope-field', function (root, api) {
     var yn = 'y' + sub(r.n)
     out.appendChild(line('sf-big', isFinite(r.yE)
       ? t('Euler’s method: ', '欧拉法：') + yn + eq(r.yE) + fmt(r.yE)
-      : t('Euler’s method: ' + yn + ' is too large to compute', '欧拉法：' + yn + ' 太大，无法计算')))
+      : isNaN(r.yE)
+        ? t('Euler’s method: ' + yn + ' cannot be computed, because F is not defined at one of the steps', '欧拉法：无法计算 ' + yn + '，因为 F 在某一步的点上没有定义')
+        : t('Euler’s method: ' + yn + ' is too large to compute', '欧拉法：' + yn + ' 太大，无法计算')))
     if (!isFinite(r.yA)) {
       out.appendChild(line('sf-warn', t('The solution through the start point blows up, or leaves the region where F is defined, before T: there is no value y(' + T + ') to compare with.',
         '过起点的解在 T 之前趋于无穷，或离开了 F 的定义域：没有 y(' + T + ') 的值可以比较。')))

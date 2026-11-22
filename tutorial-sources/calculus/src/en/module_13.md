@@ -882,7 +882,7 @@ same(diff(t - 1 + c, t) - (t - (t - 1 + c)), c)
 
 ## Second-order linear equations {#second-order}
 
-Pull a mass on a spring and let go: it moves back and forth, less and less, and comes to rest. Think of a mass $m$ on a smooth horizontal table, attached to a spring, and let $x(t)$ be its distance from the rest position, positive when the spring is stretched. Two forces act on it. The spring pulls back with a force $-kx$ proportional to the displacement (**Hooke's law**; the constant $k > 0$ is the spring's stiffness). Friction, or a damper such as a car's shock absorber, resists the motion with a force $-cx'$ proportional to the velocity, with a **damping constant** $c \ge 0$. Mass times acceleration is the total force, so $mx'' = -kx - cx'$, that is,
+Pull a mass on a spring and let go: it moves back and forth, less and less, and comes to rest. Think of a mass $m$ on a smooth horizontal table, attached to a spring, and let $x(t)$ be its distance from the rest position, positive when the spring is stretched. Two forces act on it. The spring pulls back with a force $-kx$ proportional to the displacement (**Hooke's law**; the constant $k > 0$ is the spring's stiffness). A damper, such as a car's shock absorber, resists the motion with a force $-cx'$ proportional to the velocity, with a **damping constant** $c \ge 0$. Mass times acceleration is the total force, so $mx'' = -kx - cx'$, that is,
 
 $$mx'' + cx' + kx = 0.$$
 
@@ -1401,7 +1401,7 @@ Here $p(t) = 2/t$ is continuous on $(0, \infty)$, with antiderivative $2\ln t$, 
 
 $$y = t^2 + \frac{C}{t^2}.$$
 
-$y(1) = 1 + C = 2$ gives $C = 1$: $y = t^2 + \dfrac{1}{t^2}$ for $t > 0$. By Theorem 13.5 it is the only solution with $y(1) = 2$ on $(0, \infty)$. As $t \to 0^+$, $C/t^2$ grows without bound unless $C = 0$, so the only solution that stays finite is $y = t^2$; indeed it solves the original equation for every $t$, since $t \cdot 2t + 2t^2 = 4t^2$.
+$y(1) = 1 + C = 2$ gives $C = 1$: $y = t^2 + \dfrac{1}{t^2}$ for $t > 0$. By Theorem 13.5 it is the only solution with $y(1) = 2$ on $(0, \infty)$. As $t \to 0^+$ (a [one-sided limit](module_02_EN.html#one-sided)), $C/t^2$ grows without bound unless $C = 0$, so the only solution that stays finite is $y = t^2$; indeed it solves the original equation for every $t$, since $t \cdot 2t + 2t^2 = 4t^2$.
 
 ```check
 tq = symbols('t', positive=True)
