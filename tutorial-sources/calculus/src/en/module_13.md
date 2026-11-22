@@ -1582,6 +1582,7 @@ against 15.0 seconds in Exercise 13.6. For $0 < v < 49$, $\dfrac{v^2}{245} < \df
 
 ```check
 same(Rational(98, 10)*245, 2401); same(sqrt(2401), 49)
+same_set(solve(Rational(98, 10) - v**2/245, v), [-49, 49]); holds((Rational(98, 10) - v**2/245).subs(v, 0) > 0)   # v' > 0 for -49 < v < 49
 same(apart(1/(2401 - v**2), v), Rational(1, 98)*(1/(49 - v) + 1/(49 + v)))
 antideriv(log((49 + v)/(49 - v))/98, 1/(2401 - v**2), v)
 same(Rational(98, 245), Rational(2, 5))
