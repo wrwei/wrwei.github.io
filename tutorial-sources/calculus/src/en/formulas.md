@@ -207,6 +207,34 @@ limit_is(x**pp/(1 + qq)**x, x, oo, 0); limit_is((1 + qq)**n/factorial(n), n, oo,
 
 ## Derivatives {#derivatives}
 
+### Definition and estimates {#derivative-definition}
+
+| Name | Formula | Module |
+|---|---|---|
+| Derivative at ${a}$ | ${f'(a) = \lim\limits_{h \to 0} \dfrac{f(a + h) - f(a)}{h},}$ when the limit exists | [4](module_04_EN.html) |
+| Tangent line at ${a}$ | ${y = f(a) + f'(a)(x - a)}$ | [4](module_04_EN.html) |
+| Linear approximation | ${f(x) \approx f(a) + f'(a)(x - a)}$ for ${x}$ near ${a}$ | [7](module_07_EN.html) |
+| Forward difference | ${f'(a) \approx \dfrac{f(a + h) - f(a)}{h},}$ error about ${-\tfrac{h}{2}f''(a)}$ | [4](module_04_EN.html), [15](module_15_EN.html) |
+| Central difference | ${f'(a) \approx \dfrac{f(a + h) - f(a - h)}{2h},}$ error about ${-\tfrac{h^2}{6}f'''(a)}$ | [4](module_04_EN.html), [15](module_15_EN.html) |
+
+As everywhere in the series, the error of an estimate is the exact value minus the estimate, here
+$f'(a)$ minus the difference. The two error estimates hold for small $h > 0$ when $f''$ (forward) or
+$f'''$ (central) is continuous near $a$. In floating point, rounding adds an error of size about
+$\varepsilon/h$, which is why steps of about $10^{-8}$ (forward) and $10^{-5}$ (central) work best.
+
+```check
+same(limit(((a + h)**3 - a**3)/h, h, 0, '+-'), 3*a**2)          # the definition, for x^3
+same(expand(1 + 3*(x - 1)), 3*x - 2)                           # tangent line of x^3 at 1
+same(series(x**3, x, 1, 2).removeO(), 3*x - 2)                 # the same line is the linear approximation
+fw = ((a + h)**3 - a**3)/h; ce = ((a + h)**3 - (a - h)**3)/(2*h)
+same(3*a**2 - fw, -3*a*h - h**2); same(3*a**2 - ce, -h**2)     # exact errors for x^3 (Module 4)
+same(-(h/2)*diff(x**3, x, 2).subs(x, a), -3*a*h); same(-(h**2/6)*diff(x**3, x, 3), -h**2)
+for F_ in (sin(x), exp(2*x), log(1 + x**2)):                   # the leading terms, for three smooth f at 1/2
+    a_ = Rational(1, 2); d1 = diff(F_, x).subs(x, a_)
+    same(limit((d1 - (F_.subs(x, a_ + h) - F_.subs(x, a_))/h)/h, h, 0, '+-'), -diff(F_, x, 2).subs(x, a_)/2)
+    same(limit((d1 - (F_.subs(x, a_ + h) - F_.subs(x, a_ - h))/(2*h))/h**2, h, 0, '+-'), -diff(F_, x, 3).subs(x, a_)/6)
+```
+
 ### Rules {#derivative-rules}
 
 In each rule $f$ and $g$ are differentiable at $x$, and $c$ is a constant.
@@ -223,7 +251,8 @@ In each rule $f$ and $g$ are differentiable at $x$, and $c$ is a constant.
 | Implicit | for a curve ${F(x, y) = 0}$: ${\dfrac{dy}{dx} = -\dfrac{F_x}{F_y},}$ where ${F_y \ne 0}$ | [6](module_06_EN.html), [17](module_17_EN.html) |
 | Logarithmic | ${f'(x) = f(x)\,\dfrac{d}{dx}\ln\abs{f(x)},}$ where ${f(x) \ne 0}$ | [6](module_06_EN.html) |
 
-The inverse-function rule needs $f$ one-to-one and differentiable on an interval. Implicit
+The inverse-function rule needs $f$ continuous and one-to-one on an open interval, and
+differentiable at $f^{-1}(x)$ with a nonzero derivative there. Implicit
 differentiation in practice: differentiate both sides of the equation with $y = y(x)$ (the chain
 rule turns $y^2$ into $2y\,y'$), then solve for $y'$; Module 17 explains the formula with $F_x$ and
 $F_y$.
@@ -309,6 +338,10 @@ same(diff(sin(pi*x/180), x), pi/180*cos(pi*x/180))           # sin of x degrees
 | ${\arcsin x}$ | ${\dfrac{1}{\sqrt{1 - x^2}}}$ | ${-1 < x < 1}$ | ${[-\pi/2, \pi/2]}$ |
 | ${\arccos x}$ | ${-\dfrac{1}{\sqrt{1 - x^2}}}$ | ${-1 < x < 1}$ | ${[0, \pi]}$ |
 | ${\arctan x}$ | ${\dfrac{1}{1 + x^2}}$ | every ${x}$ | ${(-\pi/2, \pi/2)}$ |
+| ${\arcsec x}$ | ${\dfrac{1}{\abs{x}\sqrt{x^2 - 1}}}$ | ${\abs{x} > 1}$ | ${[0, \pi/2) \cup (\pi/2, \pi]}$ |
+
+The series takes $\arcsec x = \arccos(1/x)$; books that choose another range for $\arcsec$ get another
+sign in its derivative for $x < -1$.
 
 ```check
 same(diff(asin(x), x), 1/sqrt(1 - x**2)); same(diff(acos(x), x), -1/sqrt(1 - x**2)); same(diff(atan(x), x), 1/(1 + x**2))
@@ -316,6 +349,12 @@ same(asin(-1), -pi/2); same(asin(1), pi/2); same(acos(1), 0); same(acos(-1), pi)
 limit_is(atan(x), x, oo, pi/2); limit_is(atan(x), x, -oo, -pi/2)
 for v_ in (Rational(-9, 10), Rational(-1, 2), 0, Rational(3, 10), 1):   # arcsin and arccos invert sin and cos
     same(sin(asin(v_)), v_); same(cos(acos(v_)), v_)
+# arcsec x = arccos(1/x) (the series' range), with slope 1/(|x| sqrt(x^2 - 1)) on both pieces
+for v_ in (Integer(2), Integer(-2), Rational(5, 4), Integer(-3)):
+    same(asec(v_).rewrite(acos), acos(1/v_)); same(diff(acos(1/x), x).subs(x, v_), 1/(Abs(v_)*sqrt(v_**2 - 1)))
+xa = symbols('x_a', positive=True)                             # x = 1 + x_a > 1 and x = -1 - x_a < -1
+same(diff(acos(1/x), x).subs(x, 1 + xa), 1/((1 + xa)*sqrt((1 + xa)**2 - 1)))
+same(diff(acos(1/x), x).subs(x, -1 - xa), 1/((1 + xa)*sqrt((1 + xa)**2 - 1)))
 ```
 
 **Hyperbolic functions** ([Module 6](module_06_EN.html)):

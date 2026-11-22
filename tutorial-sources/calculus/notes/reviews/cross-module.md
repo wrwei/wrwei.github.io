@@ -27,8 +27,8 @@ coordinator). Struck through when done.
 
 ## For the coordinator
 
-- Formula sheet: add the definition of the derivative and the forward and central differences (Module 4
+- ~~Formula sheet: add the definition of the derivative and the forward and central differences (Module 4
   review), and an `arcsec` row; the inverse-function rule needs f continuous and one-to-one on an open
-  interval (Module 6 review).
+  interval (Module 6 review).~~ Done.
 - At 360 px some display formulas still scroll inside their line (Module 1: about 10, Module 2: 2) and
   some tables scroll inside their frame (Module 1: 2, Module 3: 6). The brief allows both.
