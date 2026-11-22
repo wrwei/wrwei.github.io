@@ -458,7 +458,6 @@ Compositions are everywhere: $\sin(2x)$, $(x^2 + 1)^{10}$, $\sqrt{1 + x^2}$. Sta
 h = 0.1, 0.01, 0.001
 $\dfrac{\sin(2h)}{h}$ = sin(2*h)/h
 digits = 7
-layout = columns
 ---
 h | \dfrac{\sin(2h)}{h}
 0.1 | 1.986693
@@ -776,6 +775,7 @@ same(diff(x*sin(x), x).subs(x, 0), 0)
 same(diff(sin(x)/(1 + cos(x)), x), 1/(1 + cos(x)))
 for v_ in (-3, -2, -1, 0, 1, 2, 3):
     holds(1/(1 + cos(v_)) > 0)
+same(function_range(1 + cos(x), x, S.Reals), Interval(0, 2))      # so 1/(1 + cos x) > 0 wherever cos x != -1
 ```
 
 ::: pitfall
