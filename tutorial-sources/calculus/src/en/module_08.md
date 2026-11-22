@@ -3,7 +3,7 @@ title: The shape of a graph and optimisation
 part: 2
 lead: Use derivatives to find the largest and smallest values of a function, to see where its graph rises, falls and bends, and to solve optimisation problems from geometry, physics and economics. You will prove the Mean Value Theorem and the tests that rest on it, sketch graphs from their derivatives, and minimise a function the way machine learning does, by gradient descent.
 minutes: 270
-needs: Modules 1 to 7, in particular the rules of differentiation (Modules 4 to 6), asymptotes (Module 3) and linearisation (Module 7)
+needs: Modules 1 to 7, in particular the Intermediate and Extreme Value Theorems and asymptotes (Module 3), the rules of differentiation (Modules 4 to 6) and linearisation (Module 7)
 goals:
   - Find the absolute extreme values of a continuous function on a closed interval with the closed interval method
   - Prove Rolle's theorem and the Mean Value Theorem, and use them to prove the tests for increasing and constant functions
@@ -272,7 +272,8 @@ Each hypothesis is needed. Without continuity on the closed interval: $f(x) = x$
 
 ```check
 fjump = Piecewise((x, x < 1), (0, True))
-same(fjump.subs(x, 0), fjump.subs(x, 1)); same(diff(x, x), 1); limit_is(fjump, x, 1, 1, '-')   # f(0) = f(1) = 0, slope 1, but f jumps at 1
+same(fjump.subs(x, 0), fjump.subs(x, 1)); same(diff(x, x), 1)                     # f(0) = f(1) = 0, and slope 1 on (0, 1)
+same(fjump.subs(x, Rational(99, 100)), Rational(99, 100)); limit_is(x, x, 1, 1, '-'); holds(fjump.subs(x, 1) != 1)   # left of 1, f(x) = x -> 1 != f(1): a jump
 same(Abs(-1), Abs(1)); same(diff(Abs(xp), xp), 1); same(diff(Abs(xn), xn), -1)
 ```
 
@@ -430,7 +431,7 @@ so $\abs{Q - L} < \varepsilon$ and $\abs{Q} < \abs{L} + 1$. For $x$ so close to 
 
 $$\frac{f(x)}{g(x)} - L = (Q - L) - Q\,\frac{g(y)}{g(x)} + \frac{f(y)}{g(x)}.$$
 
-Since $y$ is fixed and $\abs{g(x)} \to \infty$, the last two fractions tend to 0 as $x \to a^+$; for $x$ close enough to $a$ each is smaller than $\varepsilon$ in size, and then $\abs{f(x)/g(x) - L} < \varepsilon + (\abs{L} + 1)\varepsilon + \varepsilon = (\abs{L} + 3)\varepsilon$. As $\varepsilon$ is arbitrary, $f(x)/g(x) \to L$. If $L = \infty$, take an arbitrary $M > 0$ and choose $y$ so that $f'(t)/g'(t) > 2M$ for $a < t < y$; then $Q > 2M$ for every $x$ in $(a, y)$. For $x$ close enough to $a$, also $1 - g(y)/g(x) > \tfrac12$ and $\abs{f(y)/g(x)} < 1$, so $f(x)/g(x) = Q\big(1 - g(y)/g(x)\big) + f(y)/g(x) > M - 1$; as $M$ is arbitrary, $f(x)/g(x) \to \infty$. If $L = -\infty$, apply this to $-f$. The other directions follow as for $0/0$.
+Since $y$ is fixed and $\abs{g(x)} \to \infty$, the last two fractions tend to 0 as $x \to a^+$; for $x$ close enough to $a$ each is smaller than $\varepsilon$ in size, and then $\abs{f(x)/g(x) - L} < \varepsilon + (\abs{L} + 1)\varepsilon + \varepsilon = (\abs{L} + 3)\varepsilon$. As $\varepsilon$ is arbitrary, $f(x)/g(x) \to L$. If $L = \infty$, take an arbitrary $M > 0$ and choose $y$ in $(a, b)$ so that $f'(t)/g'(t) > 2M$ for $a < t < y$; then $Q > 2M$ for every $x$ in $(a, y)$. For $x$ close enough to $a$, also $1 - g(y)/g(x) > \tfrac12$ and $\abs{f(y)/g(x)} < 1$, so $f(x)/g(x) = Q\big(1 - g(y)/g(x)\big) + f(y)/g(x) > M - 1$; as $M$ is arbitrary, $f(x)/g(x) \to \infty$. If $L = -\infty$, apply this to $-f$. The other directions follow as for $0/0$.
 :::
 
 The proof of the form $\infty/\infty$ used only $\abs{g(x)} \to \infty$, not $f(x) \to \pm\infty$: the rule holds whenever $\abs{g(x)} \to \infty$ and $f'/g'$ has a limit.
@@ -474,7 +475,11 @@ same(solve_univariate_inequality(2*x > 0, x, relational=False), Interval.open(0,
 same(diff(x**3, x), 3*x**2); same(solve(3*x**2, x), [0])
 ```
 
-To use the test you need the intervals on which $f'$ has one sign. If $f'$ is continuous on an interval and never 0 there, it cannot change sign there, because by the Intermediate Value Theorem a change of sign would need a zero in between. Every derivative in this module is continuous wherever it exists, so it can change sign only at critical numbers and at points outside the domain of $f$. (Not every derivative is continuous. The function $x^2\sin(1/x)$, with the value 0 at 0, of [Exercise 4.11](module_04_EN.html#ex-4-11) has a derivative at every point, but for $x \ne 0$ its derivative is $2x\sin(1/x) - \cos(1/x)$, which swings between values near $-1$ and near 1 as $x \to 0$, so it is not continuous at 0.) Mark those points on the number line; they cut it into intervals, and the sign of $f'$ at one test point of each interval is its sign on the whole interval. A table of these signs is a **sign chart**.
+To use the test you need the intervals on which $f'$ has one sign. If $f'$ is continuous on an interval and never 0 there, it cannot change sign there, because by the Intermediate Value Theorem a change of sign would need a zero in between. Every derivative in this module is continuous wherever it exists, so it can change sign only at critical numbers and at points outside the domain of $f$. Mark those points on the number line; they cut it into intervals, and the sign of $f'$ at one test point of each interval is its sign on the whole interval. A table of these signs is a **sign chart**.
+
+::: note
+Not every derivative is continuous. The function $x^2\sin(1/x)$ of [Exercise 4.11](module_04_EN.html#ex-4-11), with the value 0 at 0, has a derivative at every point; but for $x \ne 0$ its derivative is $2x\sin(1/x) - \cos(1/x)$, which keeps swinging between values near $-1$ and near 1 as $x \to 0$, so it is not continuous at 0.
+:::
 
 ```check
 gw = x**2*sin(1/x)
@@ -594,7 +599,7 @@ x | \sigma'(x)
 ```check
 sg = 1/(1 + exp(-x))
 same(diff(sg, x), exp(-x)/(1 + exp(-x))**2)
-holds(Integer(0) < sg.subs(x, -10)); holds(sg.subs(x, 10) < 1)
+holds(Integer(0) < sg.subs(x, -10)); holds(sg.subs(x, 10) < 1); same(function_range(sg, x, S.Reals), Interval.open(0, 1))
 ```
 
 From left to right the slopes increase up to $x = 0$ and then decrease. Where the slopes increase, the curve bends upwards and lies above its tangent lines; where they decrease, it bends downwards and lies below them (Figure 8.3).
@@ -622,9 +627,9 @@ The tangent lines of Figure 8.3 behave as they do for every function.
 ::: theorem Concavity and tangent lines
 If the graph of $f$ is concave up on an open interval $I$, then for every $c$ in $I$ it lies above its tangent line at $c$:
 
-$$f(x) > f(c) + f'(c)(x - c) \quad\text{for every } x \ne c \text{ in } I.$$
+$$f(x) > f(c) + f'(c)(x - c)$$
 
-If it is concave down on $I$, it lies below its tangent lines. In particular, if the graph is concave up on $I$ and $f'(c) = 0$, then $f(c)$ is the absolute minimum value of $f$ on $I$, taken only at $c$; if it is concave down and $f'(c) = 0$, $f(c)$ is the absolute maximum value.
+for every $x \ne c$ in $I$. If it is concave down on $I$, it lies below its tangent lines. In particular, if the graph is concave up on $I$ and $f'(c) = 0$, then $f(c)$ is the absolute minimum value of $f$ on $I$, taken only at $c$; if it is concave down and $f'(c) = 0$, $f(c)$ is the absolute maximum value.
 :::
 
 ::: proof
@@ -741,7 +746,7 @@ same(f810.subs(x, 0), 0); same(f810.subs(x, 2), -16)
 :::
 
 ::: tip
-Which test should you use? The second derivative test is quick when $f''$ is easy to compute, and it decides most critical numbers where $f'(c) = 0$. The first derivative test decides whenever $f'$ keeps one sign on each side of $c$, as it does for every function in this module, also where $f''(c) = 0$ and where $f'(c)$ does not exist; and its sign chart tells you where $f$ increases and decreases as well.
+Which test should you use? The second derivative test is quick when $f''$ is easy to compute, and it decides most critical numbers where $f'(c) = 0$. The first derivative test decides whenever $f'$ keeps one sign on each side of $c$, as it does for every function in this module, even where $f''(c) = 0$ or $f'(c)$ does not exist. Its sign chart also tells you where $f$ increases and decreases.
 :::
 
 ## Curve sketching {#sketching}
@@ -827,7 +832,7 @@ The two sketches. Left: $y = \dfrac{x^2}{x^2 - 4}$, with vertical asymptotes $x 
 The widget below does the sign charts for you, numerically. Use it to check a sketch, not to replace one: it looks only at its window and at the points of its grid.
 
 ::: widget name=shape-explorer
-The curve is blue where $f$ is increasing and orange where it is decreasing; the background is green where the graph is concave up and purple where it is concave down. Dots mark the critical numbers, squares the inflection points, and the two charts below the graph give the signs of $f'$ and $f''$. Choose $x^4 - 4x^3$ and compare with Example 8.10: the flat point at 0 is a critical number but not an extremum, and it is also an inflection point. Choose $x\,e^{-x}$ and compare with Example 8.12. Then type `x^2/(x^2 - 4)` (Example 8.11), and `cbrt(x^2)(x - 5)`, the function of Example 8.7 (the widget, like Python, reads `x^(2/3)` as undefined for $x < 0$), and move the point with the slider to read $f(x)$, $f'(x)$ and $f''(x)$.
+The curve is blue where $f$ is increasing and orange where it is decreasing; the background is green where the graph is concave up and purple where it is concave down. Dots mark the critical numbers, squares the inflection points, and the two charts below the graph give the signs of $f'$ and $f''$. Choose $x^4 - 4x^3$ and compare with Example 8.10: the flat point at 0 is a critical number but not an extremum, and it is also an inflection point. Choose $x\,e^{-x}$ and compare with Example 8.12. Then type `x^2/(x^2 - 4)` (Example 8.11), and `x^(2/3)(x - 5)`, the function of Example 8.7 (unlike Python, the widget takes $x^{2/3}$ with the real cube root, as this series does), and move the point with the slider to read $f(x)$, $f'(x)$ and $f''(x)$.
 :::
 
 ::: compute Curve sketching with SymPy
@@ -879,11 +884,11 @@ same(-2*sqrt(3)*I/3, -2/sqrt(3)*I); same(expand((2*sqrt(3)*I/3)**2*3 + 4), 0)
 An optimisation problem in words becomes a problem about the extreme values of a function. The closed interval method handles a continuous function on a closed interval; many problems, though, live on open or unbounded intervals, such as all lengths $r > 0$. There the next theorem, or Theorem 8.11, shows that a critical number gives the absolute extremum.
 
 ::: theorem The first derivative test for absolute extrema
-Let $f$ be continuous on an interval $I$, let $c$ be in $I$, and let $f$ be differentiable at every point of $I$ except possibly $c$ and the endpoints of $I$. If $f'(x) > 0$ at every such $x < c$ and $f'(x) < 0$ at every such $x > c$, then $f(c)$ is the absolute maximum value of $f$ on $I$. If $f'(x) < 0$ for $x < c$ and $f'(x) > 0$ for $x > c$, $f(c)$ is the absolute minimum value.
+Let $f$ be continuous on an interval $I$, let $c$ be in $I$, and let $f$ be differentiable at every point of $I$ except possibly $c$ and the endpoints of $I$. If $f'(x) > 0$ at every such $x < c$ and $f'(x) < 0$ at every such $x > c$, then $f(c)$ is the absolute maximum value of $f$ on $I$, taken only at $c$. If $f'(x) < 0$ for $x < c$ and $f'(x) > 0$ for $x > c$, $f(c)$ is the absolute minimum value, taken only at $c$.
 :::
 
 ::: proof
-The points of $I$ that are $\le c$ form an interval on which $f$ is continuous, and $f' > 0$ at those of them that are not endpoints; by Theorem 8.8, $f$ is increasing there, so $f(x) < f(c)$ for every $x < c$ in $I$. In the same way $f$ is decreasing on the points of $I$ that are $\ge c$, so $f(x) < f(c)$ for $x > c$. The minimum is the same.
+The points of $I$ that are $\le c$ form an interval on which $f$ is continuous, and $f' > 0$ at those of them that are not endpoints; by Theorem 8.8, $f$ is increasing there, so $f(x) < f(c)$ for every $x < c$ in $I$. In the same way $f$ is decreasing on the points of $I$ that are $\ge c$, so $f(x) < f(c)$ for $x > c$. So $f(x) < f(c)$ for every $x \ne c$ in $I$. The minimum is the same.
 :::
 
 ::: keyidea
@@ -965,6 +970,8 @@ rstar = (165/pi)**Rational(1, 3)
 same(solve(diff(A814, rc), rc), [rstar]); same(Rational(660, 4), 165); rounds(rstar, '3.745')
 holds(4*pi*3**3 - 660 < 0); holds(4*pi*4**3 - 660 > 0)
 same(330/(pi*rstar**2), 2*rstar); rounds(2*rstar, '7.49'); rounds(A814.subs(rc, rstar), '264.4')
+Vg = symbols('V', positive=True); AV = 2*pi*rc**2 + 2*pi*rc*Vg/(pi*rc**2); rV = (Vg/(2*pi))**Rational(1, 3)   # any volume V
+same(solve(diff(AV, rc), rc), [rV]); same(Vg/(pi*rV**2), 2*rV)
 ```
 :::
 
@@ -1064,9 +1071,9 @@ $$x_{k+1} = x_k - \eta f'(x_k), \qquad k = 0, 1, 2, \dots$$
 The Greek letter $\eta$ is read "eta". In machine learning the step size is called the **learning rate**.
 :::
 
-Why does this go downhill? If $f'(x_k) > 0$, $f$ increases at $x_k$, and the step moves left; if $f'(x_k) < 0$, it moves right. By the linearisation of Module 7,
+Why does this go downhill? If $f'(x_k) > 0$, the graph slopes upwards at $x_k$, and the step moves left; if $f'(x_k) < 0$, it slopes downwards, and the step moves right. By the linearisation of Module 7,
 
-$$f(x_{k+1}) \approx f(x_k) + f'(x_k)(x_{k+1} - x_k) = f(x_k) - \eta f'(x_k)^2,$$
+$$\begin{aligned} f(x_{k+1}) &\approx f(x_k) + f'(x_k)(x_{k+1} - x_k) \\ &= f(x_k) - \eta f'(x_k)^2, \end{aligned}$$
 
 which is less than $f(x_k)$ when $f'(x_k) \ne 0$, at least when the step is small enough for the approximation to be good. And the steps stop moving exactly at critical numbers: $x_{k+1} = x_k$ means $f'(x_k) = 0$. How large should $\eta$ be? A parabola answers that completely.
 
@@ -1111,7 +1118,7 @@ Near a minimum $c$ where $f''(c) > 0$, a function behaves much like this parabol
 
 $$x_{k+1} - c \approx \big(1 - \eta f''(c)\big)(x_k - c),$$
 
-the parabola of Example 8.18 with $q = f''(c)$. Started close to $c$, gradient descent settles at $c$ when $0 < \eta < 2/f''(c)$, and fastest when $\eta$ is near $1/f''(c)$. This is a rule of thumb, not a theorem: the approximation holds only close to $c$.
+the parabola of Example 8.18 with $q = f''(c)$. Started close to $c$, gradient descent settles at $c$ when $0 < \eta < 2/f''(c)$, and fastest when $\eta$ is near $1/f''(c)$. This argument is a rule of thumb, not a proof: the approximation holds only close to $c$. (When $f''$ is continuous near $c$, the Mean Value Theorem applied to $f'$ turns it into a proof that the steps converge for $0 < \eta < 2/f''(c)$.)
 :::
 
 Choosing $\eta = 1/f''(x_k)$ afresh at every step turns gradient descent into $x_{k+1} = x_k - f'(x_k)/f''(x_k)$: Newton's method (Module 7) for the equation $f'(x) = 0$. It converges fast, but it needs $f''$, which for a model with millions of parameters is too expensive to compute; gradient descent needs only $f'$.
@@ -1314,6 +1321,9 @@ same(solve_univariate_inequality(diff(fe3, x) < 0, x, relational=False), Interva
 same(fe3.subs(x, 1), 6); same(fe3.subs(x, 3), 2); same(diff(fe3, x, 2), 6*x - 12); same(solve(6*x - 12, x), [2]); same(fe3.subs(x, 2), 4)
 same(((1 + 3)/Integer(2), (6 + 2)/Integer(2)), (2, 4))
 same(expand(fe3.subs(x, 2 + u) + fe3.subs(x, 2 - u)), 8)      # symmetric about (2, 4)
+A3, B3, C3, D3 = symbols('A B C D'); cub = A3*x**3 + B3*x**2 + C3*x + D3; x3 = -B3/(3*A3)   # every cubic, A != 0
+same(solve(diff(cub, x, 2), x), [x3]); same(expand(cub.subs(x, x3 + u) + cub.subs(x, x3 - u) - 2*cub.subs(x, x3)), 0)
+same(sum(solve(diff(cub, x), x))/2, x3)                         # the critical numbers are symmetric about the inflection point
 ```
 :::
 ::::
@@ -1364,6 +1374,7 @@ Sketch the graph of $f(x) = \dfrac{x^2}{x - 1}$, following the checklist of Sect
 fe5 = x**2/(x - 1)
 same(expand((x - 1)*(x + 1) + 1), x**2); same(fe5, x + 1 + 1/(x - 1)); same(fe5.subs(x, 0), 0); same(fe5.subs(x, -1), -Rational(1, 2))
 limit_is(fe5 - (x + 1), x, oo, 0); limit_is(fe5 - (x + 1), x, -oo, 0); limit_is(fe5, x, 1, oo, '+'); limit_is(fe5, x, 1, -oo, '-')
+same(solve_univariate_inequality(1/(x - 1) > 0, x, relational=False), Interval.open(1, oo))   # above y = x + 1 exactly for x > 1
 steps(diff(fe5, x), 1 - 1/(x - 1)**2, ((x - 1)**2 - 1)/(x - 1)**2, x*(x - 2)/(x - 1)**2)
 same(solve_univariate_inequality(x*(x - 2) < 0, x, relational=False), Interval.open(0, 2))
 same(fe5.subs(x, 2), 4); same(diff(fe5, x, 2), 2/(x - 1)**3)
@@ -1381,9 +1392,9 @@ same(fe5.subs(x, 2), 4); same(diff(fe5, x, 2), 2/(x - 1)**3)
 
 **(b)** $\ln$ is continuous and differentiable on $(0, \infty)$, with derivative $\dfrac1t$ (Module 6). On $[1, 1 + x]$ the Mean Value Theorem gives a $c$ with $1 < c < 1 + x$ and
 
-$$\ln(1 + x) - \ln 1 = \frac1c\cdot x, \quad\text{so}\quad \ln(1 + x) = \frac{x}{c}.$$
+$$\ln(1 + x) - \ln 1 = \frac1c\cdot x,$$
 
-Since $1 < c < 1 + x$, $\dfrac{1}{1 + x} < \dfrac1c < 1$; multiplying by $x > 0$ gives $\dfrac{x}{1 + x} < \ln(1 + x) < x$.
+As $\ln 1 = 0$, this says $\ln(1 + x) = \dfrac{x}{c}$. From $1 < c < 1 + x$, $\dfrac{1}{1 + x} < \dfrac1c < 1$; multiplying by $x > 0$ gives $\dfrac{x}{1 + x} < \ln(1 + x) < x$.
 
 **(c)** With $x = 0.1$: $\dfrac{0.1}{1.1} \approx 0.0909 < \ln 1.1 < 0.1$. In fact $\ln 1.1 \approx 0.0953$, between the two bounds.
 
@@ -1427,15 +1438,15 @@ same((VV**2/(4*rr8)).subs({VV: 12, rr8: Rational(1, 2)}), 72); same(maximum(P8.s
 ::::
 
 :::: exercise The best step for a central difference {#ex-8-8} ★★
-Section 4.7 modelled the error of the central difference of $x^3$ at 1, in floating point, as $E(h) = h^2 + \dfrac{\varepsilon}{h}$, where $\varepsilon = 2^{-52} \approx 2.2 \times 10^{-16}$, and stated that it is smallest at $h = (\varepsilon/2)^{1/3}$.
+Section 4.7 bounded the size of the error of the central difference of $x^3$ at 1, in floating point, by about $E(h) = h^2 + \dfrac{\varepsilon}{h}$, where $\varepsilon = 2^{-52} \approx 2.2 \times 10^{-16}$, and stated that this bound is smallest at $h = (\varepsilon/2)^{1/3}$.
 
 - (a) Prove it: show that $E$ has its absolute minimum on $(0, \infty)$ at $h^* = (\varepsilon/2)^{1/3}$, and that $E(h^*) = 3h^{*2}$.
 - (b) Compute $h^*$ and $E(h^*)$, and compare with [Section 4.7](module_04_EN.html#rounding).
 
 ::: solution
-**(a)** $E'(h) = 2h - \dfrac{\varepsilon}{h^2}$, which is 0 when $2h^3 = \varepsilon$, that is, at $h^* = (\varepsilon/2)^{1/3}$, its only critical number in $(0, \infty)$. And $E''(h) = 2 + \dfrac{2\varepsilon}{h^3} > 0$ for $h > 0$, so $E$ is concave up on $(0, \infty)$, and by Theorem 8.11 $E(h^*)$ is the absolute minimum. Since $h^{*3} = \varepsilon/2$, $\dfrac{\varepsilon}{h^*} = \dfrac{\varepsilon h^{*2}}{h^{*3}} = 2h^{*2}$, so $E(h^*) = h^{*2} + 2h^{*2} = 3h^{*2}$: at the best step, the rounding error is twice the truncation error.
+**(a)** $E'(h) = 2h - \dfrac{\varepsilon}{h^2}$, which is 0 when $2h^3 = \varepsilon$, that is, at $h^* = (\varepsilon/2)^{1/3}$, its only critical number in $(0, \infty)$. And $E''(h) = 2 + \dfrac{2\varepsilon}{h^3} > 0$ for $h > 0$, so $E$ is concave up on $(0, \infty)$, and by Theorem 8.11 $E(h^*)$ is the absolute minimum. Since $h^{*3} = \varepsilon/2$, $\dfrac{\varepsilon}{h^*} = \dfrac{\varepsilon h^{*2}}{h^{*3}} = 2h^{*2}$, so $E(h^*) = h^{*2} + 2h^{*2} = 3h^{*2}$: at the best step, the rounding part of the bound, $\varepsilon/h^*$, is twice the truncation part, $h^{*2}$.
 
-**(b)** $h^* = \big(2^{-53}\big)^{1/3} \approx 4.8 \times 10^{-6}$ and $E(h^*) = 3h^{*2} \approx 6.9 \times 10^{-11}$. Section 4.7 gave "about $5 \times 10^{-6}$" and "about $7 \times 10^{-11}$", the same numbers rounded, and its table had its smallest central errors, about $10^{-10}$, near these steps.
+**(b)** $h^* = \big(2^{-53}\big)^{1/3} \approx 4.8 \times 10^{-6}$ and $E(h^*) = 3h^{*2} \approx 6.9 \times 10^{-11}$. Section 4.7 gave "about $5 \times 10^{-6}$" and "about $7 \times 10^{-11}$", the same numbers rounded, and its table had its smallest central errors in size, about $10^{-10}$, near these steps.
 
 ```check
 eps8 = Integer(2)**-52
@@ -1446,6 +1457,9 @@ same(diff(E8, hpos, 2), 2 + 2*epp/hpos**3); same(E8.subs(hpos, (epp/2)**Rational
 hs8 = (eps8/2)**Rational(1, 3)
 same(hs8, (Integer(2)**-53)**Rational(1, 3)); rounds(hs8, '4.8e-6'); rounds(3*hs8**2, '6.9e-11'); rounds(eps8, '2.2e-16')
 rounds(hs8, '5e-6'); rounds(3*hs8**2, '7e-11')
+cen8 = lambda hv: abs(3.0 - ((1.0 + hv)**3 - (1.0 - hv)**3)/(2*hv))      # Section 4.7's table of central errors, in floating point
+err8 = {k_: cen8(10.0**-k_) for k_ in range(1, 16)}
+holds(min(err8, key=err8.get) in (5, 6, 7)); rounds(min(err8.values()), '1e-10'); holds(10.0**-6 < float(hs8) < 10.0**-5)
 ```
 :::
 ::::
@@ -1462,23 +1476,23 @@ $$L(w) = \frac{(w - 2)^2 + (2w - 3)^2 + (3w - 7)^2}{3}.$$
 ::: solution
 **(a)** Expanding the squares, $(w^2 - 4w + 4) + (4w^2 - 12w + 9) + (9w^2 - 42w + 49) = 14w^2 - 58w + 62$, so
 
-$$L(w) = \frac{14w^2 - 58w + 62}{3}, \qquad L'(w) = \frac{28w - 58}{3}.$$
+$$\begin{aligned} L(w) &= \frac{14w^2 - 58w + 62}{3}, \\ L'(w) &= \frac{28w - 58}{3}. \end{aligned}$$
 
 $L'(w) = 0$ at $w^* = \tfrac{58}{28} = \tfrac{29}{14} \approx 2.071$, and $L''(w) = \tfrac{28}{3} > 0$, so by Theorem 8.11 this is the absolute minimum.
 
 **(b)** Since $58 = 28w^*$, $L'(w) = \tfrac{28}{3}(w - w^*)$, and one step gives
 
-$$w_{k+1} - w^* = (w_k - w^*) - \eta\cdot\tfrac{28}{3}(w_k - w^*) = \big(1 - \tfrac{28}{3}\eta\big)(w_k - w^*).$$
+$$\begin{aligned} w_{k+1} - w^* &= (w_k - w^*) - \eta\cdot\tfrac{28}{3}(w_k - w^*) \\ &= \big(1 - \tfrac{28}{3}\eta\big)(w_k - w^*). \end{aligned}$$
 
 This is Example 8.18 with $q = L'' = \tfrac{28}{3}$: it converges exactly when $0 < \eta < \tfrac{2}{28/3} = \tfrac{3}{14} \approx 0.214$, and $\eta = \tfrac{3}{28} \approx 0.107$ lands on $w^*$ in one step.
 
 **(c)** By (b), $w_k = w^* - \big(1 - \tfrac{28}{3}\eta\big)^k w^*$. With $\eta = 0.05$ the factor is $1 - \tfrac{1.4}{3} = \tfrac{8}{15}$, and
 
-$$w_1 = \tfrac{29}{30} \approx 0.967, \quad w_2 = \tfrac{667}{450} \approx 1.482, \quad w_3 = \tfrac{11861}{6750} \approx 1.757,$$
+$$\begin{aligned} w_1 &= \tfrac{29}{30} \approx 0.967, \\ w_2 &= \tfrac{667}{450} \approx 1.482, \\ w_3 &= \tfrac{11861}{6750} \approx 1.757, \end{aligned}$$
 
 closing in on 2.071, each step removing the same fraction $\tfrac{7}{15}$ of the remaining distance. With $\eta = 0.25$, above $\tfrac{3}{14}$, the factor is $1 - \tfrac73 = -\tfrac43$, and
 
-$$w_1 = \tfrac{29}{6} \approx 4.833, \quad w_2 = -\tfrac{29}{18} \approx -1.611, \quad w_3 = \tfrac{377}{54} \approx 6.981:$$
+$$\begin{aligned} w_1 &= \tfrac{29}{6} \approx 4.833, \\ w_2 &= -\tfrac{29}{18} \approx -1.611, \\ w_3 &= \tfrac{377}{54} \approx 6.981: \end{aligned}$$
 
 each step overshoots further than the last.
 
@@ -1533,11 +1547,11 @@ Hint: a segment that touches the inner corner and makes the angle $\theta$ with 
 ::: solution
 The pipe passes exactly when its length is at most the smallest value of $L$ on $\big(0, \tfrac{\pi}{2}\big)$; at the angle where $L$ is smallest, a longer pipe would jam. So minimise $L$. By the chain rule,
 
-$$L'(\theta) = -\frac{2.7\cos\theta}{\sin^2\theta} + \frac{0.8\sin\theta}{\cos^2\theta} = \frac{0.8\sin^3\theta - 2.7\cos^3\theta}{\sin^2\theta\cos^2\theta}.$$
+$$\begin{aligned} L'(\theta) &= -\frac{2.7\cos\theta}{\sin^2\theta} + \frac{0.8\sin\theta}{\cos^2\theta} \\ &= \frac{0.8\sin^3\theta - 2.7\cos^3\theta}{\sin^2\theta\cos^2\theta}. \end{aligned}$$
 
 The top equals $\cos^3\theta\,(0.8\tan^3\theta - 2.7)$, so $L'(\theta) = 0$ when $\tan^3\theta = \dfrac{2.7}{0.8} = 3.375 = 1.5^3$, that is, at $\tan\theta^* = 1.5$. Since $\tan$ is increasing on $\big(0, \tfrac{\pi}{2}\big)$, $L' < 0$ for $\theta < \theta^*$ and $L' > 0$ for $\theta > \theta^*$, so by Theorem 8.14 $L(\theta^*)$ is the absolute minimum. A right triangle with legs 1 and 1.5 has hypotenuse $\sqrt{1 + 2.25} = \sqrt{3.25} = \tfrac{\sqrt{13}}{2}$, so $\sin\theta^* = \dfrac{3}{\sqrt{13}}$ and $\cos\theta^* = \dfrac{2}{\sqrt{13}}$, and
 
-$$L(\theta^*) = \frac{2.7\sqrt{13}}{3} + \frac{0.8\sqrt{13}}{2} = (0.9 + 0.4)\sqrt{13} = 1.3\sqrt{13} \approx 4.687 \text{ m}.$$
+$$\begin{aligned} L(\theta^*) &= \frac{2.7\sqrt{13}}{3} + \frac{0.8\sqrt{13}}{2} \\ &= (0.9 + 0.4)\sqrt{13} = 1.3\sqrt{13} \\ &\approx 4.687 \text{ m}. \end{aligned}$$
 
 The longest pipe that fits is about 4.69 m. In general, for corridors of widths $p$ and $q$ the same steps give $(p^{2/3} + q^{2/3})^{3/2}$; check that it gives 4.687 here.
 
@@ -1564,7 +1578,7 @@ near((Rational(27, 10)**Rational(2, 3) + Rational(8, 10)**Rational(2, 3))**Ratio
 ::: solution
 **(a)** By the product rule and the chain rule,
 
-$$g'(x) = f'(x)e^{-kx} + f(x)\cdot\big(-ke^{-kx}\big) = \big(f'(x) - kf(x)\big)e^{-kx} = 0$$
+$$\begin{aligned} g'(x) &= f'(x)e^{-kx} + f(x)\cdot\big(-ke^{-kx}\big) \\ &= \big(f'(x) - kf(x)\big)e^{-kx} = 0 \end{aligned}$$
 
 for every $x$, since $f' = kf$. By Theorem 8.5, applied on the interval $\R$, $g$ is constant: $g(x) = g(0) = f(0)e^0 = f(0)$. So $f(x)e^{-kx} = f(0)$, and multiplying by $e^{kx}$ gives $f(x) = f(0)e^{kx}$.
 
@@ -1572,7 +1586,7 @@ for every $x$, since $f' = kf$. By Theorem 8.5, applied on the interval $\R$, $g
 
 **(c)** Let $g(x) = f(x)e^{-x^2}$. Then
 
-$$g'(x) = f'(x)e^{-x^2} - 2xf(x)e^{-x^2} = \big(f'(x) - 2xf(x)\big)e^{-x^2} = 0,$$
+$$\begin{aligned} g'(x) &= f'(x)e^{-x^2} - 2xf(x)e^{-x^2} \\ &= \big(f'(x) - 2xf(x)\big)e^{-x^2} = 0, \end{aligned}$$
 
 so $g(x) = g(0) = f(0)$ for every $x$, and $f(x) = f(0)e^{x^2}$.
 

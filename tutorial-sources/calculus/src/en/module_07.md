@@ -669,17 +669,20 @@ for a in [2.0, 3.0, 1e6]:
 1000000.0 (1000.0, 16) 1000.0
 ```
 
-For 3 and $10^6$ the answers agree with `math.sqrt` to the last digit. For 2 they differ by one unit in the 16th significant digit: `math.sqrt` returns the floating-point number closest to $\sqrt2$, and getting that last digit right takes more care than this short function does. The 16 steps for $10^6$ show the cost of a poor start: from $x_0 = 10^6$, each early step only halves $x$, because $a/x$ is tiny next to $x$; the digits start to double only near the root.
+For 3 and $10^6$ the answers agree with `math.sqrt` to the last digit. For 2 they differ in the last binary digit, by $2^{-52} \approx 2.2 \times 10^{-16}$: `math.sqrt` returns the floating-point number closest to $\sqrt2$, this function returns the next one down, and getting that last digit right takes more care than this short function does. The 16 steps for $10^6$ show the cost of a poor start: from $x_0 = 10^6$, each early step only halves $x$, because $a/x$ is tiny next to $x$; the digits start to double only near the root.
 :::
 
 ```check
 holds(Rational(1, 2)**50 > Rational(1, 10)**16)            # after 50 halvings the interval is still longer than 1e-16
+import math
+holds(math.sqrt(2.0) - 1.414213562373095 == 2.0**-52); rounds(Rational(1, 2**52), '2.2e-16')   # my_sqrt(2.0) printed 1.414213562373095
+holds(abs(Rational(math.sqrt(2.0)) - sqrt(2)) < abs(Rational(1.414213562373095) - sqrt(2)))     # math.sqrt is the nearer double
 rounds(53*log(2, 10), '16')                                # double precision: 53 binary digits, about 16 decimal digits
 ```
 
 ### Why the digits double {#quadratic}
 
-For square roots, the doubling can be proved in a few lines. For iterates it is convenient to measure the miss the other way round from an error: write $e_n = x_n - r$, where $r$ is the root. So $e_n$ is the error of $x_n$ with its sign reversed, positive when $x_n$ is too big, and $\abs{e_n}$ is its absolute error.
+For square roots, the doubling can be proved in a few lines. For iterates it is convenient to subtract the other way round from an error: write $e_n = x_n - r$, where $r$ is the root. This is the error of $x_n$ (Definition 7.3) with its sign reversed: it is positive when $x_n$ is too big, and $\abs{e_n}$ is the absolute error.
 
 ::: theorem Newton's method for square roots
 Let $a > 0$ and $x_0 > 0$, and let $x_{n+1} = \tfrac12\big(x_n + a/x_n\big)$ for $n = 0, 1, 2, \dots$. Then
@@ -756,15 +759,17 @@ From $\abs{\varepsilon_0} \le 0.01$: $\varepsilon_1 \le 0.0001/(2 \times 0.99) \
 ep = symbols('epsilon')
 same(((sqrt(ap_)*(1 + ep) + ap_/(sqrt(ap_)*(1 + ep)))/2 - sqrt(ap_))/sqrt(ap_), ep**2/(2*(1 + ep)))
 b1 = Rational(1, 10000)/(2*Rational(99, 100)); b2 = b1**2/2; b3 = b2**2/2
-holds(b1 >= Rational(1, 10000)/(2*(1 - Rational(1, 100))))
-rounds(b1, '5.1e-5'); rounds(b2, '1.3e-9'); rounds(b3, '8.1e-19'); rounds(Rational(1, 2)**53, '1.1e-16'); holds(b3 < Rational(1, 2)**53)
+holds(all(e_**2/(2*(1 + e_)) <= b1 for e_ in [Rational(k, 1000) for k in range(-10, 11)]))   # worst case eps_0 = -0.01
+same(sqrt(ap_)*(1 + ep) - sqrt(ap_), sqrt(ap_)*ep)                                         # e_n = sqrt(a) eps_n
+rounds(b1, '5.1e-5'); holds(b2 <= Rational(13, 10)*Rational(1, 10)**9); holds(b3 <= Rational(82, 10)*Rational(1, 10)**19)
+rounds(Rational(1, 2)**53, '1.1e-16'); holds(b3 < Rational(1, 2)**53)
 ```
 
 Division is slower than multiplication on most processors, so where speed matters a division-free variant is popular: Newton's method applied to $1/y^2 - a = 0$, whose root is $1/\sqrt a$, needs only multiplications (Exercise 7.10). Graphics programs, for example, need $1/\sqrt a$ to scale vectors to length 1.
 
 ### When Newton's method fails {#newton-failures}
 
-Theorem 7.3 promises success when $x_0$ is close enough to a root at which $f'$ is not 0, and nothing otherwise. Outside those conditions Newton's method can fail in several ways (Figure 7.4):
+Theorem 7.3 promises success only when $x_0$ is close enough to a root at which $f'$ is not 0 (with $f''$ continuous near it). It does not say how close is close enough, and for other starting values it promises nothing. Outside those conditions Newton's method can fail in several ways (Figure 7.4):
 
 - **A horizontal tangent.** If $f'(x_n) = 0$, the tangent line is horizontal and never meets the $x$-axis: there is no next iterate. For $f(x) = x^2 - 2$ this happens at $x_0 = 0$. If $f'(x_n)$ is merely small, the next iterate lands far away: from $x_0 = 0.1$, $x_1 = 10.05$.
 - **A cycle.** For $f(x) = x^3 - 2x + 2$ from $x_0 = 0$: $f(0) = 2$ and $f'(0) = -2$, so $x_1 = 0 - 2/(-2) = 1$; then $f(1) = 1$ and $f'(1) = 1$, so $x_2 = 1 - 1 = 0$. The iterates alternate between 0 and 1 for ever, while the only real root is near $-1.769$.
@@ -789,7 +794,7 @@ For $x \ne 0$, $f'(x) = \dfrac{1}{3\sqrt[3]{x}^{\,2}}$: $\sqrt[3]{x}$ is the inv
 
 $$\begin{aligned} x_{n+1} &= x_n - \frac{u}{1/(3u^2)} = x_n - 3u^3 \\ &= x_n - 3x_n = -2x_n. \end{aligned}$$
 
-Each step doubles the distance from the root and switches sides: from $x_0 = 1$ the iterates are $-2, 4, -8, 16, \dots$ (Figure 7.4, right). Theorem 7.3 does not apply, because $f'(0)$ does not exist: the graph has a vertical tangent at its root, and the tangent lines near it are so flat that each one overshoots.
+Each step doubles the distance from the root and switches sides: from $x_0 = 1$ the iterates are $-2, 4, -8, 16, \dots$ (Figure 7.4, right). Theorem 7.3 does not apply, because $f'(0)$ does not exist: the graph has a vertical tangent at its root. At any other point $(u^3, u)$ of the graph, the tangent has slope $1/(3u^2)$, a third of the slope $u/u^3 = 1/u^2$ of the line from that point to the root. So each tangent meets the axis three times as far from $x_n$ as the root is: at $-2x_n$, beyond the root.
 
 ```check
 up = symbols('u', nonzero=True, real=True)
@@ -799,6 +804,7 @@ itr = [1]
 for _ in range(4):
     itr.append(-2*itr[-1])
 same(itr, [1, -2, 4, -8, 16])
+same((up/up**3)/3, 1/(3*up**2)); same(Abs(-2*up**3 - up**3), 3*Abs(up**3 - 0))   # a third of the slope; three times as far
 limit_is(real_root(x, 3)/x, x, 0, oo, '+')        # the graph is vertical at 0: no derivative there
 ```
 :::
@@ -812,7 +818,7 @@ In practice: start close to the root (a graph, a table of values or a few steps 
 :::
 
 ::: widget name=newton-method
-Choose a function and a starting point $x_0$, then press **Step**: each step draws the tangent line at the current point down to the $x$-axis, and the table lists $x_n$, its number of correct decimal places, and $f(x_n)$. With $x^2 - 2$ from $x_0 = 1$, watch the correct decimals go 0, 0, 2, 5, 11, 15; the last is the limit of double precision. Then try the failures: $x_0 = 0$ for $x^2 - 2$; $x^3 - 2x + 2$ from $x_0 = 0$; $\sqrt[3]{x}$ from any $x_0$; and type `ln(x)` with $x_0 = 3$. Finally try $x^3 - 2x - 5$ from $x_0 = 0.8$, near a point where $f'(x) = 0$, and see how far the first step goes.
+Choose a function and a starting point $x_0$, then press **Step**: each step draws the tangent line at the current point down to the $x$-axis, and the table lists $x_n$, its number of correct decimal places, and $f(x_n)$. With $x^2 - 2$ from $x_0 = 1$, watch the correct decimals go 0, 0, 2, 5, 11, 15; the last is the limit of double precision. Then try the failures: $x_0 = 0$ for $x^2 - 2$; $x^3 - 2x + 2$ from $x_0 = 0$; $\sqrt[3]{x}$ from any $x_0 \ne 0$; and type `ln(x)` with $x_0 = 3$. Finally try $x^3 - 2x - 5$ from $x_0 = 0.8$, near a point where $f'(x) = 0$, and see how far the first step goes.
 :::
 
 ```check
@@ -993,7 +999,7 @@ limit_is(sin(theta)/theta, theta, 0, 1); same(cos(0)/1, 1)
 
 Products, differences and powers have indeterminate forms too. As $x \to \infty$, $1/x \to 0$ and $x \to \infty$, yet
 
-$$\frac{1}{x}\cdot x \to 1, \qquad \frac{1}{x^2}\cdot x \to 0, \qquad \frac{1}{x}\cdot x^2 \to \infty.$$
+$$\frac{1}{x}\cdot x \to 1, \quad \frac{1}{x^2}\cdot x \to 0, \quad \frac{1}{x}\cdot x^2 \to \infty.$$
 
 A product of the form $0\cdot\infty$ can approach anything. The same is true of differences of the form $\infty - \infty$ and of powers of the forms $1^\infty$, $0^0$ and $\infty^0$; these are **indeterminate forms** too. The strategy for each is to rewrite the expression as a quotient of the form $0/0$ or $\infty/\infty$, and use L'Hôpital's rule.
 
@@ -1068,7 +1074,7 @@ For $a = 0$ every value is $1^x = 1 = e^0$. For $a \ne 0$ the form is $1^\infty$
 
 $$\ln y = x\ln\Big(1 + \frac{a}{x}\Big) = \frac{\ln(1 + a/x)}{1/x},$$
 
-of the form $0/0$. Differentiate the top (chain rule) and the bottom:
+of the form $0/0$. The top and the bottom are differentiable for $x > \abs{a}$, and the derivative of the bottom, $-1/x^2$, is never 0. Differentiate the top (chain rule) and the bottom:
 
 $$\frac{\dfrac{1}{1 + a/x}\cdot\Big(-\dfrac{a}{x^2}\Big)}{-\dfrac{1}{x^2}} = \frac{a}{1 + a/x} \;\to\; a.$$
 
@@ -1077,20 +1083,20 @@ So $\ln y \to a$ by Theorem 7.5, and $y \to e^a$. With $a = 1$, $(1 + 1/x)^x \to
 ```check
 ar = symbols('a', real=True)
 same(x*log(1 + ar/x), log(1 + ar/x)/(1/x))
-same(diff(log(1 + ar/x), x), 1/(1 + ar/x)*(-ar/x**2)); same(diff(1/x, x), -1/x**2)
+same(diff(log(1 + ar/x), x), 1/(1 + ar/x)*(-ar/x**2)); same(diff(1/x, x), -1/x**2); same(solve(-1/x**2, x), [])
 same(diff(log(1 + ar/x), x)/diff(1/x, x), ar/(1 + ar/x)); limit_is(ar/(1 + ar/x), x, oo, ar)
 limit_is(log(1 + ar/x), x, oo, 0); limit_is((1 + ar/x)**x, x, oo, exp(ar)); limit_is((1 + 1/n)**n, n, oo, E)
 ```
 :::
 
-This is the compound interest of Module 6. Interest at a rate $a$ a year, added $n$ times a year, multiplies money by $(1 + a/n)^n$ in a year, and as $n$ grows that approaches $e^a$, the factor for interest added continuously.
+This is the compound interest of Module 6, whose [Theorem 6.6](module_06_EN.html#two-routes) proved the same limit for whole numbers $n$, from the derivative of $\ln$ at 1; L'Hôpital's rule gives a second proof, for every real $x$. Interest at a rate $a$ a year, added $n$ times a year, multiplies money by $(1 + a/n)^n$ in a year, and as $n$ grows that approaches $e^a$, the factor for interest added continuously.
 
 ::: example $0^0$ and $\infty^0$
 Find $\displaystyle\lim_{x\to0^+} x^x$ and $\displaystyle\lim_{x\to\infty} x^{1/x}$.
 
 **$x^x$, of the form $0^0$.** $\ln\big(x^x\big) = x\ln x \to 0$ as $x \to 0^+$, by Example 7.15. So $x^x \to e^0 = 1$.
 
-**$x^{1/x}$, of the form $\infty^0$.** $\ln\big(x^{1/x}\big) = \dfrac{\ln x}{x}$, of the form $\infty/\infty$, and the quotient of the derivatives is $\dfrac{1/x}{1} \to 0$. So $x^{1/x} \to e^0 = 1$; for example, $1000^{1/1000} \approx 1.0069$.
+**$x^{1/x}$, of the form $\infty^0$.** $\ln\big(x^{1/x}\big) = \dfrac{\ln x}{x}$, of the form $\infty/\infty$. The derivative of the bottom is 1, never 0, and the quotient of the derivatives is $\dfrac{1/x}{1} \to 0$. So, by Theorem 7.5, $\ln\big(x^{1/x}\big) \to 0$, and $x^{1/x} \to e^0 = 1$; for example, $1000^{1/1000} \approx 1.0069$.
 
 ```check
 xq = symbols('x', positive=True)
@@ -1185,7 +1191,7 @@ holds(Rational(1, 10**16) < Rational(1, 2)**53)            # 1 + 10^-16 is neare
 
 ## Comparing growth rates {#growth}
 
-Module 3 ranked functions by how fast they grow as $x \to \infty$: logarithms grow more slowly than powers, and powers more slowly than exponentials. That ranking is why an algorithm whose running time grows like $n^2$ beats one that grows like $2^n$ on large inputs. L'Hôpital's rule proves it.
+Module 3 ranked functions by how fast they grow as $x \to \infty$ ([Theorem 3.11](module_03_EN.html#growth)): logarithms grow more slowly than powers, and powers more slowly than exponentials. That ranking is why an algorithm whose running time grows like $n^2$ beats one that grows like $2^n$ on large inputs. Module 3 proved it in a Going deeper box with the tools it had; L'Hôpital's rule proves it in a few lines.
 
 ::: theorem Logarithms grow more slowly than powers
 For every $p > 0$,
@@ -1281,7 +1287,7 @@ rounds(10**10/exp(10)/10**4, '45'); rounds(exp(100)/100**10, '3e23')        # ab
 ```
 
 ::: keyidea
-As $x \to \infty$, for every $p > 0$, $q > 0$ and $a > 1$: $\;\ln x \ll x^p \ll a^x\;$ and $\;(\ln x)^q \ll x^p$, where $f \ll g$, read "f is much smaller than g", means $f(x)/g(x) \to 0$. The last follows from the first: $(\ln x)^q/x^p = \big(\ln x/x^{p/q}\big)^q \to 0$. Any power of a logarithm loses to any positive power of $x$, and any power of $x$ loses to any exponential with base greater than 1, whatever the constants.
+As $x \to \infty$, for every $p > 0$, $q > 0$ and $a > 1$: $\;\ln x \ll x^p \ll a^x\;$ and $\;(\ln x)^q \ll x^p$, where $f \ll g$ (Module 3's notation, read "f is much smaller than g") means $f(x)/g(x) \to 0$. The last follows from the first: $(\ln x)^q/x^p = \big(\ln x/x^{p/q}\big)^q \to 0$. Any power of a logarithm loses to any positive power of $x$, and any power of $x$ loses to any exponential with base greater than 1, whatever the constants.
 :::
 
 ```check
@@ -1310,7 +1316,7 @@ same(2**3, 8); same(3**2, 9)
 - **Differentials**: $dy = f'(x)\,dx$ is the change along the tangent line, $\Delta y$ the change along the curve, and $\Delta y \approx dy$ when $dx$ is small.
 - **Errors** propagate as $\Delta y \approx f'(x)\,\Delta x$. The relative error of $x^k$ is about $\abs{k}$ times that of $x$, so a ball's volume has three times the relative error of its radius.
 - **Newton's method** $x_{n+1} = x_n - f(x_n)/f'(x_n)$ follows tangent lines to the $x$-axis. Near a root with $f'(r) \ne 0$ it converges quadratically, roughly doubling the correct digits at each step; for square roots, $x_{n+1} = \tfrac12(x_n + a/x_n)$. It fails at horizontal tangents, can cycle, run away or leave the domain, and is slow at multiple roots.
-- **L'Hôpital's rule**: for the forms $0/0$ and $\infty/\infty$, $\lim f/g = \lim f'/g'$ whenever the second limit exists. The simple form, $f'(a)/g'(a)$, follows from the definition of the derivative. Check the form before each use, and differentiate the top and the bottom separately.
+- **L'Hôpital's rule**: for the forms $0/0$ and $\infty/\infty$, with $g' \ne 0$ near $a$, $\lim f/g = \lim f'/g'$ whenever the second limit exists. The simple form, $f'(a)/g'(a)$ when $f(a) = g(a) = 0$ and $g'(a) \ne 0$, follows from the definition of the derivative. Check the form before each use, and differentiate the top and the bottom separately.
 - The other **indeterminate forms**: turn $0\cdot\infty$ into a quotient, put $\infty - \infty$ over a common denominator, and take logarithms of $1^\infty$, $0^0$ and $\infty^0$. In particular $(1 + a/x)^x \to e^a$.
 - **Growth rates**: $\ln x \ll x^p \ll a^x$ for $p > 0$ and $a > 1$, though "eventually" may mean "only for very large $x$".
 
@@ -1387,13 +1393,13 @@ For each limit, say whether L'Hôpital's rule applies, then find the limit.
 - (d) $\displaystyle\lim_{x\to\infty}\frac{2x + 3}{5x - 1}$
 
 ::: solution
-**(a)** At $x = 0$ the top is $e^0 - 1 = 0$ and the bottom is 0: the form is $0/0$, and the rule applies. The quotient of the derivatives is $\dfrac{3e^{3x}}{1} \to 3$, so the limit is 3.
+**(a)** At $x = 0$ the top is $e^0 - 1 = 0$ and the bottom is 0: the form is $0/0$. Both are differentiable, and the derivative of the bottom is 1, never 0, so the rule applies. The quotient of the derivatives is $\dfrac{3e^{3x}}{1} \to 3$, so the limit is 3.
 
-**(b)** $\sin\pi = 0$ and $\pi - \pi = 0$: the form is $0/0$. The quotient of the derivatives is $\dfrac{\cos x}{1} \to \cos\pi = -1$, so the limit is $-1$. (The simple form, Theorem 7.4, gives the same: $f'(\pi)/g'(\pi) = -1/1$.)
+**(b)** $\sin\pi = 0$ and $\pi - \pi = 0$: the form is $0/0$, and the derivative of the bottom is again 1. The quotient of the derivatives is $\dfrac{\cos x}{1} \to \cos\pi = -1$, so the limit is $-1$. (The simple form, Theorem 7.4, gives the same: $f'(\pi)/g'(\pi) = -1/1$.)
 
 **(c)** At $x = 0$ the top is $\cos 0 = 1$ and the bottom is 1: not an indeterminate form, so the rule does not apply. Substitute: the limit is $1/1 = 1$. Applying the rule anyway would give $\dfrac{-\sin x}{1} \to 0$, which is wrong.
 
-**(d)** Both the top and the bottom approach $\infty$: the form is $\infty/\infty$. The quotient of the derivatives is $2/5$, so the limit is $\tfrac25$. Dividing the top and the bottom by $x$ (Module 3) gives the same: $\dfrac{2 + 3/x}{5 - 1/x} \to \dfrac25$.
+**(d)** Both the top and the bottom approach $\infty$: the form is $\infty/\infty$, and the derivative of the bottom, 5, is never 0. The quotient of the derivatives is the constant $2/5$, so the limit is $\tfrac25$. Dividing the top and the bottom by $x$ (Module 3) gives the same: $\dfrac{2 + 3/x}{5 - 1/x} \to \dfrac25$.
 
 ```check
 same((exp(3*x) - 1).subs(x, 0), 0); same(diff(exp(3*x) - 1, x), 3*exp(3*x)); limit_is((exp(3*x) - 1)/x, x, 0, 3)
@@ -1410,17 +1416,26 @@ The equation $x^3 - 2x - 5 = 0$ has a root near 2.
 - (a) Write down Newton's step for $f(x) = x^3 - 2x - 5$, and simplify it to a single fraction.
 - (b) Starting from $x_0 = 2$, compute $x_1$ and $x_2$ by hand ($x_2$ as a fraction and to six decimal places).
 - (c) The root is $r = 2.0945514815\ldots$; to how many decimal places are $x_0$, $x_1$ and $x_2$ correct?
+- (d) Why is $x_0 = 0.8$ a poor starting value? Compute $x_1$ from it.
 
 ::: solution
-**(a)** $f'(x) = 3x^2 - 2$, and
+**(a)** $f'(x) = 3x^2 - 2$. Write $x$ for $x_n$, and put the step over the common denominator $3x^2 - 2$:
 
-$$\begin{aligned} x_{n+1} &= x_n - \frac{x_n^3 - 2x_n - 5}{3x_n^2 - 2} \\ &= \frac{3x_n^3 - 2x_n - x_n^3 + 2x_n + 5}{3x_n^2 - 2} \\ &= \frac{2x_n^3 + 5}{3x_n^2 - 2}. \end{aligned}$$
+$$\begin{aligned} &x - \frac{x^3 - 2x - 5}{3x^2 - 2} \\ &\quad= \frac{3x^3 - 2x - x^3 + 2x + 5}{3x^2 - 2} \\ &\quad= \frac{2x^3 + 5}{3x^2 - 2}. \end{aligned}$$
+
+So $x_{n+1} = \dfrac{2x_n^3 + 5}{3x_n^2 - 2}$.
 
 **(b)** $x_1 = \dfrac{2 \cdot 8 + 5}{3 \cdot 4 - 2} = \dfrac{21}{10} = 2.1$. Then, with $2.1^3 = 9.261$ and $2.1^2 = 4.41$,
 
 $$\begin{aligned} x_2 &= \frac{2 \cdot 9.261 + 5}{3 \cdot 4.41 - 2} = \frac{23.522}{11.23} \\ &= \frac{11761}{5615} \approx 2.094568. \end{aligned}$$
 
 **(c)** The errors are $\abs{x_0 - r} \approx 0.095$, $\abs{x_1 - r} \approx 0.0054$ and $\abs{x_2 - r} \approx 0.000017$. Compare them with $0.5 \times 10^{-d}$: $x_0$ is correct to 0 decimal places ($0.095 < 0.5$ but not $< 0.05$), $x_1$ to 1 ($0.0054 < 0.05$ but not $< 0.005$) and $x_2$ to 4 ($0.000017 < 0.00005$ but not $< 0.000005$). The next iterate is correct to 9 decimal places.
+
+**(d)** $f'(0.8) = 3 \cdot 0.64 - 2 = -0.08$ is nearly 0: $0.8$ is close to $\sqrt{2/3} \approx 0.816$, where $f'(x) = 0$, so the tangent line at $x_0$ is nearly horizontal and meets the $x$-axis far away. With $f(0.8) = 0.512 - 1.6 - 5 = -6.088$,
+
+$$\begin{aligned} x_1 &= 0.8 - \frac{-6.088}{-0.08} \\ &= 0.8 - 76.1 = -75.3, \end{aligned}$$
+
+about 77 units from the root. Here the method recovers, slowly: for large $\abs{x_n}$ the step $\dfrac{2x_n^3 + 5}{3x_n^2 - 2}$ is close to $\tfrac23 x_n$, so each step shrinks the iterate by only about a third, and $x_{12} \approx 1.97$ is the first iterate near the root again. From there the correct digits double as usual. The widget of Section 7.4 shows the whole journey.
 
 ```check
 fn4 = x**3 - 2*x - 5
@@ -1432,6 +1447,18 @@ r4 = nsolve(fn4, x, 2.09, prec=60); rounds(r4, '2.0945514815')
 it4 = [Integer(2), Rational(21, 10), Rational(11761, 5615), st4(Rational(11761, 5615))]
 rounds(abs(it4[0] - r4), '0.095'); rounds(abs(it4[1] - r4), '0.0054'); rounds(abs(it4[2] - r4), '0.000017')
 same([correct_dp(v, r4) for v in it4], [0, 1, 4, 9])
+d4 = Rational(8, 10)                                                     # (d): the poor start 0.8
+same(diff(fn4, x).subs(x, d4), 3*Rational(64, 100) - 2); same(3*Rational(64, 100) - 2, -Rational(8, 100))
+same(fn4.subs(x, d4), Rational(512, 1000) - Rational(16, 10) - 5); same(Rational(512, 1000) - Rational(16, 10) - 5, -Rational(6088, 1000))
+same_set(solve(diff(fn4, x), x), [sqrt(Rational(2, 3)), -sqrt(Rational(2, 3))]); rounds(sqrt(Rational(2, 3)), '0.816')
+same(Rational(-6088, 1000)/Rational(-8, 100), Rational(761, 10)); same(st4(d4), d4 - Rational(761, 10)); same(st4(d4), -Rational(753, 10))
+rounds(abs(-Rational(753, 10) - r4), '77')
+limit_is(st4(x)/x, x, oo, Rational(2, 3)); limit_is(st4(x)/x, x, -oo, Rational(2, 3))   # far out, the step is about (2/3) x_n
+itd = [d4]
+for _ in range(16):
+    itd.append(N(st4(itd[-1]), 60))
+holds(all(abs(v - r4) > 1 for v in itd[1:12])); rounds(itd[12], '1.97')
+same([correct_dp(v, r4) for v in itd[12:17]], [0, 1, 3, 8, 17])        # then the digits double
 ```
 :::
 ::::
@@ -1492,13 +1519,13 @@ Find each limit.
 - (c) $\displaystyle\lim_{x\to0}\Big(\frac{1}{x} - \frac{1}{e^x - 1}\Big)$
 
 ::: solution
-**(a)** The form is $0/0$. Apply the rule three times, checking the form each time (the derivatives of the bottom, $3x^2$ and $6x$, are not 0 near 0 except at 0):
+**(a)** The form is $0/0$. Apply the rule three times, checking the form each time (the bottoms $x^3$, $3x^2$ and $6x$ have the derivatives $3x^2$, $6x$ and 6, which are not 0 near 0 except at 0):
 
-$$\frac{x - \sin x}{x^3},\; \frac{1 - \cos x}{3x^2},\; \frac{\sin x}{6x},\; \frac{\cos x}{6}.$$
+$$\begin{aligned} &\frac{x - \sin x}{x^3},\; \frac{1 - \cos x}{3x^2}, \\ &\frac{\sin x}{6x},\; \frac{\cos x}{6}. \end{aligned}$$
 
 The first three have the form $0/0$; the last approaches $\tfrac16$. Working backwards with Theorem 7.5, the limit is $\tfrac16$. (At the third stage the simple form also applies: $\dfrac{\cos 0}{6} = \dfrac16$.)
 
-**(b)** The form is $0\cdot(-\infty)$. Write $x^2\ln x = \dfrac{\ln x}{x^{-2}}$, of the form $\infty/\infty$. The quotient of the derivatives is
+**(b)** The form is $0\cdot(-\infty)$. Write $x^2\ln x = \dfrac{\ln x}{x^{-2}}$, of the form $\infty/\infty$ (the top approaches $-\infty$, the bottom $\infty$). The derivative of the bottom, $-2x^{-3}$, is not 0 for $x > 0$, and the quotient of the derivatives is
 
 $$\frac{1/x}{-2x^{-3}} = -\frac{x^2}{2} \;\to\; 0,$$
 
@@ -1539,13 +1566,13 @@ $$\Big(1 - \frac1n\Big)^n \to \frac1e \approx 0.368.$$
 
 For a large data set, about 36.8% of the items are left out of any one bootstrap sample.
 
-**(b)** The form is $0^0$. Let $y = (\sin x)^x$, for $0 < x < \pi$. Then $\ln y = x\ln\sin x = \dfrac{\ln\sin x}{1/x}$, of the form $\infty/\infty$ (the top approaches $-\infty$). The quotient of the derivatives is
+**(b)** The form is $0^0$. Let $y = (\sin x)^x$, for $0 < x < \pi$. Then $\ln y = x\ln\sin x = \dfrac{\ln\sin x}{1/x}$, of the form $\infty/\infty$ (the top approaches $-\infty$). The derivative of the bottom, $-1/x^2$, is never 0, and the quotient of the derivatives is
 
 $$\begin{aligned} \frac{\cos x/\sin x}{-1/x^2} &= -x \cdot \frac{x}{\sin x} \cdot \cos x \\ &\to 0 \cdot 1 \cdot 1 = 0, \end{aligned}$$
 
 using $x/\sin x \to 1$ (Module 2). So $\ln y \to 0$ and $y \to e^0 = 1$.
 
-**(c)** The form is $\infty^0$. Let $y = (\ln x)^{1/x}$, for $x > 1$. Then $\ln y = \dfrac{\ln(\ln x)}{x}$, of the form $\infty/\infty$. The derivative of $\ln(\ln x)$ is $\dfrac{1}{x\ln x}$ (chain rule), so the quotient of the derivatives is $\dfrac{1}{x\ln x} \to 0$. So $\ln y \to 0$ and $y \to 1$.
+**(c)** The form is $\infty^0$. Let $y = (\ln x)^{1/x}$, for $x > 1$. Then $\ln y = \dfrac{\ln(\ln x)}{x}$, of the form $\infty/\infty$. The derivative of $\ln(\ln x)$ is $\dfrac{1}{x\ln x}$ (chain rule) and that of the bottom is 1, so the quotient of the derivatives is $\dfrac{1}{x\ln x} \to 0$. So $\ln y \to 0$ and $y \to 1$.
 
 ```check
 limit_is((1 - 1/n)**n, n, oo, exp(-1)); rounds(exp(-1), '0.368'); rounds(100*exp(-1), '36.8')
@@ -1591,7 +1618,7 @@ same([correct_dp(v, r9) for v in it9], [0, 2, 6, 14, 29])
 Programs that must avoid division compute $1/\sqrt a$, for $a > 0$, as the positive root of $g(y) = \dfrac{1}{y^2} - a$.
 
 - (a) Show that Newton's method for $g$ has the step $y_{n+1} = \tfrac12 y_n\big(3 - ay_n^2\big)$, which needs no division.
-- (b) Write $y_n = (1 + \varepsilon_n)/\sqrt a$, so that $\varepsilon_n$ is the relative error. Show that $\varepsilon_{n+1} = -\tfrac12\varepsilon_n^2(3 + \varepsilon_n)$.
+- (b) Write $y_n = (1 + \varepsilon_n)/\sqrt a$, so that $\abs{\varepsilon_n}$ is the relative error of $y_n$. Show that $\varepsilon_{n+1} = -\tfrac12\varepsilon_n^2(3 + \varepsilon_n)$.
 - (c) If $\abs{\varepsilon_0} \le 0.01$, how many steps make the relative error smaller than $10^{-15}$?
 
 ::: solution
@@ -1611,7 +1638,7 @@ $$y_{n+1} = \frac{1 - \tfrac32\varepsilon_n^2 - \tfrac12\varepsilon_n^3}{\sqrt a
 
 that is, $\varepsilon_{n+1} = -\tfrac32\varepsilon_n^2 - \tfrac12\varepsilon_n^3 = -\tfrac12\varepsilon_n^2(3 + \varepsilon_n)$: quadratic convergence again.
 
-**(c)** While $\abs{\varepsilon_n} \le 0.01$, $\abs{\varepsilon_{n+1}} \le \tfrac12\varepsilon_n^2 \cdot 3.01$. From $\abs{\varepsilon_0} \le 0.01$ this gives the bounds $\abs{\varepsilon_1} \le 1.5 \times 10^{-4}$, $\abs{\varepsilon_2} \le 3.4 \times 10^{-8}$, $\abs{\varepsilon_3} \le 1.7 \times 10^{-15}$ and $\abs{\varepsilon_4} \le 4.6 \times 10^{-30}$. Three steps are not quite enough by this bound; four steps are.
+**(c)** While $\abs{\varepsilon_n} \le 0.01$, $\abs{\varepsilon_{n+1}} \le \tfrac12\varepsilon_n^2 \cdot 3.01$. From $\abs{\varepsilon_0} \le 0.01$ this gives, with each bound rounded up, $\abs{\varepsilon_1} \le 1.51 \times 10^{-4}$, $\abs{\varepsilon_2} \le 3.41 \times 10^{-8}$, $\abs{\varepsilon_3} \le 1.75 \times 10^{-15}$ and $\abs{\varepsilon_4} \le 4.61 \times 10^{-30}$; all are below 0.01, so the inequality applies at every step. Three steps are not quite enough by this bound; four steps are.
 
 ```check
 yy, ae = symbols('y a', positive=True)
@@ -1625,7 +1652,10 @@ same(-Rational(3, 2)*ep**2 - Rational(1, 2)*ep**3, -ep**2*(3 + ep)/2)
 bd = [Rational(1, 100)]
 for _ in range(4):
     bd.append(bd[-1]**2*Rational(301, 100)/2)
-rounds(bd[1], '1.5e-4'); rounds(bd[2], '3.4e-8'); rounds(bd[3], '1.7e-15'); rounds(bd[4], '4.6e-30')
+E_ = lambda m, k: Rational(m, 100)*Rational(1, 10)**k                  # m/100 x 10^-k
+holds(bd[1] <= E_(151, 4)); holds(bd[2] <= E_(341, 8)); holds(bd[3] <= E_(175, 15)); holds(bd[4] <= E_(461, 30))   # the bounds shown, rounded up
+holds(bd[1] > E_(150, 4)); holds(bd[2] > E_(340, 8)); holds(bd[3] > E_(174, 15)); holds(bd[4] > E_(460, 30))       # and rounded up by less than 0.01
+holds(Abs(3 + ep).subs(ep, Rational(1, 100)) <= Rational(301, 100)); holds(Abs(3 + ep).subs(ep, -Rational(1, 100)) <= Rational(301, 100))
 holds(bd[3] > Rational(1, 10)**15); holds(bd[4] < Rational(1, 10)**15)
 holds(all(b <= Rational(1, 100) for b in bd))
 ```
@@ -1673,12 +1703,12 @@ Suppose $x$ is known with a small relative error $\rho$ (Greek "rho"), and $y = 
 
 - (a) Use differentials to show that the relative error of $y$ is about $\kappa(x)\,\rho$, where $\kappa(x) = \abs{\dfrac{x f'(x)}{f(x)}}$ (Greek "kappa") is the **condition number** of $f$ at $x$.
 - (b) Find the condition number of $x^k$, of $e^x$, of $\ln x$ and of $x - 1$.
-- (c) A computer stores $x = 1 + 10^{-8}$ with a relative error of about $10^{-16}$. About how large is the relative error of $\ln x$ computed from it? Explain the result for $(1 + 1/n)^n$ in the last compute box of Section 7.6.
+- (c) A computer stores $x = 1 + 10^{-8}$ with a relative error of about $10^{-16}$. About how large is the relative error of $\ln x$ computed from it? Explain the results for $(1 + 1/n)^n$ in the compute box at the end of Section 7.6.
 
 ::: solution
 **(a)** If $x$ is off by $dx$, then $y$ is off by about $dy = f'(x)\,dx$, so the relative error of $y$ is about
 
-$$\begin{aligned} \abs{\frac{dy}{y}} &= \abs{\frac{f'(x)\,dx}{f(x)}} \\ &= \abs{\frac{xf'(x)}{f(x)}}\cdot\abs{\frac{dx}{x}} = \kappa(x)\,\rho. \end{aligned}$$
+$$\begin{aligned} \abs{\frac{dy}{y}} &= \abs{\frac{f'(x)\,dx}{f(x)}} \\ &= \abs{\frac{xf'(x)}{f(x)}}\cdot\abs{\frac{dx}{x}} \\ &= \kappa(x)\,\rho. \end{aligned}$$
 
 **(b)** For $x^k$: $\abs{\dfrac{x \cdot kx^{k-1}}{x^k}} = \abs{k}$, the rule of Section 7.3. For $e^x$: $\abs{\dfrac{xe^x}{e^x}} = \abs{x}$. For $\ln x$: $\abs{\dfrac{x \cdot (1/x)}{\ln x}} = \dfrac{1}{\abs{\ln x}}$. For $x - 1$: $\abs{\dfrac{x}{x - 1}}$.
 

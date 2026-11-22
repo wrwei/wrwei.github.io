@@ -398,10 +398,11 @@ CalcWidgets.register('shape-explorer', function (root, api) {
     else if (!isFinite(m)) lines.push(t('f′(x) cannot be computed here.', '此处无法计算 f′(x)。'))
     else {
       var s1 = sgn(m, tol1(y))
-      lines.push('f′(x) ≈ ' + num.fmt(s1 === 0 ? 0 : m, 4) + ' ' + (s1 > 0 ? t('> 0: f is increasing here', '> 0：f 在此处递增') : s1 < 0 ? t('< 0: f is decreasing here', '< 0：f 在此处递减') : t(': a horizontal tangent', '：切线水平')))
+      // "≈ 3.75 > 0: …", but "≈ 0: …" with no space before the colon
+      lines.push('f′(x) ≈ ' + num.fmt(s1 === 0 ? 0 : m, 4) + (s1 > 0 ? ' ' + t('> 0: f is increasing here', '> 0：f 在此处递增') : s1 < 0 ? ' ' + t('< 0: f is decreasing here', '< 0：f 在此处递减') : t(': a horizontal tangent', '：切线水平')))
       if (isFinite(k)) {
         var s2 = sgn(k, tol2(y))
-        lines.push('f″(x) ≈ ' + num.fmt(s2 === 0 ? 0 : k, 4) + ' ' + (s2 > 0 ? t('> 0: concave up here', '> 0：此处上凹') : s2 < 0 ? t('< 0: concave down here', '< 0：此处下凹') : t(': no information about the bend', '：无法判断凹向')))
+        lines.push('f″(x) ≈ ' + num.fmt(s2 === 0 ? 0 : k, 4) + (s2 > 0 ? ' ' + t('> 0: concave up here', '> 0：此处上凹') : s2 < 0 ? ' ' + t('< 0: concave down here', '< 0：此处下凹') : t(': no information about the bend', '：无法判断凹向')))
       }
     }
     lines.push(t('(f′ and f″ are computed numerically.)', '（f′ 与 f″ 为数值计算。）'))

@@ -106,11 +106,13 @@ CalcWidgets.register('newton-method', function (root, api) {
   }
 
   // x(n) is correct to d decimal places when |x(n) − r| < 0.5 × 10^(−d); at most what double precision can tell.
+  // At 0.5 or more from r it has no correct decimals at all: −1, shown as "none".
   function decimals(x, r) {
     if (r === null || !isFinite(x)) return null
     var cap = Math.max(0, Math.min(20, Math.floor(-Math.log10(2 * ulp(r)))))
     var err = Math.abs(x - r)
     if (err === 0) return cap
+    if (2 * err >= 1) return -1
     return Math.max(0, Math.min(cap, Math.floor(-Math.log10(2 * err))))
   }
 
@@ -184,8 +186,8 @@ CalcWidgets.register('newton-method', function (root, api) {
     h('thead', {}, h('tr', {}, h('th', { text: 'n' }), h('th', { text: 'xₙ' }), h('th', { text: t('correct', '正确位数') }),
       h('th', { text: 'f(xₙ)' }))), tbody)
   var tableBox = h('div', { class: 'cw-scroll nm-scroll', tabindex: '0', role: 'region', 'aria-label': t('Table of iterates', '迭代值表') }, table)
-  var note = h('div', { class: 'nm-note' }, t('correct: the number of correct decimal places of xₙ. xₙ is correct to d decimal places when |xₙ − r| < 0.5 × 10⁻ᵈ.',
-    '正确位数：xₙ 正确的小数位数。当 |xₙ − r| < 0.5 × 10⁻ᵈ 时，称 xₙ 精确到小数点后 d 位。'))
+  var note = h('div', { class: 'nm-note' }, t('correct: the number of correct decimal places of xₙ. xₙ is correct to d decimal places when |xₙ − r| < 0.5 × 10⁻ᵈ, and has none when |xₙ − r| ≥ 0.5.',
+    '正确位数：xₙ 正确的小数位数。当 |xₙ − r| < 0.5 × 10⁻ᵈ 时，称 xₙ 精确到小数点后 d 位；当 |xₙ − r| ≥ 0.5 时，没有正确的小数位（显示“无”）。'))
 
   root.appendChild(api.row(sel.el, field.el))
   root.appendChild(api.row(h('div', { class: 'nm-x0' }, slider.el), stepBtn, resetBtn))
@@ -295,9 +297,14 @@ CalcWidgets.register('newton-method', function (root, api) {
     if (state.done || !state.fn) return
     var fn = state.fn, it = state.it, n = it.length - 1, cur = it[n]
     var d = fn.df(cur.x), N = 'x' + sub(n), N1 = 'x' + sub(n + 1)
-    if (d === 0 || (isFinite(d) && Math.abs(cur.fx / d) > 1e12)) {
-      stop(t('f′(' + N + ') = 0' + (d === 0 ? '' : ' (very nearly)') + ': the tangent is horizontal and never meets the x-axis, so there is no next point. Choose another x₀.',
-        'f′(' + N + ') = 0' + (d === 0 ? '' : '（几乎为 0）') + '：切线是水平的，与 x 轴不相交，所以没有下一个点。请换一个 x₀。'), 'bad')
+    if (d === 0) {
+      stop(t('f′(' + N + ') = 0: the tangent is horizontal and never meets the x-axis, so there is no next point. Choose another x₀.',
+        'f′(' + N + ') = 0：切线是水平的，与 x 轴不相交，所以没有下一个点。请换一个 x₀。'), 'bad')
+      render(); return
+    }
+    if (isFinite(d) && Math.abs(cur.fx / d) > 1e12) {
+      stop(t('f′(' + N + ') is almost 0: the tangent is almost horizontal, and it meets the x-axis more than 10¹² units away. Choose another x₀.',
+        'f′(' + N + ') 几乎为 0：切线几乎是水平的，它与 x 轴的交点在 10¹² 个单位以外。请换一个 x₀。'), 'bad')
       render(); return
     }
     if (!isFinite(d)) {
@@ -373,7 +380,7 @@ CalcWidgets.register('newton-method', function (root, api) {
     state.it.forEach(function (p, k) {
       var d = state.ref ? decimals(p.x, state.ref.r) : null
       tbody.appendChild(h('tr', { class: 'nm-row' + (k === state.it.length - 1 && k > 0 ? ' nm-new' : '') },
-        h('td', { text: String(k) }), h('td', { text: fmtX(p.x) }), h('td', { text: d === null ? '—' : String(d) }),
+        h('td', { text: String(k) }), h('td', { text: fmtX(p.x) }), h('td', { text: d === null ? '—' : d < 0 ? t('none', '无') : String(d) }),
         h('td', { text: fmtSci(p.fx, 3) })))
     })
     tableBox.scrollTop = tableBox.scrollHeight

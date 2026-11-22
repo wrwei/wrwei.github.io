@@ -27,7 +27,11 @@ export async function run(t) {
   s = await t.text('.se-summary')
   t.check(s.includes('x ≈ 0 (f′ = 0 but f′ does not change sign: no extremum), x ≈ 3 (local minimum)') && s.includes('Inflection points: x ≈ 0, x ≈ 2'),
     'x⁴ − 4x³: critical numbers 0 (no extremum) and 3 (minimum), inflection points 0 and 2')
-  t.check((await signs(t, 2)) === '+ − +', 'x⁴ − 4x³: f″ is + − +')
+  // At the flat point 0: f′(0) = f″(0) = 0 (the readout puts no space before the colon).
+  await t.set('input[type=range]', 0)
+  p = await t.text('.se-point')
+  t.check((await signs(t, 2)) === '+ − +' && p.includes('f′(x) ≈ 0: a horizontal tangent') && p.includes('f″(x) ≈ 0: no information about the bend'),
+    'x⁴ − 4x³: f″ is + − +; at x = 0 the readout shows f′ ≈ 0 and f″ ≈ 0')
 
   // x/(1 + x²): inflection points at 0 and ±√3 ≈ ±1.732.
   await t.select('select', 'witch')
@@ -54,8 +58,9 @@ export async function run(t) {
   t.check(s.includes('Critical numbers: x ≈ 0 (local maximum)') && s.includes('Inflection points: none') &&
     s.includes('Not defined or not continuous at: x ≈ −2, x ≈ 2') && chosen === 'own', 'x²/(x² − 4): maximum at 0, asymptotes at ±2, no inflection point')
 
-  // The cusp of Example 8.7: a local maximum where f′ does not exist.
-  await t.type('input[type=text]', 'cbrt(x^2)(x - 5)')
+  // The cusp of Example 8.7, typed as the caption says: x^(2/3) is the real power, so x < 0 is in the domain.
+  // A local maximum where f′ does not exist; g″ = (10/9)x^(−4/3)(x + 1) changes sign only at −1.
+  await t.type('input[type=text]', 'x^(2/3)(x - 5)')
   await t.wait(400)
   s = await t.text('.se-summary')
   t.check(s.includes('x ≈ 0 (local maximum; f′ does not exist there), x ≈ 2 (local minimum)') && s.includes('Inflection points: x ≈ −1'),

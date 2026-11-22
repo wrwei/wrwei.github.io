@@ -5,9 +5,8 @@ const iterates = t => t.texts('tr.nm-row td:nth-child(2)')
 
 export async function run(t) {
   // x^2 - 2 from x0 = 1: the iterates of Example 7.9, with correct decimals 0, 0, 2, 5, 11, 15.
-  t.check((await t.count('tr.nm-row')) === 1, 'starts with the row of x0 only')
-  t.check((await t.text('.nm-ref')).includes('1.414213562373095') && (await t.text('.nm-ref')).includes('bisection'),
-    'states the reference root √2 and that it was found by bisection')
+  t.check((await t.count('tr.nm-row')) === 1 && (await t.text('.nm-ref')).includes('1.414213562373095') &&
+    (await t.text('.nm-ref')).includes('bisection'), 'starts with the row of x0 only, and states the reference root √2, found by bisection')
   for (let k = 0; k < 4; k++) await t.click('Step')
   t.check((await iterates(t))[3] === '1.414215686274510', 'x3 = 577/408 = 1.414215686274510')
   t.check((await decimals(t)).join(' ') === '0 0 2 5 11', 'correct decimals of x0 to x4: 0 0 2 5 11')
@@ -34,9 +33,16 @@ export async function run(t) {
   // The cube root runs away: −2, 4, −8 (Example 7.11).
   await t.select('select', 'cbrt')
   for (let k = 0; k < 3; k++) await t.click('Step')
-  t.check((await iterates(t)).slice(1).join(' ') === '−2.000000000000000 4.000000000000000 −8.000000000000000', 'cube root from 1: −2, 4, −8')
+  t.check((await iterates(t)).slice(1).join(' ') === '−2.000000000000000 4.000000000000000 −8.000000000000000' &&
+    (await decimals(t)).join(' ') === 'none none none none', 'cube root from 1: −2, 4, −8, none of them within 0.5 of the root 0')
   t.check((await t.text('.nm-msg')).includes('running away'), 'says the iterates are running away')
   await t.shot('runaway')
+
+  // A nearly horizontal tangent: x^3 − 2x − 5 from x0 = 0.8 (Exercise 7.4(d)).
+  await t.select('select', 'cubic')
+  await t.set('input[type=range]', 0.8)
+  await t.click('Step')
+  t.check((await iterates(t))[1].startsWith('−75.3000') && (await decimals(t))[1] === 'none', 'x³ − 2x − 5 from 0.8: the first step lands near −75.3')
 
   // A cycle: x^3 − 2x + 2 from 0.
   await t.select('select', 'cycle')

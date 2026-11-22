@@ -22,7 +22,7 @@ This last module integrates such fields along curves (the work done by a force a
 ::: definition Vector field
 Let $D$ be a set of points in the plane. A **vector field** on $D$ is a function $\vb{F}$ that assigns to each point $(x, y)$ of $D$ a vector
 
-$$\vb{F}(x, y) = \big\langle P(x, y), Q(x, y)\big\rangle = P\,\vb{i} + Q\,\vb{j}.$$
+$$\begin{aligned} \vb{F}(x, y) &= \big\langle P(x, y), Q(x, y)\big\rangle \\ &= P\,\vb{i} + Q\,\vb{j}. \end{aligned}$$
 
 A vector field on a set $E$ of points in space assigns to each point $(x, y, z)$ of $E$ a vector $\vb{F}(x, y, z) = \langle P, Q, R\rangle$. The functions $P$, $Q$ and $R$, whose values are numbers, are the **components** of $\vb{F}$.
 :::
@@ -112,7 +112,6 @@ A thin wire is bent into the upper half of the circle $x^2 + y^2 = 1$, with leng
 n = 4, 16, 64, 256
 $\sum_{i=1}^{n}\big(1 + \sin\theta_i\big)\dfrac{\pi}{n}$ = Sum((1 + sin((i - 1/2)*pi/n))*pi/n, (i, 1, n))
 digits = 7
-layout = columns
 ---
 n | \sum_{i=1}^{n}\big(1 + \sin\theta_i\big)\dfrac{\pi}{n}
 4 | 5.193937
@@ -144,7 +143,7 @@ $$\begin{aligned} M &= \int_C (1 + y)\,ds = \int_0^\pi (1 + \sin t)\,dt \\ &= \b
 
 the number that the sums approached. By symmetry the centre of mass lies on the $y$-axis. Its height is the moment about the $x$-axis divided by the mass, as for a rod in [Section 12.7](module_12_EN.html#centre-of-mass), with $y\,\rho\,ds$ in place of $x\,\rho(x)\,dx$. With $\int_0^\pi \sin^2 t\,dt = \pi/2$ ([Exercise 10.12](module_10_EN.html#ex-10-12)),
 
-$$\begin{aligned} \bar y &= \frac{1}{M}\int_C y(1 + y)\,ds = \frac{1}{M}\int_0^\pi \big(\sin t + \sin^2 t\big)\,dt \\ &= \frac{2 + \pi/2}{\pi + 2} \approx 0.694 \text{ m}. \end{aligned}$$
+$$\begin{aligned} \bar y &= \frac{1}{M}\int_C y(1 + y)\,ds \\ &= \frac{1}{M}\int_0^\pi \big(\sin t + \sin^2 t\big)\,dt \\ &= \frac{2 + \pi/2}{\pi + 2} \approx 0.694 \text{ m}. \end{aligned}$$
 
 A uniform semicircular wire has its centre of mass at the height $\tfrac{1}{\pi}\int_0^\pi \sin t\,dt = 2/\pi \approx 0.637$ m; the heavier top lifts it.
 
@@ -198,7 +197,7 @@ Find the work done by the force $\vb{F}(x, y) = \langle -y, x\rangle$ on an obje
 
 **(b)** Take $\vb{r}(t) = \langle t, t^2\rangle$. Then $\vb{F}\big(\vb{r}(t)\big) = \langle -t^2, t\rangle$ and $\vb{r}'(t) = \langle 1, 2t\rangle$, so
 
-$$W = \int_0^1 \big(-t^2 + 2t^2\big)\,dt = \int_0^1 t^2\,dt = \frac13.$$
+$$\begin{aligned} W &= \int_0^1 \big(-t^2 + 2t^2\big)\,dt \\ &= \int_0^1 t^2\,dt = \frac13. \end{aligned}$$
 
 **(c)** Two smooth pieces. Along the $x$-axis, $\vb{r}(t) = \langle t, 0\rangle$: the force $\langle 0, t\rangle$ is perpendicular to $\vb{r}' = \langle 1, 0\rangle$, so it does no work. Up the line $x = 1$, $\vb{r}(t) = \langle 1, t\rangle$: the force is $\langle -t, 1\rangle$ and $\vb{r}' = \langle 0, 1\rangle$, so $\vb{F}\cdot\vb{r}' = 1$ and the work is $\int_0^1 1\,dt = 1$. In all, $W = 0 + 1 = 1$.
 
@@ -333,7 +332,7 @@ $$\int_C \nabla f\cdot d\vb{r} = f(B) - f(A).$$
 ::: proof
 First let $C$ be smooth, and let $g(t) = f\big(\vb{r}(t)\big)$ be the value of $f$ at the moving point. By the chain rule of Module 17,
 
-$$g'(t) = f_x\,x'(t) + f_y\,y'(t) + f_z\,z'(t) = \nabla f\big(\vb{r}(t)\big)\cdot\vb{r}'(t)$$
+$$\begin{aligned} g'(t) &= f_x\,x'(t) + f_y\,y'(t) + f_z\,z'(t) \\ &= \nabla f\big(\vb{r}(t)\big)\cdot\vb{r}'(t) \end{aligned}$$
 
 (without the last term in the plane), and this is continuous on $[a, b]$. By the net change theorem ([Theorem 10.5](module_10_EN.html#net-change-theorem)),
 
@@ -363,11 +362,11 @@ Show that the gravitational field $\vb{F} = -GMm\,\vb{r}/\norm{\vb{r}}^3$ is the
 
 Write $1/\norm{\vb{r}} = (x^2 + y^2 + z^2)^{-1/2}$. By the chain rule,
 
-$$\begin{aligned} \frac{\partial}{\partial x}\,(x^2 + y^2 + z^2)^{-1/2} &= -\tfrac12(x^2 + y^2 + z^2)^{-3/2}\cdot 2x \\ &= -\frac{x}{\norm{\vb{r}}^3}, \end{aligned}$$
+$$\begin{aligned} &\frac{\partial}{\partial x}\,(x^2 + y^2 + z^2)^{-1/2} \\ &\quad= -\tfrac12(x^2 + y^2 + z^2)^{-3/2}\cdot 2x \\ &\quad= -\frac{x}{\norm{\vb{r}}^3}, \end{aligned}$$
 
 and in the same way for $y$ and $z$. So $\nabla\big(1/\norm{\vb{r}}\big) = -\vb{r}/\norm{\vb{r}}^3$, and $\nabla f = \vb{F}$. The value of $f$ depends only on the distance from the origin, so by Theorem 20.2 the work is
 
-$$W = f(B) - f(A) = GMm\Big(\frac{1}{r_2} - \frac{1}{r_1}\Big),$$
+$$\begin{aligned} W &= f(B) - f(A) \\ &= GMm\Big(\frac{1}{r_2} - \frac{1}{r_1}\Big), \end{aligned}$$
 
 whatever the path: positive when the body falls closer ($r_2 < r_1$), negative when it climbs away. Physicists call $U = -f = -GMm/\norm{\vb{r}}$ the **potential energy**, so the work done by gravity is the drop $U(A) - U(B)$. When gravity is the only force, this work is also the gain in kinetic energy, so the total energy stays the same: it is conserved, hence the name "conservative".
 
@@ -436,7 +435,7 @@ Let $\vb{F}(x, y) = \Big\langle \dfrac{-y}{x^2 + y^2}, \dfrac{x}{x^2 + y^2}\Big\
 
 **(a)** By the quotient rule,
 
-$$\begin{aligned} \frac{\partial P}{\partial y} &= \frac{-(x^2 + y^2) + y\cdot 2y}{(x^2 + y^2)^2} = \frac{y^2 - x^2}{(x^2 + y^2)^2}, \\ \frac{\partial Q}{\partial x} &= \frac{(x^2 + y^2) - x\cdot 2x}{(x^2 + y^2)^2} = \frac{y^2 - x^2}{(x^2 + y^2)^2}. \end{aligned}$$
+$$\begin{aligned} \frac{\partial P}{\partial y} &= \frac{-(x^2 + y^2) + y\cdot 2y}{(x^2 + y^2)^2} \\ &= \frac{y^2 - x^2}{(x^2 + y^2)^2}, \\ \frac{\partial Q}{\partial x} &= \frac{(x^2 + y^2) - x\cdot 2x}{(x^2 + y^2)^2} \\ &= \frac{y^2 - x^2}{(x^2 + y^2)^2}. \end{aligned}$$
 
 **(b)** Take $\vb{r}(t) = \langle\cos t, \sin t\rangle$, $0 \le t \le 2\pi$. On $C$, $x^2 + y^2 = 1$, so $\vb{F}\big(\vb{r}(t)\big) = \langle -\sin t, \cos t\rangle$, which is $\vb{r}'(t)$. So $\vb{F}\cdot\vb{r}' = \sin^2 t + \cos^2 t = 1$, and $\oint_C \vb{F}\cdot d\vb{r} = 2\pi$.
 
@@ -494,7 +493,7 @@ $$f(x, y) = y\sin x + x^2e^y + g(y).$$
 
 The "constant" of integration may depend on $y$, because $y$ was held fixed. Now differentiate with respect to $y$ and compare with $Q$:
 
-$$f_y = \sin x + x^2e^y + g'(y) = \sin x + x^2e^y + 2y,$$
+$$\begin{aligned} f_y &= \sin x + x^2e^y + g'(y) \\ &= \sin x + x^2e^y + 2y, \end{aligned}$$
 
 so $g'(y) = 2y$ and $g(y) = y^2 + K$. With $K = 0$,
 
@@ -504,7 +503,7 @@ Check: $\nabla f = \vb{F}$.
 
 **(c)** The curve runs from $\vb{r}(0) = (0, 0)$ to $\vb{r}(1) = (\pi/2, 1)$. By Theorem 20.2, without integrating along the curve,
 
-$$\begin{aligned} W &= f\big(\tfrac{\pi}{2}, 1\big) - f(0, 0) = 1 + \frac{\pi^2}{4}e + 1 - 0 \\ &= 2 + \frac{\pi^2 e}{4} \approx 8.707. \end{aligned}$$
+$$\begin{aligned} W &= f\big(\tfrac{\pi}{2}, 1\big) - f(0, 0) \\ &= 1 + \frac{\pi^2}{4}e + 1 - 0 \\ &= 2 + \frac{\pi^2 e}{4} \approx 8.707. \end{aligned}$$
 
 Every other path from $(0, 0)$ to $(\pi/2, 1)$ gives the same work.
 
@@ -542,7 +541,7 @@ same(integrate(x - x**2, (x, 0, 1)), Rational(1, 6)); same(diff(x, x) - diff(-y,
 
 Here is why. Take a small square with its lower left corner at $(x, y)$ and sides $h$, and go round it anticlockwise. Along the bottom edge the field does work of about $P(x, y)\,h$; along the top edge, traced from right to left, about $-P(x, y + h)\,h$; up the right edge about $Q(x + h, y)\,h$, and down the left edge about $-Q(x, y)\,h$. In all, about
 
-$$\big[Q(x + h, y) - Q(x, y)\big]h - \big[P(x, y + h) - P(x, y)\big]h \approx \Big(\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}\Big)h^2,$$
+$$\begin{aligned} &\big[Q(x + h, y) - Q(x, y)\big]h \\ &\quad- \big[P(x, y + h) - P(x, y)\big]h \\ &\approx \Big(\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}\Big)h^2, \end{aligned}$$
 
 since a difference quotient approximates a partial derivative (Module 17). So round a small square the line integral is about $Q_x - P_y$ times the square's area. Now cover a region $D$ with small squares and add their line integrals (Figure 20.3). An edge shared by two squares is traced twice, once in each direction, so its two contributions cancel; what is left is the line integral round the outer boundary. And the sum of the terms $(Q_x - P_y)$ times area is a Riemann sum of $\iint_D (Q_x - P_y)\,dA$ (Module 19).
 
@@ -555,7 +554,7 @@ A simple closed curve $C$ in the plane is **positively oriented** if it is trace
 ::: theorem Green's theorem
 Let $C$ be a positively oriented, piecewise smooth, simple closed curve in the plane, and let $D$ be the region made of $C$ and the points it encloses. If $P$ and $Q$ have continuous first partial derivatives on an open region that contains $D$, then
 
-$$\oint_C P\,dx + Q\,dy = \iint_D \Big(\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}\Big)\,dA.$$
+$$\begin{aligned} &\oint_C P\,dx + Q\,dy \\ &\quad= \iint_D \Big(\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}\Big)\,dA. \end{aligned}$$
 :::
 
 The proof below is for regions that Module 19 calls both type I and type II, such as discs, triangles and the region between the parabola and the line.
@@ -563,15 +562,15 @@ The proof below is for regions that Module 19 calls both type I and type II, suc
 ::: proof of Green's theorem for a region of type I and type II
 It is enough to prove
 
-$$\oint_C P\,dx = -\iint_D \frac{\partial P}{\partial y}\,dA \quad\text{and}\quad \oint_C Q\,dy = \iint_D \frac{\partial Q}{\partial x}\,dA,$$
+$$\begin{aligned} \oint_C P\,dx &= -\iint_D \frac{\partial P}{\partial y}\,dA \quad\text{and} \\ \oint_C Q\,dy &= \iint_D \frac{\partial Q}{\partial x}\,dA, \end{aligned}$$
 
 and add. For the first, describe $D$ as a type I region: $a \le x \le b$ and $g_1(x) \le y \le g_2(x)$. By Fubini's theorem (Module 19), and then Part 2 of the Fundamental Theorem in $y$, with $x$ held fixed,
 
-$$\begin{aligned} \iint_D \frac{\partial P}{\partial y}\,dA &= \int_a^b \int_{g_1(x)}^{g_2(x)} \frac{\partial P}{\partial y}\,dy\,dx \\ &= \int_a^b \Big[P\big(x, g_2(x)\big) - P\big(x, g_1(x)\big)\Big]\,dx. \end{aligned}$$
+$$\begin{aligned} \iint_D \frac{\partial P}{\partial y}\,dA &= \int_a^b \int_{g_1(x)}^{g_2(x)} \frac{\partial P}{\partial y}\,dy\,dx \\ &= \int_a^b \Big[P\big(x, g_2(x)\big) \\ &\qquad\quad - P\big(x, g_1(x)\big)\Big]\,dx. \end{aligned}$$
 
 Now go round $C$ anticlockwise in four parts, some of which may be single points. Along the bottom, the graph of $g_1$ traced by $\langle x, g_1(x)\rangle$ from $x = a$ to $x = b$, $\int P\,dx = \int_a^b P\big(x, g_1(x)\big)\,dx$. Up the right side, $x = b$ does not change, so $dx = 0$ and $\int P\,dx = 0$. Along the top, the graph of $g_2$ traced from $x = b$ back to $x = a$, $\int P\,dx = -\int_a^b P\big(x, g_2(x)\big)\,dx$. Down the left side, $dx = 0$ again. Adding the four parts,
 
-$$\begin{aligned} \oint_C P\,dx &= \int_a^b \Big[P\big(x, g_1(x)\big) - P\big(x, g_2(x)\big)\Big]\,dx \\ &= -\iint_D \frac{\partial P}{\partial y}\,dA. \end{aligned}$$
+$$\begin{aligned} \oint_C P\,dx &= \int_a^b \Big[P\big(x, g_1(x)\big) \\ &\qquad\quad - P\big(x, g_2(x)\big)\Big]\,dx \\ &= -\iint_D \frac{\partial P}{\partial y}\,dA. \end{aligned}$$
 
 For the second formula, describe $D$ as a type II region, $c \le y \le d$ and $h_1(y) \le x \le h_2(y)$. In the same way, $\iint_D Q_x\,dA = \int_c^d \big[Q\big(h_2(y), y\big) - Q\big(h_1(y), y\big)\big]\,dy$. Going round $C$ anticlockwise traces the right edge $x = h_2(y)$ upwards and the left edge $x = h_1(y)$ downwards, while on the horizontal parts $dy = 0$, so $\oint_C Q\,dy$ is the same integral.
 :::
@@ -598,7 +597,7 @@ $$\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y} = (2x + 3) - x =
 
 The awkward terms are gone: $e^{x^2}$ does not depend on $y$, and $\ln(1 + y^2)$ does not depend on $x$. With $D$ the disc of radius 2, in polar coordinates (Module 19),
 
-$$\begin{aligned} \oint_C P\,dx + Q\,dy &= \iint_D (x + 3)\,dA \\ &= \int_0^{2\pi}\!\!\int_0^2 (r\cos\theta + 3)\,r\,dr\,d\theta \\ &= 0 + 3\cdot\pi\cdot 2^2 = 12\pi. \end{aligned}$$
+$$\begin{aligned} &\oint_C P\,dx + Q\,dy = \iint_D (x + 3)\,dA \\ &\quad= \int_0^{2\pi}\!\!\int_0^2 (r\cos\theta + 3)\,r\,dr\,d\theta \\ &\quad= 0 + 3\cdot\pi\cdot 2^2 = 12\pi. \end{aligned}$$
 
 The integral of $x$ over the disc is 0, because the disc is symmetric about the $y$-axis and $x$ is odd: in polar form, $\int_0^{2\pi}\cos\theta\,d\theta = 0$.
 
@@ -637,11 +636,11 @@ $$\oint_C \vb{F}\cdot\vb{n}\,ds = \iint_D \Big(\frac{\partial P}{\partial x} + \
 ::: proof
 Since $\vb{n}\,ds = \langle y'(t), -x'(t)\rangle\,dt$,
 
-$$\vb{F}\cdot\vb{n}\,ds = \big(P\,y'(t) - Q\,x'(t)\big)\,dt = -Q\,dx + P\,dy.$$
+$$\begin{aligned} \vb{F}\cdot\vb{n}\,ds &= \big(P\,y'(t) - Q\,x'(t)\big)\,dt \\ &= -Q\,dx + P\,dy. \end{aligned}$$
 
 The field $\langle -Q, P\rangle$ also has components with continuous partial derivatives, and Green's theorem for it is
 
-$$\oint_C (-Q)\,dx + P\,dy = \iint_D \Big(\frac{\partial P}{\partial x} - \frac{\partial(-Q)}{\partial y}\Big)\,dA,$$
+$$\begin{aligned} &\oint_C (-Q)\,dx + P\,dy \\ &\quad= \iint_D \Big(\frac{\partial P}{\partial x} - \frac{\partial(-Q)}{\partial y}\Big)\,dA, \end{aligned}$$
 
 which is the formula.
 :::
@@ -662,14 +661,14 @@ Choose a field, then move the circle with the sliders, or drag on the picture to
 
 If $Q_x - P_y = 1$, Green's theorem gives the area of $D$ as a line integral round its boundary. Three simple choices are $P = 0$, $Q = x$; $P = -y$, $Q = 0$; and $P = -y/2$, $Q = x/2$:
 
-$$A = \oint_C x\,dy = -\oint_C y\,dx = \frac12\oint_C x\,dy - y\,dx.$$
+$$\begin{aligned} A &= \oint_C x\,dy = -\oint_C y\,dx \\ &= \frac12\oint_C x\,dy - y\,dx. \end{aligned}$$
 
 ::: example The area of an ellipse
 Find the area enclosed by the ellipse $x = a\cos t$, $y = b\sin t$, $0 \le t \le 2\pi$, where $a, b > 0$.
 
 The ellipse is traced anticlockwise. With $dx = -a\sin t\,dt$ and $dy = b\cos t\,dt$,
 
-$$\begin{aligned} A &= \frac12\oint_C x\,dy - y\,dx \\ &= \frac12\int_0^{2\pi} \big(ab\cos^2 t + ab\sin^2 t\big)\,dt = \pi ab. \end{aligned}$$
+$$\begin{aligned} A &= \frac12\oint_C x\,dy - y\,dx \\ &= \frac12\int_0^{2\pi} \big(ab\cos^2 t + ab\sin^2 t\big)\,dt \\ &= \pi ab. \end{aligned}$$
 
 With $a = b = r$ this is the area of a circle, $\pi r^2$.
 
@@ -686,7 +685,7 @@ same(integrate(xe*diff(ye, t), (t, 0, 2*pi)), pi*ae*be_)
 
 **Polygons.** For a polygon the area formula becomes a sum. Along the edge from $(x_1, y_1)$ to $(x_2, y_2)$, traced by $x = x_1 + t(x_2 - x_1)$, $y = y_1 + t(y_2 - y_1)$, $0 \le t \le 1$,
 
-$$x\,dy - y\,dx = \big[x\,(y_2 - y_1) - y\,(x_2 - x_1)\big]\,dt = (x_1y_2 - x_2y_1)\,dt,$$
+$$\begin{aligned} &x\,dy - y\,dx \\ &\quad= \big[x\,(y_2 - y_1) - y\,(x_2 - x_1)\big]\,dt \\ &\quad= (x_1y_2 - x_2y_1)\,dt, \end{aligned}$$
 
 because on expanding, the terms with $t$ cancel. So each edge contributes $x_1y_2 - x_2y_1$, and a polygon with corners $(x_1, y_1), \dots, (x_n, y_n)$, listed anticlockwise, has area
 
@@ -763,7 +762,7 @@ The two forms of Green's theorem have two integrands, $Q_x - P_y$ and $P_x + Q_y
 ::: definition Curl and divergence
 Let $\vb{F} = \langle P, Q, R\rangle$ be a vector field whose components have first partial derivatives. The **curl** of $\vb{F}$ is the vector field
 
-$$\begin{aligned} \operatorname{curl}\vb{F} &= \nabla\times\vb{F} \\ &= \big\langle R_y - Q_z,\ P_z - R_x,\ Q_x - P_y\big\rangle, \end{aligned}$$
+$$\begin{aligned} &\operatorname{curl}\vb{F} = \nabla\times\vb{F} \\ &\quad= \big\langle R_y - Q_z,\ P_z - R_x,\ Q_x - P_y\big\rangle, \end{aligned}$$
 
 and the **divergence** of $\vb{F}$ is the function
 
@@ -778,11 +777,11 @@ $$\nabla\times\vb{F} = \begin{vmatrix} \vb{i} & \vb{j} & \vb{k} \\ \partial/\par
 
 where "$\partial/\partial y$ times $R$" means $\partial R/\partial y$. The curl is a vector field; the divergence is a scalar field. A field $\langle P(x, y), Q(x, y)\rangle$ in the plane counts as the field $\langle P, Q, 0\rangle$ in space, and then
 
-$$\operatorname{curl}\vb{F} = \langle 0, 0, Q_x - P_y\rangle, \qquad \operatorname{div}\vb{F} = P_x + Q_y,$$
+$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 0, 0, Q_x - P_y\rangle, \\ \operatorname{div}\vb{F} &= P_x + Q_y, \end{aligned}$$
 
 the two integrands of Green's theorem. Its two forms read
 
-$$\oint_C \vb{F}\cdot\vb{T}\,ds = \iint_D (\operatorname{curl}\vb{F})\cdot\vb{k}\,dA, \qquad \oint_C \vb{F}\cdot\vb{n}\,ds = \iint_D \operatorname{div}\vb{F}\,dA.$$
+$$\begin{aligned} \oint_C \vb{F}\cdot\vb{T}\,ds &= \iint_D (\operatorname{curl}\vb{F})\cdot\vb{k}\,dA, \\ \oint_C \vb{F}\cdot\vb{n}\,ds &= \iint_D \operatorname{div}\vb{F}\,dA. \end{aligned}$$
 
 ```check
 curl3 = lambda F_: Matrix([diff(F_[2], y) - diff(F_[1], z), diff(F_[0], z) - diff(F_[2], x), diff(F_[1], x) - diff(F_[0], y)])
@@ -801,7 +800,7 @@ same(curl3(Matrix([P2_, Q2_, 0])), Matrix([0, 0, diff(Q2_, x) - diff(P2_, y)]));
 
 **(a)** With $P = xy$, $Q = yz$ and $R = zx$:
 
-$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 0 - y,\ 0 - z,\ 0 - x\rangle = \langle -y, -z, -x\rangle, \\ \operatorname{div}\vb{F} &= y + z + x. \end{aligned}$$
+$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 0 - y,\ 0 - z,\ 0 - x\rangle \\ &= \langle -y, -z, -x\rangle, \\ \operatorname{div}\vb{F} &= y + z + x. \end{aligned}$$
 
 **(b)** One derivative at a time:
 
@@ -863,11 +862,11 @@ If $f$ has continuous second partial derivatives, then $\operatorname{curl}(\nab
 ::: proof
 With $\nabla f = \langle f_x, f_y, f_z\rangle$,
 
-$$\operatorname{curl}(\nabla f) = \big\langle f_{zy} - f_{yz},\ f_{xz} - f_{zx},\ f_{yx} - f_{xy}\big\rangle,$$
+$$\begin{aligned} &\operatorname{curl}(\nabla f) \\ &\quad= \big\langle f_{zy} - f_{yz},\ f_{xz} - f_{zx},\ f_{yx} - f_{xy}\big\rangle, \end{aligned}$$
 
 and each component is 0 by Clairaut's theorem. In the same way,
 
-$$\begin{aligned} \operatorname{div}(\operatorname{curl}\vb{F}) &= (R_y - Q_z)_x + (P_z - R_x)_y + (Q_x - P_y)_z \\ &= R_{yx} - Q_{zx} + P_{zy} - R_{xy} + Q_{xz} - P_{yz}, \end{aligned}$$
+$$\begin{aligned} &\operatorname{div}(\operatorname{curl}\vb{F}) \\ &\quad= (R_y - Q_z)_x + (P_z - R_x)_y + (Q_x - P_y)_z \\ &\quad= R_{yx} - Q_{zx} + P_{zy} - R_{xy} + Q_{xz} - P_{yz}, \end{aligned}$$
 
 and the six terms cancel in pairs, by Clairaut's theorem again.
 :::
@@ -969,7 +968,7 @@ Find $\vb{r}_u\times\vb{r}_v$ (a) for the sphere of radius $a$, and (b) for the 
 
 **(a)** Here $\vb{r}_\varphi = \langle a\cos\varphi\cos\theta, a\cos\varphi\sin\theta, -a\sin\varphi\rangle$ and $\vb{r}_\theta = \langle -a\sin\varphi\sin\theta, a\sin\varphi\cos\theta, 0\rangle$. The cross product, simplified with $\cos^2\theta + \sin^2\theta = 1$, is
 
-$$\begin{aligned} \vb{r}_\varphi\times\vb{r}_\theta &= \big\langle a^2\sin^2\varphi\cos\theta,\ a^2\sin^2\varphi\sin\theta, \\ &\qquad\ a^2\sin\varphi\cos\varphi\big\rangle = a\sin\varphi\;\vb{r}(\varphi, \theta). \end{aligned}$$
+$$\begin{aligned} &\vb{r}_\varphi\times\vb{r}_\theta \\ &\quad= \big\langle a^2\sin^2\varphi\cos\theta, a^2\sin^2\varphi\sin\theta, \\ &\qquad\ a^2\sin\varphi\cos\varphi\big\rangle \\ &\quad= a\sin\varphi\;\vb{r}(\varphi, \theta). \end{aligned}$$
 
 Since $\sin\varphi \ge 0$, it points straight away from the centre: outwards. Its length is $a\sin\varphi \cdot a = a^2\sin\varphi$.
 
@@ -1011,13 +1010,13 @@ $$A(S) = \iint_D \sqrt{1 + g_x^2 + g_y^2}\,dA.$$
 
 **(a)** By Example 20.11, $\norm{\vb{r}_\varphi\times\vb{r}_\theta} = a^2\sin\varphi$, so
 
-$$A = \int_0^{2\pi}\!\!\int_0^\pi a^2\sin\varphi\,d\varphi\,d\theta = 2\pi a^2\big[-\cos\varphi\big]_0^\pi = 4\pi a^2,$$
+$$\begin{aligned} A &= \int_0^{2\pi}\!\!\int_0^\pi a^2\sin\varphi\,d\varphi\,d\theta \\ &= 2\pi a^2\big[-\cos\varphi\big]_0^\pi = 4\pi a^2, \end{aligned}$$
 
 the familiar formula, which Module 12 also found from a surface of revolution.
 
 **(b)** The dome is the graph of $g(x, y) = 1 - x^2 - y^2$ over the unit disc $D$ (where $z \ge 0$). With $g_x = -2x$ and $g_y = -2y$, in polar coordinates,
 
-$$A = \iint_D \sqrt{1 + 4x^2 + 4y^2}\,dA = \int_0^{2\pi}\!\!\int_0^1 \sqrt{1 + 4r^2}\,r\,dr\,d\theta.$$
+$$\begin{aligned} A &= \iint_D \sqrt{1 + 4x^2 + 4y^2}\,dA \\ &= \int_0^{2\pi}\!\!\int_0^1 \sqrt{1 + 4r^2}\,r\,dr\,d\theta. \end{aligned}$$
 
 Substitute $w = 1 + 4r^2$, $dw = 8r\,dr$: $\int_0^1 \sqrt{1 + 4r^2}\,r\,dr = \frac18\int_1^5 \sqrt w\,dw = \frac{1}{12}\big(5\sqrt5 - 1\big)$. So
 
@@ -1041,7 +1040,7 @@ same(Adome, pi*(5*sqrt(5) - 1)/6); rounds(Adome, '5.330'); rounds(pi, '3.142')
 ::: definition Surface integral of a function
 Let $S$ be traced once by a smooth parametrisation $\vb{r}(u, v)$, $(u, v)$ in $D$, and let $f$ be continuous on $S$. The **surface integral** of $f$ over $S$ is
 
-$$\iint_S f\,dS = \iint_D f\big(\vb{r}(u, v)\big)\,\norm{\vb{r}_u\times\vb{r}_v}\,dA.$$
+$$\begin{aligned} &\iint_S f\,dS \\ &\quad= \iint_D f\big(\vb{r}(u, v)\big)\,\norm{\vb{r}_u\times\vb{r}_v}\,dA. \end{aligned}$$
 :::
 
 As $\int_C f\,ds$ adds up $f$ times short lengths, $\iint_S f\,dS$ adds up $f$ times small areas $dS = \norm{\vb{r}_u\times\vb{r}_v}\,dA$. With $f = 1$ it is the area of $S$; with a density, the mass of a thin shell; divided by the area, the average of $f$ over $S$. As for curves, it does not depend on the parametrisation, a fact that follows from the change of variables formula of Module 19.
@@ -1051,7 +1050,7 @@ Find the height of the centre of mass of a thin uniform shell in the shape of th
 
 By symmetry $\bar x = \bar y = 0$. With a constant density, $\bar z$ is the average of $z$ over the shell, $\bar z = \frac{1}{A}\iint_S z\,dS$, where $A = 2\pi a^2$ is half the area of the sphere. With the sphere's parametrisation and $0 \le \varphi \le \pi/2$,
 
-$$\begin{aligned} \iint_S z\,dS &= \int_0^{2\pi}\!\!\int_0^{\pi/2} (a\cos\varphi)(a^2\sin\varphi)\,d\varphi\,d\theta \\ &= 2\pi a^3\Big[\tfrac12\sin^2\varphi\Big]_0^{\pi/2} = \pi a^3. \end{aligned}$$
+$$\begin{aligned} &\iint_S z\,dS \\ &\quad= \int_0^{2\pi}\!\!\int_0^{\pi/2} (a\cos\varphi)(a^2\sin\varphi)\,d\varphi\,d\theta \\ &\quad= 2\pi a^3\Big[\tfrac12\sin^2\varphi\Big]_0^{\pi/2} = \pi a^3. \end{aligned}$$
 
 So $\bar z = \pi a^3/(2\pi a^2) = a/2$: the centre of mass is exactly halfway up. A solid hemisphere has it lower, at $3a/8$, because more of its mass lies near the base.
 
@@ -1078,7 +1077,7 @@ $$\iint_S \vb{F}\cdot d\vb{S} = \iint_S \vb{F}\cdot\vb{n}\,dS.$$
 
 To compute it, trace $S$ once by $\vb{r}(u, v)$, $(u, v)$ in $D$, with $\vb{r}_u\times\vb{r}_v$ pointing to the side that $\vb{n}$ chooses. Then the lengths cancel,
 
-$$\vb{n}\,dS = \frac{\vb{r}_u\times\vb{r}_v}{\norm{\vb{r}_u\times\vb{r}_v}}\,\norm{\vb{r}_u\times\vb{r}_v}\,dA = \big(\vb{r}_u\times\vb{r}_v\big)\,dA,$$
+$$\begin{aligned} \vb{n}\,dS &= \frac{\vb{r}_u\times\vb{r}_v}{\norm{\vb{r}_u\times\vb{r}_v}}\,\norm{\vb{r}_u\times\vb{r}_v}\,dA \\ &= \big(\vb{r}_u\times\vb{r}_v\big)\,dA, \end{aligned}$$
 
 and so
 
@@ -1091,7 +1090,7 @@ Find the flux of $\vb{F}(x, y, z) = \langle x, y, z\rangle$ outwards across the 
 
 By Example 20.11, $\vb{r}_\varphi\times\vb{r}_\theta = a\sin\varphi\,\vb{r}(\varphi, \theta)$ points outwards, and $\vb{F}\big(\vb{r}(\varphi, \theta)\big) = \vb{r}(\varphi, \theta)$, whose length is $a$. So $\vb{F}\cdot(\vb{r}_\varphi\times\vb{r}_\theta) = a\sin\varphi\,\norm{\vb{r}}^2 = a^3\sin\varphi$, and
 
-$$\iint_S \vb{F}\cdot d\vb{S} = \int_0^{2\pi}\!\!\int_0^\pi a^3\sin\varphi\,d\varphi\,d\theta = 4\pi a^3.$$
+$$\begin{aligned} \iint_S \vb{F}\cdot d\vb{S} &= \int_0^{2\pi}\!\!\int_0^\pi a^3\sin\varphi\,d\varphi\,d\theta \\ &= 4\pi a^3. \end{aligned}$$
 
 The same without the parametrisation: on the sphere $\vb{n} = \vb{r}/a$, so $\vb{F}\cdot\vb{n} = \norm{\vb{r}}^2/a = a$ everywhere, and the flux is $a$ times the area, $a\cdot 4\pi a^2 = 4\pi a^3$.
 
@@ -1136,7 +1135,7 @@ $$\oint_C \vb{F}\cdot d\vb{r} = \int_0^{2\pi} \cos^2 t\,dt = \pi.$$
 
 **The surface integral.** With $P = z$, $Q = x$ and $R = y$,
 
-$$\operatorname{curl}\vb{F} = \langle 1 - 0,\ 1 - 0,\ 1 - 0\rangle = \langle 1, 1, 1\rangle.$$
+$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 1 - 0,\ 1 - 0,\ 1 - 0\rangle \\ &= \langle 1, 1, 1\rangle. \end{aligned}$$
 
 By Example 20.11(b) with $g = 1 - x^2 - y^2$, the upward normal is $\langle -g_x, -g_y, 1\rangle = \langle 2x, 2y, 1\rangle$, so
 
@@ -1179,7 +1178,7 @@ It is also called Gauss's theorem. In words: the net rate at which a fluid flows
 ::: proof of the divergence theorem for a box
 Let $E$ be the box $a_1 \le x \le b_1$, $a_2 \le y \le b_2$, $a_3 \le z \le b_3$, and write $\vb{F} = \langle P, 0, 0\rangle + \langle 0, Q, 0\rangle + \langle 0, 0, R\rangle$. Both sides of the theorem are sums of the corresponding terms for these three fields, so take $\langle 0, 0, R\rangle$. On the four side faces of the box $\vb{n}$ is horizontal, and $\langle 0, 0, R\rangle\cdot\vb{n} = 0$. On the top $\vb{n} = \vb{k}$, and on the bottom $\vb{n} = -\vb{k}$. With $Z$ the rectangle $a_1 \le x \le b_1$, $a_2 \le y \le b_2$,
 
-$$\begin{aligned} \iint_S \langle 0, 0, R\rangle\cdot d\vb{S} &= \iint_Z \big[R(x, y, b_3) - R(x, y, a_3)\big]\,dA \\ &= \iint_Z \int_{a_3}^{b_3} \frac{\partial R}{\partial z}\,dz\,dA = \iiint_E \frac{\partial R}{\partial z}\,dV, \end{aligned}$$
+$$\begin{aligned} &\iint_S \langle 0, 0, R\rangle\cdot d\vb{S} \\ &\quad= \iint_Z \big[R(x, y, b_3) - R(x, y, a_3)\big]\,dA \\ &\quad= \iint_Z \int_{a_3}^{b_3} \frac{\partial R}{\partial z}\,dz\,dA = \iiint_E \frac{\partial R}{\partial z}\,dV, \end{aligned}$$
 
 by Part 2 of the Fundamental Theorem in $z$ and Fubini's theorem. In the same way the flux of $\langle P, 0, 0\rangle$ is $\iiint_E P_x\,dV$, and that of $\langle 0, Q, 0\rangle$ is $\iiint_E Q_y\,dV$. Adding the three gives the theorem.
 :::
@@ -1202,7 +1201,7 @@ Let $\vb{F} = \langle x, y, z^2\rangle$, and let $E$ be the solid cylinder $x^2 
 
 **The volume integral.** $\operatorname{div}\vb{F} = 1 + 1 + 2z = 2 + 2z$. Each horizontal slice of the cylinder is a disc of area $\pi$, on which $2 + 2z$ is constant, so
 
-$$\iiint_E (2 + 2z)\,dV = \int_0^2 (2 + 2z)\,\pi\,dz = \pi\big[2z + z^2\big]_0^2 = 8\pi.$$
+$$\begin{aligned} \iiint_E (2 + 2z)\,dV &= \int_0^2 (2 + 2z)\,\pi\,dz \\ &= \pi\big[2z + z^2\big]_0^2 = 8\pi. \end{aligned}$$
 
 **The flux.** The boundary has three smooth pieces. On the top ($z = 2$, $\vb{n} = \vb{k}$), $\vb{F}\cdot\vb{n} = z^2 = 4$, so the flux is $4\times\pi = 4\pi$. On the bottom ($z = 0$, $\vb{n} = -\vb{k}$), $\vb{F}\cdot\vb{n} = -z^2 = 0$: flux 0. On the side, where $x^2 + y^2 = 1$, the outward unit normal is $\vb{n} = \langle x, y, 0\rangle$, so $\vb{F}\cdot\vb{n} = x^2 + y^2 = 1$, and the flux is the area of the side, $2\pi\cdot 1\cdot 2 = 4\pi$. In all, $4\pi + 0 + 4\pi = 8\pi$.
 
@@ -1298,13 +1297,13 @@ same(integrate(div3(G3).subs({x: rs_*S1[0], y: rs_*S1[1], z: rs_*S1[2]}, simulta
 
 The classic application of these theorems is electromagnetism. Maxwell's equations describe how electric and magnetic fields $\vb{E}$ and $\vb{B}$ are produced by charges and currents, and how they change in time. In a vacuum, in SI units, their integral form is about fluxes and circulations. For every closed surface $S$, with $Q$ the electric charge inside it,
 
-$$\iint_S \vb{E}\cdot d\vb{S} = \frac{Q}{\varepsilon_0} \quad\text{(Gauss's law)}, \qquad \iint_S \vb{B}\cdot d\vb{S} = 0,$$
+$$\begin{aligned} \iint_S \vb{E}\cdot d\vb{S} &= \frac{Q}{\varepsilon_0} \quad\text{(Gauss's law)}, \\ \iint_S \vb{B}\cdot d\vb{S} &= 0, \end{aligned}$$
 
 and for every surface $S$ with boundary curve $C$, with $I$ the electric current through $S$,
 
-$$\begin{aligned} \oint_C \vb{E}\cdot d\vb{r} &= -\frac{d}{dt}\iint_S \vb{B}\cdot d\vb{S} \quad\text{(Faraday's law)}, \\ \oint_C \vb{B}\cdot d\vb{r} &= \mu_0 I + \mu_0\varepsilon_0\frac{d}{dt}\iint_S \vb{E}\cdot d\vb{S}, \end{aligned}$$
+$$\begin{aligned} \oint_C \vb{E}\cdot d\vb{r} &= -\frac{d}{dt}\iint_S \vb{B}\cdot d\vb{S}, \\ \oint_C \vb{B}\cdot d\vb{r} &= \mu_0 I \\ &\quad+ \mu_0\varepsilon_0\frac{d}{dt}\iint_S \vb{E}\cdot d\vb{S}, \end{aligned}$$
 
-where $\varepsilon_0$ and $\mu_0$ are physical constants. Their differential form, about divergence and curl at each point, is
+where $\varepsilon_0$ and $\mu_0$ are physical constants; the first of these two laws is Faraday's law. In differential form, about divergence and curl at each point, Maxwell's equations read
 
 $$\begin{aligned} \operatorname{div}\vb{E} &= \frac{\rho}{\varepsilon_0}, & \operatorname{div}\vb{B} &= 0, \\ \operatorname{curl}\vb{E} &= -\frac{\partial\vb{B}}{\partial t}, & \operatorname{curl}\vb{B} &= \mu_0\vb{J} + \mu_0\varepsilon_0\frac{\partial\vb{E}}{\partial t}, \end{aligned}$$
 
@@ -1327,13 +1326,13 @@ same(integrate(simplify(Eq_.subs({x: Sa[0], y: Sa[1], z: Sa[2]}, simultaneous=Tr
 
 [Module 1](module_01_EN.html#about) began with a car's speedometer and odometer, and with a promise: calculus is about rates and accumulation, and the Fundamental Theorem of Calculus connects them. This module has proved or stated four more theorems of the same kind. Side by side:
 
-| Theorem | Integral of a derivative over a region | Values on the boundary |
-|---|---|---|
-| Fundamental Theorem (Module 10) | $\displaystyle\int_a^b F'(x)\,dx$, over an interval | $F(b) - F(a)$, at its two ends |
-| Line integrals (Theorem 20.2) | $\displaystyle\int_C \nabla f\cdot d\vb{r}$, along a curve | $f(B) - f(A)$, at its two ends |
-| Green (Theorem 20.6) | $\displaystyle\iint_D (Q_x - P_y)\,dA$, over a plane region | $\displaystyle\oint_C P\,dx + Q\,dy$, round its edge |
-| Stokes (Theorem 20.9) | $\displaystyle\iint_S \operatorname{curl}\vb{F}\cdot d\vb{S}$, over a surface | $\displaystyle\oint_C \vb{F}\cdot d\vb{r}$, round its edge |
-| Divergence (Theorem 20.10) | $\displaystyle\iiint_E \operatorname{div}\vb{F}\,dV$, over a solid | $\displaystyle\iint_S \vb{F}\cdot d\vb{S}$, over its surface |
+| Theorem: the region | Integral of a derivative over the region = values on its boundary |
+|---|---|
+| Fundamental Theorem (Module 10): an interval $[a, b]$ | $\displaystyle\int_a^b F'(x)\,dx = F(b) - F(a)$ |
+| Line integrals (Theorem 20.2): a curve from $A$ to $B$ | $\displaystyle\int_C \nabla f\cdot d\vb{r} = f(B) - f(A)$ |
+| Green (Theorem 20.6): a plane region $D$ with edge $C$ | $\displaystyle\iint_D (Q_x - P_y)\,dA = \oint_C P\,dx + Q\,dy$ |
+| Stokes (Theorem 20.9): a surface $S$ with edge $C$ | $\displaystyle\iint_S \operatorname{curl}\vb{F}\cdot d\vb{S} = \oint_C \vb{F}\cdot d\vb{r}$ |
+| Divergence (Theorem 20.10): a solid $E$ with surface $S$ | $\displaystyle\iiint_E \operatorname{div}\vb{F}\,dV = \iint_S \vb{F}\cdot d\vb{S}$ |
 
 In every row the left side integrates a derivative over a region, and the right side involves only the thing differentiated, on the region's boundary. The derivative fits the dimension: $F'$ for a function of one variable, the gradient for a scalar field along a curve, the curl for circulation round the edge of a surface, the divergence for flux out of a solid. Each boundary carries the orientation that the region gives it: the edge of a plane region anticlockwise, the edge of a surface by the right-hand rule, the surface of a solid outwards. Even the first row has one: the two ends of $[a, b]$ count with signs, $+F(b)$ and $-F(a)$.
 
@@ -1411,7 +1410,7 @@ A wire is wound along one turn of the helix $\vb{r}(t) = \langle 3\cos t, 3\sin 
 
 **(b)** On the wire $z = 4t$, so
 
-$$\int_C z\,ds = \int_0^{2\pi} 4t\cdot 5\,dt = 20\Big[\frac{t^2}{2}\Big]_0^{2\pi} = 40\pi^2 \approx 394.8.$$
+$$\begin{aligned} \int_C z\,ds &= \int_0^{2\pi} 4t\cdot 5\,dt \\ &= 20\Big[\frac{t^2}{2}\Big]_0^{2\pi} = 40\pi^2 \approx 394.8. \end{aligned}$$
 
 The average height is $40\pi^2/(10\pi) = 4\pi \approx 12.57$ cm: half the height of the top of the wire, $8\pi$, because the wire climbs at a steady rate.
 
@@ -1468,7 +1467,7 @@ Let $\vb{F}(x, y, z) = \langle x^2y, -xy^2, z\rangle$.
 ::: solution
 **(a)** With $P = x^2y$, $Q = -xy^2$ and $R = z$:
 
-$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 0 - 0,\ 0 - 0,\ -y^2 - x^2\rangle = \langle 0, 0, -(x^2 + y^2)\rangle, \\ \operatorname{div}\vb{F} &= 2xy - 2xy + 1 = 1. \end{aligned}$$
+$$\begin{aligned} \operatorname{curl}\vb{F} &= \langle 0 - 0,\ 0 - 0,\ -y^2 - x^2\rangle \\ &= \langle 0, 0, -(x^2 + y^2)\rangle, \\ \operatorname{div}\vb{F} &= 2xy - 2xy + 1 = 1. \end{aligned}$$
 
 **(b)** No. If $\vb{F} = \nabla f$, then $f$ would have continuous second partial derivatives (the first partial derivatives of $P$, $Q$ and $R$), so $\operatorname{curl}\vb{F} = \operatorname{curl}(\nabla f) = \vb{0}$ by Theorem 20.8. But at $(1, 0, 0)$, $\operatorname{curl}\vb{F} = \langle 0, 0, -1\rangle$.
 
@@ -1500,7 +1499,7 @@ Check: $f_x = 3x^2y + y$ and $f_y = x^3 + x + 2y$.
 
 **(c)** The curve runs from $\vb{r}(0) = (0, 1)$ to $\vb{r}(1) = (1, 2)$. By Theorem 20.2,
 
-$$\int_C \vb{F}\cdot d\vb{r} = f(1, 2) - f(0, 1) = (2 + 2 + 4) - (0 + 0 + 1) = 7.$$
+$$\begin{aligned} \int_C \vb{F}\cdot d\vb{r} &= f(1, 2) - f(0, 1) \\ &= (2 + 2 + 4) - (0 + 0 + 1) = 7. \end{aligned}$$
 
 Computing $\int_0^1 \vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,dt$ directly gives 7 too, after expanding a polynomial of degree 8.
 
@@ -1528,7 +1527,7 @@ Let $\vb{F}(x, y, z) = \langle 2xy + z^2,\ x^2 + 2yz,\ y^2 + 2xz\rangle$.
 ::: solution
 **(a)**
 
-$$\begin{aligned} \operatorname{curl}\vb{F} &= \big\langle 2y - 2y,\ 2z - 2z,\ 2x - 2x\big\rangle = \vb{0}. \end{aligned}$$
+$$\begin{aligned} \operatorname{curl}\vb{F} &= \big\langle 2y - 2y,\ 2z - 2z,\ 2x - 2x\big\rangle \\ &= \vb{0}. \end{aligned}$$
 
 Space is simply connected, so $\vb{F}$ is conservative (Section 20.5).
 
@@ -1538,7 +1537,7 @@ $$f(x, y, z) = x^2y + xz^2 + y^2z.$$
 
 **(c)** The helix runs from $\vb{r}(0) = (1, 0, 0)$ to $\vb{r}(\pi) = (-1, 0, \pi)$. By Theorem 20.2,
 
-$$W = f(-1, 0, \pi) - f(1, 0, 0) = (0 - \pi^2 + 0) - 0 = -\pi^2.$$
+$$\begin{aligned} W &= f(-1, 0, \pi) - f(1, 0, 0) \\ &= (0 - \pi^2 + 0) - 0 = -\pi^2. \end{aligned}$$
 
 ```check
 F_e6 = Matrix([2*x*y + z**2, x**2 + 2*y*z, y**2 + 2*x*z]); same(curl3(F_e6), zeros(3, 1))
@@ -1564,7 +1563,7 @@ Let $P = xy$ and $Q = x^2$, and let $C$ be the boundary of the square $0 \le x \
 
 **(b)** $Q_x - P_y = 2x - x = x$, so
 
-$$\oint_C P\,dx + Q\,dy = \int_0^1\!\!\int_0^1 x\,dx\,dy = \frac12.$$
+$$\begin{aligned} \oint_C P\,dx + Q\,dy &= \int_0^1\!\!\int_0^1 x\,dx\,dy \\ &= \frac12. \end{aligned}$$
 
 **(c)** $-\tfrac12$: reversing the direction changes the sign of the line integral (Theorem 20.1), and Green's theorem in the form stated needs the anticlockwise direction.
 
@@ -1585,17 +1584,17 @@ same(lint(F_e7, [0, t], 0, 1) + lint(F_e7, [t, 1], 0, 1) + lint(F_e7, [1, 1 - t]
 ::: solution
 **(a)** The corners are listed anticlockwise. The four terms $x_ky_{k+1} - x_{k+1}y_k$ are
 
-$$\begin{aligned} &0\cdot0 - 4\cdot0 = 0, \quad 4\cdot3 - 5\cdot0 = 12, \\ &5\cdot4 - 1\cdot3 = 17, \quad 1\cdot0 - 0\cdot4 = 0, \end{aligned}$$
+$$\begin{aligned} &0\cdot0 - 4\cdot0 = 0, \\ &4\cdot3 - 5\cdot0 = 12, \\ &5\cdot4 - 1\cdot3 = 17, \\ &1\cdot0 - 0\cdot4 = 0, \end{aligned}$$
 
 so $A = \tfrac12(0 + 12 + 17 + 0) = \tfrac{29}{2} = 14.5$. The diagonal from $(0, 0)$ to $(5, 3)$ cuts the quadrilateral into two triangles. With the shoelace formula for three corners, one of them at the origin, their areas are $\tfrac12(4\cdot3 - 5\cdot0) = 6$ and $\tfrac12(5\cdot4 - 1\cdot3) = \tfrac{17}{2}$, and $6 + \tfrac{17}{2} = \tfrac{29}{2}$.
 
 **(b)** Here $dx = -3\cos^2 t\sin t\,dt$ and $dy = 3\sin^2 t\cos t\,dt$, and the astroid is traced anticlockwise. So
 
-$$\begin{aligned} x\,dy - y\,dx &= \big(3\cos^4 t\sin^2 t + 3\sin^4 t\cos^2 t\big)\,dt \\ &= 3\sin^2 t\cos^2 t\,\big(\cos^2 t + \sin^2 t\big)\,dt = \tfrac34\sin^2 2t\,dt, \end{aligned}$$
+$$\begin{aligned} &x\,dy - y\,dx \\ &\quad= \big(3\cos^4 t\sin^2 t + 3\sin^4 t\cos^2 t\big)\,dt \\ &\quad= 3\sin^2 t\cos^2 t\,\big(\cos^2 t + \sin^2 t\big)\,dt \\ &\quad= \tfrac34\sin^2 2t\,dt, \end{aligned}$$
 
 using $\sin 2t = 2\sin t\cos t$. Since $\int_0^{2\pi} \sin^2 2t\,dt = \pi$,
 
-$$A = \frac12\int_0^{2\pi} \frac34\sin^2 2t\,dt = \frac{3\pi}{8} \approx 1.178.$$
+$$\begin{aligned} A &= \frac12\int_0^{2\pi} \frac34\sin^2 2t\,dt \\ &= \frac{3\pi}{8} \approx 1.178. \end{aligned}$$
 
 ```check
 same(sh([(0, 0), (4, 0), (5, 3), (1, 4)]), Rational(29, 2)); same(Rational(29, 2), Rational(145, 10))
@@ -1616,11 +1615,11 @@ Let $\vb{F} = \langle x, y, z\rangle$, and let $S$ be the dome $z = 1 - x^2 - y^
 ::: solution
 **(a)** As in Example 20.15, the upward normal of the graph is $\langle 2x, 2y, 1\rangle$, and on the dome $\vb{F} = \langle x, y, 1 - x^2 - y^2\rangle$. So
 
-$$\vb{F}\cdot\langle 2x, 2y, 1\rangle = 2x^2 + 2y^2 + 1 - x^2 - y^2 = 1 + x^2 + y^2,$$
+$$\begin{aligned} &\vb{F}\cdot\langle 2x, 2y, 1\rangle \\ &\quad= 2x^2 + 2y^2 + 1 - x^2 - y^2 \\ &\quad= 1 + x^2 + y^2, \end{aligned}$$
 
 and over the unit disc $D$, in polar coordinates,
 
-$$\iint_S \vb{F}\cdot d\vb{S} = \int_0^{2\pi}\!\!\int_0^1 (1 + r^2)\,r\,dr\,d\theta = 2\pi\Big(\frac12 + \frac14\Big) = \frac{3\pi}{2}.$$
+$$\begin{aligned} &\iint_S \vb{F}\cdot d\vb{S} \\ &\quad= \int_0^{2\pi}\!\!\int_0^1 (1 + r^2)\,r\,dr\,d\theta \\ &\quad= 2\pi\Big(\frac12 + \frac14\Big) = \frac{3\pi}{2}. \end{aligned}$$
 
 **(b)** The boundary of $E$ is the dome, oriented outwards (upwards), and the disc, oriented outwards, which here means downwards: $\vb{n} = -\vb{k}$. On the disc $z = 0$, so $\vb{F}\cdot\vb{n} = -z = 0$, and its flux is 0. So the flux out of $E$ is $\tfrac{3\pi}{2} + 0$. On the other side, $\operatorname{div}\vb{F} = 3$, and the volume of $E$ is $\int_0^{2\pi}\int_0^1 (1 - r^2)\,r\,dr\,d\theta = 2\pi\big(\tfrac12 - \tfrac14\big) = \tfrac{\pi}{2}$, so $\iiint_E 3\,dV = \tfrac{3\pi}{2}$. The two agree.
 
@@ -1642,7 +1641,7 @@ Let $\vb{F} = \big\langle -y^3,\ x^3,\ e^z\sin(xy)\big\rangle$, let $H$ be the h
 ::: solution
 **(a)** Both surfaces have the same boundary, the unit circle $C$, and with both normals pointing upwards the positive orientation of $C$ is anticlockwise seen from above, for both. By Stokes' theorem both fluxes equal $\oint_C \vb{F}\cdot d\vb{r}$. With $\vb{r}(t) = \langle\cos t, \sin t, 0\rangle$, $\vb{F}\big(\vb{r}(t)\big) = \langle -\sin^3 t, \cos^3 t, \sin(\cos t\sin t)\rangle$ and $\vb{r}'(t) = \langle -\sin t, \cos t, 0\rangle$, so the integrand is $\sin^4 t + \cos^4 t$. Since
 
-$$\sin^4 t + \cos^4 t = \big(\sin^2 t + \cos^2 t\big)^2 - 2\sin^2 t\cos^2 t = 1 - \tfrac12\sin^2 2t,$$
+$$\begin{aligned} &\sin^4 t + \cos^4 t \\ &\quad= \big(\sin^2 t + \cos^2 t\big)^2 - 2\sin^2 t\cos^2 t \\ &\quad= 1 - \tfrac12\sin^2 2t, \end{aligned}$$
 
 the circulation is $2\pi - \tfrac12\cdot\pi = \tfrac{3\pi}{2}$. Over the flat disc the computation is short too: $\operatorname{curl}\vb{F}\cdot\vb{k} = Q_x - P_y = 3x^2 + 3y^2$, and $\int_0^{2\pi}\int_0^1 3r^2\cdot r\,dr\,d\theta = \tfrac{3\pi}{2}$. On the hemisphere, by contrast, $\operatorname{curl}\vb{F}$ has the components $xe^z\cos(xy)$ and $-ye^z\cos(xy)$ as well, and the direct computation is unpleasant.
 
@@ -1677,7 +1676,7 @@ Let $\vb{F} = \big\langle -y, x\big\rangle/(x^2 + y^2)$, the field of Example 20
 
 **(b)** The inside of $C$ is open and contains the origin, so it contains a small circle $C_\varepsilon$ with its disc. Let $R$ be the region between $C$ and $C_\varepsilon$, a region with one hole. Its boundary, traced with $R$ on the left, is $C$ anticlockwise together with $C_\varepsilon$ clockwise. $P$ and $Q$ have continuous partial derivatives everywhere except at the origin, which is not in $R$, and by Example 20.6, $Q_x - P_y = 0$ there. So Green's theorem for $R$ gives
 
-$$\oint_C \vb{F}\cdot d\vb{r} + \oint_{-C_\varepsilon} \vb{F}\cdot d\vb{r} = \iint_R 0\,dA = 0,$$
+$$\begin{aligned} &\oint_C \vb{F}\cdot d\vb{r} + \oint_{-C_\varepsilon} \vb{F}\cdot d\vb{r} \\ &\quad= \iint_R 0\,dA = 0, \end{aligned}$$
 
 and $\oint_C \vb{F}\cdot d\vb{r} = \oint_{C_\varepsilon} \vb{F}\cdot d\vb{r} = 2\pi$, by (a).
 
@@ -1705,7 +1704,7 @@ Let $\vb{F} = \vb{r}/\norm{\vb{r}}^3$, with $\vb{r} = \langle x, y, z\rangle$, o
 ::: solution
 **(a)** Write $\norm{\vb{r}} = \rho$, so $P = x\rho^{-3}$ with $\rho^2 = x^2 + y^2 + z^2$. By the product and chain rules, $\partial\rho/\partial x = x/\rho$ and
 
-$$P_x = \rho^{-3} - 3x\rho^{-4}\cdot\frac{x}{\rho} = \frac{\rho^2 - 3x^2}{\rho^5}.$$
+$$\begin{aligned} P_x &= \rho^{-3} - 3x\rho^{-4}\cdot\frac{x}{\rho} \\ &= \frac{\rho^2 - 3x^2}{\rho^5}. \end{aligned}$$
 
 In the same way $Q_y = (\rho^2 - 3y^2)/\rho^5$ and $R_z = (\rho^2 - 3z^2)/\rho^5$, and the sum is $\big(3\rho^2 - 3(x^2 + y^2 + z^2)\big)/\rho^5 = 0$.
 
@@ -1713,7 +1712,7 @@ In the same way $Q_y = (\rho^2 - 3y^2)/\rho^5$ and $R_z = (\rho^2 - 3z^2)/\rho^5
 
 **(c)** The divergence theorem cannot be applied to the solid inside $S$, because $\vb{F}$ is not defined at the origin. Instead, choose a sphere $S_a$ about the origin, so small that it lies inside $S$, and let $E$ be the solid between $S$ and $S_a$: a solid with a cavity, which does not contain the origin. $\vb{F}$ has continuous partial derivatives on an open region containing $E$, so by the divergence theorem, with the surface of the cavity oriented into the cavity, that is, towards the origin,
 
-$$\iint_S \vb{F}\cdot d\vb{S} + \iint_{S_a,\ \text{inwards}} \vb{F}\cdot d\vb{S} = \iiint_E 0\,dV = 0.$$
+$$\begin{aligned} &\iint_S \vb{F}\cdot d\vb{S} + \iint_{S_a,\ \text{inwards}} \vb{F}\cdot d\vb{S} \\ &\quad= \iiint_E 0\,dV = 0. \end{aligned}$$
 
 The flux inwards across $S_a$ is $-4\pi$, by (b), so the flux out of $S$ is $4\pi$.
 

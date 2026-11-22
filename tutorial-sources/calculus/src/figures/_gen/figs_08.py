@@ -140,7 +140,7 @@ def fig_08_4(L):
     dot(a2, 2, 2 * np.exp(-2), color=C['purple'], size=6)
     label(a2, 1, np.exp(-1) + 0.05, 'maximum', size=10.5, ha='center', va='bottom')
     label(a2, 2.2, 2 * np.exp(-2) + 0.06, 'inflection point', size=10.5, color=C['purple'], va='bottom')
-    label(a2, 3.6, -0.3, 'concave down', size=10.5, color=C['slate'], ha='right')
+    label(a2, 1.25, -0.42, 'concave\ndown', size=10.5, color=C['slate'], ha='center')     # under x < 2, where f'' < 0
     label(a2, 4.5, 0.18, 'concave up', size=10.5, color=C['slate'])
     title(a2, r'$y = x e^{-x}$', pad=30)
     fig.tight_layout(w_pad=2.2)
