@@ -31,6 +31,7 @@ page.on('pageerror', e => errors.push('pageerror: ' + e.message))
 page.on('console', m => { if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)/.test(m.text())) errors.push('console: ' + m.text()) })
 page.on('requestfailed', r => { if (!/fonts\.(googleapis|gstatic)/.test(r.url())) errors.push('request failed: ' + r.url()) })
 await page.goto('file://' + file, { waitUntil: 'networkidle0', timeout: 60000 }).catch(e => errors.push('goto: ' + e.message))
+await page.addStyleTag({ content: 'html{scroll-behavior:auto!important}' }).catch(() => {})   // capture pages at once, not mid-scroll
 await new Promise(r => setTimeout(r, 600))
 if (single) {
   await page.screenshot({ path: out + '.png' })

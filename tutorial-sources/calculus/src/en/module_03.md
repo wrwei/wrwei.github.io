@@ -15,9 +15,9 @@ goals:
 
 ## Continuity at a point {#continuity}
 
-A cup of tea cooling from 80 °C to 60 °C passes through every temperature in between, because temperature changes gradually. A car park's charge does not. Suppose (hypothetically) that a car park charges £3 for each hour or part of an hour: 59 minutes cost £3, 61 minutes cost £6, and no stay costs £4.50. The charge jumps.
+A cup of tea cooling from 80 °C to 60 °C passes through every temperature in between, because temperature changes gradually. A car park's charge does not. Suppose (hypothetically) that a car park charges £3 for each hour or part of an hour: 59 minutes cost £3, 61 minutes cost £6, and no length of stay costs £4.50. The charge jumps.
 
-Module 2 met three ways for a limit to fail to exist: a jump, a blow-up and an oscillation. This module asks the opposite question: when is the limit at each point simply the value there? Such a function is **continuous**, and on an interval its graph can be drawn without lifting the pencil. Continuity guarantees that equations have solutions (Section 3.3), which can be found to any accuracy (Section 3.4), and that largest and smallest values exist (Section 3.5). Sections 3.6 to 3.8 then follow functions to infinity.
+Module 2 met three ways for a limit to fail to exist: a jump, a blow-up and an oscillation. This module asks the opposite question: when is the limit at each point equal to the value there? Such a function is **continuous**, and on an interval its graph can be drawn without lifting the pencil. Continuity guarantees that equations have solutions (Section 3.3), which can be found to any accuracy (Section 3.4), and that largest and smallest values exist (Section 3.5). Sections 3.6 to 3.8 then follow functions to infinity.
 
 Here are two functions that agree to the left of 2 and differ from 2 on:
 
@@ -100,7 +100,7 @@ Two opposite mistakes. Being defined at $a$ and having a limit at $a$ is not eno
 
 ### One-sided continuity {#one-sided}
 
-Some functions jump, yet keep their value on one side of the jump, like the floor function. The **floor** of $x$, written $\lfloor x\rfloor$ and read "floor $x$", is the largest whole number less than or equal to $x$: $\lfloor 2.7\rfloor = 2$, $\lfloor 3\rfloor = 3$ and $\lfloor -2.7\rfloor = -3$. In Python it is `math.floor`, and integer division `7 // 2` gives $\lfloor 7/2\rfloor = 3$. Its graph is a staircase. At $x = 3$: for $x$ slightly less than 3, $\lfloor x\rfloor = 2$, and for $3 \le x < 4$, $\lfloor x\rfloor = 3$. So
+Some functions jump, yet their value at the jump fits one of the two sides, like the floor function. The **floor** of $x$, written $\lfloor x\rfloor$ and read "floor $x$", is the largest whole number less than or equal to $x$: $\lfloor 2.7\rfloor = 2$, $\lfloor 3\rfloor = 3$ and $\lfloor -2.7\rfloor = -3$. In Python it is `math.floor`, and integer division `7 // 2` gives $\lfloor 7/2\rfloor = 3$. Its graph is a staircase. At $x = 3$: for $x$ slightly less than 3, $\lfloor x\rfloor = 2$, and for $3 \le x < 4$, $\lfloor x\rfloor = 3$. So
 
 $$\lim_{x\to3^-}\lfloor x\rfloor = 2, \qquad \lim_{x\to3^+}\lfloor x\rfloor = 3 = \lfloor 3\rfloor.$$
 
@@ -177,7 +177,7 @@ limit_is(sin(x)/x, x, 0, 1)
 :::
 
 ::: pitfall
-A zero in the denominator does not always mean an infinite discontinuity. The denominator of $r$ is 0 at 2, yet the discontinuity there is removable, because the numerator is 0 there too and the factor $x - 2$ cancels. Factor and cancel first, then decide. And the kind of discontinuity depends on the limits near $a$, not on whether $f(a)$ is defined: $s$ and $q$ are both undefined at 0, but differ in kind.
+A zero in the denominator does not always mean an infinite discontinuity: the denominator of $r$ is 0 at 2, but so is the numerator, the factor $x - 2$ cancels, and the discontinuity is removable. Factor and cancel first, then decide. And the kind depends on the limits near $a$, not on $f(a)$: $s$ and $q$ are both undefined at 0, but differ in kind.
 :::
 
 ## Which functions are continuous {#continuous-functions}
@@ -229,7 +229,7 @@ Here is why, family by family: proofs for sine, cosine and roots, and the idea o
 
 $$\begin{aligned} \sin(a + h) &= \sin a\cos h + \cos a\sin h \\ &\to \sin a \cdot 1 + \cos a \cdot 0 = \sin a. \end{aligned}$$
 
-In the same way $\cos(a + h) = \cos a\cos h - \sin a\sin h \to \cos a$. So sine and cosine are continuous on $\R$, and the other four, quotients of these two, are continuous wherever their denominators are not 0 (Theorem 3.1): on their domains.
+In the same way $\cos(a + h) = \cos a\cos h - \sin a\sin h \to \cos a$. So sine and cosine are continuous on $\R$, and the other four, quotients built from these two, are continuous wherever their denominators are not 0 (Theorem 3.1): on their domains.
 
 ```check
 limit_is(sin(h), h, 0, 0); limit_is(cos(h), h, 0, 1); same(sin(0), 0); same(cos(0), 1)
@@ -252,7 +252,7 @@ Every function built from the catalogue of Module 1 with $+$, $-$, $\times$, $\d
 :::
 
 ::: pitfall
-"Continuous on its domain" is not "continuous everywhere". The functions $1/x$ and $\tan x$ are continuous at every number of their domains, and books call them continuous functions; yet $1/x$ has an infinite discontinuity at 0, and $\tan x$ at $\pi/2$, numbers outside their domains where the graphs break. When you are asked where a function is continuous, give the intervals: $1/x$ is continuous on $(-\infty, 0)$ and on $(0, \infty)$, but not on $[-1, 1]$.
+"Continuous on its domain" is not "continuous everywhere". $1/x$ and $\tan x$ are continuous at every number of their domains, and books call them continuous functions; yet they have infinite discontinuities at 0 and at $\pi/2$, outside their domains, where their graphs break. Asked where a function is continuous, give the intervals: $1/x$ is continuous on $(-\infty, 0)$ and on $(0, \infty)$, but not on $[-1, 1]$.
 :::
 
 ### Composition {#composition}
@@ -462,7 +462,7 @@ $f$ is continuous and $f(1) = -1 < 0 < 2 = f(2)$, so the method can start. For $
 | 5 | 1.40625 | 1.4375 | 1.421875 | 0.02173 |
 | 6 | 1.40625 | 1.421875 | 1.4140625 | −0.0004272 |
 
-After six steps the root lies in $[a_6, b_6] = [1.40625, 1.421875]$, a bracket of width $\tfrac{1}{64} = 0.015625$. So $\sqrt2 = 1.41\ldots$: the first two decimals are certain. The midpoint $m_6 = 1.4140625$ is within half the width, $\tfrac{1}{128} = 0.0078125$, of $\sqrt2$. In fact $\sqrt2 = 1.41421356\ldots$, so $m_6$ is off by only about 0.00015: the guarantee is a worst case.
+After six steps the root lies in $[a_6, b_6] = [1.40625, 1.421875]$, a bracket of width $\tfrac{1}{64} = 0.015625$. Both ends begin 1.4, so $\sqrt2 = 1.4\ldots$ is certain; the second decimal is not yet, since the ends begin 1.40 and 1.42. The midpoint $m_6 = 1.4140625$ is within half the width, $\tfrac{1}{128} = 0.0078125$, of $\sqrt2$. In fact $\sqrt2 = 1.41421356\ldots$, so $m_6$ is off by only about 0.00015: the guarantee is a worst case.
 
 ```check
 f_bis = lambda t: t**2 - 2
@@ -486,6 +486,7 @@ A6, B6 = rows[6][1], rows[6][2]                                                 
 same((A6, B6), (Rational(140625, 100000), Rational(1421875, 1000000))); same(B6 - A6, Rational(1, 64)); same(Rational(1, 64), Rational(15625, 1000000))
 same((B6 - A6)/2, Rational(1, 128)); same(Rational(1, 128), Rational(78125, 10000000))
 holds(A6 < sqrt(2) < B6); rounds(sqrt(2), '1.41421356'); rounds(abs(rows[6][3] - sqrt(2)), '0.00015')
+same((floor(10*A6), floor(10*B6)), (14, 14)); same((floor(100*A6), floor(100*B6)), (140, 142))   # 1.4 is certain; 1.40 and 1.42 differ
 ```
 :::
 
@@ -537,7 +538,7 @@ Start with $x^2 - 2$ on $[1, 2]$. Press **Step** six times and compare the table
 :::
 
 ::: compute The bisection method in Python
-The method takes a few lines of Python. This function runs `n` steps and returns the final bracket, or an exact root twice if it meets one:
+The method takes a few lines of Python. This function runs `n` steps and returns the final bracket, or the pair `(m, m)` if it meets an exact root `m`:
 
 ```python
 def bisection(f, a, b, n):
@@ -574,14 +575,17 @@ print(m, abs(m - math.sqrt(2)), 2**-20)
 1.4142141342163086 5.718432134482754e-07 9.5367431640625e-07
 ```
 
-The real error is smaller than the guarantee, as it often is. The same function solves $\cos x = x$ of Example 3.6:
+The real error is smaller than the guarantee, as it often is. The same function solves the equations of Examples 3.5 and 3.6, $x^3 - 2x - 5 = 0$ and $\cos x = x$. After 30 steps from an interval of width 1, each midpoint is within $2^{-31} \approx 4.7 \times 10^{-10}$ of a root:
 
 ```python
+a, b = bisection(lambda x: x**3 - 2*x - 5, 2, 3, 30)
+print((a + b) / 2)
 a, b = bisection(lambda x: math.cos(x) - x, 0, 1, 30)
 print((a + b) / 2)
 ```
 
 ```output
+2.094551481772214
 0.7390851336531341
 ```
 
@@ -608,7 +612,7 @@ print(a, b, b - a)
 :::
 
 ```check
-rounds(Rational(1, 2**52), '2.2e-16')
+rounds(Rational(1, 2**52), '2.2e-16'); rounds(Rational(1, 2**31), '4.7e-10')
 ```
 
 ## The Extreme Value Theorem {#evt}
@@ -672,7 +676,7 @@ limit_is(g39, x, 1, oo, '+'); limit_is(g39, x, 1, -oo, '-')
 :::
 
 ::: pitfall
-Two slips. The theorem needs a closed interval $[a, b]$: "$f$ is continuous on $(0, 1)$, so it has a maximum" is wrong, as $f(x) = x$ shows. And when the hypotheses fail, the theorem says nothing, either way: it does not forbid extreme values. On the open interval $(-1, 2)$, $x^2$ has the minimum value 0, at 0, though it has no maximum value (its values approach 4 near 2).
+Two slips. "$f$ is continuous on $(0, 1)$, so it has a maximum" is wrong, as $f(x) = x$ shows: the theorem needs a closed interval $[a, b]$. And when the hypotheses fail, the theorem says nothing either way: on the open interval $(-1, 2)$, $x^2$ has the minimum value 0, though no maximum value.
 
 ```check
 same(minimum(x**2, x, Interval.open(-1, 2)), 0); limit_is(x**2, x, 2, 4, '-')
@@ -776,7 +780,7 @@ limit_is(tan(x), x, pi/2, oo, '-'); limit_is(tan(x), x, pi/2, -oo, '+'); same(ta
 :::
 
 ::: pitfall
-$\infty$ is not a number, so do not calculate with it as if it were. If $f(x) \to \infty$ and $g(x) \to \infty$, the difference $f(x) - g(x)$ can do anything. With $f(x) = \dfrac{1}{x^2} + 1$ and $g(x) = \dfrac{1}{x^2}$, both tend to $\infty$ as $x \to 0$, and the difference is 1; with $f(x) = \dfrac{2}{x^2}$ and the same $g$, the difference is $\dfrac{1}{x^2} \to \infty$. So "$\infty - \infty = 0$" is wrong, and so is "$\infty/\infty = 1$": the quotient of $\dfrac{2}{x^2}$ and $\dfrac{1}{x^2}$ is 2. Such forms are **indeterminate**: their value depends on the functions, and Module 7 shows how to find it. And do not write $\lim_{x\to0} 1/x = \infty$: the two sides disagree.
+$\infty$ is not a number, so do not calculate with it. If $f(x) \to \infty$ and $g(x) \to \infty$, then $f(x) - g(x)$ can do anything. As $x \to 0$, $\dfrac{1}{x^2} + 1$ and $\dfrac{1}{x^2}$ both tend to $\infty$, and their difference is 1; $\dfrac{2}{x^2}$ and $\dfrac{1}{x^2}$ both tend to $\infty$, their difference $\dfrac{1}{x^2}$ tends to $\infty$, and their quotient is 2. So "$\infty - \infty = 0$" and "$\infty/\infty = 1$" are wrong. Such forms are **indeterminate**: their value depends on the functions, and Module 7 shows how to find it. And do not write $\lim_{x\to0} 1/x = \infty$: the two sides disagree.
 
 ```check
 same((1/x**2 + 1) - 1/x**2, 1); same(2/x**2 - 1/x**2, 1/x**2); limit_is(2/x**2 - 1/x**2, x, 0, oo)
@@ -839,7 +843,7 @@ for k_ in (1, 2, 3):
 
 ### Rational functions {#rational-at-infinity}
 
-To find the limit of a rational function at infinity, divide the numerator and the denominator by the highest power of $x$ in the denominator: then every term but the leading ones tends to 0. The result is worth remembering.
+To find the limit of a rational function at infinity, divide the numerator and the denominator by the highest power of $x$ in the denominator; then every term with $x$ left in its denominator tends to 0. Only the leading terms matter:
 
 ::: theorem Rational functions at infinity
 Let
@@ -1341,6 +1345,12 @@ n = 100   n!: 9.33e+148 s = 2.96e+141 years
 The $n^2$ column stays below a thousandth of a second. The $2^n$ column passes from a millisecond at $n = 20$ to about 13 days at $n = 50$ ($1.13 \times 10^6$ seconds), and the $n!$ column is already about 77 years at $n = 20$.
 :::
 
+```check
+holds(Rational(100**2, 10**9) < Rational(1, 1000)); rounds(Rational(2**20, 10**9), '0.001')
+rounds(Rational(2**50, 10**9), '1.13e6'); rounds(Rational(2**50, 10**9)/(24*3600), '13')
+rounds(factorial(20)/Integer(10**9)/(Rational(36525, 100)*24*3600), '77')
+```
+
 ## What you learned {#summary}
 
 - $f$ is continuous at $a$ when $\lim_{x\to a} f(x) = f(a)$: $f(a)$ is defined, the limit exists, and the two are equal. One-sided continuity handles jumps and the ends of intervals.
@@ -1397,9 +1407,9 @@ Each function is undefined at one or two numbers. At each of them, decide whethe
 
 $$g(x) = \frac{x}{x\big(\sqrt{x + 4} + 2\big)} = \frac{1}{\sqrt{x + 4} + 2} \qquad (x \ne 0).$$
 
-The square root is continuous at 4, so the limit at 0 is $\dfrac{1}{2 + 2} = \dfrac14$: removable, repaired by $g(0) = \tfrac14$.
+The square root is continuous at 4, so the limit at 0 is $1/(2 + 2) = \tfrac14$: removable, repaired by $g(0) = \tfrac14$.
 
-**(c)** $h$ is undefined where $x^2 - 1 = (x - 1)(x + 1) = 0$, at $-1$ and 1. For other $x$, $h(x) = \dfrac{1}{x - 1}$. At $-1$ the limit is $-\tfrac12$: removable, repaired by $h(-1) = -\tfrac12$. At 1 the numerator of $\dfrac{1}{x - 1}$ is 1 and the denominator tends to 0, so the values grow without bound: an infinite discontinuity, which no value repairs.
+**(c)** $h$ is undefined where $x^2 - 1 = (x - 1)(x + 1) = 0$, at $-1$ and 1. For other $x$, $h(x) = 1/(x - 1)$. At $-1$ the limit is $1/(-2) = -\tfrac12$: removable, repaired by $h(-1) = -\tfrac12$. At 1 the numerator of $1/(x - 1)$ is 1 and the denominator tends to 0, so by Theorem 3.9 the values tend to $\infty$ on the right and to $-\infty$ on the left: an infinite discontinuity, which no value repairs.
 
 ```check
 fe2 = (x**3 - 8)/(x - 2); same(factor(x**3 - 8), (x - 2)*(x**2 + 2*x + 4)); same(cancel(fe2), x**2 + 2*x + 4); limit_is(fe2, x, 2, 12)

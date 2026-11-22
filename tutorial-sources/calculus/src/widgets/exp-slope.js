@@ -72,14 +72,15 @@ CalcWidgets.register('exp-slope', function (root, api) {
     var a = state.a, m0 = slope(a, 0), m1 = slope(a, 1), lines = []
     if (state.isE) {
       lines.push('a = e ≈ ' + dec(Math.E, 6))
-      lines.push(t('slope of y = eˣ at x = 0 = 1 exactly: that is the definition of e (the difference quotient gives ≈ ',
-        'y = eˣ 在 x = 0 处的斜率恰好是 1：这正是 e 的定义（差商给出 ≈ ') + dec(m0, 5) + t(')', '）'))
-      lines.push(t('slope at x = 1 = e × (slope at 0) = e ≈ ', '在 x = 1 处的斜率 = e × (x = 0 处的斜率) = e ≈ ') + dec(Math.E, 5))
+      lines.push(t('slope at x = 0 = 1 exactly: that is the definition of e (the difference quotient gives ≈ ',
+        'x = 0 处的斜率恰好是 1：这正是 e 的定义（差商给出 ≈ ') + dec(m0, 5) + t(')', '）'))
+      lines.push(t('slope at x = 1 = e × 1 = e ≈ ', 'x = 1 处的斜率 = e × 1 = e ≈ ') + dec(Math.E, 5))
       lines.push(t('ln e = 1: for every base a, the slope at 0 is ln a.', 'ln e = 1：对每个底数 a，x = 0 处的斜率都等于 ln a。'))
     } else {
       lines.push('a = ' + showA(a))
-      lines.push(t('slope of y = aˣ at x = 0 ≈ ', 'y = aˣ 在 x = 0 处的斜率 ≈ ') + dec(m0, 5))
-      lines.push(t('slope at x = 1 ≈ ', '在 x = 1 处的斜率 ≈ ') + dec(m1, 5) + t(';  a¹ × (slope at 0) ≈ ', '；a¹ × (x = 0 处的斜率) ≈ ') + dec(a * m0, 5))
+      lines.push(t('slope at x = 0 ≈ ', 'x = 0 处的斜率 ≈ ') + dec(m0, 5))
+      lines.push(t('slope at x = 1 ≈ ', 'x = 1 处的斜率 ≈ ') + dec(m1, 5))
+      lines.push(t('a × (slope at 0) ≈ ', 'a × (x = 0 处的斜率) ≈ ') + dec(a * m0, 5))
       if (Math.abs(m0 - 1) < 0.001) lines.push(t('The slope at 0 is within 0.001 of 1: this base is close to e. Press “Show e”.',
         'x = 0 处的斜率与 1 相差不到 0.001：这个底数已接近 e。点击“显示 e”。'))
       else if (m0 < 1) lines.push(t('The slope at 0 is less than 1: make a larger.', 'x = 0 处的斜率小于 1：把 a 调大。'))

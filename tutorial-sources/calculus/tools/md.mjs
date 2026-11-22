@@ -162,10 +162,10 @@ function mathPlugin(md) {
   }, { alt: ['paragraph', 'reference', 'blockquote', 'list'] })
   md.renderer.rules.math_inline = (toks, i, opts, env) => {
     const punct = (toks[i].meta && toks[i].meta.punct) || ''
-    // Punctuation straight after a formula ("$f(x)$,") is set inside it, as \\text{,}: KaTeX keeps it
-    // with the formula's last symbol, so a line can never start with it. (A word joiner does not stop
-    // browsers breaking after KaTeX's inline-blocks.)
-    return punct ? tex(`${toks[i].content}\\text{${punct}}`, false, env) : tex(toks[i].content, false, env)
+    // Punctuation straight after a formula ("$f(x)$,") is set inside it, so a line can never start with
+    // it (a word joiner does not stop browsers breaking after KaTeX's inline-blocks). As \mathclose, it
+    // gets no space before it, even after an operator such as \ln or an absolute value.
+    return punct ? tex(`${toks[i].content}\\mathclose{\\text{${punct}}}`, false, env) : tex(toks[i].content, false, env)
   }
   md.renderer.rules.math_block = (toks, i, opts, env) => `<div class="math-display">${tex(toks[i].content, true, env)}</div>\n`
 }

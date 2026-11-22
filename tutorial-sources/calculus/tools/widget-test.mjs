@@ -47,6 +47,8 @@ for (const file of tests) {
     const errors = []
     page.on('pageerror', e => errors.push(e.message))
     await page.goto(pathToFileURL(html).href, { waitUntil: 'load' })
+    // Screenshots: no sticky header over the widget, and scrolling that happens at once.
+    await page.addStyleTag({ content: '#topbar,#progress-bar{display:none!important} html{scroll-behavior:auto!important}' })
     const root = `.widget[data-widget="${name}"]`
     try { await page.waitForSelector(`${root}[data-mounted]`, { timeout: 10000 }) } catch {
       console.log(`FAIL ${name} (${lang}): widget did not mount${errors.length ? ': ' + errors.join('; ') : ''}`); failed++; await page.close(); continue

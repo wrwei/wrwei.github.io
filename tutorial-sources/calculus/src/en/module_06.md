@@ -138,7 +138,7 @@ limit_is(((ap**cr)**h - 1)/h, h, 0, cr*limit((ap**h - 1)/h, h, 0, '+-'))
 limit_is((1**h - 1)/h, h, 0, 0)
 ```
 
-Now choose $c = 1/m(2)$. The base $2^{1/m(2)}$ has slope $\dfrac{1}{m(2)}\cdot m(2) = 1$ at 0. With $m(2) \approx 0.693147$, $1/m(2) \approx 1.442695$, and the base is about $2^{1.442695} \approx 2.718282$: the digits of Module 1's $e$.
+Now choose $c = 1/m(2)$. By Theorem 6.2, the base $2^{1/m(2)}$ has slope $\dfrac{1}{m(2)}\cdot m(2) = 1$ at 0. With $m(2) \approx 0.693147$, $1/m(2) \approx 1.442695$, and the base is about $2^{1.442695} \approx 2.718282$: the digits of Module 1's $e$.
 
 ```check
 rounds(log(2), '0.693147'); rounds(1/log(2), '1.442695')
@@ -159,7 +159,7 @@ limit_is((exp(h) - 1)/h, h, 0, 1)
 ```
 
 ::: note
-**What is proved and what is taken on trust.** The series takes two things on trust. The first is Module 1's powers $a^x$ for every real $x$, with their laws (for an irrational $x$, $a^x$ is the number that the powers with rational exponents close to $x$ approach). The second is that the limit $m(2)$ exists and is positive: the table leaves little doubt that it is about 0.6931, and the Going deeper box at the end of this section explains how both facts are proved. Everything else is proved from these two. Theorem 6.2 shows that the base $2^{1/m(2)}$ has slope 1 at 0, so $e$ exists, and the next theorem shows that no other base does.
+**What is proved and what is taken on trust.** The series takes two things on trust. The first is Module 1's powers $a^x$ for every real $x$, with their laws (for an irrational $x$, $a^x$ is the number that the powers with rational exponents close to $x$ approach). The second is that the limit $m(2)$ exists and is positive: the table leaves little doubt that it is about 0.6931, and the Going deeper box at the end of this section sketches how both facts are proved. Everything else is proved from these two. Theorem 6.2 shows that the base $2^{1/m(2)}$ has slope 1 at 0, so $e$ exists, and the next theorem shows that no other base does.
 :::
 
 ::: theorem Derivatives of $e^x$ and $a^x$
@@ -344,7 +344,7 @@ $$(f^{-1})'(b) = \frac{1}{f'(a)} = \frac{1}{f'\big(f^{-1}(b)\big)}.$$
 ::: proof
 Let $J$ be the interval of values of $f$, as in the fact above. For $y \ne b$ in $J$, let $x = f^{-1}(y)$. Then $f(x) = y$, and $x \ne a$, because $f^{-1}$ is one-to-one. So
 
-$$\frac{f^{-1}(y) - f^{-1}(b)}{y - b} = \frac{x - a}{f(x) - f(a)} = \frac{1}{\dfrac{f(x) - f(a)}{x - a}}.$$
+$$\begin{aligned} \frac{f^{-1}(y) - f^{-1}(b)}{y - b} &= \frac{x - a}{f(x) - f(a)} \\ &= \frac{1}{\dfrac{f(x) - f(a)}{x - a}}. \end{aligned}$$
 
 As $y \to b$, $x = f^{-1}(y)$ approaches $f^{-1}(b) = a$, because $f^{-1}$ is continuous, and $x \ne a$. So the difference quotient in the denominator approaches $f'(a)$, which is not 0, and by the limit law for quotients the whole expression approaches $1/f'(a)$.
 :::
@@ -512,7 +512,7 @@ limit_is(n*log(1 + x/n), n, oo, x)
 So the two routes lead to the same number: the limit of compound interest is the base whose exponential has slope 1 at 0.
 
 ::: example Continuous compounding
-Suppose you invest £1000 at an interest rate of 5% a year. Compare the balance after one year with interest added yearly, quarterly, monthly and daily, and continuously, and find how long the money takes to double with continuous compounding.
+Suppose you invest £1000 at an interest rate of 5% a year. Compare the balance after one year when interest is added yearly, quarterly, monthly, daily and continuously, and find how long the money takes to double with continuous compounding.
 
 With interest added $n$ times a year, each addition multiplies the balance by $1 + \dfrac{0.05}{n}$, so after one year the balance is $1000\Big(1 + \dfrac{0.05}{n}\Big)^n$ pounds:
 
@@ -530,7 +530,7 @@ n | 1000\Big(1 + \dfrac{0.05}{n}\Big)^n
 
 By Theorem 6.6 with $x = 0.05$, continuous compounding gives $1000e^{0.05} \approx 1051.27$ pounds after a year: the same as daily compounding, to the penny. After $t$ years with interest added $n$ times a year, the balance is
 
-$$1000\Big(1 + \frac{0.05}{n}\Big)^{nt} = 1000\Big[\Big(1 + \frac{0.05}{n}\Big)^n\Big]^t,$$
+$$\begin{aligned} &1000\Big(1 + \frac{0.05}{n}\Big)^{nt} \\ &\quad= 1000\Big[\Big(1 + \frac{0.05}{n}\Big)^n\Big]^t, \end{aligned}$$
 
 which approaches $1000\big(e^{0.05}\big)^t = 1000e^{0.05t}$ as $n \to \infty$. It doubles when $e^{0.05t} = 2$, that is, when $0.05t = \ln 2$:
 
@@ -556,7 +556,7 @@ You can find this slope without solving for $y$. Near $(3, 4)$, think of $y$ as 
 
 $$2x + 2y\,\frac{dy}{dx} = 0, \quad\text{so}\quad \frac{dy}{dx} = -\frac{x}{y} \quad (y \ne 0).$$
 
-At $(3, 4)$ this gives $-\tfrac34$ again. The same formula works at every point of the circle with $y \ne 0$: at $(3, -4)$, on the lower half, the slope is $+\tfrac34$. This is **implicit differentiation**: the equation defines $y$ as a function of $x$ only *implicitly*, and you differentiate the equation as it stands. The answer has a geometric meaning (Figure 6.3, left): the radius from the origin to $(x, y)$ has slope $y/x$, and the product of the two slopes is $(y/x)(-x/y) = -1$, so the tangent line is perpendicular to the radius, as school geometry says it must be.
+At $(3, 4)$ this gives $-\tfrac34$ again. The same formula works at every point of the circle with $y \ne 0$: at $(3, -4)$, on the lower half, the slope is $+\tfrac34$. This is **implicit differentiation**: the equation defines $y$ as a function of $x$ only *implicitly*, and you differentiate the equation as it stands. The answer has a geometric meaning (Figure 6.3, left): the radius from the origin to $(x, y)$ has slope $y/x$ (when $x \ne 0$), and the product of the two slopes is $(y/x)(-x/y) = -1$, so the tangent line is perpendicular to the radius, as school geometry says it must be.
 
 ```check
 same(diff(sqrt(25 - x**2), x), -x/sqrt(25 - x**2)); same((-x/sqrt(25 - x**2)).subs(x, 3), -3/sqrt(16)); same(-3/sqrt(16), -Rational(3, 4))
@@ -603,7 +603,7 @@ At $(3, 3)$, $y' = \dfrac{6 - 9}{9 - 6} = -1$, and the tangent line is $y - 3 = 
 
 The tangent line is horizontal where $y' = 0$: where the numerator $2y - x^2$ is 0 and the denominator is not. Substitute $y = x^2/2$ into the equation of the curve, subtract $x^3$ from both sides, and multiply by 8:
 
-$$\begin{aligned} x^3 + \frac{x^6}{8} &= 6x\cdot\frac{x^2}{2} = 3x^3, \\ x^6 &= 16x^3, \quad\text{that is,}\quad x^3\big(x^3 - 16\big) = 0. \end{aligned}$$
+$$\begin{aligned} x^3 + \frac{x^6}{8} &= 6x\cdot\frac{x^2}{2} = 3x^3, \\ x^6 &= 16x^3, \\ x^3\big(x^3 - 16\big) &= 0. \end{aligned}$$
 
 The root $x = 0$ gives the origin, where the denominator $y^2 - 2x$ is 0 too, so the formula says nothing there: the curve crosses itself. The other root, $x^3 = 16$, gives $x = 16^{1/3} = 2^{4/3} \approx 2.520$ and $y = \tfrac12 x^2 = \tfrac12 \cdot 2^{8/3} = 2^{5/3} \approx 3.175$. There the denominator is $2^{10/3} - 2 \cdot 2^{4/3} = 2^{10/3} - 2^{7/3} = 2^{7/3}$, which is not 0. So the tangent line is horizontal at exactly one point, $\big(2^{4/3}, 2^{5/3}\big)$, the top of the loop. Swapping $x$ and $y$ leaves the equation unchanged, so the mirror point $\big(2^{5/3}, 2^{4/3}\big)$ has a vertical tangent line.
 
@@ -693,7 +693,9 @@ same(sin(3*pi/4), sqrt(2)/2); same(asin(sin(3*pi/4)), pi/4); holds(3*pi/4 > pi/2
 :::
 
 ::: theorem Derivatives of the inverse trigonometric functions
-$$\begin{aligned} \frac{d}{dx}\arcsin x &= \frac{1}{\sqrt{1 - x^2}} \quad \text{for } {-1} < x < 1, \\ \frac{d}{dx}\arccos x &= -\frac{1}{\sqrt{1 - x^2}} \quad \text{for } {-1} < x < 1, \\ \frac{d}{dx}\arctan x &= \frac{1}{1 + x^2} \quad \text{for every real } x. \end{aligned}$$
+$$\begin{aligned} \frac{d}{dx}\arcsin x &= \frac{1}{\sqrt{1 - x^2}}, \\ \frac{d}{dx}\arccos x &= -\frac{1}{\sqrt{1 - x^2}}, \\ \frac{d}{dx}\arctan x &= \frac{1}{1 + x^2}, \end{aligned}$$
+
+the first two for $-1 < x < 1$, the third for every real $x$.
 :::
 
 ::: proof
@@ -726,7 +728,7 @@ A balloon rises vertically from a point on level ground 100 metres from you. Whe
 
 By the chain rule, with the inner function $h/100$,
 
-$$\frac{d\theta}{dh} = \frac{1}{1 + (h/100)^2}\cdot\frac{1}{100} = \frac{100}{100^2 + h^2},$$
+$$\begin{aligned} \frac{d\theta}{dh} &= \frac{1}{1 + (h/100)^2}\cdot\frac{1}{100} \\ &= \frac{100}{100^2 + h^2}, \end{aligned}$$
 
 after multiplying the top and the bottom by $100^2$. At $h = 0$ this is $\dfrac{100}{10{,}000} = 0.01$ radians per metre. At $h = 100$, where $\theta = \arctan 1 = \pi/4$, it is $\dfrac{100}{20{,}000} = 0.005$ radians per metre, about $0.29^\circ$ per metre. Each metre of height changes the angle less as the balloon climbs. Module 7 brings in time, and asks how fast the angle changes per second.
 
@@ -826,7 +828,7 @@ $$y = \frac{x^2(x + 1)^3}{\sqrt{x^2 + 3}}, \quad x > 0.$$
 
 For $x > 0$ every factor is positive, so $y > 0$, and by the laws of logarithms
 
-$$\ln y = 2\ln x + 3\ln(x + 1) - \tfrac12\ln\big(x^2 + 3\big).$$
+$$\begin{aligned} \ln y = {} & 2\ln x + 3\ln(x + 1) \\ & - \tfrac12\ln\big(x^2 + 3\big). \end{aligned}$$
 
 Differentiate both sides:
 
@@ -899,7 +901,7 @@ Two combinations of $e^x$ and $e^{-x}$ turn up so often in science and engineeri
 ::: definition Hyperbolic functions
 For every real $x$,
 
-$$\begin{aligned} \sinh x &= \frac{e^x - e^{-x}}{2}, \qquad \cosh x = \frac{e^x + e^{-x}}{2}, \\ \tanh x &= \frac{\sinh x}{\cosh x} = \frac{e^x - e^{-x}}{e^x + e^{-x}}. \end{aligned}$$
+$$\begin{aligned} \sinh x &= \frac{e^x - e^{-x}}{2}, \\ \cosh x &= \frac{e^x + e^{-x}}{2}, \\ \tanh x &= \frac{\sinh x}{\cosh x} = \frac{e^x - e^{-x}}{e^x + e^{-x}}. \end{aligned}$$
 
 They are the **hyperbolic sine**, **hyperbolic cosine** and **hyperbolic tangent**, read "hyperbolic sine of x" and so on.
 :::
@@ -925,7 +927,7 @@ $$\cosh^2 x - \sinh^2 x = 1,$$
 
 and
 
-$$\begin{aligned} \frac{d}{dx}\sinh x &= \cosh x, \qquad \frac{d}{dx}\cosh x = \sinh x, \\ \frac{d}{dx}\tanh x &= \frac{1}{\cosh^2 x} = 1 - \tanh^2 x. \end{aligned}$$
+$$\begin{aligned} \frac{d}{dx}\sinh x &= \cosh x, \\ \frac{d}{dx}\cosh x &= \sinh x, \\ \frac{d}{dx}\tanh x &= \frac{1}{\cosh^2 x} = 1 - \tanh^2 x. \end{aligned}$$
 :::
 
 ::: proof
@@ -937,7 +939,7 @@ In the difference $\cosh^2 x - \sinh^2 x$ everything cancels except $\tfrac24 - 
 
 Since $\dfrac{d}{dx}e^{-x} = -e^{-x}$, the derivative of $\sinh x$ is $\dfrac{e^x + e^{-x}}{2} = \cosh x$, and that of $\cosh x$ is $\dfrac{e^x - e^{-x}}{2} = \sinh x$. By the quotient rule and the identity,
 
-$$\frac{d}{dx}\tanh x = \frac{\cosh x\cosh x - \sinh x\sinh x}{\cosh^2 x} = \frac{1}{\cosh^2 x},$$
+$$\begin{aligned} \frac{d}{dx}\tanh x &= \frac{\cosh^2 x - \sinh^2 x}{\cosh^2 x} \\ &= \frac{1}{\cosh^2 x}, \end{aligned}$$
 
 and dividing the identity by $\cosh^2 x$ gives $1 - \tanh^2 x = \dfrac{1}{\cosh^2 x}$.
 :::
@@ -947,14 +949,16 @@ same(expand(((exp(x) + exp(-x))/2)**2), (exp(2*x) + 2 + exp(-2*x))/4); same(expa
 steps(cosh(x)**2 - sinh(x)**2, (exp(2*x) + 2 + exp(-2*x))/4 - (exp(2*x) - 2 + exp(-2*x))/4, 1); same(Rational(2, 4) - (-Rational(2, 4)), 1)
 same(diff((exp(x) - exp(-x))/2, x), (exp(x) + exp(-x))/2); same(diff((exp(x) + exp(-x))/2, x), (exp(x) - exp(-x))/2)
 same(diff(sinh(x), x), cosh(x)); same(diff(cosh(x), x), sinh(x))
-steps(diff(tanh(x), x), (cosh(x)*cosh(x) - sinh(x)*sinh(x))/cosh(x)**2, 1/cosh(x)**2, 1 - tanh(x)**2)
+steps(diff(sinh(x)/cosh(x), x), (cosh(x)*cosh(x) - sinh(x)*sinh(x))/cosh(x)**2, (cosh(x)**2 - sinh(x)**2)/cosh(x)**2, 1/cosh(x)**2, 1 - tanh(x)**2)
 ```
 
-The identity explains the name. The point $(\cos t, \sin t)$ lies on the circle $x^2 + y^2 = 1$; the point $(\cosh t, \sinh t)$ lies on the **hyperbola** $x^2 - y^2 = 1$, on its right-hand branch, since $\cosh t \ge 1$. The formulas mirror those of trigonometry with changes of sign: $\cos' = -\sin$ but $\cosh' = {\sinh}$, and $\cos^2 + \sin^2 = 1$ but $\cosh^2 - \sinh^2 = 1$. The other three hyperbolic functions, $\sech x = 1/\cosh x$, $\csch x = 1/\sinh x$ and $\coth x = \cosh x/\sinh x$ (the last two for $x \ne 0$), are used less; with them, $(\tanh x)' = \sech^2 x$.
+The identity explains the name. The point $(\cos t, \sin t)$ lies on the circle $x^2 + y^2 = 1$; the point $(\cosh t, \sinh t)$ lies on the **hyperbola** $x^2 - y^2 = 1$, on its right-hand branch, since $\cosh t \ge 1$. The formulas mirror those of trigonometry with changes of sign: $\cos' = -\sin$ but $\cosh' = {\sinh}$, and $\cos^2 + \sin^2 = 1$ but $\cosh^2 - \sinh^2 = 1$. The other three hyperbolic functions, $\sech x = 1/\cosh x$, $\csch x = 1/\sinh x$ and $\coth x = \cosh x/\sinh x$ (the last two for $x \ne 0$), are used less. With them, $(\tanh x)' = \sech^2 x$, and the quotient rule gives, in the same way, $(\coth x)' = -\csch^2 x$, $(\sech x)' = -\sech x\tanh x$ and $(\csch x)' = -\csch x\coth x$.
 
 ```check
 same((cosh(t))**2 - (sinh(t))**2, 1); same(diff(tanh(x), x), sech(x)**2)
 same(sech(x), 1/cosh(x)); same(csch(x), 1/sinh(x)); same(coth(x), cosh(x)/sinh(x))
+same(diff(coth(x), x), -csch(x)**2); same(diff(sech(x), x), -sech(x)*tanh(x)); same(diff(csch(x), x), -csch(x)*coth(x))
+same(diff(cosh(x)/sinh(x), x), -1/sinh(x)**2); same(diff(1/cosh(x), x), -(1/cosh(x))*tanh(x)); same(diff(1/sinh(x), x), -(1/sinh(x))*(cosh(x)/sinh(x)))
 ```
 
 ### The hanging chain {#hanging-chain}
@@ -1016,7 +1020,7 @@ where $k$ is a constant. This is a **differential equation**: an equation for an
 ::: theorem Exponential growth and decay
 For any constants $C$ and $k$, the function $y(t) = Ce^{kt}$ satisfies
 
-$$\frac{dy}{dt} = ky \ \text{ for every } t, \qquad\text{and}\qquad y(0) = C.$$
+$$\begin{aligned} \frac{dy}{dt} &= ky \quad \text{for every } t, \\ y(0) &= C. \end{aligned}$$
 :::
 
 ::: proof
@@ -1066,7 +1070,7 @@ rounds(1000*log(2)/3, '231.0'); same(1000*2**(Integer(6)/3), 4000); rounds(4000*
 :::
 
 ::: example Half-life
-Suppose a radioactive isotope has a half-life of 8 days. (a) Find its decay constant $k$. (b) What fraction of a sample is left after 30 days? (c) When is only 1% left?
+Suppose a radioactive isotope has a half-life of 8 days. (a) Find the constant $k$ in its law of decay, $y = y_0e^{kt}$, with $t$ in days. (b) What fraction of a sample is left after 30 days? (c) When is only 1% left?
 
 **(a)** $\dfrac{\ln 2}{\abs{k}} = 8$ and $k < 0$, so $k = -\dfrac{\ln 2}{8} \approx -0.08664$ per day.
 
@@ -1156,7 +1160,7 @@ Differentiate:
 **(b)** By Theorem 6.3: $5^x\ln 5 \approx 1.609 \cdot 5^x$. The common wrong answer, $x\,5^{x-1}$, uses the power rule, which is for a variable base.
 
 **(c)** By the product rule:
-$$3x^2e^{2x} + x^3\cdot 2e^{2x} = x^2e^{2x}(3 + 2x).$$
+$$\begin{aligned} &3x^2e^{2x} + x^3\cdot 2e^{2x} \\ &\quad= x^2e^{2x}(3 + 2x). \end{aligned}$$
 
 **(d)** With $u = 3x^2 + 1 > 0$: $\dfrac{u'}{u} = \dfrac{6x}{3x^2 + 1}$. The answer is not $\dfrac{1}{3x^2 + 1}$: that leaves out the factor $u' = 6x$.
 
@@ -1164,7 +1168,7 @@ $$3x^2e^{2x} + x^3\cdot 2e^{2x} = x^2e^{2x}(3 + 2x).$$
 
 **(f)** By the chain rule with the inner function $x^2$, and $\cosh' = {\sinh}$:
 
-$$\frac{d}{dx}\cosh\big(x^2\big) = \sinh\big(x^2\big)\cdot 2x = 2x\sinh\big(x^2\big).$$
+$$\begin{aligned} \frac{d}{dx}\cosh\big(x^2\big) &= \sinh\big(x^2\big)\cdot 2x \\ &= 2x\sinh\big(x^2\big). \end{aligned}$$
 
 ```check
 same(diff(exp(-4*x), x), -4*exp(-4*x))
@@ -1216,7 +1220,9 @@ $$y' = -\frac{2x + y}{x + 2y} \quad (x + 2y \ne 0).$$
 
 At $(1, 2)$: $y' = -\dfrac{2 + 2}{1 + 4} = -\dfrac45$. The tangent line is
 
-$$y - 2 = -\frac45(x - 1), \quad\text{that is,}\quad y = -\frac45x + \frac{14}{5}.$$
+$$y - 2 = -\frac45(x - 1),$$
+
+that is, $y = -\tfrac45x + \tfrac{14}{5}$.
 
 ```check
 cur = x**2 + x*y + y**2 - 7
@@ -1238,9 +1244,11 @@ Let $f(x) = x + e^x$.
 ::: solution
 **(a)** Let $x_1 < x_2$. Then $e^{x_1} < e^{x_2}$, because $e^x$ increases ($e > 1$), so $x_1 + e^{x_1} < x_2 + e^{x_2}$: $f$ is strictly increasing, and so one-to-one ([Exercise 1.10](module_01_EN.html#ex-1-10)). It is also differentiable, hence continuous, on $\R$, with $f'(x) = 1 + e^x$, which is never 0, so Theorem 6.4 applies at every point.
 
-**(b)** $f(0) = 0 + 1 = 1$ and $f(1) = 1 + e$, so
+**(b)** $f(0) = 0 + 1 = 1$ and $f(1) = 1 + e$, while $f'(0) = 1 + 1 = 2$ and $f'(1) = 1 + e$. So
 
-$$\begin{aligned} (f^{-1})'(1) &= \frac{1}{f'(0)} = \frac{1}{1 + 1} = \frac12, \\ (f^{-1})'(1 + e) &= \frac{1}{f'(1)} = \frac{1}{1 + e} \approx 0.2689. \end{aligned}$$
+$$\begin{aligned} (f^{-1})'(1) &= \frac{1}{f'(0)} = \frac12, \\ (f^{-1})'(1 + e) &= \frac{1}{f'(1)} = \frac{1}{1 + e}, \end{aligned}$$
+
+and $1/(1 + e) \approx 0.2689$.
 
 The common slip is to write $(f^{-1})'(1) = \dfrac{1}{f'(1)}$: the slope of $f$ must be taken at the mirror point $f^{-1}(1) = 0$.
 
@@ -1249,7 +1257,7 @@ The common slip is to write $(f^{-1})'(1) = \dfrac{1}{f'(1)}$: the slope of $f$ 
 ```check
 f4 = x + exp(x)
 same(diff(f4, x), 1 + exp(x)); holds(diff(f4, x).subs(x, xr) > 0)
-same(f4.subs(x, 0), 1); same(f4.subs(x, 1), 1 + E)
+same(f4.subs(x, 0), 1); same(f4.subs(x, 1), 1 + E); same(diff(f4, x).subs(x, 0), 2); same(diff(f4, x).subs(x, 1), 1 + E)
 same(1/diff(f4, x).subs(x, 0), Rational(1, 2)); same(1/diff(f4, x).subs(x, 1), 1/(1 + E)); rounds(1/(1 + E), '0.2689')
 yv = symbols('y_v')
 same(idiff(yv + exp(yv) - x, yv, x).subs(yv, 0), Rational(1, 2))       # y = f^{-1}(x) satisfies y + e^y = x
@@ -1269,10 +1277,10 @@ $$\begin{aligned} \frac{y'}{y} &= \cos x\,\ln x + \frac{\sin x}{x}, \\ y' &= x^{
 
 **(b)** $\ln y = \dfrac{\ln x}{x}$. By the quotient rule,
 $$\begin{aligned} \frac{y'}{y} &= \frac{\tfrac1x\cdot x - \ln x\cdot 1}{x^2} = \frac{1 - \ln x}{x^2}, \\ y' &= x^{1/x}\,\frac{1 - \ln x}{x^2}. \end{aligned}$$
-Since $x^{1/x} > 0$ and $x^2 > 0$, $y' = 0$ exactly when $\ln x = 1$, that is, at $x = e$, where $y = e^{1/e} \approx 1.4447$. The horizontal tangent line is at $\big(e, e^{1/e}\big)$. (Module 8 shows that this is the highest point of the graph: no number $x^{1/x}$ exceeds $e^{1/e}$.)
+Since $x^{1/x} > 0$ and $x^2 > 0$, $y' = 0$ exactly when $\ln x = 1$, that is, at $x = e$, where $y = e^{1/e} \approx 1.4447$. The horizontal tangent line is at $\big(e, e^{1/e}\big)$. (With the methods of Module 8 you can show that this is the highest point of the graph: no number $x^{1/x}$ exceeds $e^{1/e}$.)
 
 **(c)** Near $x = 0$ every factor is positive, so
-$$\ln y = 2\ln(x + 1) + 3\ln(x + 2) + 4\ln(x + 3),$$
+$$\begin{aligned} \ln y = {} & 2\ln(x + 1) + 3\ln(x + 2) \\ & + 4\ln(x + 3), \end{aligned}$$
 $$\frac{y'}{y} = \frac{2}{x + 1} + \frac{3}{x + 2} + \frac{4}{x + 3}.$$
 At $x = 0$: $y(0) = 1 \cdot 8 \cdot 81 = 648$ and $\dfrac{y'}{y} = 2 + \dfrac32 + \dfrac43 = \dfrac{29}{6}$, so $y'(0) = 648 \cdot \dfrac{29}{6} = 3132$.
 
@@ -1296,23 +1304,19 @@ same(648*Rational(29, 6), 3132); same(diff(y5, x).subs(x, 0), 3132)
 
 ::: solution
 **(a)** By the chain rule, for $-3 < x < 3$ (so that $-1 < x/3 < 1$),
-$$\frac{d}{dx}\arcsin\frac{x}{3} = \frac{1}{\sqrt{1 - x^2/9}}\cdot\frac13 = \frac{1}{\sqrt{9 - x^2}},$$
+$$\begin{aligned} \frac{d}{dx}\arcsin\frac{x}{3} &= \frac{1}{\sqrt{1 - x^2/9}}\cdot\frac13 \\ &= \frac{1}{\sqrt{9 - x^2}}, \end{aligned}$$
 since $3\sqrt{1 - x^2/9} = \sqrt{9(1 - x^2/9)} = \sqrt{9 - x^2}$.
 
 **(b)** By the product rule: $\arctan x + \dfrac{x}{1 + x^2}$.
 
 **(c)** By the chain rule,
-$$\frac{d}{dx}\arctan\frac1x = \frac{1}{1 + 1/x^2}\cdot\Big(-\frac{1}{x^2}\Big) = -\frac{1}{x^2 + 1},$$
-which cancels the derivative $\dfrac{1}{1 + x^2}$ of $\arctan x$: the sum has derivative 0. At $x = 1$ the sum is $\tfrac{\pi}{4} + \tfrac{\pi}{4} = \tfrac{\pi}{2}$; at $x = -1$ it is $-\tfrac{\pi}{4} - \tfrac{\pi}{4} = -\tfrac{\pi}{2}$. A function with derivative 0 on an interval is constant there (Module 8 proves this), so
-
-$$\arctan x + \arctan\frac1x = \begin{cases} \pi/2 & \text{for every } x > 0, \\ -\pi/2 & \text{for every } x < 0. \end{cases}$$
-
-The two constants differ because the domain, $(-\infty, 0) \cup (0, \infty)$, is not one interval.
+$$\begin{aligned} \frac{d}{dx}\arctan\frac1x &= \frac{1}{1 + 1/x^2}\cdot\frac{-1}{x^2} \\ &= -\frac{1}{x^2 + 1}, \end{aligned}$$
+which cancels the derivative $\dfrac{1}{1 + x^2}$ of $\arctan x$: the sum has derivative 0. At $x = 1$ the sum is $\tfrac{\pi}{4} + \tfrac{\pi}{4} = \tfrac{\pi}{2}$; at $x = -1$ it is $-\tfrac{\pi}{4} - \tfrac{\pi}{4} = -\tfrac{\pi}{2}$. A function with derivative 0 on an interval is constant there (Module 8 proves this), so $\arctan x + \arctan(1/x)$ equals $\pi/2$ for every $x > 0$, and $-\pi/2$ for every $x < 0$. The two constants differ because the domain, $(-\infty, 0) \cup (0, \infty)$, is not one interval.
 
 ```check
 steps(diff(asin(x/3), x), 1/sqrt(1 - x**2/9)*Rational(1, 3), 1/sqrt(9 - x**2))
 same(diff(x*atan(x), x), atan(x) + x/(1 + x**2))
-same(diff(atan(1/x), x), -1/(x**2 + 1)); same(diff(atan(x) + atan(1/x), x), 0)
+steps(diff(atan(1/x), x), 1/(1 + 1/x**2)*(-1/x**2), -1/(x**2 + 1)); same(diff(atan(x) + atan(1/x), x), 0)
 same(atan(1) + atan(1), pi/2); same(atan(-1) + atan(-1), -pi/2)
 for v_ in (Rational(1, 3), Integer(2), Integer(5)):                    # instances, to 25 decimals
     near(atan(v_) + atan(1/v_), pi/2, 1e-25); near(atan(-v_) + atan(-1/v_), -pi/2, 1e-25)
@@ -1357,11 +1361,11 @@ For the circle $x^2 + y^2 = 25$, Section 6.4 found $y' = -x/y$.
 
 ::: solution
 **(a)** Differentiate $y' = -\dfrac{x}{y}$ with the quotient rule, remembering that $y$ is a function of $x$:
-$$\begin{aligned} y'' &= -\frac{1\cdot y - x\,y'}{y^2} = -\frac{y - x(-x/y)}{y^2} \\ &= -\frac{y^2 + x^2}{y^3} = -\frac{25}{y^3}, \end{aligned}$$
-where the third step multiplies the top and the bottom by $y$, and the last uses $x^2 + y^2 = 25$ on the curve.
+$$\begin{aligned} y'' &= -\frac{1\cdot y - x\,y'}{y^2} \\ &= -\frac{y - x(-x/y)}{y^2} \\ &= -\frac{y^2 + x^2}{y^3} \\ &= -\frac{25}{y^3}, \end{aligned}$$
+where the second step substitutes $y' = -x/y$, the third multiplies the top and the bottom by $y$, and the last uses $x^2 + y^2 = 25$ on the curve.
 
 **(b)** On the upper half, $y = (25 - x^2)^{1/2}$, so $y' = -x(25 - x^2)^{-1/2}$ and, by the product and chain rules,
-$$\begin{aligned} y'' &= -(25 - x^2)^{-1/2} - x^2(25 - x^2)^{-3/2} \\ &= -\frac{(25 - x^2) + x^2}{(25 - x^2)^{3/2}} = -\frac{25}{(25 - x^2)^{3/2}}. \end{aligned}$$
+$$\begin{aligned} y'' &= -(25 - x^2)^{-1/2} \\ &\qquad - x^2(25 - x^2)^{-3/2} \\ &= -\frac{(25 - x^2) + x^2}{(25 - x^2)^{3/2}} \\ &= -\frac{25}{(25 - x^2)^{3/2}}. \end{aligned}$$
 At $x = 3$, $(25 - 9)^{3/2} = 16^{3/2} = 64$, so $y'' = -\dfrac{25}{64}$; and (a) gives $-\dfrac{25}{4^3} = -\dfrac{25}{64}$ too.
 
 **(c)** On the upper half $y > 0$, so $y'' < 0$: the slope decreases as $x$ increases, and the curve bends downwards. On the lower half $y < 0$, so $y'' > 0$, and the curve bends upwards. Module 8 calls this concavity.
@@ -1371,6 +1375,8 @@ same(idiff(x**2 + y**2 - 25, y, x, 2), -(x**2 + y**2)/y**3)
 steps(-(1*y - x*(-x/y))/y**2, -(y - x*(-x/y))/y**2, -(y**2 + x**2)/y**3)
 same(-(y**2 + x**2)/y**3 - (-25/y**3), (25 - x**2 - y**2)/y**3)     # equal wherever x^2 + y^2 = 25
 sc = sqrt(25 - x**2)
+same(diff(sc, x), -x*(25 - x**2)**Rational(-1, 2))
+steps(diff(sc, x, 2), -(25 - x**2)**Rational(-1, 2) - x**2*(25 - x**2)**Rational(-3, 2), -((25 - x**2) + x**2)/(25 - x**2)**Rational(3, 2), -25/(25 - x**2)**Rational(3, 2))
 same(diff(sc, x, 2), -25/(25 - x**2)**Rational(3, 2)); same(diff(sc, x, 2).subs(x, 3), -Rational(25, 64))
 same(Integer(16)**Rational(3, 2), 64); same(-25/Integer(4)**3, -Rational(25, 64))
 ```
@@ -1386,7 +1392,7 @@ A cable hangs between two poles 20 metres apart, with its ends at the same heigh
 
 ::: solution
 **(a)** The ends are at height $y(\pm10) = 10\cosh 1$ and the lowest point at height 10, so the sag is
-$$s = 10\cosh 1 - 10 = 10(\cosh 1 - 1) \approx 5.431 \text{ m}.$$
+$$\begin{aligned} s &= 10\cosh 1 - 10 \\ &= 10(\cosh 1 - 1) \approx 5.431 \text{ m}. \end{aligned}$$
 
 **(b)** $y' = 10\sinh\dfrac{x}{10}\cdot\dfrac{1}{10} = \sinh\dfrac{x}{10}$, so at $x = 10$ the slope is $\sinh 1 \approx 1.175$ (and $-1.175$ at $x = -10$). A line of slope $m$ makes the angle $\arctan m$ with the horizontal, since $\tan$ of that angle is rise over run. So the cable meets the poles at $\arctan(\sinh 1) \approx 0.8658$ radians, about $49.6^\circ$, to the horizontal.
 
@@ -1419,16 +1425,16 @@ $$e^{2y} - 1 = 2xe^y.$$
 
 With $u = e^y$ this is the quadratic $u^2 - 2xu - 1 = 0$, whose roots are $u = x \pm \sqrt{x^2 + 1}$. Since $\sqrt{x^2 + 1} > \sqrt{x^2} = {\abs{x}}$, the root $x - \sqrt{x^2 + 1}$ is negative and cannot be $e^y$, while $x + \sqrt{x^2 + 1}$ is positive. So there is exactly one solution,
 
-$$y = \ln\big(x + \sqrt{x^2 + 1}\big):$$
+$$y = \ln\big(x + \sqrt{x^2 + 1}\big).$$
 
-every real $x$ is a value of ${\sinh}$, taken once, and this $y$ is $\operatorname{arsinh} x$.
+Every real $x$ is a value of ${\sinh}$, taken once, and this $y$ is $\operatorname{arsinh} x$.
 
 **(b)** $\sinh$ is differentiable, hence continuous, and one-to-one on the open interval $\R$, and its derivative $\cosh y \ge 1$ is never 0. By Theorem 6.4, with $y = \operatorname{arsinh} x$,
 $$\frac{d}{dx}\operatorname{arsinh} x = \frac{1}{\cosh y}.$$
 By the identity, $\cosh^2 y = 1 + \sinh^2 y = 1 + x^2$, and $\cosh y > 0$, so $\cosh y = \sqrt{1 + x^2}$.
 
 **(c)** By the chain rule, $\dfrac{d}{dx}\sqrt{x^2 + 1} = \dfrac{x}{\sqrt{x^2 + 1}}$, so
-$$\begin{aligned} \frac{d}{dx}\ln\big(x + \sqrt{x^2 + 1}\big) &= \frac{1 + \dfrac{x}{\sqrt{x^2 + 1}}}{x + \sqrt{x^2 + 1}} \\ &= \frac{\sqrt{x^2 + 1} + x}{\sqrt{x^2 + 1}\,\big(x + \sqrt{x^2 + 1}\big)} = \frac{1}{\sqrt{x^2 + 1}}, \end{aligned}$$
+$$\begin{aligned} &\frac{d}{dx}\ln\big(x + \sqrt{x^2 + 1}\big) \\ &\quad= \frac{1 + x/\sqrt{x^2 + 1}}{x + \sqrt{x^2 + 1}} \\ &\quad= \frac{\sqrt{x^2 + 1} + x}{\sqrt{x^2 + 1}\,\big(x + \sqrt{x^2 + 1}\big)} \\ &\quad= \frac{1}{\sqrt{x^2 + 1}}, \end{aligned}$$
 the same as (b). Python and SymPy call this function `asinh`; many books write $\sinh^{-1}x$.
 
 ```check
@@ -1456,7 +1462,11 @@ The **astroid** is the curve $x^{2/3} + y^{2/3} = 1$. Consider the part of it wi
 
 ::: solution
 **(a)** Differentiate both sides, with the power rule for real exponents (Theorem 6.8) and the chain rule on $y^{2/3}$:
-$$\begin{aligned} \frac23x^{-1/3} + \frac23y^{-1/3}\,y' &= 0, \\ y' &= -\frac{x^{-1/3}}{y^{-1/3}} = -\frac{y^{1/3}}{x^{1/3}}. \end{aligned}$$
+$$\frac23x^{-1/3} + \frac23y^{-1/3}\,y' = 0,$$
+
+so
+
+$$y' = -\frac{x^{-1/3}}{y^{-1/3}} = -\frac{y^{1/3}}{x^{1/3}}.$$
 
 **(b)** The tangent line at $(x_0, y_0)$ is
 
@@ -1464,15 +1474,15 @@ $$y - y_0 = -\frac{y_0^{1/3}}{x_0^{1/3}}(x - x_0).$$
 
 Put $y = 0$, and multiply both sides by $-x_0^{1/3}/y_0^{1/3}$: $x - x_0 = y_0 \cdot x_0^{1/3}/y_0^{1/3} = x_0^{1/3}y_0^{2/3}$, so
 
-$$x = x_0 + x_0^{1/3}y_0^{2/3} = x_0^{1/3}\big(x_0^{2/3} + y_0^{2/3}\big) = x_0^{1/3},$$
+$$\begin{aligned} x &= x_0 + x_0^{1/3}y_0^{2/3} \\ &= x_0^{1/3}\big(x_0^{2/3} + y_0^{2/3}\big) = x_0^{1/3}, \end{aligned}$$
 
 because $x_0^{2/3} + y_0^{2/3} = 1$ on the curve. Put $x = 0$ instead:
 
-$$y = y_0 + \frac{y_0^{1/3}}{x_0^{1/3}}\,x_0 = y_0 + y_0^{1/3}x_0^{2/3} = y_0^{1/3}\big(y_0^{2/3} + x_0^{2/3}\big) = y_0^{1/3}.$$
+$$\begin{aligned} y &= y_0 + \frac{y_0^{1/3}}{x_0^{1/3}}\,x_0 = y_0 + y_0^{1/3}x_0^{2/3} \\ &= y_0^{1/3}\big(y_0^{2/3} + x_0^{2/3}\big) = y_0^{1/3}. \end{aligned}$$
 
 **(c)** By Pythagoras, the distance between $\big(x_0^{1/3}, 0\big)$ and $\big(0, y_0^{1/3}\big)$ is
-$$\sqrt{\big(x_0^{1/3}\big)^2 + \big(y_0^{1/3}\big)^2} = \sqrt{x_0^{2/3} + y_0^{2/3}} = \sqrt1 = 1.$$
-So a ladder of length 1 sliding down a wall, with its foot on the floor, touches the astroid in every position: the astroid is the curve its positions sweep out.
+$$\begin{aligned} &\sqrt{\big(x_0^{1/3}\big)^2 + \big(y_0^{1/3}\big)^2} \\ &\quad= \sqrt{x_0^{2/3} + y_0^{2/3}} = \sqrt1 = 1. \end{aligned}$$
+Conversely, if $p > 0$, $q > 0$ and $p^2 + q^2 = 1$, the point $\big(p^3, q^3\big)$ is on the astroid, and by (b) its tangent line meets the axes at $(p, 0)$ and $(0, q)$. So a ladder of length 1 sliding down a wall, with its foot on the floor, touches the astroid in every position: the astroid is the curve its positions sweep out.
 
 ```check
 x0p, y0p = symbols('x_0 y_0', positive=True)

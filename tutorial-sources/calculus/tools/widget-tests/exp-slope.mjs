@@ -11,7 +11,7 @@ export async function run(t) {
   await t.set('input[type=range]', 3)
   r = await out()
   t.check(r.includes('at x = 0 ≈ 1.09861') && r.includes('greater than 1: make a smaller'), 'a = 3: slope ≈ 1.09861, more than 1')
-  t.check(r.includes('slope at x = 1 ≈ 3.29584') && r.includes('(slope at 0) ≈ 3.29584'), 'a = 3: slope at x = 1 is a times the slope at 0')
+  t.check(r.includes('slope at x = 1 ≈ 3.29584') && r.includes('a × (slope at 0) ≈ 3.29584'), 'a = 3: slope at x = 1 is a times the slope at 0')
   await t.set('input[type=range]', 2.718)
   t.check((await out()).includes('within 0.001 of 1'), 'a = 2.718: slope within 0.001 of 1')
   await t.set('input[type=range]', 2.722)
