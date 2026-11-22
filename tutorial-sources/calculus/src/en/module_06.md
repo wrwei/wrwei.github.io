@@ -138,7 +138,7 @@ limit_is(((ap**cr)**h - 1)/h, h, 0, cr*limit((ap**h - 1)/h, h, 0, '+-'))
 limit_is((1**h - 1)/h, h, 0, 0)
 ```
 
-Now choose $c = 1/m(2)$, which is allowed because $m(2)$ is not 0. By Theorem 6.2, the base $2^{1/m(2)}$ has slope $\dfrac{1}{m(2)}\cdot m(2) = 1$ at 0. To find it, estimate $m(2)$ more closely. The average of the two quotients of the table nearest to $h = 0$, 0.693171 and 0.693123, is the central difference of Module 4, which is much more accurate than either: $m(2) \approx 0.693147$. Then $1/m(2) \approx 1.442695$, and the base is about $2^{1.442695} \approx 2.718282$: the digits of Module 1's $e$.
+Now choose $c = 1/m(2)$, which is allowed because $m(2)$, about 0.69, is not 0. By Theorem 6.2, the base $2^{1/m(2)}$ has slope $\dfrac{1}{m(2)}\cdot m(2) = 1$ at 0. To find it, estimate $m(2)$ more closely. The average of the two quotients of the table nearest to $h = 0$, 0.693171 and 0.693123, is the central difference of Module 4, which is much more accurate than either: $m(2) \approx 0.693147$. Then $1/m(2) \approx 1.442695$, and the base is about $2^{1.442695} \approx 2.718282$: the digits of Module 1's $e$.
 
 ```check
 qp_, qm_ = (2**Rational(1, 10000) - 1)*10000, (1 - 2**Rational(-1, 10000))*10000     # the table at h = 0.0001 and -0.0001
@@ -589,7 +589,7 @@ limit_is(fxq + fyq, tq, -1, -2); limit_is(fxq, tq, -1, -oo, '+'); limit_is(fxq, 
 3. Divide by its coefficient, where that coefficient is not 0. The answer usually contains both $x$ and $y$: evaluate it at a point of the curve.
 :::
 
-The method assumes that near the point the equation does define $y$ as a differentiable function of $x$. A theorem of several-variable calculus, the implicit function theorem, guarantees this at a point of the curve where the coefficient of $dy/dx$ in step 3 is not 0, provided that the equation is built from functions with continuous derivatives near the point, as every equation in this module is. This series uses the theorem without proof; Module 17 states it precisely. Where the coefficient is 0, look more closely: the circle has vertical tangent lines at $(\pm5, 0)$, where $y = 0$.
+The method assumes that near the point the equation does define $y$ as a differentiable function of $x$. A theorem of several-variable calculus, the implicit function theorem, guarantees this at a point of the curve where the coefficient of $dy/dx$ in step 3 is not 0, provided that the equation is built from functions with continuous derivatives near the point, as the equations of this module are near the points where they are used. This series uses the theorem without proof; Module 17 states it precisely. Where the coefficient is 0, look more closely: the circle has vertical tangent lines at $(\pm5, 0)$, where $y = 0$.
 
 ::: example The folium of Descartes
 The curve $x^3 + y^3 = 6xy$ (Figure 6.3, right) is called the folium (Latin for "leaf") of Descartes. Show that $(3, 3)$ lies on it, find the tangent line there, and find the points where the tangent line is horizontal.
@@ -717,10 +717,12 @@ same(1/cos(asin(x)), 1/sqrt(1 - x**2)); same(-1/sin(acos(x)), -1/sqrt(1 - x**2))
 same(1/sec(atan(x))**2, 1/(1 + x**2)); same(sec(y)**2, 1 + tan(y)**2); same(diff(tan(y), y), sec(y)**2)
 ```
 
-At $x = \pm1$ the derivative of the sine, $\cos(\pm\pi/2)$, is 0, so Theorem 6.4 does not apply, and the graphs of $\arcsin$ and $\arccos$ have vertical tangent lines there (Figure 6.4). The derivatives of $\arcsin$ and $\arccos$ add up to 0 because $\arcsin x + \arccos x = \pi/2$ for every $x$ in $[-1, 1]$: if $y = \arcsin x$, then $\pi/2 - y$ lies in $[0, \pi]$ and $\cos(\pi/2 - y) = \sin y = x$ by the addition formula, so $\arccos x = \pi/2 - y$.
+At $x = \pm1$ Theorem 6.4 does not apply: the derivative of the sine at $\pm\pi/2$, $\cos(\pm\pi/2)$, is 0, and so is the derivative of the cosine at 0 and at $\pi$. The graphs of $\arcsin$ and $\arccos$ have vertical tangent lines there (Figure 6.4), and $1/\sqrt{1 - x^2}$ grows without bound as $x$ approaches $\pm1$. The derivatives of $\arcsin$ and $\arccos$ add up to 0 because $\arcsin x + \arccos x = \pi/2$ for every $x$ in $[-1, 1]$: if $y = \arcsin x$, then $\pi/2 - y$ lies in $[0, \pi]$ and $\cos(\pi/2 - y) = \sin y = x$ by the addition formula, so $\arccos x = \pi/2 - y$.
 
 ```check
-same(cos(pi/2), 0); limit_is(diff(asin(x), x), x, 1, oo, '-'); limit_is(diff(asin(x), x), x, -1, oo, '+')
+same(cos(pi/2), 0); same(cos(-pi/2), 0); same(diff(cos(x), x).subs(x, 0), 0); same(diff(cos(x), x).subs(x, pi), 0)
+limit_is(1/sqrt(1 - x**2), x, 1, oo, '-'); limit_is(1/sqrt(1 - x**2), x, -1, oo, '+')
+limit_is(diff(asin(x), x), x, 1, oo, '-'); limit_is(diff(asin(x), x), x, -1, oo, '+'); limit_is(diff(acos(x), x), x, 1, -oo, '-')
 same(expand_trig(cos(pi/2 - y)), sin(y)); same(diff(asin(x) + acos(x), x), 0)
 for v_ in (-1, Rational(-1, 2), 0, Rational(1, 2), sqrt(3)/2, 1):
     same(asin(v_) + acos(v_), pi/2)
@@ -745,7 +747,7 @@ same(th_.subs(Hh, 100), pi/4); rounds(Rational(5, 1000)*180/pi, '0.29')
 :::
 
 ::: note
-Three more inverse functions, ${\arccot}$, $\arcsec$ and ${\arccsc}$, are used less, and books disagree about their ranges. The values of the secant are the numbers $x$ with $\abs{x} \ge 1$. For such $x$, this series takes $\arcsec x$ to be the angle $y$ in $[0, \pi/2) \cup (\pi/2, \pi]$ with $\sec y = x$, that is, $\arcsec x = \arccos(1/x)$. For $\abs{x} > 1$ the chain rule then gives
+Three more inverse functions, ${\arccot}$, $\arcsec$ and ${\arccsc}$, are used less, and books disagree about their ranges. The values of the secant are the numbers $x$ with $\abs{x} \ge 1$. For such $x$, this series takes $\arcsec x$, read "arc secant of x", to be the angle $y$ in $[0, \pi/2) \cup (\pi/2, \pi]$ with $\sec y = x$, that is, $\arcsec x = \arccos(1/x)$. For $\abs{x} > 1$ the chain rule then gives
 
 $$\begin{aligned} &\frac{d}{dx}\arcsec x \\ &\quad= -\frac{1}{\sqrt{1 - 1/x^2}}\cdot\Big(-\frac{1}{x^2}\Big) \\ &\quad= \frac{1}{x^2\sqrt{1 - 1/x^2}} = \frac{1}{\abs{x}\sqrt{x^2 - 1}}, \end{aligned}$$
 
@@ -911,7 +913,7 @@ same((x**2 - 2*y)/(2*x - y**2), (2*y - x**2)/(y**2 - 2*x))
 
 ## Hyperbolic functions {#hyperbolic}
 
-Two combinations of $e^x$ and $e^{-x}$ turn up so often in science and engineering that they have names.
+A chain hanging between two posts (Figure 6.5, right) looks like a parabola, but its shape is built from $e^x$ and $e^{-x}$, as the end of this section shows. Two combinations of $e^x$ and $e^{-x}$ turn up so often in science and engineering that they have names.
 
 ::: definition Hyperbolic functions
 For every real $x$,
@@ -1431,6 +1433,7 @@ pp_ = 10 + sg*(x/10)**2
 same(pp_.subs(x, 0), 10); same(pp_.subs(x, 10), yh.subs(x, 10)); same(pp_.subs(x, -10), yh.subs(x, -10))
 rounds(sg/4, '1.358'); rounds(pp_.subs(x, 5), '11.358'); rounds(yh.subs(x, 5), '11.276')
 rounds(pp_.subs(x, 5) - yh.subs(x, 5), '0.081'); holds(yh.subs(x, 5) < pp_.subs(x, 5))
+rounds(100*(pp_.subs(x, 5) - yh.subs(x, 5)), '8'); rounds(sg, '5.4')                  # 8 cm, over a sag of 5.4 m
 ```
 :::
 ::::
