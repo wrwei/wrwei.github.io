@@ -48,7 +48,7 @@ holds(diff(yq1, t, 2).subs(t, -1) < 0); holds(diff(yq1, t, 2).subs(t, 1) > 0)
 ```
 
 ::: figure id=fig-16-1
-Left: the curve $x = t^2$, $y = t^3 - 3t$ for $-2 \le t \le 2$, with the points of the table at whole-number values of $t$ and arrows showing the direction of increasing $t$. The curve crosses itself at $(3, 0)$, where it has two tangent lines (dashed; Example 16.3). Right: the graphs of the two functions $x(t) = t^2$ and $y(t) = t^3 - 3t$, plotted against $t$. The curve on the left is built from them, but it is neither of them: $t$ appears on it only as a label on its points.
+Left: the curve $x = t^2$, $y = t^3 - 3t$ for $-2 \le t \le 2$, with the points of the table at whole-number $t$; arrows show the direction of increasing $t$. It crosses itself at $(3, 0)$, where it has two tangent lines (dashed; Example 16.3). Right: the graphs of $x(t) = t^2$ and $y(t) = t^3 - 3t$ against $t$, the two functions that the curve is built from.
 :::
 
 ::: definition Parametric curve
@@ -138,7 +138,7 @@ same((sin(-pi/2), sin(-pi/2)**2), (-1, 1)); same((sin(pi/2), sin(pi/2)**2), (1, 
 
 A **cycloid** is the curve traced by a point on the rim of a wheel that rolls along a straight line: a reflector on a bicycle wheel, seen from the side. It has no simple equation in $x$ and $y$, but its parametric equations follow from one fact about rolling.
 
-Let a circle of radius $r$ roll to the right along the $x$-axis, without slipping, and let $P$ be the point of the circle that touches the ground at the origin at the start. As the parameter, take the angle $t$ (in radians) through which the circle has turned. Rolling without slipping means that the arc of the circle that has touched the ground is as long as the stretch of ground it touched. An arc of angle $t$ on a circle of radius $r$ has length $rt$ (that is what an angle of $t$ radians means, scaled by $r$), so the circle has rolled the distance $rt$: its centre is at $C = (rt, r)$, directly above the point of contact $T = (rt, 0)$ (Figure 16.2).
+Let a circle of radius $r$ roll to the right along the $x$-axis, without slipping, and let $P$ be the point of the circle that touches the ground at the origin at the start. As the parameter, take the angle $t$ (in radians) through which the circle has turned. Rolling without slipping means that the arc of the circle that has touched the ground is as long as the stretch of ground it touched. An arc of angle $t$ on a circle of radius $r$ has length $rt$, so the circle has rolled the distance $rt$: its centre is at $C = (rt, r)$, above the point of contact $T = (rt, 0)$ (Figure 16.2).
 
 Where is $P$? Seen from $C$, it started straight down, at angle $-\pi/2$, and the circle rolls to the right by turning clockwise, so after turning through $t$ the point $P$ is at angle $-\pi/2 - t$. By the definition of sine and cosine, it is displaced from $C$ by
 
@@ -148,7 +148,7 @@ For $0 < t < \pi/2$, as in Figure 16.2, that is $r\sin t$ to the left of $C$ and
 
 $$x = r(t - \sin t), \qquad y = r(1 - \cos t).$$
 
-As $t$ runs from 0 to $2\pi$, $P$ traces one **arch** of the cycloid: up from the origin to its highest point $(\pi r, 2r)$ at $t = \pi$, when $P$ is at the top of the wheel, and down to $(2\pi r, 0)$, where it touches the ground again. Then the motion repeats: the whole cycloid is a row of arches, each $2\pi r$ wide and $2r$ high.
+As $t$ runs from 0 to $2\pi$, $P$ traces one **arch** of the cycloid: up from the origin to its highest point $(\pi r, 2r)$ at $t = \pi$, and down to $(2\pi r, 0)$, where it touches the ground again. The whole cycloid is a row of such arches, each $2\pi r$ wide and $2r$ high.
 
 ```check
 same(cos(-pi/2 - t), -sin(t)); same(sin(-pi/2 - t), -cos(t))
@@ -161,7 +161,7 @@ same(cyx.subs(t, t + 2*pi) - cyx, 2*pi*r); same(cyy.subs(t, t + 2*pi), cyy)
 ```
 
 ::: figure id=fig-16-2
-A circle of radius $r$ rolls to the right along the $x$-axis. When it has turned through the angle $t$, it has rolled the distance $rt$ (the green segment, as long as the green arc), so its centre is $C = (rt, r)$. The point $P$, which started at the origin, is then $r\sin t$ to the left of $C$ and $r\cos t$ below it. As $t$ runs from 0 to $2\pi$, $P$ traces one arch of the cycloid; the dashed part is still to come.
+A circle of radius $r$ rolls to the right along the $x$-axis. When it has turned through the angle $t$, it has rolled the distance $rt$ (the green segment, as long as the green arc), so its centre is $C = (rt, r)$, and the point $P$ that started at the origin is $r\sin t$ to the left of $C$ and $r\cos t$ below it. The dashed part of the arch is still to come.
 :::
 
 **Lissajous curves.** Let $x$ and $y$ oscillate at different rates: $x = \sin 2t$, $y = \sin 3t$, $0 \le t \le 2\pi$. The point stays in the square $-1 \le x \le 1$, $-1 \le y \le 1$, swinging left and right twice while it swings up and down three times, and returns to its start at $t = 2\pi$. Such a **Lissajous curve** appears on an oscilloscope when two sine waves drive the horizontal and the vertical deflection of its beam, and the ratio of their frequencies can be read off the picture: this curve touches the top and the bottom of the square three times each (at $t = \pi/6, 5\pi/6, 3\pi/2$ and $t = \pi/2, 7\pi/6, 11\pi/6$) and each side twice. Trace it in the widget of Section 16.2.
@@ -463,7 +463,7 @@ digits = 4
 As $\theta$ increases from 0 to $\pi$, $r$ shrinks from 2 to 0: the point starts at $(2, 0)$, swings round through the upper half-plane and arrives at the pole. Since $\cos(-\theta) = \cos\theta$, the lower half is the mirror image of the upper half in the $x$-axis, traced as $\theta$ runs on from $\pi$ to $2\pi$ (Figure 16.3, bottom left).
 
 ::: figure id=fig-16-3
-Polar coordinates and polar curves; the grey circles and rays are a polar grid. Top left: the point with polar coordinates $(r, \theta) = (2, \pi/3)$ has Cartesian coordinates $x = r\cos\theta = 1$, $y = r\sin\theta = \sqrt3$. Top middle: a region bounded by a polar curve and two rays, cut into thin slices by rays from the pole; the shaded sector, of radius $r$ and angle $\Delta\theta$, has area $\tfrac12 r^2\,\Delta\theta$ (Theorem 16.3). Top right: the circle $r = 2\sin\theta$. Bottom: the cardioid $r = 1 + \cos\theta$, whose inside has area $3\pi/2$; the rose $r = \cos 3\theta$, with one petal shaded, of area $\pi/12$; and the spiral $r = \theta/2$ for $0 \le \theta \le 4\pi$.
+Polar coordinates and polar curves, on a grey polar grid. Top left: the point $(r, \theta) = (2, \pi/3)$ is $(r\cos\theta, r\sin\theta) = \big(1, \sqrt3\big)$. Top middle: a region bounded by a polar curve and two rays, sliced by rays from the pole; the shaded slice is nearly a sector of area $\tfrac12 r^2\,\Delta\theta$ (Theorem 16.3). Top right: the circle $r = 2\sin\theta$. Bottom: the cardioid $r = 1 + \cos\theta$ (area $3\pi/2$), the rose $r = \cos 3\theta$ with one petal (area $\pi/12$) shaded, and the spiral $r = \theta/2$ for $0 \le \theta \le 4\pi$.
 :::
 
 ```check
@@ -641,7 +641,7 @@ r*sqrt(2 - 2*cos(t))
 r*Integral(sqrt(sin(t)**2 + cos(t)**2 - 2*cos(t) + 1), (t, 0, 2*pi))
 ```
 
-SymPy returns the integral unevaluated: it did not see that $2 - 2\cos t = 4\sin^2\tfrac{t}{2}$, nor that the square root of that is $2\sin\tfrac{t}{2}$ for $0 \le t \le 2\pi$. Give it the simplified integrand of Example 16.5, and it finds the length. Many lengths have no formula at all: the perimeter of the ellipse of Example 16.1(b) is an **elliptic integral**, which has no elementary antiderivative, and must be computed numerically:
+SymPy returns the integral unevaluated: it did not see that $2 - 2\cos t = 4\sin^2\tfrac{t}{2}$, nor that the square root of that is $2\sin\tfrac{t}{2}$ for $0 \le t \le 2\pi$. Give it the simplified integrand of Example 16.5, and it finds the length. Many lengths have no formula at all: the perimeter of the ellipse of Example 16.1(b) is an **elliptic integral**, whose integrand has no elementary antiderivative, so it is computed numerically:
 
 ```python
 print(sp.integrate(2*r*sp.sin(t/2), (t, 0, 2*sp.pi)))
@@ -723,7 +723,7 @@ Ar = Matrix(symbols('a1:4', real=True)); same((cs_*Ar).norm(), Abs(cs_)*Ar.norm(
 ```
 
 ::: figure id=fig-16-4
-Left: the point $P(2, 4, 3)$ in space, reached from the origin by moving 2 along the $x$-axis, 4 parallel to the $y$-axis and 3 up; its position vector $\langle 2, 4, 3\rangle$ is the arrow from $O$ to $P$, and $\vb{i}$, $\vb{j}$, $\vb{k}$ are the unit vectors along the axes. Middle: $\vb{a} = \langle 3, 1\rangle$ and $\vb{b} = \langle 1, 2\rangle$ add to $\vb{a} + \vb{b} = \langle 4, 3\rangle$, the diagonal of the parallelogram they span, whichever is drawn first. Right: multiples of $\vb{v} = \langle 2, 1\rangle$: $2\vb{v}$ is twice as long, $-\vb{v}$ points the other way, and $\tfrac12\vb{v}$ is half as long.
+Left: the point $P(2, 4, 3)$, reached from the origin by moving 2 along the $x$-axis, 4 parallel to the $y$-axis and 3 up, with its position vector $\langle 2, 4, 3\rangle$ and the unit vectors $\vb{i}$, $\vb{j}$, $\vb{k}$. Middle: $\vb{a} = \langle 3, 1\rangle$ and $\vb{b} = \langle 1, 2\rangle$ add to $\vb{a} + \vb{b} = \langle 4, 3\rangle$, the diagonal of their parallelogram, whichever is drawn first. Right: multiples of $\vb{v} = \langle 2, 1\rangle$.
 :::
 
 ```check
@@ -804,11 +804,11 @@ same(Matrix([3, 1]).norm(), sqrt(10)); same(Matrix([1, 2]).norm(), sqrt(5)); hol
 
 ## The dot product {#dot}
 
-Pull a sled along level ground with a rope that makes an angle $\theta$ with the ground. Only the part of the pull along the ground, $\norm{\vb{F}}\cos\theta$, moves the sled forward; the rest lifts the front of the sled a little. Physics defines the **work** done by a constant force $\vb{F}$ that moves an object along a straight displacement $\vb{D}$ as the component of the force along the displacement times the distance moved:
+Pull a sled along level ground with a rope at an angle $\theta$ to the ground. Only the part of the pull along the ground, $\norm{\vb{F}}\cos\theta$, moves the sled forward. So physics defines the **work** done by a constant force $\vb{F}$ along a straight displacement $\vb{D}$ as that part of the force times the distance moved:
 
 $$W = \norm{\vb{F}}\,\norm{\vb{D}}\cos\theta.$$
 
-Products like this, of two lengths and the cosine of the angle between the vectors, turn out to have a very simple formula in components.
+Such products of two lengths and the cosine of the angle between them have a simple formula in components.
 
 ::: definition Dot product
 The **dot product** of $\vb{a} = \langle a_1, a_2, a_3\rangle$ and $\vb{b} = \langle b_1, b_2, b_3\rangle$ is the number
@@ -965,7 +965,7 @@ same(Matrix([4, 6, 2]) - Matrix([2, 1, 0]), Matrix([2, 5, 2])); same(Matrix([3, 
 :::
 
 ::: figure id=fig-16-5
-Left: projecting $\vb{b} = \langle 3, 4\rangle$ onto $\vb{a} = \langle 2, 1\rangle$ (Example 16.12). The dashed segment from the tip of $\vb{b}$ meets the line of $\vb{a}$ at a right angle; $\operatorname{proj}_{\vb{a}}\vb{b} = \langle 4, 2\rangle$ is the shadow of $\vb{b}$ on that line, and $\vb{b} - \operatorname{proj}_{\vb{a}}\vb{b} = \langle -1, 2\rangle$ is perpendicular to $\vb{a}$. Right: the cross product (Section 16.6). $\vb{a} \times \vb{b}$ is perpendicular to both $\vb{a}$ and $\vb{b}$, its length is the area of the shaded parallelogram that they span, and its direction follows the right-hand rule: curl the fingers of your right hand from $\vb{a}$ towards $\vb{b}$, and your thumb points along $\vb{a} \times \vb{b}$.
+Left: projecting $\vb{b} = \langle 3, 4\rangle$ onto $\vb{a} = \langle 2, 1\rangle$ (Example 16.12). The dashed segment meets the line of $\vb{a}$ at a right angle; $\operatorname{proj}_{\vb{a}}\vb{b} = \langle 4, 2\rangle$ is the shadow of $\vb{b}$ on that line, and $\vb{b} - \operatorname{proj}_{\vb{a}}\vb{b} = \langle -1, 2\rangle$ is perpendicular to $\vb{a}$. Right: the cross product $\vb{a} \times \vb{b}$ (Section 16.6) is perpendicular to $\vb{a}$ and $\vb{b}$, its length is the area of the shaded parallelogram they span, and it points the way your right thumb does when your fingers curl from $\vb{a}$ towards $\vb{b}$.
 :::
 
 ## The cross product {#cross}
@@ -1039,7 +1039,7 @@ C3v = Matrix(symbols('c1:4'))
 same(A3v.cross(B3v + C3v), A3v.cross(B3v) + A3v.cross(C3v)); same((k*A3v).cross(B3v), k*A3v.cross(B3v)); same(A3v.cross(k*B3v), k*A3v.cross(B3v))
 ```
 
-Theorem 16.5 fixes the line along which $\vb{a}\times\vb{b}$ points and its length, which leaves two opposite directions. Since $\vb{i}\times\vb{j} = \vb{k}$, the choice follows the right-hand rule that arranged the axes: if the fingers of your right hand curl from $\vb{a}$ towards $\vb{b}$, through the angle $\theta$, your thumb points along $\vb{a}\times\vb{b}$ (Figure 16.5, right). (The idea of a proof: turn $\vb{a}$ and $\vb{b}$ gradually into $\vb{i}$ and $\vb{j}$, never letting them become parallel; then $\vb{a}\times\vb{b}$ changes gradually and is never $\vb{0}$, so it cannot jump to the opposite side.) For the unit vectors,
+Theorem 16.5 fixes the line along which $\vb{a}\times\vb{b}$ points and its length, which leaves two opposite directions. Since $\vb{i}\times\vb{j} = \vb{k}$, the choice follows the right-hand rule that arranged the axes: if the fingers of your right hand curl from $\vb{a}$ towards $\vb{b}$, through the angle $\theta$, your thumb points along $\vb{a}\times\vb{b}$ (Figure 16.5, right). (The idea of a proof: turn $\vb{a}$ and $\vb{b}$ gradually into $\vb{i}$ and $\vb{j}$, never parallel; $\vb{a}\times\vb{b}$ changes gradually, is never $\vb{0}$, and so cannot jump to the opposite side.) For the unit vectors,
 
 $$\begin{aligned} \vb{i}\times\vb{j} &= \vb{k}, & \vb{j}\times\vb{k} &= \vb{i}, & \vb{k}\times\vb{i} &= \vb{j}, \\ \vb{j}\times\vb{i} &= -\vb{k}, & \vb{k}\times\vb{j} &= -\vb{i}, & \vb{i}\times\vb{k} &= -\vb{j}, \end{aligned}$$
 
@@ -1092,7 +1092,7 @@ same(Rational(1, 4)*40*sin(pi/2), 10); steps(10*sin(pi/3), 5*sqrt(3)); rounds(5*
 same(Matrix([Rational(1, 4), 0, 0]).cross(Matrix([0, 40, 0])), Matrix([0, 0, 10]))
 ```
 
-**Only in space.** Write two vectors of the plane as $\langle a_1, a_2, 0\rangle$ and $\langle b_1, b_2, 0\rangle$: their cross product, $\langle 0, 0, a_1b_2 - a_2b_1\rangle$, points out of the plane, although its length $\abs{a_1b_2 - a_2b_1}$ is the area of the parallelogram they span. In four or more dimensions, the directions perpendicular to two given vectors form a whole plane or more, and none of them is singled out. Only in three dimensions do two vectors determine one perpendicular line, which is why the cross product, unlike the dot product, belongs to space.
+**Only in space.** For vectors of the plane, written as $\langle a_1, a_2, 0\rangle$ and $\langle b_1, b_2, 0\rangle$, the cross product $\langle 0, 0, a_1b_2 - a_2b_1\rangle$ points out of the plane, although its length $\abs{a_1b_2 - a_2b_1}$ is the area of their parallelogram. In four or more dimensions the directions perpendicular to two vectors form a plane or more, with none singled out. Only in three dimensions do two vectors fix one perpendicular line: the cross product, unlike the dot product, belongs to space.
 
 ```check
 same(Matrix([a1_, a2_, 0]).cross(Matrix([b1_, b2_, 0])), Matrix([0, 0, a1_*b2_ - a2_*b1_]))
@@ -1105,7 +1105,7 @@ sol4 = solve([e1_.dot(w4), e2_.dot(w4)], list(w4)); same(sol4, {w4[0]: 0, w4[1]:
 
 ### Lines {#lines}
 
-A line in the plane is fixed by a point and a slope. In space a slope makes no sense (a slope in which plane?), so give a direction instead: a vector $\vb{v} \ne \vb{0}$ parallel to the line. Let $\vb{r}_0$ be the position vector of a point $P_0$ on the line. A point with position vector $\vb{r}$ lies on the line exactly when $\vb{r} - \vb{r}_0$ is parallel to $\vb{v}$ (or is $\vb{0}$), that is, when
+A line in the plane is fixed by a point and a slope. In space, give a direction instead: a vector $\vb{v} \ne \vb{0}$ parallel to the line. If $\vb{r}_0$ is the position vector of a point $P_0$ on the line, a point with position vector $\vb{r}$ lies on the line exactly when $\vb{r} - \vb{r}_0$ is a multiple of $\vb{v}$, that is, when
 
 $$\vb{r} = \vb{r}_0 + t\,\vb{v}$$
 
@@ -1539,12 +1539,12 @@ sqrt(2) 2*sqrt(2)*pi
 - A parametric curve $x = f(t)$, $y = g(t)$ is traced by a moving point. Eliminating $t$ gives an equation in $x$ and $y$, but forgets the direction and which part is traced. Examples: ellipses $x = a\cos t$, $y = b\sin t$; the cycloid $x = r(t - \sin t)$, $y = r(1 - \cos t)$; Lissajous curves.
 - The slope of a parametric curve is $\dfrac{dy}{dx} = \dfrac{dy/dt}{dx/dt}$ where $dx/dt \ne 0$: horizontal tangents where $dy/dt = 0$, vertical ones where $dx/dt = 0$. The length of a path is $\int_a^b \sqrt{(dx/dt)^2 + (dy/dt)^2}\,dt$, the integral of the speed; a cycloid arch is $8r$ long.
 - Polar coordinates: $x = r\cos\theta$, $y = r\sin\theta$, $r^2 = x^2 + y^2$, with $\theta$ in the right quadrant. Polar curves $r = f(\theta)$ (circles, cardioids, roses, spirals) are parametric curves with parameter $\theta$; the area they sweep out is $\tfrac12\int_\alpha^\beta r^2\,d\theta$, with limits that trace the region once.
-- Vectors $\vb{a} = \langle a_1, a_2, a_3\rangle = a_1\vb{i} + a_2\vb{j} + a_3\vb{k}$ have a length $\norm{\vb{a}}$ and a direction; they add tip to tail and scale component by component, and $\vb{a}/\norm{\vb{a}}$ is a unit vector. They model displacements, velocities and forces.
-- The dot product $\vb{a}\cdot\vb{b} = a_1b_1 + a_2b_2 + a_3b_3 = \norm{\vb{a}}\,\norm{\vb{b}}\cos\theta$ gives angles and orthogonality ($\vb{a}\cdot\vb{b} = 0$), the projections $\operatorname{comp}_{\vb{a}}\vb{b} = \vb{a}\cdot\vb{b}/\norm{\vb{a}}$ and $\operatorname{proj}_{\vb{a}}\vb{b} = (\vb{a}\cdot\vb{b}/\vb{a}\cdot\vb{a})\,\vb{a}$, and the work $W = \vb{F}\cdot\vb{D}$.
-- The cross product $\vb{a}\times\vb{b}$, defined only in space, is orthogonal to $\vb{a}$ and $\vb{b}$, has length $\norm{\vb{a}}\,\norm{\vb{b}}\sin\theta$ (the area of their parallelogram) and follows the right-hand rule; $\vb{b}\times\vb{a} = -\vb{a}\times\vb{b}$, and brackets matter. Torque is $\vb{r}\times\vb{F}$.
-- A line is $\vb{r} = \vb{r}_0 + t\vb{v}$ (or parametric or symmetric equations); a plane is $\vb{n}\cdot(\vb{r} - \vb{r}_0) = 0$, that is, $ax + by + cz = d$, with a normal from a cross product; the distance from a point to a plane is $\abs{ax_1 + by_1 + cz_1 - d}/\sqrt{a^2 + b^2 + c^2}$.
-- Vector functions are differentiated and integrated component by component: velocity $\vb{r}'$, speed $\norm{\vb{r}'}$, acceleration $\vb{r}''$, unit tangent $\vb{T} = \vb{r}'/\norm{\vb{r}'}$, length $\int_a^b \norm{\vb{r}'(t)}\,dt$ (one turn of the helix $\langle \cos t, \sin t, t\rangle$: $2\pi\sqrt2$).
-- A projectile without air resistance follows $\vb{r}(t) = \big\langle (v_0\cos\alpha)t, (v_0\sin\alpha)t - \tfrac12gt^2\big\rangle$; on level ground its range is $v_0^2\sin 2\alpha/g$, greatest at $45^\circ$.
+- Vectors $\langle a_1, a_2, a_3\rangle = a_1\vb{i} + a_2\vb{j} + a_3\vb{k}$ have a length and a direction, add tip to tail and scale component by component; they model displacements, velocities and forces.
+- The dot product $\vb{a}\cdot\vb{b} = a_1b_1 + a_2b_2 + a_3b_3 = \norm{\vb{a}}\,\norm{\vb{b}}\cos\theta$ gives angles, orthogonality ($\vb{a}\cdot\vb{b} = 0$), projections and work, $W = \vb{F}\cdot\vb{D}$.
+- The cross product $\vb{a}\times\vb{b}$, defined only in space, is orthogonal to $\vb{a}$ and $\vb{b}$, has length $\norm{\vb{a}}\,\norm{\vb{b}}\sin\theta$ (the area of their parallelogram) and follows the right-hand rule; $\vb{b}\times\vb{a} = -\vb{a}\times\vb{b}$. Torque is $\vb{r}\times\vb{F}$.
+- A line is $\vb{r} = \vb{r}_0 + t\vb{v}$; a plane is $\vb{n}\cdot(\vb{r} - \vb{r}_0) = 0$, that is, $ax + by + cz = d$, with a normal from a cross product; the distance from a point to it is $\abs{ax_1 + by_1 + cz_1 - d}/\sqrt{a^2 + b^2 + c^2}$.
+- Vector functions are differentiated and integrated component by component: velocity $\vb{r}'$, speed $\norm{\vb{r}'}$, acceleration $\vb{r}''$, unit tangent $\vb{T}$, length $\int_a^b \norm{\vb{r}'(t)}\,dt$.
+- A projectile without air resistance follows $\vb{r}(t) = \big\langle (v_0\cos\alpha)t, (v_0\sin\alpha)t - \tfrac12gt^2\big\rangle$; on level ground its range $v_0^2\sin 2\alpha/g$ is greatest at $45^\circ$.
 
 ## Exercises {#exercises}
 
@@ -1561,7 +1561,7 @@ Eliminate the parameter, and describe the curve: which part of it is traced, fro
 
 **(b)** $\dfrac{x^2}{4} + \dfrac{y^2}{25} = \cos^2 t + \sin^2 t = 1$: an ellipse that crosses the $x$-axis at $\pm2$ and the $y$-axis at $\pm5$. For $0 \le t \le \pi$, $y = 5\sin t \ge 0$: the upper half, traced anticlockwise from $(2, 0)$ to $(-2, 0)$.
 
-**(c)** By the identity $\cosh^2 t - \sinh^2 t = 1$ of Module 6, $x^2 - y^2 = 1$: a hyperbola. But $x = \cosh t \ge 1$, so only its right branch is traced; as $t$ increases, $y = \sinh t$ increases through every real number, so the branch is traced from bottom to top. (Every point of the branch is reached: for any $y$, $t = \operatorname{arsinh} y$ gives $\sinh t = y$ and $\cosh t = \sqrt{1 + y^2} = x$.)
+**(c)** By the identity $\cosh^2 t - \sinh^2 t = 1$ of Module 6, $x^2 - y^2 = 1$: a hyperbola. But $x = \cosh t \ge 1$, so only its right branch is traced; as $t$ increases, $y = \sinh t$ increases through every real number, so the whole branch is traced from bottom to top (at the point with $\sinh t = y$, $x = \cosh t = \sqrt{1 + y^2}$).
 
 **(d)** From $x = \sqrt t$, $x \ge 0$ and $t = x^2$, so $y = 1 - x^2$ with $x \ge 0$: the right half of a parabola opening downwards, traced from $(0, 1)$ downwards to the right. Forgetting $x \ge 0$ would give the whole parabola.
 
@@ -1646,7 +1646,7 @@ Let $L$ be the line through $P(2, 0, -1)$ and $Q(5, 2, 3)$.
 
 **(c)** $z = -1 + 4t = 0$ at $t = \tfrac14$, the point $\big(\tfrac{11}{4}, \tfrac12, 0\big)$.
 
-**(d)** The plane has normal $\vb{n} = \langle 2, 1, -2\rangle$, and $\vb{n}\cdot\langle 3, 2, 4\rangle = 6 + 2 - 8 = 0$: the direction of $L$ is orthogonal to the normal, so $L$ is parallel to the plane. But $P$ gives $2\cdot2 + 0 - 2\cdot(-1) = 6 \ne 7$, so $P$, and hence $L$, is not in the plane: $L$ never meets it. (Substituting the parametric equations confirms this: $2(2 + 3t) + 2t - 2(-1 + 4t) = 6$ for every $t$, never 7.)
+**(d)** The plane has normal $\vb{n} = \langle 2, 1, -2\rangle$, and $\vb{n}\cdot\langle 3, 2, 4\rangle = 6 + 2 - 8 = 0$: the direction of $L$ is orthogonal to the normal, so $L$ is parallel to the plane. But $P$ gives $2\cdot2 + 0 - 2\cdot(-1) = 6 \ne 7$, so $L$ is not in the plane: indeed $2(2 + 3t) + 2t - 2(-1 + 4t) = 6$ for every $t$, never 7, so $L$ never meets it.
 
 ```check
 P4, Q4 = Matrix([2, 0, -1]), Matrix([5, 2, 3]); v4 = Q4 - P4; same(v4, Matrix([3, 2, 4])); L4 = P4 + t*v4
@@ -1815,7 +1815,7 @@ $$\begin{aligned} \vb{v}(t) &= \langle -R\omega\sin\omega t,\ R\omega\cos\omega 
 
 The speed is $\norm{\vb{v}} = R\omega = v$, constant, as required. The acceleration points opposite to the position vector, towards the centre, and has length $\omega^2\norm{\vb{r}} = \omega^2 R = \dfrac{v^2}{R^2}\,R = \dfrac{v^2}{R}$. This **centripetal acceleration** is the $\kappa v^2$ of the Going deeper box on curvature, with $\kappa = 1/R$; it also confirms (a), since $\vb{a}$ is along the radius and $\vb{v}$ along the tangent.
 
-**(c)** Yes. If $\vb{a}\cdot\vb{v} = 0$ for all $t$, then $\dfrac{d}{dt}(\vb{v}\cdot\vb{v}) = 2\,\vb{a}\cdot\vb{v} = 0$, so $\vb{v}\cdot\vb{v} = \norm{\vb{v}}^2$ has derivative 0 on an interval and is constant there (Module 8), and so is the speed. A force that always pushes at right angles to the motion, such as the tension in the string of a stone whirled round in a circle, changes the direction of motion but never the speed.
+**(c)** Yes. If $\vb{a}\cdot\vb{v} = 0$ for all $t$ in an interval, then $\dfrac{d}{dt}(\vb{v}\cdot\vb{v}) = 2\,\vb{a}\cdot\vb{v} = 0$ there, so $\norm{\vb{v}}^2$ is constant (Module 8), and so is the speed. A force always at right angles to the motion, like the pull of a string on a stone whirled in a circle, turns the motion but never changes the speed.
 
 ```check
 Vv = Matrix([Function('v1')(t), Function('v2')(t), Function('v3')(t)])

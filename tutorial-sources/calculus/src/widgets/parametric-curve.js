@@ -100,7 +100,8 @@ CalcWidgets.register('parametric-curve', function (root, api) {
   root.appendChild(h('div', { class: 'pc-controls' }, S.el, playBtn))
   root.appendChild(out)
   api.css('parametric-curve', [
-    '.pc-formula{font:600 1rem var(--font-mono);color:var(--blue);margin:.4rem 0 .5rem;overflow-x:auto;white-space:nowrap}',
+    '.pc-formula{font:600 1rem var(--font-mono);color:var(--blue);margin:.4rem 0 .5rem;white-space:pre-wrap}',
+    '.pc-formula span{white-space:nowrap}',
     '.pc-key{font-size:.8rem;color:var(--slate);margin:.25rem 0}',
     '.pc-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;margin:.5rem 0}',
     '.pc-controls .cw-slider{flex:1 1 220px}',
@@ -140,7 +141,12 @@ CalcWidgets.register('parametric-curve', function (root, api) {
 
   function update() {
     var c = state.c, s = param(), name = c.isPolar ? 'θ' : 't'
-    formulaEl.textContent = c.text
+    // One span per part, so that on a narrow screen the line breaks only between the parts.
+    formulaEl.textContent = ''
+    c.text.split('  ').forEach(function (part, i) {
+      if (i) formulaEl.appendChild(document.createTextNode('  '))
+      formulaEl.appendChild(h('span', { text: part }))
+    })
     var keys = [t('Faint: the whole curve. Blue: the part traced so far. Orange arrow: the velocity, drawn ',
       '浅色：整条曲线。蓝色：已描出的部分。橙色箭头：速度向量，') + scaleText(c.scale) + t('.', '画出。')]
     if (c.isPolar) keys.push(t('Dashed: the ray in the direction θ.', '虚线：方向为 θ 的射线。'))

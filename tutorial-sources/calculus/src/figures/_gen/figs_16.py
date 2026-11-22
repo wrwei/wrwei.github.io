@@ -299,7 +299,7 @@ def fig_16_4(L):
     label(a2, 1.6, 0.25, r'$\mathbf{a}$', color=C['blue'], size=13)
     label(a2, 3.65, 1.85, r'$\mathbf{b}$', color=C['orange'], size=13)
     label(a2, 2.05, 1.95, r'$\mathbf{a} + \mathbf{b}$', color=C['green'], size=12, ha='center')
-    panel_title(a2, 'adding', size=11)
+    fig.text(0.57, 0.95, 'adding', fontsize=11, color=C['navy'], ha='center')   # level with 'scaling'
 
     a3 = fig.add_axes([0.71, 0.08, 0.28, 0.84])
     a3.set_xlim(-0.3, 4.8)
@@ -315,7 +315,7 @@ def fig_16_4(L):
         arrow(a3, *base, *tip, color=col, lw=2.2)
         mid = (base + tip) / 2 + 0.38 * nrm
         label(a3, mid[0], mid[1], lab, color=col, size=12, ha='center')
-    panel_title(a3, 'scaling', size=11)
+    fig.text(0.855, 0.95, 'scaling', fontsize=11, color=C['navy'], ha='center')
     return fig
 
 

@@ -192,7 +192,12 @@ SymPy pitfalls met so far: `limit(f, x, a)` is the limit **from the right** (Sym
 `limit` can get one-sided limits of `Piecewise` functions wrong, and `summation` returns `nan` for some
 convergent series (e.g. the sum of 1/(2n² − n)): check such results another way (partial fractions, a
 known series, high-precision partial sums with `near`); `steps(Derivative(Integral(...), x), ...)` fails
-when the integrand has no elementary antiderivative, while `diff(Integral(...), x)` works. The scratchpad
+when the integrand has no elementary antiderivative, while `diff(Integral(...), x)` works.
+`solveset` misses solutions of trigonometric inequalities: `solveset(sin(2*t) > 0, t, Interval(0, 2*pi))`
+gives only $(0, \pi/2)$, without $(\pi, 3\pi/2)$; check a solution set by testing points in each piece
+(`near`, `sign`). Check an integral of `Abs(...)` another way too (split the interval where the inside
+changes sign, or compare with `N(Integral(...))`): its `doit()` has given wrong values. `Matrix.norm()`
+of a vector with plain symbols contains `Abs`; declare the symbols `real=True`. The scratchpad
 folder is shared by all authors: keep your scratch files in a subfolder named after your module.
 
 ### 6.2 Compute boxes (Python)
@@ -310,7 +315,9 @@ visible string through `api.t` (give the Chinese too: plain, accurate Simplified
 360 px wide; usable with the keyboard (sliders, buttons and fields, not only dragging); never throws on
 bad input (show a message: `api.Expr.parse` returns `{ ok: false, error }`); no network access. Every
 number it shows is right: compute it, do not approximate what can be exact, and say "≈" where it is
-approximate.
+approximate. Drawing notes: `P.arrow`, `P.point` and `P.text` default to the front layer, which is not
+clipped to the plot (curves and lines are clipped); pass `layer: 'main'` for one that can reach the edge. `P.contour` draws each
+level as short pieces, so a `dash` does not show: tell levels apart by colour or width.
 
 Test it in `tools/widget-tests/NAME.mjs` (`export const page = 'module_NN'`): 6–15 checks that drive the
 main interactions (`t.set`, `t.select`, `t.click`, `t.type`, `t.clickAt`, `t.drag`) and check real
