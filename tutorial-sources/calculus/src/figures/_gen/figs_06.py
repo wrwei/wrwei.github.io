@@ -60,7 +60,7 @@ def fig_06_1(L):
 def fig_06_2(L):
     """e^x and ln x are mirror images in y = x, and so are their tangent lines: slope m becomes slope 1/m."""
     fig, ax = figure(7.2, 4.3)
-    math_axes(ax, (-2.3, 5.4), (-1.35, 3.75), xticks=[1, 2, 3, 4, 5], yticks=[1, 2, 3], aspect='equal')
+    math_axes(ax, (-2.3, 5.4), (-1.35, 3.75), xticks=[1, 2, 3, 4, 5], yticks=[2, 3], aspect='equal')
     ax.plot([-1.35, 3.75], [-1.35, 3.75], color=C['muted'], lw=1.3, ls=(0, (5, 3)), zorder=3)
     plot_fn(ax, np.exp, -2.3, np.log(3.75), color=CURVES[0], lw=2.4)
     plot_fn(ax, np.log, np.exp(-1.35), 5.4, color=CURVES[2], lw=2.4)
@@ -84,7 +84,7 @@ def fig_06_2(L):
     label(ax, q[0] + m / 2, q[1] + 1.2, '1.65', ha='center', size=11, color=C['orange'])
     dot(ax, *p, color=C['navy'], size=6)
     dot(ax, *q, color=C['navy'], size=6)
-    label(ax, p[0] - 0.12, p[1] + 0.05, r'slope $e^{1/2} \approx 1.65$', ha='right', size=11)
+    label(ax, -0.15, p[1] - 0.02, r'slope $e^{1/2} \approx 1.65$', ha='right', size=11)   # left of the y-axis
     label(ax, q[0] + 0.25, q[1] - 0.32, r'slope $e^{-1/2} \approx 0.61$', size=11)
     label(ax, -2.15, 0.55, r'$y = e^x$', color=CURVES[0], size=12)
     label(ax, 4.15, 1.1, r'$y = \ln x$', color=CURVES[2], size=12)

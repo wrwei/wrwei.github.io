@@ -138,9 +138,12 @@ limit_is(((ap**cr)**h - 1)/h, h, 0, cr*limit((ap**h - 1)/h, h, 0, '+-'))
 limit_is((1**h - 1)/h, h, 0, 0)
 ```
 
-Now choose $c = 1/m(2)$. By Theorem 6.2, the base $2^{1/m(2)}$ has slope $\dfrac{1}{m(2)}\cdot m(2) = 1$ at 0. With $m(2) \approx 0.693147$, $1/m(2) \approx 1.442695$, and the base is about $2^{1.442695} \approx 2.718282$: the digits of Module 1's $e$.
+Now choose $c = 1/m(2)$, which is allowed because $m(2)$ is not 0. By Theorem 6.2, the base $2^{1/m(2)}$ has slope $\dfrac{1}{m(2)}\cdot m(2) = 1$ at 0. To find it, estimate $m(2)$ more closely. The average of the two quotients of the table nearest to $h = 0$, 0.693171 and 0.693123, is the central difference of Module 4, which is much more accurate than either: $m(2) \approx 0.693147$. Then $1/m(2) \approx 1.442695$, and the base is about $2^{1.442695} \approx 2.718282$: the digits of Module 1's $e$.
 
 ```check
+qp_, qm_ = (2**Rational(1, 10000) - 1)*10000, (1 - 2**Rational(-1, 10000))*10000     # the table at h = 0.0001 and -0.0001
+rounds(qp_, '0.693171'); rounds(qm_, '0.693123'); same((Rational('0.693171') + Rational('0.693123'))/2, Rational('0.693147'))
+same((qp_ + qm_)/2, (2**Rational(1, 10000) - 2**Rational(-1, 10000))/(2*Rational(1, 10000))); rounds((qp_ + qm_)/2, '0.693147')
 rounds(log(2), '0.693147'); rounds(1/log(2), '1.442695')
 rounds(2**Rational(1442695, 1000000), '2.718282'); rounds(2**(1/log(2)), '2.718282')
 same(2**(1/log(2)), E)
@@ -159,7 +162,7 @@ limit_is((exp(h) - 1)/h, h, 0, 1)
 ```
 
 ::: note
-**What is proved and what is taken on trust.** The series takes two things on trust. The first is Module 1's powers $a^x$ for every real $x$, with their laws (for an irrational $x$, $a^x$ is the number that the powers with rational exponents close to $x$ approach). The second is that the limit $m(2)$ exists and is positive: the table leaves little doubt that it is about 0.6931, and the Going deeper box at the end of this section sketches how both facts are proved. Everything else is proved from these two. Theorem 6.2 shows that the base $2^{1/m(2)}$ has slope 1 at 0, so $e$ exists, and the next theorem shows that no other base does.
+**What is proved and what is taken on trust.** This section takes two things on trust. The first is Module 1's powers $a^x$ for every real $x$, with the properties that Module 1 listed: the laws of exponents (for an irrational $x$, $a^x$ is the number that the powers with rational exponents close to $x$ approach), and, for a base $a > 1$, that $a^x$ increases and takes every positive value exactly once, so that logarithms exist. The second is that the limit $m(2)$ exists and is positive: the table leaves little doubt that it is about 0.6931, and the Going deeper box later in this section sketches how both facts can be proved. Everything else in this section is proved from these two. Theorem 6.2 shows that the base $2^{1/m(2)}$ has slope 1 at 0, so $e$ exists, and the next theorem shows that no other base does.
 :::
 
 ::: theorem Derivatives of $e^x$ and $a^x$
@@ -235,7 +238,7 @@ rounds(exp(2), '7.39'); same(diff(exp(2), x), 0)
 ::: deeper Why the limit exists, and another road to e
 **The limit $m(2)$.** For $h \ne 0$ let $q(h) = \dfrac{2^h - 1}{h}$, the slope of the chord of the graph of $2^x$ from $(0, 1)$ to $(h, 2^h)$. The graph of $2^x$ bends upwards (it is **convex**), so this slope grows as $h$ moves to the right: $q$ increases on each side of 0, and every value with $h < 0$ is below every value with $h > 0$. So as $h$ decreases to 0, $q(h)$ decreases but stays above $q(-1) = \tfrac12$, and a quantity that decreases but stays above a fixed number approaches a limit: this is a basic property of the real numbers, made precise for sequences in Module 14. In the same way $q(h)$ increases to a limit as $h$ increases to 0, staying below $q(1) = 1$. The two one-sided limits are equal, because $q(-h) = 2^{-h}q(h)$ and $2^{-h} \to 1$. So $m(2)$ exists, and it lies between $\tfrac12$ and 1; in particular it is positive. The step left out here is the proof that $2^x$ is convex, which takes more work with real exponents.
 
-**Another road: start from the logarithm.** Module 10 makes possible a route that takes nothing on trust. Define, for $x > 0$,
+**Another road: start from the logarithm.** Module 10 makes possible a route that takes nothing about powers on trust; it rests instead on a theorem that Module 9 uses without proof, that a continuous function has an integral. Define, for $x > 0$,
 
 $$\ln x = \int_1^x \frac{dt}{t},$$
 
@@ -414,7 +417,7 @@ same(diff(log(-xn), xn), 1/xn); same(diff(log(Abs(xn)), xn), 1/xn); same(diff(lo
 same(diff(log(x), x).subs(x, 1), 1)
 ```
 
-The graph of $\ln x$ (Figure 6.2) climbs steeply near 0, where $1/x$ is large, and flattens out as $x$ grows; but its slope $1/x$ is never 0, so $\ln x$ goes on increasing, more and more slowly. At $x = 1$ its slope is 1, the mirror image of the slope 1 of $e^x$ at 0. With the chain rule, for a differentiable function $u$ of $x$,
+The graph of $\ln x$ (Figure 6.2) climbs steeply near 0, where $1/x$ is large, and flattens out as $x$ grows; but its slope $1/x$ stays positive, so $\ln x$ keeps increasing, more and more slowly. At $x = 1$ its slope is 1, the mirror image of the slope 1 of $e^x$ at 0. With the chain rule, for a differentiable function $u$ of $x$,
 
 $$\begin{aligned} \frac{d}{dx}\ln u &= \frac{u'}{u} \quad \text{where } u > 0, \\ \frac{d}{dx}\ln\abs{u} &= \frac{u'}{u} \quad \text{where } u \ne 0. \end{aligned}$$
 
@@ -586,7 +589,7 @@ limit_is(fxq + fyq, tq, -1, -2); limit_is(fxq, tq, -1, -oo, '+'); limit_is(fxq, 
 3. Divide by its coefficient, where that coefficient is not 0. The answer usually contains both $x$ and $y$: evaluate it at a point of the curve.
 :::
 
-The method assumes that near the point the equation does define $y$ as a differentiable function of $x$. A theorem of several-variable calculus, the implicit function theorem, guarantees this whenever the coefficient of $dy/dx$ in step 3 is not 0 at the point (for equations built from the functions of this series); Module 17 returns to it. Where the coefficient is 0, look more closely: the circle has vertical tangent lines at $(\pm5, 0)$, where $y = 0$.
+The method assumes that near the point the equation does define $y$ as a differentiable function of $x$. A theorem of several-variable calculus, the implicit function theorem, guarantees this at a point of the curve where the coefficient of $dy/dx$ in step 3 is not 0, provided that the equation is built from functions with continuous derivatives near the point, as every equation in this module is. This series uses the theorem without proof; Module 17 states it precisely. Where the coefficient is 0, look more closely: the circle has vertical tangent lines at $(\pm5, 0)$, where $y = 0$.
 
 ::: example The folium of Descartes
 The curve $x^3 + y^3 = 6xy$ (Figure 6.3, right) is called the folium (Latin for "leaf") of Descartes. Show that $(3, 3)$ lies on it, find the tangent line there, and find the points where the tangent line is horizontal.
@@ -742,19 +745,31 @@ same(th_.subs(Hh, 100), pi/4); rounds(Rational(5, 1000)*180/pi, '0.29')
 :::
 
 ::: note
-Three more inverse functions, ${\arccot}$, $\arcsec$ and ${\arccsc}$, are used less. Books disagree about their ranges: for ${\arcsec}$, some choose $[0, \pi/2) \cup (\pi/2, \pi]$ and others $[0, \pi/2) \cup [\pi, 3\pi/2)$, and the formula for the derivative changes with the choice. This series does not use them; when you meet one elsewhere, check which range the book uses.
+Three more inverse functions, ${\arccot}$, $\arcsec$ and ${\arccsc}$, are used less, and books disagree about their ranges. The values of the secant are the numbers $x$ with $\abs{x} \ge 1$. For such $x$, this series takes $\arcsec x$ to be the angle $y$ in $[0, \pi/2) \cup (\pi/2, \pi]$ with $\sec y = x$, that is, $\arcsec x = \arccos(1/x)$. For $\abs{x} > 1$ the chain rule then gives
+
+$$\begin{aligned} \frac{d}{dx}\arcsec x &= -\frac{1}{\sqrt{1 - 1/x^2}}\cdot\Big(-\frac{1}{x^2}\Big) \\ &= \frac{1}{x^2\sqrt{1 - 1/x^2}} \\ &= \frac{1}{\abs{x}\sqrt{x^2 - 1}}, \end{aligned}$$
+
+because $x^2 = \abs{x}\sqrt{x^2}$ (Module 1) and $\sqrt{x^2}\sqrt{1 - 1/x^2} = \sqrt{x^2 - 1}$. The absolute value matters: $\arcsec$ increases on both pieces of its domain, so its slope is positive for $x < -1$ too. Other books choose the range $[0, \pi/2) \cup [\pi, 3\pi/2)$, and then the derivative is $\dfrac{1}{x\sqrt{x^2 - 1}}$, negative for $x < -1$. When you meet one of these functions elsewhere, check which range the book uses.
 :::
 
 ```check
-xm = symbols('x', negative=True)       # for x < -1 the two choices give derivatives of opposite signs
-same(diff(acos(1/xm), xm), 1/(Abs(xm)*sqrt(xm**2 - 1))); same(diff(2*pi - acos(1/xm), xm), 1/(xm*sqrt(xm**2 - 1)))
+xm = symbols('x', negative=True); xq_ = symbols('x', positive=True)
+for v_ in (Integer(-3), Integer(-1), Integer(1), Rational(5, 2)):
+    same(sec(acos(1/v_)), v_)                                    # arccos(1/x) is an angle whose secant is x
+holds(acos(-Rational(1, 3)) > pi/2); same(acos(-1), pi); same(acos(1), 0)
+for X_ in (xm, xq_):
+    steps(diff(acos(1/X_), X_), -1/sqrt(1 - 1/X_**2)*(-1/X_**2), 1/(X_**2*sqrt(1 - 1/X_**2)), 1/(Abs(X_)*sqrt(X_**2 - 1)))
+    same(X_**2, Abs(X_)*sqrt(X_**2)); same(sqrt(X_**2)*sqrt(1 - 1/X_**2), sqrt(X_**2 - 1))
+holds((1/(Abs(xm)*sqrt(xm**2 - 1))).subs(xm, -2) > 0)            # for x < -1 the two choices give derivatives of opposite signs
+same(diff(2*pi - acos(1/xm), xm), 1/(xm*sqrt(xm**2 - 1))); holds((1/(xm*sqrt(xm**2 - 1))).subs(xm, -2) < 0)
+same((2*pi - acos(1/xm)).subs(xm, -1), pi); same(sec(2*pi - acos(-Rational(1, 3))), -3)
 ```
 
 ## Logarithmic differentiation {#log-differentiation}
 
 ### The power rule for real exponents {#real-powers}
 
-Modules 4 and 5 proved that $\dfrac{d}{dx}x^n = nx^{n-1}$ for whole numbers $n$, positive and negative. With $e^x$ and $\ln x$ the rule extends to every real exponent.
+Modules 4 and 5 proved that $\dfrac{d}{dx}x^n = nx^{n-1}$ for every integer $n$, positive, negative or zero. With $e^x$ and $\ln x$ the rule extends to every real exponent.
 
 ::: theorem The power rule for real exponents
 For every real number $r$ and every $x > 0$,
@@ -799,7 +814,7 @@ For $x^x$ neither the power rule nor the rule for exponentials applies. Taking l
 ::: example The derivative of $x^x$
 Differentiate $y = x^x$ for $x > 0$, and find where its tangent line is horizontal.
 
-Since $y > 0$, you may take $\ln$ of both sides: $\ln y = \ln\big(x^x\big) = x\ln x$. Differentiate both sides with respect to $x$: implicitly on the left, by Theorem 6.5 and the chain rule, and with the product rule on the right:
+Since $y > 0$, you may take $\ln$ of both sides: $\ln y = \ln\big(x^x\big) = x\ln x$. The function $y$ is differentiable, because $x^x = e^{x\ln x}$, as in the proof of Theorem 6.8. So you may differentiate both sides with respect to $x$: on the left with the chain rule and Theorem 6.5, as in implicit differentiation, and on the right with the product rule:
 
 $$\frac{y'}{y} = 1\cdot\ln x + x\cdot\frac1x = \ln x + 1.$$
 
@@ -810,7 +825,7 @@ $$\frac{d}{dx}x^x = x^x(\ln x + 1).$$
 The factor $x^x$ is never 0, so the tangent line is horizontal exactly where $\ln x = -1$: at $x = e^{-1} = 1/e \approx 0.368$, where $y = (1/e)^{1/e} = e^{-1/e} \approx 0.692$.
 
 ```check
-same(expand_log(log(xp**xp)), xp*log(xp)); same(diff(xp*log(xp), xp), log(xp) + 1)
+same(expand_log(log(xp**xp)), xp*log(xp)); same(exp(xp*log(xp)), xp**xp); same(diff(xp*log(xp), xp), log(xp) + 1)
 same(diff(xp**xp, xp), xp**xp*(log(xp) + 1))
 same(solve(log(xp) + 1, xp), [exp(-1)]); rounds(exp(-1), '0.368')
 same((1/E)**(1/E), exp(-1/E)); rounds(exp(-1/E), '0.692')
@@ -818,7 +833,7 @@ same((1/E)**(1/E), exp(-1/E)); rounds(exp(-1/E), '0.692')
 :::
 
 ::: keyidea
-**Logarithmic differentiation.** To differentiate a function $y$ built from products, quotients and powers, perhaps with the variable in an exponent: take $\ln{\abs{y}}$, expand it with the laws of logarithms, differentiate (the left side gives $y'/y$, by Theorem 6.5), and multiply by $y$. It works wherever $y \ne 0$; where $y > 0$, $\ln y$ will do.
+**Logarithmic differentiation.** To differentiate a function $y$ built from products, quotients and powers, perhaps with the variable in an exponent: take $\ln{\abs{y}}$, expand it with the laws of logarithms, differentiate (the left side gives $y'/y$, by Theorem 6.5), and multiply by $y$. It works wherever $y \ne 0$ and the pieces that $y$ is built from are differentiable; where $y > 0$, $\ln y$ will do in place of $\ln{\abs{y}}$.
 :::
 
 ::: example A product and a quotient
@@ -1051,6 +1066,7 @@ Tp = symbols('T', positive=True); kp = symbols('k', positive=True); kn = symbols
 same(solve(exp(kp*Tp) - 2, Tp), [log(2)/kp]); same(C*exp(kp*t)*exp(kp*log(2)/kp), 2*C*exp(kp*t))
 same(solve(exp(kn*Tp) - Rational(1, 2), Tp), [log(2)/Abs(kn)])
 rounds(log(2), '0.693'); same(log(2)/(Rational(1, 100)*symbols('p', positive=True)), 100*log(2)/symbols('p', positive=True)); rounds(100*log(2), '69.3')
+same(Rational(70, 5), 14); rounds(log(2)/Rational(5, 100), '13.86')
 ```
 
 ::: example The bacteria of Module 1
@@ -1083,7 +1099,7 @@ $$t = \frac{8\ln 100}{\ln 2} \approx 53.15 \text{ days}.$$
 ```check
 k8 = -log(2)/8
 same(log(2)/Abs(k8), 8); rounds(k8, '-0.08664')
-same(exp(k8*t), (2**(-t/8)).rewrite(exp)); same(Rational(30, 8), Rational(375, 100)); rounds(2**(-Rational(30, 8)), '0.0743')
+same(exp(k8*t), (2**(-t/8)).rewrite(exp)); same(Rational(30, 8), Rational(375, 100)); rounds(2**(-Rational(30, 8)), '0.0743'); rounds(100*2**(-Rational(30, 8)), '7.4')
 same(log(Rational(1, 100)), -log(100))
 same(solve(2**(-xr/8) - Rational(1, 100), xr), [8*log(100)/log(2)]); rounds(8*log(100)/log(2), '53.15')
 ```
@@ -1132,11 +1148,11 @@ They are $k \approx -0.08664$, the fraction 0.0743 left after 30 days, and 53.15
 
 ## What you learned {#summary}
 
-- Compound interest, $\big(1 + \tfrac1n\big)^n$, and the slope of $a^x$ at 0 lead to the same number, $e \approx 2.71828$. The series defines $e$ by $\lim_{h\to0}(e^h - 1)/h = 1$, taking on trust that $2^x$ has a slope at 0, and proves that $\big(1 + \tfrac{x}{n}\big)^n \to e^x$.
+- Compound interest, $\big(1 + \tfrac1n\big)^n$, and the slope of $a^x$ at 0 lead to the same number, $e \approx 2.71828$. The series defines $e$ by $\lim_{h\to0}(e^h - 1)/h = 1$, taking on trust Module 1's real powers and that $2^x$ has a slope at 0, and proves that $\big(1 + \tfrac{x}{n}\big)^n \to e^x$.
 - The derivative of $a^x$ is its slope at 0 times $a^x$, and the slope at 0 is $\ln a$: $(e^x)' = e^x$ and $(a^x)' = a^x\ln a$.
 - If $f$ is continuous and one-to-one on an open interval and $f'(a) \ne 0$, then $(f^{-1})'\big(f(a)\big) = 1/f'(a)$: reflection in $y = x$ turns slope $m$ into slope $1/m$.
-- $(\ln x)' = 1/x$ for $x > 0$, $(\ln\abs{x})' = 1/x$ for $x \ne 0$, $(\ln u)' = u'/u$, and $(\log_a x)' = 1/(x\ln a)$.
-- Implicit differentiation: differentiate the equation of a curve with $y = y(x)$, using the chain rule on every term with $y$, then solve for $y'$.
+- $(\ln x)' = 1/x$ for $x > 0$, $(\ln\abs{x})' = 1/x$ for $x \ne 0$, $(\ln\abs{u})' = u'/u$ where $u \ne 0$, and $(\log_a x)' = 1/(x\ln a)$.
+- Implicit differentiation: differentiate the equation of a curve with $y = y(x)$, using the chain rule on every term with $y$, then solve for $y'$. Where the coefficient of $y'$ is not 0, the implicit function theorem guarantees that $y$ is a differentiable function of $x$.
 - ${\arcsin}$, $\arccos$ and $\arctan$ invert $\sin$ on $[-\pi/2, \pi/2]$, $\cos$ on $[0, \pi]$ and $\tan$ on $(-\pi/2, \pi/2)$. Their derivatives are $1/\sqrt{1 - x^2}$, $-1/\sqrt{1 - x^2}$ and $1/(1 + x^2)$. $\sin^{-1}x$ means $\arcsin x$, not $1/\sin x$.
 - Logarithmic differentiation handles products, quotients and variable exponents, as in $(x^x)' = x^x(\ln x + 1)$; the power rule $(x^r)' = rx^{r-1}$ holds for every real $r$ and $x > 0$.
 - $\cosh^2 x - \sinh^2 x = 1$, $\sinh' = {\cosh}$, $\cosh' = {\sinh}$, $\tanh' = 1/\cosh^2$; a hanging chain is a catenary, $y = a\cosh(x/a)$.
@@ -1228,6 +1244,8 @@ that is, $y = -\tfrac45x + \tfrac{14}{5}$.
 cur = x**2 + x*y + y**2 - 7
 same(cur.subs({x: 1, y: 2}), 0)
 same(diff(x**2 + x*Yf(x) + Yf(x)**2, x), 2*x + (Yf(x) + x*diff(Yf(x), x)) + 2*Yf(x)*diff(Yf(x), x))
+yd3 = symbols('yd3')
+same(expand(2*x + (y + x*yd3) + 2*y*yd3), expand((x + 2*y)*yd3 + (2*x + y)))      # collected: (x + 2y) y' = -(2x + y)
 same(idiff(cur, y, x), -(2*x + y)/(x + 2*y)); same((-(2*x + y)/(x + 2*y)).subs({x: 1, y: 2}), -Rational(4, 5))
 same(expand(2 - Rational(4, 5)*(x - 1)), -Rational(4, 5)*x + Rational(14, 5))
 ```
@@ -1284,6 +1302,8 @@ $$\begin{aligned} \ln y = {} & 2\ln(x + 1) + 3\ln(x + 2) \\ & + 4\ln(x + 3), \en
 $$\frac{y'}{y} = \frac{2}{x + 1} + \frac{3}{x + 2} + \frac{4}{x + 3}.$$
 At $x = 0$: $y(0) = 1 \cdot 8 \cdot 81 = 648$ and $\dfrac{y'}{y} = 2 + \dfrac32 + \dfrac43 = \dfrac{29}{6}$, so $y'(0) = 648 \cdot \dfrac{29}{6} = 3132$.
 
+Where a factor is negative, for example at $x = -2.5$, where $y < 0$, start from $\ln\abs{y} = 2\ln\abs{x + 1} + 3\ln\abs{x + 2} + 4\ln\abs{x + 3}$ instead. Since $(\ln\abs{u})' = u'/u$, the same formula for $y'/y$ comes out. So it holds wherever $y \ne 0$, that is, for every $x$ except $-1$, $-2$ and $-3$.
+
 ```check
 same(diff(xp**sin(xp), xp), xp**sin(xp)*(cos(xp)*log(xp) + sin(xp)/xp))
 steps(diff(log(xp)/xp, xp), (1/xp*xp - log(xp))/xp**2, (1 - log(xp))/xp**2)
@@ -1293,6 +1313,9 @@ y5 = (x + 1)**2*(x + 2)**3*(x + 3)**4
 same(diff(2*log(x + 1) + 3*log(x + 2) + 4*log(x + 3), x), 2/(x + 1) + 3/(x + 2) + 4/(x + 3))
 same(y5.subs(x, 0), 648); same((2/(x + 1) + 3/(x + 2) + 4/(x + 3)).subs(x, 0), Rational(29, 6))
 same(648*Rational(29, 6), 3132); same(diff(y5, x).subs(x, 0), 3132)
+holds(y5.subs(x, -Rational(5, 2)) < 0); same_set(solve(y5, x), [-1, -2, -3])
+same(diff(2*log(-(x + 1)) + 3*log(-(x + 2)) + 4*log(x + 3), x), 2/(x + 1) + 3/(x + 2) + 4/(x + 3))   # ln|y| for -3 < x < -2
+same(diff(y5, x), y5*(2/(x + 1) + 3/(x + 2) + 4/(x + 3)))                                          # so y' = y(...) wherever y is not 0
 ```
 :::
 ::::
@@ -1482,7 +1505,7 @@ $$\begin{aligned} y &= y_0 + \frac{y_0^{1/3}}{x_0^{1/3}}\,x_0 = y_0 + y_0^{1/3}x
 
 **(c)** By Pythagoras, the distance between $\big(x_0^{1/3}, 0\big)$ and $\big(0, y_0^{1/3}\big)$ is
 $$\begin{aligned} &\sqrt{\big(x_0^{1/3}\big)^2 + \big(y_0^{1/3}\big)^2} \\ &\quad= \sqrt{x_0^{2/3} + y_0^{2/3}} = \sqrt1 = 1. \end{aligned}$$
-Conversely, if $p > 0$, $q > 0$ and $p^2 + q^2 = 1$, the point $\big(p^3, q^3\big)$ is on the astroid, and by (b) its tangent line meets the axes at $(p, 0)$ and $(0, q)$. So a ladder of length 1 sliding down a wall, with its foot on the floor, touches the astroid in every position: the astroid is the curve its positions sweep out.
+Conversely, if $p > 0$, $q > 0$ and $p^2 + q^2 = 1$, the point $\big(p^3, q^3\big)$ is on the astroid, and by (b) its tangent line meets the axes at $(p, 0)$ and $(0, q)$. So a ladder of length 1 sliding down a wall, with its foot on the floor, touches the astroid in every position: the astroid is the edge of the region that the ladder sweeps across.
 
 ```check
 x0p, y0p = symbols('x_0 y_0', positive=True)
@@ -1499,6 +1522,45 @@ for p_, q_ in ((Rational(3, 5), Rational(4, 5)), (Rational(5, 13), Rational(12, 
     pt = {x0p: p_**3, y0p: q_**3}                                          # points of the astroid: p^2 + q^2 = 1
     same((p_**3)**Rational(2, 3) + (q_**3)**Rational(2, 3), 1)
     same(xint.subs(pt), p_); same(yint.subs(pt), q_); same(sqrt(xint.subs(pt)**2 + yint.subs(pt)**2), 1)
+```
+:::
+::::
+
+:::: exercise Two routes, one number {#ex-6-12} ★★★
+Section 6.1 wrote $m(a)$ for the slope of $a^x$ at $x = 0$, and Section 6.3 proved that $\big(1 + \tfrac{x}{n}\big)^n \to e^x$ as $n \to \infty$.
+
+- (a) Let $a > 0$ and $b > 0$, and suppose that $m(a)$ and $m(b)$ exist. Show, without using logarithms, that $m(ab)$ exists and $m(ab) = m(a) + m(b)$. (Hint: $(ab)^h = a^hb^h$. Why does $a^h$ approach 1 as $h \to 0$?)
+- (b) Use (a), Theorem 6.2 and the estimates $m(2) \approx 0.6931$ and $m(3) \approx 1.0986$ of Section 6.1 to estimate $m(6)$ and $m\big(\tfrac32\big)$ without a calculator. Which law of logarithms does (a) look like, and why is that no accident?
+- (c) Bank A pays interest at 6% a year, added monthly; bank B pays 5.9% a year, added continuously. Which turns £1000 into more in one year, and by how much?
+
+::: solution
+**(a)** For $h \ne 0$, subtract and add $a^h$ in the numerator, and split the fraction:
+
+$$\begin{aligned} \frac{(ab)^h - 1}{h} &= \frac{a^hb^h - a^h + a^h - 1}{h} \\ &= a^h\cdot\frac{b^h - 1}{h} + \frac{a^h - 1}{h}. \end{aligned}$$
+
+As $h \to 0$, the two fractions on the right approach $m(b)$ and $m(a)$. The factor $a^h$ approaches $a^0 = 1$: since $m(a)$ exists, $a^x$ is differentiable at 0, and so continuous there (Module 4). By the limit laws for sums and products, the right side approaches $1\cdot m(b) + m(a)$. So $m(ab)$ exists, and $m(ab) = m(a) + m(b)$.
+
+**(b)** By (a), $m(6) = m(2 \cdot 3) = m(2) + m(3) \approx 0.6931 + 1.0986 = 1.7917$. By Theorem 6.2 with $c = -1$, $m\big(\tfrac12\big) = -m(2)$, so by (a) again
+
+$$\begin{aligned} m\big(\tfrac32\big) &= m(3) + m\big(\tfrac12\big) \\ &= m(3) - m(2) \approx 0.4055. \end{aligned}$$
+
+A calculator gives $\ln 6 \approx 1.7918$ and $\ln 1.5 \approx 0.4055$: the same, apart from the last digit of $m(6)$, where the rounding errors of the two estimates add up. Part (a) has the form of the first law of logarithms, $\ln(xy) = \ln x + \ln y$, and Theorem 6.2 that of the third, $\ln\big(x^r\big) = r\ln x$. That is no accident: by Theorem 6.3, $m(a) = \ln a$ for every base $a$.
+
+**(c)** Bank A multiplies the balance by $1 + \tfrac{0.06}{12} = 1.005$ each month, so in a year £1000 becomes $1000 \cdot 1.005^{12} \approx 1061.68$ pounds. For bank B, Theorem 6.6 with $x = 0.059$ gives $1000e^{0.059} \approx 1060.78$ pounds, as in Example 6.4. Bank A pays about £0.90 more. Adding interest continuously instead of monthly is worth less than the extra 0.1% a year: at 5.9%, it gains only about £0.15.
+
+```check
+aq_, bq_ = symbols('a b', positive=True)
+same((aq_*bq_)**h, aq_**h*bq_**h)
+steps(((aq_*bq_)**h - 1)/h, (aq_**h*bq_**h - aq_**h + aq_**h - 1)/h, aq_**h*(bq_**h - 1)/h + (aq_**h - 1)/h)
+limit_is(aq_**h, h, 0, 1); limit_is(((aq_*bq_)**h - 1)/h, h, 0, log(aq_) + log(bq_))
+same(Rational(6931, 10000) + Rational(10986, 10000), Rational(17917, 10000)); same(Rational(10986, 10000) - Rational(6931, 10000), Rational(4055, 10000))
+limit_is((Rational(1, 2)**h - 1)/h, h, 0, -log(2))                         # m(1/2) = -m(2)
+rounds(log(6), '1.7918'); rounds(log(Rational(3, 2)), '0.4055'); same(log(6), log(2) + log(3)); same(log(Rational(3, 2)), log(3) - log(2))
+same(1 + Rational(6, 100)/12, Rational(1005, 1000))
+bankA, bankB = 1000*Rational(1005, 1000)**12, 1000*exp(Rational(59, 1000)); monthly59 = 1000*(1 + Rational(59, 1000)/12)**12
+rounds(bankA, '1061.68'); rounds(bankB, '1060.78'); rounds(bankA - bankB, '0.90')
+same(limit(1000*(1 + Rational(59, 1000)/n)**n, n, oo), bankB)
+rounds(bankB - monthly59, '0.15'); holds(bankB - monthly59 < bankA - monthly59)      # continuous vs monthly at 5.9%, against the extra 0.1%
 ```
 :::
 ::::

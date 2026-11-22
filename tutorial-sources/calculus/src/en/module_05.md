@@ -45,7 +45,7 @@ same(diff(fF(x)/gF(x), x), (diff(fF(x), x)*gF(x) - fF(x)*diff(gF(x), x))/gF(x)**
 same(diff(fF(gF(x)), x), diff(fF(u), u).subs(u, gF(x))*diff(gF(x), x))
 ```
 
-The proofs use three facts from earlier modules: a function that is differentiable at a point is continuous there (Module 4); limits of sums, products and quotients are the sums, products and quotients of the limits, provided these exist and no denominator is 0 (the limit laws of Module 2); and, for the trigonometric functions, the two limits that Module 2 proved,
+The proofs use three facts from earlier modules: a function that is differentiable at a point is continuous there ([Theorem 4.1](module_04_EN.html#continuity)); limits of sums, products and quotients are the sums, products and quotients of the limits, provided these exist and no denominator is 0 (the [limit laws](module_02_EN.html#laws) of Module 2); and, for the trigonometric functions, the [two limits](module_02_EN.html#trig-limits) that Module 2 proved,
 
 $$\lim_{\theta\to0}\frac{\sin\theta}{\theta} = 1, \qquad \lim_{\theta\to0}\frac{1 - \cos\theta}{\theta} = 0.$$
 
@@ -95,7 +95,7 @@ If $f$ and $g$ are differentiable at $x$, then so is their product $fg$, and
 
 $$(fg)'(x) = f'(x)\,g(x) + f(x)\,g'(x).$$
 
-In Leibniz notation, with $u = f(x)$ and $v = g(x)$: $\dfrac{d}{dx}(uv) = \dfrac{du}{dx}\,v + u\,\dfrac{dv}{dx}$.
+In Leibniz's notation, with $u = f(x)$ and $v = g(x)$: $\dfrac{d}{dx}(uv) = \dfrac{du}{dx}\,v + u\,\dfrac{dv}{dx}$.
 :::
 
 ::: proof
@@ -103,7 +103,7 @@ The proof turns the picture into limits. Write $f$ and $g$ for $f(x)$ and $g(x)$
 
 $$\begin{aligned} &\frac{f(x + h)\,g(x + h) - fg}{h} \\ &\quad= \frac{(f + \Delta f)(g + \Delta g) - fg}{h} \\ &\quad= \frac{\Delta f}{h}\,g + f\,\frac{\Delta g}{h} + \Delta f\,\frac{\Delta g}{h}. \end{aligned}$$
 
-Now let $h \to 0$. Since $f$ and $g$ are differentiable at $x$, $\Delta f/h \to f'(x)$ and $\Delta g/h \to g'(x)$. And $\Delta f \to 0$, because a function that is differentiable at $x$ is continuous there. By the limit laws for sums and products, the expression approaches $f'(x)\,g(x) + f(x)\,g'(x) + 0\cdot g'(x)$, which is the product rule.
+Now let $h \to 0$. Since $f$ and $g$ are differentiable at $x$, $\Delta f/h \to f'(x)$ and $\Delta g/h \to g'(x)$. And $\Delta f \to 0$, because a function that is differentiable at $x$ is continuous there (Theorem 4.1). By the limit laws for sums and products, the expression approaches $f'(x)\,g(x) + f(x)\,g'(x) + 0\cdot g'(x)$, which is the product rule.
 :::
 
 ```check
@@ -115,7 +115,7 @@ same(lhs_p, (fF(x + h) - fF(x))/h*gF(x) + fF(x)*(gF(x + h) - gF(x))/h + (fF(x + 
 
 In words: the derivative of a product is the derivative of the first factor times the second, plus the first times the derivative of the second. The last term of the proof, $\Delta f\,\Delta g/h$, is the corner of the picture, and the continuity of $f$ is what makes it vanish.
 
-The hypotheses make the rule work; they are not needed for the product to have a derivative. If $f$ or $g$ is not differentiable at $x$, the theorem says nothing: $\abs{x}$ has no derivative at 0 (its graph has a corner there), but $\abs{x}\cdot\abs{x} = x^2$ does.
+The hypotheses are what the proof needs, not what a product needs in order to have a derivative. If $f$ or $g$ is not differentiable at $x$, the theorem says nothing: $\abs{x}$ has no derivative at 0 (its graph has a corner there), but $\abs{x}\cdot\abs{x} = x^2$ does.
 
 ```check
 xr0 = symbols('x', real=True)
@@ -127,7 +127,7 @@ Differentiate $F(x) = (x^2 + 1)(x^3 - 2x)$ with the product rule, and check by e
 
 With $f(x) = x^2 + 1$ and $g(x) = x^3 - 2x$, the derivatives are $f'(x) = 2x$ and $g'(x) = 3x^2 - 2$, so
 
-$$\begin{aligned} F'(x) &= 2x(x^3 - 2x) + (x^2 + 1)(3x^2 - 2) \\ &= (2x^4 - 4x^2) + (3x^4 + x^2 - 2) \\ &= 5x^4 - 3x^2 - 2. \end{aligned}$$
+$$\begin{aligned} F'(x) &= 2x(x^3 - 2x) \\ &\quad + (x^2 + 1)(3x^2 - 2) \\ &= (2x^4 - 4x^2) + (3x^4 + x^2 - 2) \\ &= 5x^4 - 3x^2 - 2. \end{aligned}$$
 
 Expanding first: $F(x) = x^5 - 2x^3 + x^3 - 2x = x^5 - x^3 - 2x$, so $F'(x) = 5x^4 - 3x^2 - 2$, the same.
 
@@ -146,7 +146,7 @@ The electrical power delivered to a component is $P = VI$, the voltage across it
 
 $V$ and $I$ are functions of time $t$, and at that instant $V = 12$, $V' = -0.5$, $I = 2$ and $I' = 0.1$. By the product rule,
 
-$$\begin{aligned} P' &= V'I + VI' = (-0.5)(2) + (12)(0.1) \\ &= -1 + 1.2 = 0.2. \end{aligned}$$
+$$\begin{aligned} P' &= V'I + VI' \\ &= (-0.5)(2) + (12)(0.1) \\ &= -1 + 1.2 = 0.2. \end{aligned}$$
 
 The power is rising, at 0.2 watts per second: the rising current outweighs the falling voltage.
 
@@ -160,7 +160,7 @@ same(diff(Vt*It, t), diff(Vt, t)*It + Vt*diff(It, t))
 
 Used twice, the product rule differentiates a product of three functions:
 
-$$\begin{aligned} (fgh)' &= \big((fg)h\big)' = (fg)'h + (fg)h' \\ &= f'gh + fg'h + fgh'. \end{aligned}$$
+$$\begin{aligned} (fgk)' &= \big((fg)k\big)' = (fg)'k + (fg)k' \\ &= f'gk + fg'k + fgk'. \end{aligned}$$
 
 Each term differentiates one factor and leaves the others alone; Exercise 5.10 takes this further.
 
@@ -185,7 +185,7 @@ $$\Big(\frac{f}{g}\Big)'(x) = \frac{f'(x)\,g(x) - f(x)\,g'(x)}{g(x)^2}.$$
 ::: proof
 First, $f/g$ is defined near $x$: $g$ is continuous at $x$, so for $h$ close enough to 0, $g(x + h)$ is close to $g(x)$, which is not 0, and so $g(x + h) \ne 0$. For such $h \ne 0$, with $f$, $g$, $\Delta f$ and $\Delta g$ as in the proof of Theorem 5.1, put the two fractions over a common denominator:
 
-$$\begin{aligned} \frac{f + \Delta f}{g + \Delta g} - \frac{f}{g} &= \frac{(f + \Delta f)\,g - f\,(g + \Delta g)}{g\,(g + \Delta g)} \\ &= \frac{\Delta f\cdot g - f\cdot\Delta g}{g\,(g + \Delta g)}. \end{aligned}$$
+$$\begin{aligned} &\frac{f + \Delta f}{g + \Delta g} - \frac{f}{g} \\ &\quad= \frac{(f + \Delta f)\,g - f\,(g + \Delta g)}{g\,(g + \Delta g)} \\ &\quad= \frac{\Delta f\cdot g - f\cdot\Delta g}{g\,(g + \Delta g)}. \end{aligned}$$
 
 Dividing by $h$,
 
@@ -208,14 +208,15 @@ Differentiate $y = \dfrac{x^2 - 1}{x^2 + 1}$, and find where its tangent line is
 
 The denominator $x^2 + 1$ is never 0, so the rule applies at every $x$. Both $x^2 - 1$ and $x^2 + 1$ have derivative $2x$:
 
-$$\begin{aligned} y' &= \frac{2x(x^2 + 1) - (x^2 - 1)(2x)}{(x^2 + 1)^2} \\ &= \frac{2x^3 + 2x - 2x^3 + 2x}{(x^2 + 1)^2} = \frac{4x}{(x^2 + 1)^2}. \end{aligned}$$
+$$\begin{aligned} y' &= \frac{2x(x^2 + 1) - (x^2 - 1)(2x)}{(x^2 + 1)^2} \\ &= \frac{2x^3 + 2x - 2x^3 + 2x}{(x^2 + 1)^2} \\ &= \frac{4x}{(x^2 + 1)^2}. \end{aligned}$$
 
-The tangent is horizontal where $y' = 0$. A fraction is 0 when its numerator is 0, so $4x = 0$: only at $x = 0$, the point $(0, -1)$. It is the lowest point of the graph, since $y = 1 - \dfrac{2}{x^2 + 1} \ge 1 - 2 = -1$; the slope is negative to its left and positive to its right.
+The tangent is horizontal where $y' = 0$. A fraction is 0 when its numerator is 0, so $4x = 0$: only at $x = 0$, the point $(0, -1)$. It is the lowest point of the graph. Indeed, writing $x^2 - 1 = (x^2 + 1) - 2$ gives $y = 1 - \dfrac{2}{x^2 + 1}$; since $x^2 + 1 \ge 1$, the fraction is at most 2, so $y \ge 1 - 2 = -1$. The slope is negative to the left of 0 and positive to the right.
 
 ```check
 y3 = (x**2 - 1)/(x**2 + 1)
 steps(Derivative(y3, x), (2*x*(x**2 + 1) - (x**2 - 1)*(2*x))/(x**2 + 1)**2, (2*x**3 + 2*x - 2*x**3 + 2*x)/(x**2 + 1)**2, 4*x/(x**2 + 1)**2)
 same(solve(4*x/(x**2 + 1)**2, x), [0]); same(y3.subs(x, 0), -1); same(y3, 1 - 2/(x**2 + 1))
+same(function_range(2/(x**2 + 1), x, S.Reals), Interval.Lopen(0, 2)); same(function_range(y3, x, S.Reals), Interval.Ropen(-1, 1))   # y >= 1 - 2 = -1
 xneg, xpos = symbols('x_n', negative=True), symbols('x_p', positive=True)
 holds((4*xneg/(xneg**2 + 1)**2).is_negative); holds((4*xpos/(xpos**2 + 1)**2).is_positive)
 ```
@@ -259,7 +260,7 @@ Write $F(r) = kr^{-2}$ and use the power rule with $n = -2$:
 
 $$F'(r) = k \cdot (-2)r^{-3} = -\frac{2k}{r^3}.$$
 
-The derivative is negative: the pull weakens as the distance grows. Compare it with $F$ itself: $F'(r) = -\dfrac{2}{r}\cdot\dfrac{k}{r^2} = -\dfrac{2}{r}F(r)$. So a small step $\Delta r$ outwards changes the pull by about
+The derivative is negative: the pull weakens as the distance grows. Compare it with $F$ itself: $F'(r) = -\dfrac{2}{r}\cdot\dfrac{k}{r^2} = -\dfrac{2}{r}F(r)$. Near $r$ the graph of $F$ is close to its tangent line (Module 4), so a small step $\Delta r$ outwards changes the pull by about
 
 $$F'(r)\,\Delta r = -2\,\frac{\Delta r}{r}\,F(r):$$
 
@@ -286,7 +287,7 @@ same(diff(3/x**4, x), -12/x**5); same(diff((x**3 + x)/5, x), (3*x**2 + 1)/5)
 
 ## Derivatives of the trigonometric functions {#trig}
 
-Figure 5.2 shows the graph of $\sin x$ with some of its tangent lines. At $x = 0$ the graph climbs with slope 1; at the crest $x = \pi/2$ it is flat; at $x = \pi$ it falls with slope $-1$; at the trough $x = 3\pi/2$ it is flat again. These slopes, $1, 0, -1, 0, 1$, are the values of $\cos x$ at the same points. The table compares the difference quotients of $\sin x$, with $h = 0.001$, with $\cos x$ at more points:
+Figure 5.2 shows the graph of $\sin x$ with some of its tangent lines. At $x = 0$ the graph climbs with slope 1; at the crest $x = \pi/2$ it is flat; at $x = \pi$ it falls with slope $-1$; at the trough $x = 3\pi/2$ it is flat again; and at $x = 2\pi$ it climbs with slope 1 once more. These slopes, $1, 0, -1, 0, 1$, are the values of $\cos x$ at the same points. The table compares the difference quotients of $\sin x$, with $h = 0.001$, with $\cos x$ at more points:
 
 ```valuetable
 x = 0, pi/6, pi/4, pi/3, pi/2, 2*pi/3, pi
@@ -307,6 +308,7 @@ x | \dfrac{\sin(x + 0.001) - \sin x}{0.001} | \cos x
 In every row the two columns agree to within 0.0005, and a smaller $h$ makes the agreement closer.
 
 ```check
+same([cos(X_) for X_ in (0, pi/2, pi, 3*pi/2, 2*pi)], [1, 0, -1, 0, 1])                       # the slopes of Figure 5.2
 for X_ in (0, pi/6, pi/4, pi/3, pi/2, 2*pi/3, pi):
     holds(Abs((sin(X_ + Rational(1, 1000)) - sin(X_))*1000 - cos(X_)) < Rational(5, 10000))
     holds(Abs((sin(X_ + Rational(1, 10000)) - sin(X_))*10000 - cos(X_)) < Rational(5, 100000))   # h = 0.0001: closer
@@ -356,7 +358,7 @@ Expand both sides and use $\sin^2\theta + \cos^2\theta = 1$: the left side is $2
 
 $$\cos(x - y) = \cos x\cos y + \sin x\sin y.$$
 
-Everything else follows from this. Replacing $y$ by $-y$ (cosine is even, sine is odd), and then taking $x = \pi/2$, gives
+Everything else follows from this. Replacing $y$ by $-y$ (cosine is even, sine is odd) gives the first formula below; taking $x = \pi/2$, where the cosine is 0 and the sine is 1, gives the second:
 
 $$\begin{aligned} \cos(x + y) &= \cos x\cos y - \sin x\sin y, \\ \cos(\tfrac{\pi}{2} - y) &= \sin y. \end{aligned}$$
 
@@ -394,7 +396,7 @@ $$\begin{aligned} \frac{d}{dx}\cot x &= -\csc^2 x, \\ \frac{d}{dx}\csc x &= -\cs
 ::: proof
 Each is a quotient of the sine and the cosine (or of 1 and one of them), so use the quotient rule, then $\sin^2 x + \cos^2 x = 1$. Where $\cos x \ne 0$,
 
-$$\begin{aligned} &\frac{d}{dx}\frac{\sin x}{\cos x} \\ &\quad= \frac{\cos x\cos x - \sin x(-\sin x)}{\cos^2 x} \\ &\quad= \frac{\cos^2 x + \sin^2 x}{\cos^2 x} = \frac{1}{\cos^2 x} = \sec^2 x, \\[6pt] &\frac{d}{dx}\frac{1}{\cos x} \\ &\quad= \frac{0\cdot\cos x - 1\cdot(-\sin x)}{\cos^2 x} \\ &\quad= \frac{1}{\cos x}\cdot\frac{\sin x}{\cos x} = \sec x\tan x. \end{aligned}$$
+$$\begin{aligned} &\frac{d}{dx}\frac{\sin x}{\cos x} \\ &\quad= \frac{\cos x\cos x - \sin x(-\sin x)}{\cos^2 x} \\ &\quad= \frac{\cos^2 x + \sin^2 x}{\cos^2 x} \\ &\quad= \frac{1}{\cos^2 x} = \sec^2 x, \\[6pt] &\frac{d}{dx}\frac{1}{\cos x} \\ &\quad= \frac{0\cdot\cos x - 1\cdot(-\sin x)}{\cos^2 x} \\ &\quad= \frac{1}{\cos x}\cdot\frac{\sin x}{\cos x} = \sec x\tan x. \end{aligned}$$
 
 Where $\sin x \ne 0$,
 
@@ -472,7 +474,7 @@ limit_is(sin(2*h)/h, h, 0, 2); same(diff(sin(2*x), x), 2*cos(2*x)); same(cos(2*0
 
 ### Rates multiply {#rates-multiply}
 
-In Figure 5.3, gear A has 36 teeth, gear B 18 and gear C 6. While A turns once, 36 teeth pass the point where it meets B, so B turns $36/18 = 2$ times. For each turn of B, 18 teeth pass C, so C turns $18/6 = 3$ times. So C turns $3 \cdot 2 = 6$ times as fast as A. If $\theta_A$, $\theta_B$ and $\theta_C$ are the angles through which the gears have turned,
+In Figure 5.3, gear A has 36 teeth, gear B 18 and gear C 6. While A turns once, 36 teeth pass the point where it meets B, so B turns $36/18 = 2$ times. For each turn of B, 18 teeth pass C, so C turns $18/6 = 3$ times. So C turns $3 \cdot 2 = 6$ times as fast as A. If $\theta_A$, $\theta_B$ and $\theta_C$ are the angles through which the gears have turned, each measured in its own direction of turning,
 
 $$\frac{d\theta_C}{d\theta_A} = \frac{d\theta_C}{d\theta_B}\cdot\frac{d\theta_B}{d\theta_A} = 3 \cdot 2 = 6.$$
 
@@ -494,20 +496,20 @@ If $g$ is differentiable at $x$ and $f$ is differentiable at $g(x)$, then the co
 
 $$F'(x) = f'\big(g(x)\big)\,g'(x).$$
 
-In Leibniz notation, with $y = f(u)$ and $u = g(x)$,
+In Leibniz's notation, with $y = f(u)$ and $u = g(x)$,
 
 $$\frac{dy}{dx} = \frac{dy}{du}\cdot\frac{du}{dx},$$
 
 where $dy/du$ is evaluated at $u = g(x)$.
 :::
 
-In words: differentiate the outer function, leaving the inner function inside it unchanged, and multiply by the derivative of the inner function. The Leibniz form looks like cancelling $du$: here $dy/dx$ behaves like a fraction, which makes the rule easy to remember. It is not a proof, though, because $dy/du$ is a single symbol for a limit (Module 4), not a fraction.
+In words: differentiate the outer function, leaving the inner function inside it unchanged, and multiply by the derivative of the inner function. The symbol $f'\big(g(x)\big)$ reads "f prime of g of x": the derivative of $f$, evaluated at the number $g(x)$. The Leibniz form looks like cancelling $du$: here $dy/dx$ behaves like a fraction, which makes the rule easy to remember. It is not a proof, though, because $dy/du$ is a single symbol for a limit (Module 4), not a fraction.
 
-Note where $f$ must be differentiable: at $g(x)$, the point where it is used, not at $x$. Without that hypothesis the rule can fail: with $f(u) = \abs{u}$ and $g(x) = x^2 - 1$, $f$ is not differentiable at $g(1) = 0$, and $f\big(g(x)\big) = \abs{x^2 - 1}$ has a corner at $x = 1$.
+Note where $f$ must be differentiable: at $g(x)$, the point where it is used, not at $x$. Without that hypothesis the rule can fail: with $f(u) = \abs{u}$ and $g(x) = x^2 - 1$, $f$ is differentiable at 1 but not at $g(1) = 0$, and $f\big(g(x)\big) = \abs{x^2 - 1}$ has a corner at $x = 1$.
 
 ```check
 same(diff(fF(gF(x)), x), Subs(Derivative(fF(u), u), u, gF(x))*Derivative(gF(x), x))
-same((x**2 - 1).subs(x, 1), 0)
+same((x**2 - 1).subs(x, 1), 0); limit_is((Abs(1 + h) - 1)/h, h, 0, 1)        # |u| is differentiable at u = 1
 cq = Abs(((1 + h)**2 - 1))/h                                  # the difference quotient of |x^2 - 1| at 1
 limit_is(cq, h, 0, 2, '+'); limit_is(cq, h, 0, -2, '-')
 ```
@@ -516,10 +518,10 @@ limit_is(cq, h, 0, 2, '+'); limit_is(cq, h, 0, -2, '-')
 
 $$\frac{\Delta y}{h} = \frac{\Delta y}{\Delta u}\cdot\frac{\Delta u}{h}.$$
 
-As $h \to 0$, $\Delta u \to 0$ (because $g$ is continuous at $x$), so $\Delta y/\Delta u \to f'(u)$, while $\Delta u/h \to g'(x)$; the product approaches $f'(u)\,g'(x)$. This is the gear argument with limits, and it is almost a proof. The gap: $\Delta u$ can be 0 for values of $h \ne 0$ as close to 0 as you like (for a constant $g$, it is 0 for every $h$), and then $\Delta y/\Delta u$ is $0/0$. The next box closes the gap.
+As $h \to 0$, $\Delta u \to 0$ (because $g$ is continuous at $x$), so $\Delta y/\Delta u \to f'(u)$, while $\Delta u/h \to g'(x)$; the product approaches $f'(u)\,g'(x)$. This is the gear argument with limits, and it is almost a proof. The gap: $\Delta u$ can be 0 for values of $h \ne 0$ as close to 0 as you like (for a constant $g$, it is 0 for every $h$; Exercise 5.11 gives a less obvious example), and then $\Delta y/\Delta u$ is $0/0$. The next box closes the gap with a complete proof; a first reading may skip it.
 
 ::: deeper A proof of the chain rule
-The way round the division by $\Delta u$ is to describe the differentiability of $f$ without dividing. Let $u = g(x)$. Since $f$ is differentiable at $u$, it is defined on an interval around $u$; for $k \ne 0$ with $u + k$ in that interval, let
+The way round the division by $\Delta u$ is to describe the differentiability of $f$ without dividing. Let $u = g(x)$. Since $f$ is differentiable at $u$, it is defined on an open interval around $u$; for $k \ne 0$ with $u + k$ in that interval, let
 
 $$E(k) = \frac{f(u + k) - f(u)}{k} - f'(u),$$
 
@@ -533,7 +535,7 @@ Now let $h \ne 0$ be small enough that $g(x + h)$ lies in the interval (possible
 
 $$\begin{aligned} &\frac{f\big(g(x + h)\big) - f\big(g(x)\big)}{h} \\ &\quad= \big(f'(u) + E(\Delta u)\big)\,\frac{\Delta u}{h}. \end{aligned}$$
 
-Let $h \to 0$. Then $\Delta u/h \to g'(x)$, since $g$ is differentiable at $x$. Also $\Delta u \to 0$, since $g$ is continuous at $x$, and therefore $E(\Delta u) \to E(0) = 0$, since $E$ is continuous at 0 (the limit of a composition, Module 3). So the right side approaches $f'(u)\,g'(x)$, which proves the chain rule.
+Let $h \to 0$. Then $\Delta u/h \to g'(x)$, since $g$ is differentiable at $x$. Also $\Delta u \to 0$, since $g$ is continuous at $x$, and therefore $E(\Delta u) \to E(0) = 0$, since $E$ is continuous at 0 (the limit of a composition, [Theorem 3.4](module_03_EN.html#composition)). So the right side approaches $f'(u)\,g'(x)$, which proves the chain rule.
 
 Each hypothesis was used: the differentiability of $g$ at $x$, for $\Delta u/h \to g'(x)$ and, through continuity, for $\Delta u \to 0$; and the differentiability of $f$ at $u = g(x)$, not at $x$, for $E(k) \to 0$.
 
@@ -577,7 +579,7 @@ In degree mode, a calculator's sine key computes $S(x) = \sin(x^\circ) = \sin\Bi
 
 The inner function is $u = \dfrac{\pi x}{180}$, with $du/dx = \dfrac{\pi}{180}$, and the outer function is $\sin u$:
 
-$$S'(x) = \cos\Big(\frac{\pi x}{180}\Big)\cdot\frac{\pi}{180} = \frac{\pi}{180}\cos(x^\circ).$$
+$$\begin{aligned} S'(x) &= \cos\Big(\frac{\pi x}{180}\Big)\cdot\frac{\pi}{180} \\ &= \frac{\pi}{180}\cos(x^\circ). \end{aligned}$$
 
 At $x = 0$ the slope is $\pi/180 \approx 0.017453$ per degree. Every derivative of a trigonometric function would carry this factor if angles were measured in degrees.
 
@@ -608,7 +610,7 @@ same((diff(u**3, u)*diff(sin(vv), vv)*diff(4*x, x)).subs(u, sin(vv)).subs(vv, 4*
 
 ### Powers and roots of functions {#powers}
 
-With the power rule for integers (Theorem 5.3) as the outer derivative, the chain rule gives, for every integer $n$ (with $g(x) \ne 0$ if $n \le 0$),
+With the power rule for integers (Theorem 5.3) as the outer derivative, the chain rule gives, wherever $g$ is differentiable, for every integer $n$ (with $g(x) \ne 0$ if $n \le 0$),
 
 $$\frac{d}{dx}\big(g(x)\big)^n = n\big(g(x)\big)^{n-1}g'(x).$$
 
@@ -633,21 +635,22 @@ same(q10, -6*x/(x**2 + 1)**4)
 ```
 :::
 
-The power rule for fractional exponents is proved in Module 6, for every real exponent. One fractional power is known already: Module 4 found from the definition that
+The power rule for fractional exponents is proved in Module 6, for every real exponent. One fractional power is known already: [Example 4.5](module_04_EN.html#derivative-function) found from the definition that
 
 $$\frac{d}{dx}\sqrt x = \frac{1}{2\sqrt x} \qquad (x > 0),$$
 
-which is $\tfrac12 x^{-1/2}$, the power rule with $n = \tfrac12$. (Multiplying the top and the bottom of the difference quotient by $\sqrt{x + h} + \sqrt x$ turns it into $\dfrac{1}{\sqrt{x + h} + \sqrt x}$, which approaches $\dfrac{1}{2\sqrt x}$.) At $x = 0$ there is no derivative: the graph of $\sqrt x$ starts with a vertical tangent.
+which is $\tfrac12 x^{-1/2}$, the power rule with $n = \tfrac12$. (Multiplying the top and the bottom of the difference quotient by $\sqrt{x + h} + \sqrt x$ turns it into $\dfrac{1}{\sqrt{x + h} + \sqrt x}$, which approaches $\dfrac{1}{2\sqrt x}$.) At $x = 0$ there is no derivative: $\sqrt x$ is not defined to the left of 0, and from the right its difference quotients $\dfrac{\sqrt h - 0}{h} = \dfrac{1}{\sqrt h}$ grow without bound as $h \to 0^+$, so the graph leaves the origin vertically.
 
 ```check
 xp = symbols('x', positive=True)
 same((sqrt(xp + h) - sqrt(xp))/h, 1/(sqrt(xp + h) + sqrt(xp)))
 limit_is(1/(sqrt(xp + h) + sqrt(xp)), h, 0, 1/(2*sqrt(xp)))
 same(diff(sqrt(xp), xp), 1/(2*sqrt(xp))); same(1/(2*sqrt(xp)), Rational(1, 2)*xp**Rational(-1, 2))
-limit_is(sqrt(h)/h, h, 0, oo, '+')
+hpos = symbols('h', positive=True)
+same((sqrt(hpos) - 0)/hpos, 1/sqrt(hpos)); limit_is(sqrt(h)/h, h, 0, oo, '+')
 ```
 
-With the chain rule, wherever $g(x) > 0$,
+With the chain rule, wherever $g(x) > 0$ and $g$ is differentiable,
 
 $$\frac{d}{dx}\sqrt{g(x)} = \frac{g'(x)}{2\sqrt{g(x)}}.$$
 
@@ -687,7 +690,7 @@ Real formulas combine several rules. A systematic order keeps the work under con
 ::: keyidea
 To differentiate a formula:
 
-1. **Rewrite it if that helps.** Use powers for reciprocals and roots ($\dfrac{3}{x^4} = 3x^{-4}$); cancel common factors, noting the points left out; expand a short product of polynomials.
+1. **Rewrite it if that helps.** Use negative powers for reciprocals ($\dfrac{3}{x^4} = 3x^{-4}$); cancel common factors, noting the points left out; expand a short product of polynomials.
 2. **Find the last operation**: the one you would carry out last when computing the formula's value at a number. It chooses the rule: a sum, the sum rule; a product, the product rule; a quotient, the quotient rule; a function applied to something other than $x$ itself, the chain rule.
 3. **Apply that rule**, and treat each piece it leaves to differentiate in the same way, until only the basic derivatives remain.
 4. **Simplify**: take out common factors, combine fractions, use identities such as $\sin^2 x + \cos^2 x = 1$, and say where the result holds.
@@ -718,7 +721,7 @@ Both terms contain $x^2(2x - 1)^3$; take it out:
 
 $$\begin{aligned} y' &= x^2(2x - 1)^3\big[3(2x - 1) + 8x\big] \\ &= x^2(2x - 1)^3(14x - 3). \end{aligned}$$
 
-The factored form shows at once where $y' = 0$: at $x = 0$, $x = \tfrac12$ and $x = \tfrac{3}{14}$. The tangent is horizontal at these three points. From the expanded form, $112x^6 - 192x^5 + 120x^4 - 32x^3 + 3x^2$, you could not see this.
+The factored form shows at once where $y' = 0$: at $x = 0$, $x = \tfrac12$ and $x = \tfrac{3}{14}$. The tangent is horizontal at these three points. The expanded form, $112x^6 - 192x^5 + 120x^4 - 32x^3 + 3x^2$, hides this.
 
 ```check
 y13 = x**3*(2*x - 1)**4
@@ -752,7 +755,7 @@ $$\begin{aligned} \frac{d}{dx}\frac{x - 1}{x + 1} &= \frac{1\cdot(x + 1) - (x - 
 
 so
 
-$$y' = 4\Big(\frac{x - 1}{x + 1}\Big)^3\cdot\frac{2}{(x + 1)^2} = \frac{8(x - 1)^3}{(x + 1)^5}.$$
+$$\begin{aligned} y' &= 4\Big(\frac{x - 1}{x + 1}\Big)^3\cdot\frac{2}{(x + 1)^2} \\ &= \frac{8(x - 1)^3}{(x + 1)^5}. \end{aligned}$$
 
 ```check
 inner15 = (x - 1)/(x + 1)
@@ -842,7 +845,7 @@ same(tan(x)**2 + 1, sec(x)**2)
 
 ### Why the answers can look different {#different-looks}
 
-SymPy applies the rules mechanically and tidies up only a little. Its answer and yours can differ in the order of the terms, in how they are grouped, in which identities were used ($\tan^2 x + 1$ for $\sec^2 x$, or $\cos^2 x - \sin^2 x$ for $\cos 2x$), or because one of you simplified and the other did not. Two expressions $A$ and $B$ are equal exactly when $A - B = 0$, so to compare two answers, simplify their difference.
+SymPy applies the rules mechanically and tidies up only a little. Its answer and yours can differ in the order of the terms, in how they are grouped, in which identities were used ($\tan^2 x + 1$ for $\sec^2 x$, or $\cos^2 x - \sin^2 x$ for $\cos 2x$, the addition formula with $y = x$), or because one of you simplified and the other did not. Two expressions $A$ and $B$ are equal exactly when $A - B = 0$, so to compare two answers, simplify their difference.
 
 ::: compute Is my answer right?
 ```python
@@ -896,14 +899,14 @@ Training a neural network, fitting a model to data, steering a robot arm: each n
 
 - **Finite differences** (Module 4): run the program at $a$ and at $a + h$, and compute $\dfrac{f(a + h) - f(a)}{h}$. This needs nothing but the program, but it is an approximation: a large $h$ gives a truncation error, a small one a rounding error, and the best compromise keeps only about half of the 16 significant digits that floating-point numbers carry.
 - **Symbolic differentiation**, as in SymPy: turn the program into a formula and apply the rules of this module. The result is exact, but the formulas can grow very large, and loops and branches must first be turned into a formula.
-- **Automatic differentiation**: run the program once, on numbers that carry a derivative along with their value, updated at every step by the rules of this module. The result is exact apart from floating-point rounding, as accurate as the value of $f$ itself, for a few extra operations per step.
+- **Automatic differentiation**: run the program once, on numbers that carry a derivative along with their value, updated at every step by the rules of this module. There is no step $h$ and so no truncation error: the result is exact apart from floating-point rounding, of the kind that affects the value of $f$ itself, and it costs a few extra operations per step.
 
 The simplest way to carry derivatives along is with dual numbers.
 
 ::: definition Dual numbers
 A **dual number** is an expression $a + b\varepsilon$, where $a$ and $b$ are real numbers and $\varepsilon$ (the Greek letter epsilon) is a new symbol with $\varepsilon^2 = 0$. Dual numbers are added and multiplied like polynomials in $\varepsilon$, with $\varepsilon^2$ replaced by 0:
 
-$$\begin{aligned} (a + b\varepsilon) + (c + d\varepsilon) &= (a + c) + (b + d)\varepsilon, \\ (a + b\varepsilon)(c + d\varepsilon) &= ac + (ad + bc)\varepsilon. \end{aligned}$$
+$$\begin{aligned} &(a + b\varepsilon) + (c + d\varepsilon) \\ &\quad= (a + c) + (b + d)\varepsilon, \\ &(a + b\varepsilon)(c + d\varepsilon) \\ &\quad= ac + (ad + bc)\varepsilon. \end{aligned}$$
 
 A real number $c$ is the dual number $c + 0\varepsilon$; $b$ is the **$\varepsilon$-part** of $a + b\varepsilon$.
 :::
@@ -926,7 +929,7 @@ In particular, the $\varepsilon$-part of $p(a + \varepsilon)$ is the derivative 
 ::: proof
 A polynomial is built from constants and $x$ by additions and multiplications. Call a function $q$ good if $q(a + b\varepsilon) = q(a) + q'(a)\,b\,\varepsilon$ for all $a$ and $b$. A constant $c$ is good, since $c = c + 0\varepsilon$ and $c' = 0$; so is $x$, since $x' = 1$. If $q$ and $r$ are good, then $q + r$ is good, by the sum rule, and so is $qr$:
 
-$$\begin{aligned} &q(a + b\varepsilon)\,r(a + b\varepsilon) \\ &\quad= \big(q(a) + q'(a)b\varepsilon\big)\big(r(a) + r'(a)b\varepsilon\big) \\ &\quad= q(a)r(a) + \big(q'(a)r(a) + q(a)r'(a)\big)b\varepsilon, \end{aligned}$$
+$$\begin{aligned} &q(a + b\varepsilon)\,r(a + b\varepsilon) \\ &\quad= \big(q(a) + q'(a)b\varepsilon\big) \\ &\qquad \cdot \big(r(a) + r'(a)b\varepsilon\big) \\ &\quad= q(a)r(a) \\ &\qquad + \big(q'(a)r(a) + q(a)r'(a)\big)b\varepsilon, \end{aligned}$$
 
 which is $(qr)(a) + (qr)'(a)\,b\,\varepsilon$ by the product rule. Every step of building $p$ keeps it good, so $p$ is good.
 :::
@@ -941,7 +944,7 @@ For example, $(3 + \varepsilon)^2 = 9 + 6\varepsilon + \varepsilon^2 = 9 + 6\var
 
 Other functions join in by declaring their own derivative. For the sine, define $\sin(a + b\varepsilon) = \sin a + (\cos a)\,b\,\varepsilon$. Then for a good function $g$,
 
-$$\begin{aligned} \sin\big(g(a + b\varepsilon)\big) &= \sin\big(g(a) + g'(a)\,b\,\varepsilon\big) \\ &= \sin g(a) + \cos g(a)\,g'(a)\,b\,\varepsilon, \end{aligned}$$
+$$\begin{aligned} &\sin\big(g(a + b\varepsilon)\big) \\ &\quad= \sin\big(g(a) + g'(a)\,b\,\varepsilon\big) \\ &\quad= \sin g(a) + \cos g(a)\,g'(a)\,b\,\varepsilon, \end{aligned}$$
 
 whose $\varepsilon$-part is the chain rule's $(\sin g)'(a)$ times $b$. Each operation in the program knows only its own derivative; the chain rule, applied step by step as the program runs, does the rest.
 
@@ -1041,7 +1044,7 @@ print(sp.diff(g(x), x).subs(x, sp.Rational(1, 2)))
 19/2
 ```
 
-The program `g` computes the polynomial $\big((x^2 + x)^2 + x\big)^2 + x$, of degree 8, and dual numbers found its derivative at 0.5 without anyone writing that formula down; SymPy, given the formula, agrees.
+The program `g` computes the polynomial $\big((x^2 + x)^2 + x\big)^2 + x$, of degree 8, and dual numbers found its derivative at 0.5 without anyone writing that formula down. SymPy agrees: run on the symbol `x`, the same program builds the formula, which `sp.diff` then differentiates.
 :::
 
 ```check
@@ -1103,19 +1106,19 @@ Differentiate:
 ::: solution
 **(a)** With $f = 3x^2 - 1$ and $g = x^3 + 2x$, $f' = 6x$ and $g' = 3x^2 + 2$:
 
-$$\begin{aligned} y' &= 6x(x^3 + 2x) + (3x^2 - 1)(3x^2 + 2) \\ &= 6x^4 + 12x^2 + 9x^4 + 3x^2 - 2 \\ &= 15x^4 + 15x^2 - 2. \end{aligned}$$
+$$\begin{aligned} y' &= 6x(x^3 + 2x) \\ &\quad + (3x^2 - 1)(3x^2 + 2) \\ &= (6x^4 + 12x^2) \\ &\quad + (9x^4 + 3x^2 - 2) \\ &= 15x^4 + 15x^2 - 2. \end{aligned}$$
 
 Expanding first: $y = 3x^5 + 6x^3 - x^3 - 2x = 3x^5 + 5x^3 - 2x$, and $y' = 15x^4 + 15x^2 - 2$ again.
 
 **(b)** Quotient rule, with $(2x + 1)' = 2$ and $(x - 3)' = 1$:
 
-$$\begin{aligned} y' &= \frac{2(x - 3) - (2x + 1)\cdot 1}{(x - 3)^2} \\ &= \frac{2x - 6 - 2x - 1}{(x - 3)^2} = -\frac{7}{(x - 3)^2}. \end{aligned}$$
+$$\begin{aligned} y' &= \frac{2(x - 3) - (2x + 1)\cdot 1}{(x - 3)^2} \\ &= \frac{2x - 6 - 2x - 1}{(x - 3)^2} \\ &= -\frac{7}{(x - 3)^2}. \end{aligned}$$
 
-It is negative for every $x \ne 3$: the graph falls on each side of $x = 3$.
+It is negative for every $x \ne 3$: every tangent line slopes downwards, and the graph falls on each side of $x = 3$ (Module 8 proves that a negative derivative on an interval means a falling graph).
 
 **(c)** Rewrite with negative powers and use the power rule: $y = 5x^{-3} - x^{-1}$, so
 
-$$y' = -15x^{-4} + x^{-2} = -\frac{15}{x^4} + \frac{1}{x^2}.$$
+$$\begin{aligned} y' &= -15x^{-4} + x^{-2} \\ &= -\frac{15}{x^4} + \frac{1}{x^2}. \end{aligned}$$
 
 **(d)** Quotient rule: $y' = \dfrac{2x(x^2 + 4) - x^2\cdot 2x}{(x^2 + 4)^2} = \dfrac{8x}{(x^2 + 4)^2}$.
 
@@ -1145,17 +1148,21 @@ and (d) find the slope of $y = \sec x$ at $x = \pi/4$.
 
 **(b)** $\sec^2 x - 1$. Dividing $\sin^2 x + \cos^2 x = 1$ by $\cos^2 x$ gives $\tan^2 x + 1 = \sec^2 x$, so this is $\tan^2 x$.
 
-**(c)** Quotient rule, with $(1 - \sin x)' = -\cos x$:
+**(c)** Quotient rule, with $(1 - \sin x)' = -\cos x$. Its numerator, the derivative of the top times the bottom minus the top times the derivative of the bottom, is
 
-$$\begin{aligned} &\frac{d}{dx}\frac{\sin x}{1 - \sin x} \\ &\quad= \frac{\cos x\,(1 - \sin x) - \sin x\,(-\cos x)}{(1 - \sin x)^2} \\ &\quad= \frac{\cos x - \sin x\cos x + \sin x\cos x}{(1 - \sin x)^2} \\ &\quad= \frac{\cos x}{(1 - \sin x)^2}. \end{aligned}$$
+$$\begin{aligned} &\cos x\,(1 - \sin x) \\ &\qquad - \sin x\,(-\cos x) \\ &\quad= \cos x - \sin x\cos x \\ &\qquad + \sin x\cos x \\ &\quad= \cos x, \end{aligned}$$
+
+so
+
+$$\frac{d}{dx}\frac{\sin x}{1 - \sin x} = \frac{\cos x}{(1 - \sin x)^2}.$$
 
 **(d)** $\dfrac{d}{dx}\sec x = \sec x\tan x$, and at $\pi/4$, $\sec\dfrac{\pi}{4} = \dfrac{1}{\cos(\pi/4)} = \sqrt2$ and $\tan\dfrac{\pi}{4} = 1$. The slope is $\sqrt2 \approx 1.414$.
 
 ```check
 same(diff(x**3*cos(x), x), 3*x**2*cos(x) - x**3*sin(x))
 same(diff(tan(x) - x, x), sec(x)**2 - 1); same(sec(x)**2 - 1, tan(x)**2)
-steps(Derivative(sin(x)/(1 - sin(x)), x), (cos(x)*(1 - sin(x)) - sin(x)*(-cos(x)))/(1 - sin(x))**2,
-      (cos(x) - sin(x)*cos(x) + sin(x)*cos(x))/(1 - sin(x))**2, cos(x)/(1 - sin(x))**2)
+steps(cos(x)*(1 - sin(x)) - sin(x)*(-cos(x)), cos(x) - sin(x)*cos(x) + sin(x)*cos(x), cos(x))    # the numerator
+steps(Derivative(sin(x)/(1 - sin(x)), x), (cos(x)*(1 - sin(x)) - sin(x)*(-cos(x)))/(1 - sin(x))**2, cos(x)/(1 - sin(x))**2)
 same(sec(pi/4), sqrt(2)); same(tan(pi/4), 1); same(diff(sec(x), x).subs(x, pi/4), sqrt(2)); rounds(sqrt(2), '1.414')
 ```
 :::
@@ -1181,7 +1188,7 @@ In each part, name the inner function $u$ and multiply the outer derivative by $
 
 **(d)** $u = x^2 + 9$, outer $u^{-2}$: $-2(x^2 + 9)^{-3}\cdot 2x = -\dfrac{4x}{(x^2 + 9)^3}$.
 
-**(e)** $u = 4 - x^2$, which is positive for $-2 < x < 2$; outer $\sqrt u$: $\dfrac{-2x}{2\sqrt{4 - x^2}} = -\dfrac{x}{\sqrt{4 - x^2}}$. This is the slope of the semicircle of [Example 1.2](module_01_EN.html#domains): 0 at the top, $x = 0$, negative to the right, and growing without bound in size as $x$ approaches $\pm 2$, where the tangents are vertical.
+**(e)** $u = 4 - x^2$, which is positive for $-2 < x < 2$; outer $\sqrt u$: $\dfrac{-2x}{2\sqrt{4 - x^2}} = -\dfrac{x}{\sqrt{4 - x^2}}$. This is the slope of the semicircle of [Example 1.2](module_01_EN.html#domains): 0 at the top, $x = 0$, negative to the right, and growing without bound in size as $x$ approaches $\pm 2$, where the semicircle meets the $x$-axis vertically.
 
 ```check
 steps(Derivative((1 - 4*x)**6, x), 6*(1 - 4*x)**5*(-4), -24*(1 - 4*x)**5)
@@ -1227,7 +1234,7 @@ Let $y = \sin x + \cos x$.
 
 $$\begin{aligned} y\Big(\frac{\pi}{4}\Big) &= \frac{\sqrt2}{2} + \frac{\sqrt2}{2} = \sqrt2, \\ y\Big(\frac{5\pi}{4}\Big) &= -\frac{\sqrt2}{2} - \frac{\sqrt2}{2} = -\sqrt2. \end{aligned}$$
 
-The points are $\big(\pi/4, \sqrt2\big)$ and $\big(5\pi/4, -\sqrt2\big)$. They are the highest and the lowest points of the graph: $y^2 = 1 + 2\sin x\cos x$, and $2\sin x\cos x \le \sin^2 x + \cos^2 x = 1$ because $(\sin x - \cos x)^2 \ge 0$, so $y^2 \le 2$.
+The points are $\big(\pi/4, \sqrt2\big)$ and $\big(5\pi/4, -\sqrt2\big)$. They are the highest and the lowest points of the graph. Squaring, $y^2 = \sin^2 x + 2\sin x\cos x + \cos^2 x = 1 + 2\sin x\cos x$, and $2\sin x\cos x \le \sin^2 x + \cos^2 x = 1$ because $(\sin x - \cos x)^2 \ge 0$. So $y^2 \le 2$, that is, $-\sqrt2 \le y \le \sqrt2$, and the two points reach these bounds.
 
 **(b)** At $x = \pi/2$, $y = 1 + 0 = 1$ and $y' = 0 - 1 = -1$. The tangent line through $(\pi/2, 1)$ with slope $-1$ is $y - 1 = -(x - \pi/2)$, that is,
 
@@ -1254,9 +1261,9 @@ Differentiate and simplify:
 - (d) $\dfrac{x}{\sqrt{x^2 + 1}}$
 
 ::: solution
-**(a)** Product rule, with the chain rule for the second factor, whose derivative is $5(1 - 3x)^4(-3) = -15(1 - 3x)^4$. Then take out $x(1 - 3x)^4$:
+**(a)** Product rule, with the chain rule for the second factor, whose derivative is $5(1 - 3x)^4(-3) = -15(1 - 3x)^4$. Both terms of the result contain $x(1 - 3x)^4$; taking it out leaves $2(1 - 3x) - 15x = 2 - 21x$, so
 
-$$\begin{aligned} y' &= 2x(1 - 3x)^5 - 15x^2(1 - 3x)^4 \\ &= x(1 - 3x)^4\big[2(1 - 3x) - 15x\big] \\ &= x(1 - 3x)^4(2 - 21x). \end{aligned}$$
+$$\begin{aligned} y' &= 2x(1 - 3x)^5 \\ &\quad - 15x^2(1 - 3x)^4 \\ &= x(1 - 3x)^4(2 - 21x). \end{aligned}$$
 
 **(b)** For $x > 0$, $x^2 + 4x > 0$, and the chain rule for the square root gives
 
@@ -1266,11 +1273,12 @@ $$\frac{2x + 4}{2\sqrt{x^2 + 4x}} = \frac{x + 2}{\sqrt{x^2 + 4x}}.$$
 
 **(d)** Quotient rule, with $\big(\sqrt{x^2 + 1}\big)' = \dfrac{x}{\sqrt{x^2 + 1}}$ (Example 5.11). Then multiply the top and the bottom by $\sqrt{x^2 + 1}$:
 
-$$\begin{aligned} y' &= \frac{\sqrt{x^2 + 1} - x\cdot\dfrac{x}{\sqrt{x^2 + 1}}}{x^2 + 1} \\ &= \frac{(x^2 + 1) - x^2}{(x^2 + 1)\sqrt{x^2 + 1}} = \frac{1}{(x^2 + 1)^{3/2}}. \end{aligned}$$
+$$\begin{aligned} y' &= \frac{\sqrt{x^2 + 1} - x\cdot\dfrac{x}{\sqrt{x^2 + 1}}}{x^2 + 1} \\ &= \frac{(x^2 + 1) - x^2}{(x^2 + 1)\sqrt{x^2 + 1}} \\ &= \frac{1}{(x^2 + 1)^{3/2}}. \end{aligned}$$
 
 ```check
 y6a = x**2*(1 - 3*x)**5
 steps(Derivative(y6a, x), 2*x*(1 - 3*x)**5 - 15*x**2*(1 - 3*x)**4, x*(1 - 3*x)**4*(2*(1 - 3*x) - 15*x), x*(1 - 3*x)**4*(2 - 21*x))
+same(expand(2*(1 - 3*x) - 15*x), 2 - 21*x)
 same(diff((1 - 3*x)**5, x), -15*(1 - 3*x)**4)
 steps(Derivative(sqrt(x**2 + 4*x), x), (2*x + 4)/(2*sqrt(x**2 + 4*x)), (x + 2)/sqrt(x**2 + 4*x))
 same(diff(sec(x**2), x), 2*x*sec(x**2)*tan(x**2))
@@ -1372,6 +1380,8 @@ same(f9(3), 15); same(diff(f9(x), x).subs(x, 3)*2, 46)
 ::::
 
 :::: exercise The power rule by induction {#ex-5-10} ★★★
+A proof by **induction** shows that a statement holds for every positive integer $n$ in two steps. The **base case** shows it for $n = 1$. The **inductive step** shows that whenever it holds for some $n$, it also holds for $n + 1$. Then it holds for 1, so for 2, so for 3, and so on for every $n$, like a row of falling dominoes. (Module 9 uses the method again.)
+
 Use only the product rule and the derivative of $x$ (no other part of Module 4's power rule).
 
 - (a) Prove by induction that $\dfrac{d}{dx}x^n = nx^{n-1}$ for every positive integer $n$.
@@ -1382,7 +1392,7 @@ Use only the product rule and the derivative of $x$ (no other part of Module 4's
 
 *Inductive step.* Suppose that $\dfrac{d}{dx}x^n = nx^{n-1}$ for some $n \ge 1$. Then $x^{n+1} = x \cdot x^n$, and by the product rule
 
-$$\begin{aligned} \frac{d}{dx}x^{n+1} &= 1 \cdot x^n + x \cdot nx^{n-1} \\ &= x^n + nx^n = (n + 1)x^n, \end{aligned}$$
+$$\begin{aligned} \frac{d}{dx}x^{n+1} &= 1 \cdot x^n + x \cdot nx^{n-1} \\ &= x^n + nx^n \\ &= (n + 1)x^n, \end{aligned}$$
 
 which is the statement for $n + 1$. By induction it holds for every positive integer $n$.
 
@@ -1413,13 +1423,13 @@ Let $g(x) = x^2\sin(1/x)$ for $x \ne 0$, and $g(0) = 0$.
 - (c) Let $f(u) = u^2 + u$ and $F(x) = f\big(g(x)\big)$. Find $F'(0)$ with the chain rule, and check it from the definition.
 
 ::: solution
-**(a)** For $h \ne 0$, the difference quotient is $\dfrac{g(h) - g(0)}{h} = \dfrac{h^2\sin(1/h)}{h} = h\sin(1/h)$. Since $-1 \le \sin(1/h) \le 1$, it lies between $-\abs{h}$ and $\abs{h}$, and both of these approach 0. By the squeeze theorem, $h\sin(1/h) \to 0$: $g'(0) = 0$.
+**(a)** This is [Exercise 4.11](module_04_EN.html#ex-4-11)(b) again. For $h \ne 0$, the difference quotient is $\dfrac{g(h) - g(0)}{h} = \dfrac{h^2\sin(1/h)}{h} = h\sin(1/h)$. Since $-1 \le \sin(1/h) \le 1$, it lies between $-\abs{h}$ and $\abs{h}$, and both of these approach 0. By the squeeze theorem, $h\sin(1/h) \to 0$: $g'(0) = 0$.
 
 **(b)** $g\Big(\dfrac{1}{k\pi}\Big) = \dfrac{1}{k^2\pi^2}\sin(k\pi) = 0$, since $\sin(k\pi) = 0$. So $\Delta u = g(0 + h) - g(0)$ is 0 for $h = 1/\pi, 1/(2\pi), 1/(3\pi), \dots$, numbers that come as close to 0 as you like. For those $h$, the quotient $\Delta y/\Delta u$ in the idea of the proof is $0/0$, so that argument cannot be completed at $x = 0$. The proof in the Going deeper box of Section 5.5 never divides by $\Delta u$, so it covers this case.
 
 **(c)** $f'(u) = 2u + 1$, so by the chain rule $F'(0) = f'\big(g(0)\big)\,g'(0) = (2\cdot 0 + 1)\cdot 0 = 0$. From the definition: $F(0) = f(0) = 0$, and for $h \ne 0$
 
-$$\begin{aligned} \frac{F(h) - F(0)}{h} &= \frac{g(h)^2 + g(h)}{h} \\ &= g(h)\cdot\frac{g(h)}{h} + \frac{g(h)}{h}. \end{aligned}$$
+$$\begin{aligned} &\frac{F(h) - F(0)}{h} \\ &\quad= \frac{g(h)^2 + g(h)}{h} \\ &\quad= g(h)\cdot\frac{g(h)}{h} + \frac{g(h)}{h}. \end{aligned}$$
 
 By (a), $g(h)/h \to 0$, and $g(h) \to 0$ because $\abs{g(h)} \le h^2$. So the quotient approaches $0 \cdot 0 + 0 = 0$, as the chain rule says.
 
@@ -1559,10 +1569,12 @@ same(f12.subs(x, 2), Rational(1, 5)); same(diff(f12, x).subs(x, 2), Rational(-4,
 ```check
 same(diff(x**3*sin(x), x), 3*x**2*sin(x) + x**3*cos(x))
 same(diff(x/(x + 1), x), 1/(x + 1)**2)
+same((x*1 - 1*(x + 1))/(x + 1)**2, -1/(x + 1)**2); same((1*(x + 1) + x*1)/(x + 1)**2, (2*x + 1)/(x + 1)**2)   # the numerator in the wrong order; a plus sign
 same(diff(cos(x), x).subs(x, pi/2), -1); same(cos(pi/2), 0)
 same(diff(sin(3*x), x), 3*cos(3*x))
 same(diff((x**2 + 1)**10, x), 20*x*(x**2 + 1)**9)
-same(5*3, 15); same(7*3, 21)
+same(5*3, 15); same(7*3, 21); same(5*2, 10)
 same(tan(x)**2 + 1, sec(x)**2)
 same(expand((2 + ep)**2 + 3*(2 + ep)).subs(ep**2, 0), 10 + 7*ep); same(diff(x**2 + 3*x, x).subs(x, 2), 7)
+same(expand((2 + ep)**2 + 3*2).subs(ep**2, 0), 10 + 4*ep)                    # forgetting the epsilon from 3x
 ```

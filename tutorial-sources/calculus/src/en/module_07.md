@@ -137,7 +137,7 @@ $$\frac{6}{x + s} = \frac{1.8}{s}.$$
 
 Multiply both sides by $s(x + s)$: $6s = 1.8x + 1.8s$, so $4.2s = 1.8x$ and $s = \dfrac{3}{7}x$. Differentiating,
 
-$$\frac{ds}{dt} = \frac{3}{7}\,\frac{dx}{dt} = \frac{3}{7} \cdot 1.5 = \frac{9}{14} \approx 0.643 \text{ m/s}.$$
+$$\begin{aligned} \frac{ds}{dt} &= \frac{3}{7}\,\frac{dx}{dt} = \frac{3}{7} \cdot 1.5 \\ &= \frac{9}{14} \approx 0.643 \text{ m/s}. \end{aligned}$$
 
 The tip is $x + s = \dfrac{10}{7}x$ from the pole, so it moves at $\dfrac{10}{7} \cdot 1.5 = \dfrac{15}{7} \approx 2.14$ m/s, faster than the person walks. Neither answer depends on where the person is: here the relation is linear, so the rates are constant.
 
@@ -181,7 +181,7 @@ same(2*diff(atan(hp/400), hp).subs(hp, 300), rate7)      # from theta = arctan(h
 :::
 
 ::: pitfall
-Two more slips are common. The first is a wrong sign: a quantity that decreases has a negative rate, so a tank that drains at 2 m³/min has $dV/dt = -2$. The second is degrees: the derivative of $\tan\theta$ is $\sec^2\theta$ only when $\theta$ is in radians ([Section 1.4](module_01_EN.html#trig)), so work in radians and convert the answer at the end, as in Example 7.4.
+Two more slips are common. The first is a wrong sign: a quantity that decreases has a negative rate, so a tank that drains at 2 m³/min has $dV/dt = -2$. The second is degrees: the derivative of $\tan\theta$ is $\sec^2\theta$ only when $\theta$ is in radians ([Section 5.4](module_05_EN.html#trig)), so work in radians and convert the answer at the end, as in Example 7.4.
 :::
 
 ::: compute Related rates with SymPy
@@ -234,7 +234,7 @@ whose graph is the tangent line to $y = f(x)$ at $\big(a, f(a)\big)$. Using $f(x
 $L$ is the line through $\big(a, f(a)\big)$ with slope $f'(a)$, in the point-slope form of [Section 1.4](module_01_EN.html#linear). It matches $f$ in value and in slope at $a$: $L(a) = f(a)$ and $L'(a) = f'(a)$.
 
 ::: figure id=fig-07-2
-Left: the graph of $y = \sqrt x$ and its tangent line $y = L(x)$ at $a = 4$; near $a$ they are hard to tell apart. From $a$ to $a + dx$ (here $dx = 3$, exaggerated so that the gap shows), the curve rises by $\Delta y$ and the tangent line by $dy$, the differentials defined later in this section. Right: $y = \sin\theta$ and its tangent line $y = \theta$ at 0; in the green band, $\abs{\theta} \le 0.5$, they almost coincide.
+Left: the graph of $y = \sqrt x$ and its tangent line $y = L(x)$ at $a = 4$; near $a$ they are hard to tell apart. From $a$ to $a + dx$ (here $dx = 3$, exaggerated so that the gap shows), the curve rises by $\Delta y$ and the tangent line by $dy$; $dx$ and $dy$ are the differentials defined later in this section. Right: $y = \sin\theta$ and its tangent line $y = \theta$ at 0; in the green band, $\abs{\theta} \le 0.5$, they almost coincide.
 :::
 
 ::: example Square roots near 4
@@ -309,7 +309,7 @@ $$\begin{aligned} \frac{f(x) - \ell(x)}{x - a} &= \frac{f(x) - f(a)}{x - a} - m 
 This limit is 0, so $m = f'(a)$.
 :::
 
-Differentiability is needed. At the corner of $\abs{x}$ at 0, no line $c + mx$ will do: $c$ must be $\abs{0} = 0$, and then $\big(\abs{x} - mx\big)/x$ approaches $1 - m$ from the right and $-1 - m$ from the left, which cannot both be 0.
+If you read the Going deeper box at the end of [Section 4.4](module_04_EN.html#differentiability), you have met this theorem before, as "differentiable means locally linear"; here it is put to work. Differentiability is needed. At the corner of $\abs{x}$ at 0, no line $c + mx$ will do: $c$ must be $\abs{0} = 0$, and then $\big(\abs{x} - mx\big)/x$ approaches $1 - m$ from the right and $-1 - m$ from the left, which cannot both be 0.
 
 ```check
 ff = Function('f'); fpa, mm_ = symbols('fpa m')                  # fpa stands for f'(a)
@@ -320,15 +320,16 @@ limit_is((Abs(x) - mm_*x)/x, x, 0, 1 - mm_, '+'); limit_is((Abs(x) - mm_*x)/x, x
 same(solve([1 - mm_, -1 - mm_], mm_), [])                    # no m makes both one-sided limits 0
 ```
 
-Theorem 7.1 says that the error is small compared with $x - a$, but not how small. The table suggests a constant times $(x - a)^2$, and that is the usual case: if $f''$ is continuous near $a$, then
+Theorem 7.1 says that the error is small compared with $x - a$, but not how small. The table suggests a constant times $(x - a)^2$, and that is the usual case: if $f''$ is continuous near $a$, then, for $x$ near $a$,
 
-$$f(x) - L(x) \approx \frac{f''(a)}{2}(x - a)^2 \quad\text{for } x \text{ near } a,$$
+$$f(x) - L(x) \approx \frac{f''(a)}{2}(x - a)^2,$$
 
-and if $\abs{f''} \le M$ between $a$ and $x$, then $\abs{f(x) - L(x)} \le \dfrac{M}{2}(x - a)^2$. Both follow from Taylor's theorem, which Module 15 proves. For $\sqrt x$ at 4, $f''(x) = -\tfrac14 x^{-3/2}$, so $f''(4) = -\tfrac{1}{32}$, and the error at $x = 4.1$ should be about $-\tfrac{1}{64}(0.1)^2 \approx -0.000156$; the table gives $-0.000154$.
+in the sense that $\big(f(x) - L(x)\big)/(x - a)^2$ approaches $f''(a)/2$ as $x \to a$. And if $\abs{f''} \le M$ between $a$ and $x$, then $\abs{f(x) - L(x)} \le \dfrac{M}{2}(x - a)^2$. Both follow from Taylor's theorem, which Module 15 proves. For $\sqrt x$ at 4, $f''(x) = -\tfrac14 x^{-3/2}$, so $f''(4) = -\tfrac{1}{32}$, and the error at $x = 4.1$ should be about $-\tfrac{1}{64}(0.1)^2 \approx -0.000156$; the table gives $-0.000154$.
 
 ```check
 same(diff(sqrt(x), x, 2), -x**Rational(-3, 2)/4); same(diff(sqrt(x), x, 2).subs(x, 4), -Rational(1, 32))
 same(-Rational(1, 32)/2, -Rational(1, 64)); rounds(-Rational(1, 64)*Rational(1, 100), '-0.000156')
+limit_is((sqrt(x) - Lsq)/(x - 4)**2, x, 4, -Rational(1, 64))          # the quotient approaches f''(4)/2
 rounds(err4(Rational(41, 10)), '-0.000154')
 holds(abs(err4(Rational(41, 10))) <= Rational(1, 64)*Rational(1, 100))      # the bound with M = |f''(4)|, the largest on [4, 4.1]
 ```
@@ -431,7 +432,7 @@ Every measurement has an error, and whatever you compute from a measured quantit
 $$\Delta y \approx dy = f'(x)\,\Delta x.$$
 
 ::: definition Absolute and relative error
-Suppose a quantity whose true value is $x$ is measured, or computed, as $x + \Delta x$. The **absolute error** is $\abs{\Delta x}$. For $x \ne 0$, the **relative error** is $\abs{\Delta x}/\abs{x}$; written as a percentage, it is the **percentage error**.
+Suppose a quantity whose true value is $x$ is measured, or computed, as $\tilde x$ (read "x tilde"). The **error** of $\tilde x$ is $\Delta x = x - \tilde x$: the true value minus the approximation, the same order as in the error $f(x) - L(x)$ of Section 7.2. The **absolute error** is $\abs{\Delta x}$. For $x \ne 0$, the **relative error** is $\abs{\Delta x}/\abs{x}$; written as a percentage, it is the **percentage error**.
 :::
 
 In practice you know neither the true value nor the error, only the measured value and a bound on the error, such as "10.0 cm, to within 0.1 cm"; you then divide the bound by the measured value. When the error is small, the difference does not matter.
@@ -481,7 +482,7 @@ same(diff(c*x**kk, x)/(c*x**kk), kk/x)
 ```
 
 ::: pitfall
-The estimate $\Delta y \approx dy$ is a linear approximation, so it is good only for small errors. With a 50% error in the radius, the formula says that the volume is out by $3 \times 50\% = 150\%$, but $1.5^3 = 3.375$, so the true error is $237.5\%$. For large errors, compute $f(x + \Delta x) - f(x)$ itself.
+The estimate $\Delta y \approx dy$ is a linear approximation, so it is good only for small errors. If the radius is measured 50% too large, the formula says that the volume is out by $3 \times 50\% = 150\%$, but $1.5^3 = 3.375$, so the true error is $237.5\%$. For large errors, compute $f(x + \Delta x) - f(x)$ itself.
 
 ```check
 same(3*50, 150); same(Rational(3, 2)**3, Rational(3375, 1000)); same(100*(Rational(3, 2)**3 - 1), Rational(2375, 10))
@@ -498,7 +499,7 @@ same(x*diff(x**kk, x)/x**kk, kk); same(x*diff(x - 1, x)/(x - 1), x/(x - 1))
 
 ## Newton's method {#newton}
 
-Most equations cannot be solved exactly by algebra: no rearrangement of $\cos x = x$ leaves $x$ alone on one side, and even where a formula exists, as for cubic equations such as $x^3 - 2x - 5 = 0$, it is usually easier to compute the root numerically. Module 3's bisection method halves an interval that contains a root, gaining one binary digit, about 0.3 decimal digits, per step. **Newton's method** (also called the Newton–Raphson method) uses the derivative, and is far faster.
+Most equations cannot be solved exactly by algebra: no rearrangement of $\cos x = x$ leaves $x$ alone on one side, and even where a formula exists, as for cubic equations such as $x^3 - 2x - 5 = 0$, it is usually easier to compute the root numerically. Module 3's bisection method halves an interval that contains a root, gaining one binary digit, about 0.3 decimal digits, per step. **Newton's method** (also called the Newton–Raphson method) uses the derivative. Near a root it is far faster; but, unlike bisection, it comes with no guarantee, and the end of this section shows how it can fail.
 
 ```check
 rounds(log(2, 10), '0.3')
@@ -516,7 +517,7 @@ same(solve(fn_s + dn_s*(x - xn_s), x), [xn_s - fn_s/dn_s])
 ::: definition Newton's method
 To solve $f(x) = 0$, where $f$ is differentiable, choose a starting value $x_0$ and compute
 
-$$x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}, \qquad n = 0, 1, 2, \dots,$$
+$$x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}, \quad n = 0, 1, 2, \dots,$$
 
 as long as $f'(x_n) \ne 0$. The numbers $x_0, x_1, x_2, \dots$ are the **iterates**. Stop when they no longer change to the accuracy you need.
 :::
@@ -533,7 +534,7 @@ same(it3[1:], [Rational(11, 6), Rational(193, 132), Rational(72097, 50952)])
 rounds(it3[1], '1.83'); rounds(it3[2], '1.46'); rounds(it3[3], '1.415')
 ```
 
-To say how good an iterate is, count its correct decimals. An approximation $\tilde x$ (read "x tilde") of a number $r$ is **correct to $d$ decimal places** if $\abs{\tilde x - r} < 0.5 \times 10^{-d}$.
+To say how good an iterate is, count its correct decimals. An approximation $\tilde x$ of a number $r$ is **correct to $d$ decimal places** if its absolute error is less than half a unit in the $d$th decimal place: $\abs{r - \tilde x} < 0.5 \times 10^{-d}$. Correct to 0 decimal places means within 0.5 of $r$; further away, $\tilde x$ has no correct decimals at all.
 
 ::: example Newton's method for $\sqrt2$
 Use Newton's method to compute $\sqrt2$, starting from $x_0 = 1$.
@@ -678,7 +679,7 @@ rounds(53*log(2, 10), '16')                                # double precision: 5
 
 ### Why the digits double {#quadratic}
 
-For square roots, the doubling can be proved in a few lines.
+For square roots, the doubling can be proved in a few lines. For iterates it is convenient to measure the miss the other way round from an error: write $e_n = x_n - r$, where $r$ is the root. So $e_n$ is the error of $x_n$ with its sign reversed, positive when $x_n$ is too big, and $\abs{e_n}$ is its absolute error.
 
 ::: theorem Newton's method for square roots
 Let $a > 0$ and $x_0 > 0$, and let $x_{n+1} = \tfrac12\big(x_n + a/x_n\big)$ for $n = 0, 1, 2, \dots$. Then
@@ -693,7 +694,7 @@ All the iterates are positive: $x_0 > 0$, and each step averages two positive nu
 
 $$\begin{aligned} x_{n+1} - \sqrt a &= \frac{x_n^2 + a}{2x_n} - \sqrt a \\ &= \frac{x_n^2 - 2\sqrt a\,x_n + a}{2x_n} \\ &= \frac{(x_n - \sqrt a)^2}{2x_n}. \end{aligned}$$
 
-The right side is never negative, so $x_{n+1} \ge \sqrt a$ for every $n \ge 0$: all the iterates from $x_1$ on are at least $\sqrt a$. For such an $x_n$, $a/x_n \le \sqrt a \le x_n$, so $x_{n+1}$, the average of $a/x_n$ and $x_n$, is at most $x_n$: the iterates decrease. Finally, write $e_n = x_n - \sqrt a$ for the error. For $n \ge 1$, $0 \le e_n < x_n$, so
+The right side is never negative, so $x_{n+1} \ge \sqrt a$ for every $n \ge 0$: all the iterates from $x_1$ on are at least $\sqrt a$. For such an $x_n$, $a/x_n \le \sqrt a \le x_n$, so $x_{n+1}$, the average of $a/x_n$ and $x_n$, is at most $x_n$: the iterates decrease. Finally, here the root is $\sqrt a$, so $e_n = x_n - \sqrt a$. For $n \ge 1$, $0 \le e_n < x_n$, so
 
 $$e_{n+1} = e_n \cdot \frac{e_n}{2x_n} \le \frac{e_n}{2},$$
 
@@ -714,11 +715,11 @@ rounds(2*sqrt(2), '2.8'); rounds(Rational(1, 10)**10/(2*sqrt(2)), '4e-11')
 The same happens for any function with a nonzero derivative at its root.
 
 ::: theorem Newton's method converges quadratically
-Let $f(r) = 0$. Suppose that $f'$ and $f''$ are continuous on an open interval containing $r$, and that $f'(r) \ne 0$. Then there is a $\delta > 0$ such that, for every starting value $x_0$ with $\abs{x_0 - r} < \delta$, Newton's method never meets $f'(x_n) = 0$, the iterates approach $r$, and their errors $e_n = x_n - r$ satisfy
+Let $f(r) = 0$. Suppose that $f'$ and $f''$ are continuous on an open interval containing $r$, and that $f'(r) \ne 0$. Then there is a $\delta > 0$ such that, for every starting value $x_0$ with $\abs{x_0 - r} < \delta$, Newton's method never meets $f'(x_n) = 0$, the iterates approach $r$, and $e_n = x_n - r$ satisfies
 
 $$\lim_{n\to\infty}\frac{e_{n+1}}{e_n^2} = \frac{f''(r)}{2f'(r)}$$
 
-(if no iterate lands exactly on $r$). Each error is roughly a fixed multiple of the square of the one before: Newton's method **converges quadratically**.
+(if no iterate lands exactly on $r$). Each $e_{n+1}$ is roughly a fixed multiple of $e_n^2$, so each absolute error is roughly a fixed multiple of the square of the one before: Newton's method **converges quadratically**.
 :::
 
 **The idea of the proof.** Newton's step solves $L_n(x) = 0$, where $L_n$ is the linearisation of $f$ at $x_n$. The root solves $f(r) = 0$ instead, and by Section 7.2 the error of the linearisation at $r$ is $f(r) - L_n(r) \approx \tfrac12 f''(x_n)(r - x_n)^2$, so $L_n(r) \approx -\tfrac12 f''(x_n)\,e_n^2$. But $L_n$ is a line of slope $f'(x_n)$ that is 0 at $x_{n+1}$, so $L_n(r) = f'(x_n)(r - x_{n+1}) = -f'(x_n)\,e_{n+1}$. Equating the two expressions for $L_n(r)$ gives

@@ -15,9 +15,9 @@ goals:
 
 ## Vector fields {#fields}
 
-A weather map shows the wind as arrows. At each place an arrow points the way the wind blows, and its length shows how fast. One thing is being described, the motion of the air, but it needs a vector at every point: a direction and a size. Many quantities are like that. The velocity of the water at each point of a river, the pull of the Earth's gravity at each point of space around it, and the electric field around a charged particle each attach a vector to every point of a region.
+A weather map shows the wind as arrows: at each place an arrow points the way the wind blows, and its length shows how fast. The velocity of the water in a river, the pull of the Earth's gravity and the electric field around a charged particle are of the same kind: each attaches a vector, a direction and a size, to every point of a region.
 
-This last module does calculus with such fields. It integrates them along curves (the work done by a force along a path) and over surfaces (the rate at which a fluid flows through a net), and it differentiates them, to measure how much a flow turns and how much it spreads out. Its main theorems, Green's theorem, Stokes' theorem and the divergence theorem, turn out to be the Fundamental Theorem of Calculus of Module 10 in new forms; Section 20.8 puts them side by side.
+This last module integrates such fields along curves (the work done by a force along a path) and over surfaces (the rate at which a fluid flows through a net), and differentiates them, to measure how much a flow turns and how much it spreads out. Its main theorems, Green's theorem, Stokes' theorem and the divergence theorem, are the Fundamental Theorem of Calculus of Module 10 in new forms (Section 20.8).
 
 ::: definition Vector field
 Let $D$ be a set of points in the plane. A **vector field** on $D$ is a function $\vb{F}$ that assigns to each point $(x, y)$ of $D$ a vector
@@ -27,7 +27,7 @@ $$\vb{F}(x, y) = \big\langle P(x, y), Q(x, y)\big\rangle = P\,\vb{i} + Q\,\vb{j}
 A vector field on a set $E$ of points in space assigns to each point $(x, y, z)$ of $E$ a vector $\vb{F}(x, y, z) = \langle P, Q, R\rangle$. The functions $P$, $Q$ and $R$, whose values are numbers, are the **components** of $\vb{F}$.
 :::
 
-$\vb{F}(x, y)$ reads "F of x, y". A function whose values are numbers, such as the temperature at each point of a metal plate, is called a **scalar field** when it must be kept apart from vector fields. To draw a vector field, draw the arrow $\vb{F}(x, y)$ with its tail at the point $(x, y)$, for the points of a grid. Arrows of their true lengths would overlap, so they are all shortened by the same factor: their directions, and the ratios of their lengths, stay right.
+$\vb{F}(x, y)$ reads "F of x, y". A function whose values are numbers, such as the temperature of a metal plate, is called a **scalar field** when it must be kept apart from vector fields. To draw a vector field, draw the arrow $\vb{F}(x, y)$ with its tail at $(x, y)$, for the points of a grid, all shortened by the same factor so that they do not overlap.
 
 ::: example Rotation and source
 Describe the vector fields $\vb{F}(x, y) = \langle -y, x\rangle$ and $\vb{G}(x, y) = \langle x, y\rangle$.
@@ -42,9 +42,9 @@ Start with numbers:
 | $(0, -1)$ | $\langle 1, 0\rangle$ | $\langle 0, -1\rangle$ |
 | $(2, 2)$ | $\langle -2, 2\rangle$ | $\langle 2, 2\rangle$ |
 
-At $(1, 0)$, $\vb{F}$ points straight up; a quarter turn further round, at $(0, 1)$, it points left. In general $\vb{F}(x, y)\cdot\langle x, y\rangle = -yx + xy = 0$, so $\vb{F}$ is perpendicular to the position vector $\langle x, y\rangle$: it is tangent to the circle through $(x, y)$ centred at the origin, and points anticlockwise round it. Its length, $\sqrt{y^2 + x^2}$, is the distance from the origin. So $\vb{F}$ is the velocity field of a wheel turning anticlockwise at one radian per second, whose points at distance $r$ from the axle move round circles of radius $r$ at speed $r$ (Figure 20.1, left).
+At $(1, 0)$, $\vb{F}$ points straight up; a quarter turn further round, at $(0, 1)$, it points left. In general $\vb{F}(x, y)\cdot\langle x, y\rangle = -yx + xy = 0$, so $\vb{F}$ is perpendicular to the position vector $\langle x, y\rangle$: it is tangent to the circle through $(x, y)$ centred at the origin, and points anticlockwise round it. Its length, $\sqrt{y^2 + x^2}$, is the distance from the origin. So $\vb{F}$ is the velocity field of a wheel turning anticlockwise at one radian per second (Figure 20.1, left).
 
-$\vb{G}$ points straight away from the origin, again with length equal to the distance from the origin. A fluid with velocity $\vb{G}$ streams outwards, as if it were pumped in at the origin: $\vb{G}$ is a **source**. Its opposite, $-\vb{G} = \langle -x, -y\rangle$, points inwards everywhere: a **sink**.
+$\vb{G}$ points straight away from the origin, again with length equal to the distance from the origin. A fluid with velocity $\vb{G}$ streams outwards, as if pumped in at the origin: $\vb{G}$ is a **source**. Its opposite, $-\vb{G} = \langle -x, -y\rangle$, is a **sink**.
 
 ```check
 F201 = lambda X, Y: Matrix([-Y, X]); G201 = lambda X, Y: Matrix([X, Y])
@@ -57,7 +57,7 @@ same(F201(xr, yr).norm(), sqrt(xr**2 + yr**2)); same(G201(xr, yr).norm(), sqrt(x
 ```
 :::
 
-Fields from physics look the same. By Newton's law of gravitation, a body of mass $M$ at the origin pulls a body of mass $m$ at the point with position vector $\vb{r} = \langle x, y, z\rangle$ with the force
+By Newton's law of gravitation, a body of mass $M$ at the origin pulls a body of mass $m$ at the point with position vector $\vb{r} = \langle x, y, z\rangle$ with the force
 
 $$\vb{F}(x, y, z) = -\frac{GMm}{\norm{\vb{r}}^3}\,\vb{r},$$
 
@@ -70,12 +70,12 @@ same(simplify((Gc*Mc*mc/rn_**3*rv).norm()), Gc*Mc*mc/rn_**2)
 same((Gc*Mc*mc/rn_**2).subs({xr: 2*xr, yr: 2*yr, rv[2]: 2*rv[2]})/(Gc*Mc*mc/rn_**2), Rational(1, 4))
 ```
 
-Module 17 met vector fields without the name. The gradient $\nabla f = \langle f_x, f_y\rangle$ of a differentiable function $f(x, y)$ assigns a vector to each point: it is a vector field, the **gradient field** of $f$. At each point it points in the direction in which $f$ increases fastest, its length is that fastest rate of increase, and it is perpendicular to the level curve of $f$ through the point.
+Module 17 met vector fields without the name: the gradient $\nabla f = \langle f_x, f_y\rangle$ of a differentiable function $f(x, y)$ is a vector field, the **gradient field** of $f$. It points in the direction in which $f$ increases fastest, its length is that fastest rate of increase, and it is perpendicular to the level curves of $f$.
 
 ::: example A gradient field
 Find the gradient field of $f(x, y) = x^2 + 2y^2$, and check at the point $(2, 1)$ that it is perpendicular to the level curve of $f$ through that point.
 
-$\nabla f(x, y) = \langle 2x, 4y\rangle$, so $\nabla f(2, 1) = \langle 4, 4\rangle$. The level curve through $(2, 1)$ is the ellipse $x^2 + 2y^2 = 6$. Implicit differentiation ([Section 6.4](module_06_EN.html#implicit)) gives its slope: $2x + 4y\,y' = 0$, so $y' = -x/(2y)$, which is $-1$ at $(2, 1)$; the tangent line there has direction $\langle 1, -1\rangle$. Then $\langle 4, 4\rangle\cdot\langle 1, -1\rangle = 0$: the gradient is perpendicular to the ellipse. Everywhere, the arrows cross the ellipses $x^2 + 2y^2 = c$ at right angles and point outwards, to larger values of $f$ (Figure 20.1, right). They are steeper than the arrows of the source $\vb{G}$, because $f$ grows faster in the $y$-direction.
+$\nabla f(x, y) = \langle 2x, 4y\rangle$, so $\nabla f(2, 1) = \langle 4, 4\rangle$. The level curve through $(2, 1)$ is the ellipse $x^2 + 2y^2 = 6$. Implicit differentiation ([Section 6.4](module_06_EN.html#implicit)) gives $2x + 4y\,y' = 0$, so its slope is $y' = -x/(2y)$, which is $-1$ at $(2, 1)$: the tangent line there has direction $\langle 1, -1\rangle$. Then $\langle 4, 4\rangle\cdot\langle 1, -1\rangle = 0$. Everywhere, the arrows cross the ellipses $x^2 + 2y^2 = c$ at right angles and point outwards, to larger values of $f$ (Figure 20.1, right).
 
 ```check
 f202 = x**2 + 2*y**2
@@ -87,17 +87,17 @@ same(Matrix([4, 4]).dot(Matrix([1, -1])), 0)
 :::
 
 ::: figure id=fig-20-1
-Three vector fields. Left: the rotation field $\langle -y, x\rangle$ of Example 20.1, tangent to circles about the origin and longer further out; the dashed circle is a flow line. Middle: an inverse square field pointing towards the origin, like gravity; its arrows are all drawn the same length, because its true lengths vary too much to show (it is strongest near the origin). Right: the gradient field of $f(x, y) = x^2 + 2y^2$ (Example 20.2), crossing the level curves of $f$ (orange ellipses) at right angles.
+Three vector fields. Left: the rotation field $\langle -y, x\rangle$ of Example 20.1, tangent to circles about the origin and longer further out; the dashed circle is a flow line. Middle: an inverse square field pointing towards the origin, like gravity, with all arrows drawn the same length, because its true lengths vary too much to show. Right: the gradient field of $f(x, y) = x^2 + 2y^2$ (Example 20.2), crossing the level curves of $f$ (orange ellipses) at right angles.
 :::
 
-If $\vb{F}$ is the velocity field of a fluid, a particle carried by the fluid moves along a curve $\vb{r}(t)$ whose velocity at each moment is the field at its position: $\vb{r}'(t) = \vb{F}\big(\vb{r}(t)\big)$. Such a curve is a **flow line** (or streamline) of $\vb{F}$. For the rotation field the flow lines are circles: $\vb{r}(t) = \langle a\cos t, a\sin t\rangle$ has $\vb{r}'(t) = \langle -a\sin t, a\cos t\rangle$, which is $\vb{F}$ at the point $\vb{r}(t)$. Finding flow lines means solving differential equations, a step on from the direction fields of [Section 13.3](module_13_EN.html#direction-fields).
+A particle carried by a fluid with velocity field $\vb{F}$ moves along a **flow line** (or streamline) of $\vb{F}$: a curve $\vb{r}(t)$ whose velocity is always the field at its position, $\vb{r}'(t) = \vb{F}\big(\vb{r}(t)\big)$. For the rotation field the flow lines are circles: $\vb{r}(t) = \langle a\cos t, a\sin t\rangle$ has $\vb{r}'(t) = \langle -a\sin t, a\cos t\rangle$, which is $\vb{F}$ at $\vb{r}(t)$. Finding flow lines means solving differential equations, as with the direction fields of [Section 13.3](module_13_EN.html#direction-fields).
 
 ```check
 rfl = Matrix([a*cos(t), a*sin(t)]); same(rfl.diff(t), F201(rfl[0], rfl[1]))
 ```
 
 ::: pitfall
-The arrows in a picture do not have the field's true lengths, and the picture shows the field only at the points of its grid. Read directions and compare lengths from the picture; for values, use the formula. And keep vectors and numbers apart: $\vb{F}(2, 2) = \langle -2, 2\rangle$ is a vector, while its length $\norm{\vb{F}(2, 2)} = 2\sqrt2$ and the dot product $\vb{F}(2, 2)\cdot\vb{G}(2, 2) = 0$ are numbers.
+A picture shows the field only at the points of its grid, with scaled arrows: read directions and compare lengths from it, but take values from the formula. And keep vectors and numbers apart: $\vb{F}(2, 2) = \langle -2, 2\rangle$ is a vector, while its length $\norm{\vb{F}(2, 2)} = 2\sqrt2$ and the dot product $\vb{F}(2, 2)\cdot\vb{G}(2, 2) = 0$ are numbers.
 
 ```check
 same(F201(2, 2).norm(), 2*sqrt(2)); same(F201(2, 2).dot(G201(2, 2)), 0)
@@ -106,7 +106,7 @@ same(F201(2, 2).norm(), 2*sqrt(2)); same(F201(2, 2).dot(G201(2, 2)), 0)
 
 ## Line integrals {#line-integrals}
 
-A thin wire is bent into the upper half of the circle $x^2 + y^2 = 1$, with lengths in metres. It is thicker towards the top: suppose its density at the point $(x, y)$ is $\rho(x, y) = 1 + y$ kilograms per metre. What is its mass? For a straight rod, Module 12 integrated the density over an interval. Here, cut the wire into $n$ arcs of equal length $\pi/n$. On a short arc the density hardly changes, so the arc's mass is about the density at its midpoint times its length, and the mass of the wire is about the sum of these. The midpoint of the $i$th arc is at the angle $\theta_i = (i - \tfrac12)\pi/n$, at height $\sin\theta_i$, so the sum is
+A thin wire is bent into the upper half of the circle $x^2 + y^2 = 1$, with lengths in metres, and its density at the point $(x, y)$ is $\rho(x, y) = 1 + y$ kilograms per metre: it is heavier towards the top. What is its mass? Cut the wire into $n$ arcs of length $\pi/n$. On a short arc the density hardly changes, so the arc's mass is about the density at its midpoint times its length. The midpoint of the $i$th arc is at the angle $\theta_i = (i - \tfrac12)\pi/n$, at height $\sin\theta_i$, so the mass is about
 
 ```valuetable
 n = 4, 16, 64, 256
@@ -123,7 +123,7 @@ n | \sum_{i=1}^{n}\big(1 + \sin\theta_i\big)\dfrac{\pi}{n}
 
 The sums settle down near 5.1416. Their limit is a new kind of integral, an integral along a curve.
 
-A curve $C$ is **smooth** if it is traced once, without going back over itself, by a vector function $\vb{r}(t)$, $a \le t \le b$, whose derivative $\vb{r}'(t)$ is continuous and never the zero vector; it is **piecewise smooth** if it is made of finitely many smooth curves joined end to end. In a short time $\Delta t$ the point $\vb{r}(t)$ moves a distance of about speed times time, $\norm{\vb{r}'(t)}\,\Delta t$: that is the arc length formula of Module 16, $L = \int_a^b \norm{\vb{r}'(t)}\,dt$.
+A curve $C$ is **smooth** if it is traced once, without going back over itself, by a vector function $\vb{r}(t)$, $a \le t \le b$, whose derivative $\vb{r}'(t)$ is continuous and never the zero vector; it is **piecewise smooth** if it is made of finitely many smooth curves joined end to end. In a short time $\Delta t$ the point $\vb{r}(t)$ moves about speed times time, $\norm{\vb{r}'(t)}\,\Delta t$, which gives the arc length $L = \int_a^b \norm{\vb{r}'(t)}\,dt$ of Module 16.
 
 ::: definition Line integral of a function
 Let $C$ be a smooth curve traced by $\vb{r}(t)$, $a \le t \le b$, and let $f$ be a function that is continuous on $C$. The **line integral** of $f$ along $C$ is
@@ -133,7 +133,7 @@ $$\int_C f\,ds = \int_a^b f\big(\vb{r}(t)\big)\,\norm{\vb{r}'(t)}\,dt.$$
 For a piecewise smooth curve, add the line integrals along its smooth pieces.
 :::
 
-$\int_C f\,ds$ reads "the integral of f along C, d s"; $ds = \norm{\vb{r}'(t)}\,dt$ stands for the length of a short piece of the curve. Cutting $C$ into short pieces of lengths about $\norm{\vb{r}'(t_i)}\,\Delta t$ and adding $f$ times these lengths gives Riemann sums (Module 9) of the integral on the right, as the table did for the wire. With $f = 1$ the line integral is the length of $C$; with a density, the mass of a wire along $C$; divided by the length of $C$, the average value of $f$ along $C$.
+$\int_C f\,ds$ reads "the integral of f along C, d s"; $ds = \norm{\vb{r}'(t)}\,dt$ stands for the length of a short piece of the curve, and sums of $f$ times such lengths, like those in the table, are Riemann sums (Module 9) of the integral on the right. With $f = 1$ the line integral is the length of $C$; with a density, the mass of a wire along $C$; divided by the length of $C$, the average value of $f$ along $C$.
 
 ::: example The mass of a wire
 Find the mass of the wire above, and the height of its centre of mass.
@@ -171,7 +171,7 @@ same(integrate((1 + sin(2*u))*2, (u, 0, pi/2)), pi + 2)
 
 ### Work {#work}
 
-Module 16 found the work done by a constant force $\vb{F}$ that moves an object along a straight displacement $\vb{D}$: $W = \vb{F}\cdot\vb{D}$. [Section 12.6](module_12_EN.html#work) integrated a force that varies along a straight line. Now let the force vary from point to point and let the path curve. In a short time from $t$ to $t + \Delta t$, an object moving along $\vb{r}(t)$ is displaced by about $\vb{r}'(t)\,\Delta t$, and the force on it is about $\vb{F}\big(\vb{r}(t)\big)$, so the work done is about $\vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,\Delta t$. Adding these, and letting $\Delta t \to 0$, gives an integral.
+A constant force $\vb{F}$ that moves an object along a straight displacement $\vb{D}$ does the work $W = \vb{F}\cdot\vb{D}$ (Module 16), and [Section 12.6](module_12_EN.html#work) integrated a force that varies along a straight line. Now let the force vary from point to point and the path curve. From $t$ to $t + \Delta t$, an object moving along $\vb{r}(t)$ is displaced by about $\vb{r}'(t)\,\Delta t$, so the force does work of about $\vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,\Delta t$. Adding these, and letting $\Delta t \to 0$, gives an integral.
 
 ::: definition Line integral of a vector field
 Let $C$ be a smooth curve traced by $\vb{r}(t)$, $a \le t \le b$, and let $\vb{F}$ be a vector field that is continuous on $C$. The **line integral** of $\vb{F}$ along $C$ is
@@ -219,7 +219,7 @@ same(lint(F204, [t, 0], 0, 1) + lint(F204, [1, t], 0, 1), 1)
 :::
 
 ::: figure id=fig-20-2
-The force field $\langle -y, x\rangle$ of Example 20.4 and three paths from $(0, 0)$ to $(1, 1)$. Along the line $y = x$ (green) the force is perpendicular to the motion and does no work. Along the parabola $y = x^2$ (blue) it does work $\tfrac13$. Along the corner path (orange) it does no work on the bottom edge, where it is again perpendicular to the motion, and work 1 on the right edge, where its component along the motion is 1.
+The force field $\langle -y, x\rangle$ of Example 20.4 and three paths from $(0, 0)$ to $(1, 1)$. Along the line $y = x$ (green) the force is perpendicular to the motion and does no work. Along the parabola $y = x^2$ (blue) it does work $\tfrac13$. Along the corner path (orange) it does no work on the bottom edge and work 1 on the right edge.
 :::
 
 ### Direction and parametrisation {#direction}
@@ -256,7 +256,7 @@ same(integrate((1 + sin(pi - u))*1, (u, 0, pi)), pi + 2)     # the wire traced b
 So a line integral depends on the curve and its direction, not on the parametrisation: that is why the notation $\int_C$ mentions no parameter. Lengths, masses and averages, written with $ds$, do not depend on the direction either; work does.
 
 ::: pitfall
-Two slips. **(1)** Leaving out the speed: $\int_C f\,ds$ is $\int_a^b f\big(\vb{r}(t)\big)\,\norm{\vb{r}'(t)}\,dt$, not $\int_a^b f\big(\vb{r}(t)\big)\,dt$. With $\langle\cos 2u, \sin 2u\rangle$, $0 \le u \le \pi/2$, forgetting the speed 2 gives the wire a mass of $(\pi + 2)/2$, half the truth. **(2)** Using the position instead of the velocity: the work is $\int_a^b \vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,dt$. In Example 20.4(b), the dot product with $\vb{r}(t) = \langle t, t^2\rangle$ instead of $\vb{r}'(t)$ would give $-t^3 + t^3 = 0$, and the "work" 0, which is wrong.
+Two slips. **(1)** Leaving out the speed: $\int_C f\,ds$ is $\int_a^b f\big(\vb{r}(t)\big)\,\norm{\vb{r}'(t)}\,dt$, not $\int_a^b f\big(\vb{r}(t)\big)\,dt$. With $\langle\cos 2u, \sin 2u\rangle$, $0 \le u \le \pi/2$, forgetting the speed 2 gives the wire a mass of $(\pi + 2)/2$, half the truth. **(2)** Using the position instead of the velocity: in Example 20.4(b), the dot product of $\vb{F}$ with $\vb{r}(t) = \langle t, t^2\rangle$ instead of $\vb{r}'(t)$ gives $-t^3 + t^3 = 0$, and a wrong "work" of 0.
 
 ```check
 same(integrate(1 + sin(2*u), (u, 0, pi/2)), (pi + 2)/2)
@@ -317,12 +317,12 @@ plt.gca().set_aspect('equal')
 plt.show()
 ```
 
-A window opens with the field and the three paths, as in Figure 20.2; `quiver` scales the arrows to fit, as the figures of this module do.
+A window opens with the field and the three paths, as in Figure 20.2.
 :::
 
 ## Conservative fields {#conservative}
 
-The work done along a path usually depends on the path, as Example 20.4 showed. For gravity near the ground it does not: lifting a book from the floor to a shelf takes the same work against gravity whatever route the book takes. This section finds the fields with that property, and shows that for them a line integral is computed as a definite integral was in Module 10: find a function whose derivative is the integrand, and subtract its values at the ends.
+Work usually depends on the path, as Example 20.4 showed. For gravity near the ground it does not: lifting a book from the floor to a shelf takes the same work against gravity by any route. This section finds the fields with that property. For them a line integral is computed as in Module 10: find a function whose derivative is the integrand, and subtract its values at the ends.
 
 ::: theorem The fundamental theorem for line integrals
 Let $C$ be a piecewise smooth curve traced by $\vb{r}(t)$, $a \le t \le b$, from the point $A = \vb{r}(a)$ to the point $B = \vb{r}(b)$. Let $f$ be a function of two or three variables that is differentiable, with a continuous gradient, on an open region that contains $C$. Then
@@ -354,7 +354,7 @@ same(lint(grad3(fT), rT, 0, pi), fT.subs({x: -1, y: 0, z: pi}) - fT.subs({x: 1, 
 A vector field $\vb{F}$ on a region $D$ is **conservative** if $\vb{F} = \nabla f$ for some function $f$ on $D$. Such an $f$ is a **potential function**, or **potential**, of $\vb{F}$.
 :::
 
-As with antiderivatives, $f + K$ is a potential too, for every constant $K$. On a connected region (defined below) there are no others: if $\nabla f = \nabla g$, then $h = f - g$ has $\nabla h = \vb{0}$, and Theorem 20.2 gives $h(B) - h(A) = \int_C \vb{0}\cdot d\vb{r} = 0$ for any two points $A$ and $B$ joined by a curve $C$.
+As with antiderivatives, $f + K$ is a potential too, for every constant $K$. On a connected region (defined below) there are no others: if $\nabla f = \nabla g$, Theorem 20.2 for $h = f - g$ gives $h(B) - h(A) = \int_C \vb{0}\cdot d\vb{r} = 0$ for any two points joined by a curve $C$.
 
 By Theorem 20.2, the line integral of a continuous conservative field $\vb{F} = \nabla f$ depends only on the ends of the curve: it is **independent of the path**. In particular, along a **closed curve**, one that ends where it starts, $B = A$ and the line integral is 0. A circle on the integral sign marks a closed curve: $\oint_C \vb{F}\cdot d\vb{r}$ reads "the integral of F dot d r round C".
 
@@ -369,7 +369,7 @@ and in the same way for $y$ and $z$. So $\nabla\big(1/\norm{\vb{r}}\big) = -\vb{
 
 $$W = f(B) - f(A) = GMm\Big(\frac{1}{r_2} - \frac{1}{r_1}\Big),$$
 
-whatever the path. It is positive when the body falls closer ($r_2 < r_1$) and negative when it climbs away. Physicists call $U = -f = -GMm/\norm{\vb{r}}$ the **potential energy**: the work done by gravity is the drop $U(A) - U(B)$ in potential energy. When gravity is the only force, this work is also the gain in kinetic energy, so the total energy stays the same: it is conserved, which is where the name "conservative" comes from.
+whatever the path: positive when the body falls closer ($r_2 < r_1$), negative when it climbs away. Physicists call $U = -f = -GMm/\norm{\vb{r}}$ the **potential energy**, so the work done by gravity is the drop $U(A) - U(B)$. When gravity is the only force, this work is also the gain in kinetic energy, so the total energy stays the same: it is conserved, hence the name "conservative".
 
 ```check
 rnorm = sqrt(x**2 + y**2 + z**2)
@@ -440,7 +440,7 @@ $$\begin{aligned} \frac{\partial P}{\partial y} &= \frac{-(x^2 + y^2) + y\cdot 2
 
 **(b)** Take $\vb{r}(t) = \langle\cos t, \sin t\rangle$, $0 \le t \le 2\pi$. On $C$, $x^2 + y^2 = 1$, so $\vb{F}\big(\vb{r}(t)\big) = \langle -\sin t, \cos t\rangle$, which is $\vb{r}'(t)$. So $\vb{F}\cdot\vb{r}' = \sin^2 t + \cos^2 t = 1$, and $\oint_C \vb{F}\cdot d\vb{r} = 2\pi$.
 
-**(c)** No. By Theorem 20.3, a conservative field has line integral 0 round every closed curve, and this one has $2\pi$ round $C$, although $P_y = Q_x$ everywhere. On the right half-plane $x > 0$, though, $\vb{F}$ is conservative: it is the gradient of $\theta(x, y) = \arctan(y/x)$, the polar angle of Module 16, as differentiating shows. Going once round the origin increases the polar angle by $2\pi$, and that is the $2\pi$ of (b). No continuous function on the whole plane without the origin can be a potential, because the angle cannot be defined continuously all the way round: somewhere it must jump by $2\pi$.
+**(c)** No. By Theorem 20.3, a conservative field has line integral 0 round every closed curve, and this one has $2\pi$ round $C$, although $P_y = Q_x$ everywhere. On the right half-plane $x > 0$, though, $\vb{F}$ is the gradient of $\theta(x, y) = \arctan(y/x)$, the polar angle of Module 16 (differentiate to check). Going once round the origin increases the polar angle by $2\pi$: that is the $2\pi$ of (b). On the whole plane without the origin there is no potential, because the angle cannot be defined continuously all the way round: somewhere it must jump by $2\pi$.
 
 ```check
 P206, Q206 = -y/(x**2 + y**2), x/(x**2 + y**2)
@@ -472,7 +472,7 @@ Then $\vb{F} = \langle P, Q\rangle$ is conservative on $D$.
 Section 20.4 shows why, with Green's theorem. Example 20.6 shows that "simply connected" cannot be left out.
 
 ::: pitfall
-$P_y = Q_x$ on its own does not make a field conservative: check also that the region where $P$ and $Q$ have continuous partial derivatives is simply connected, as Example 20.6 warns. And compare the right derivatives, each component differentiated with respect to the other variable. For the rotation field $\langle -y, x\rangle$, $P_x = 0 = Q_y$, but that proves nothing: $P_y = -1 \ne 1 = Q_x$, and the field is not conservative.
+$P_y = Q_x$ on its own does not make a field conservative: check also that the region where $P$ and $Q$ have continuous partial derivatives is simply connected (Example 20.6). And compare the right derivatives, each component differentiated with respect to the other variable: for the rotation field $\langle -y, x\rangle$, $P_x = 0 = Q_y$, but $P_y = -1 \ne 1 = Q_x$, and the field is not conservative.
 :::
 
 ### Finding a potential {#potential}
@@ -585,9 +585,9 @@ bottom_ = lint(Matrix([P_i, Q_i]), [t, t**2], 0, 1); top_ = lint(Matrix([P_i, Q_
 same(bottom_ + top_, integrate(diff(Q_i, x) - diff(P_i, y), (y, x**2, x), (x, 0, 1)))
 ```
 
-**Other regions.** Green's theorem holds as stated for every region bounded by a piecewise smooth simple closed curve, but the proof for general regions is harder, and beyond this series. A region that can be cut into finitely many pieces of type I and type II follows from the proof above: apply it to each piece and add. Each cut is traced twice, once in each direction, so the line integrals along the cuts cancel, as with the small squares of Figure 20.3. The same cancellation gives Green's theorem for a region with holes, bounded by an outer curve and one or more inner curves, when every boundary curve is traced with $D$ on its left: the outer curve anticlockwise and the inner ones clockwise.
+**Other regions.** Green's theorem holds as stated for every region bounded by a piecewise smooth simple closed curve, but the general proof is beyond this series. A region that can be cut into finitely many pieces of type I and type II follows by applying the proof to each piece and adding: each cut is traced twice, once in each direction, so the line integrals along the cuts cancel, as in Figure 20.3. The same cancellation gives Green's theorem for a region with holes, when every boundary curve is traced with $D$ on its left: the outer curve anticlockwise and the inner ones clockwise.
 
-**Why the test of Section 20.3 works.** Let $D$ be open and simply connected, with $P_y = Q_x$ throughout $D$, and let $C$ be a simple closed curve in $D$. Since $D$ has no holes, the region $R$ that $C$ encloses lies in $D$, and Green's theorem gives $\oint_C \vb{F}\cdot d\vb{r} = \pm\iint_R (Q_x - P_y)\,dA = 0$ (with the sign set by the direction of $C$). So the line integral round every simple closed curve is 0, and Theorem 20.3 makes $\vb{F}$ conservative. That is the idea of the proof of Theorem 20.5; closed curves that cross themselves need more care. For the field of Example 20.6, Green's theorem cannot be used on the unit disc: the field is not defined at the origin, which is inside the circle.
+**Why the test of Section 20.3 works.** Let $D$ be open and simply connected, with $P_y = Q_x$ throughout $D$. A simple closed curve $C$ in $D$ encloses a region $R$ that lies in $D$, since $D$ has no holes, and Green's theorem gives $\oint_C \vb{F}\cdot d\vb{r} = \pm\iint_R (Q_x - P_y)\,dA = 0$ (the sign set by the direction of $C$). So the line integral round every simple closed curve is 0, and Theorem 20.3 makes $\vb{F}$ conservative. That is the idea of the proof of Theorem 20.5; closed curves that cross themselves need more care. For the field of Example 20.6, Green's theorem cannot be used on the unit disc, which contains the origin, where the field is not defined.
 
 ::: example A line integral made easy
 Evaluate $\displaystyle\oint_C \big(xy - e^{x^2}\big)\,dx + \big(x^2 + 3x + \ln(1 + y^2)\big)\,dy$, where $C$ is the circle $x^2 + y^2 = 4$, traced anticlockwise.
@@ -616,9 +616,9 @@ near(lhs208, 12*pi, 1e-20)
 
 ### Circulation and flux {#flux-form}
 
-For a positively oriented curve, $P\,dx + Q\,dy = \vb{F}\cdot\vb{T}\,ds$, so the left side of Green's theorem is $\oint_C \vb{F}\cdot\vb{T}\,ds$, the **circulation** of $\vb{F}$ round $C$. If $\vb{F}$ is the velocity of a fluid, it measures how strongly the fluid flows along $C$, round the loop.
+Since $P\,dx + Q\,dy = \vb{F}\cdot\vb{T}\,ds$, the left side of Green's theorem is $\oint_C \vb{F}\cdot\vb{T}\,ds$, the **circulation** of $\vb{F}$ round $C$. If $\vb{F}$ is the velocity of a fluid, it measures how strongly the fluid flows along $C$, round the loop.
 
-The other natural question about a fluid and a closed curve is how much fluid flows out across it. Only the normal component of the velocity carries fluid across. Turning the unit tangent $\vb{T} = \langle x', y'\rangle/\norm{\vb{r}'}$ a quarter turn clockwise gives the **outward unit normal**
+The other natural question is how much fluid flows out across $C$, and only the normal component of the velocity carries fluid across. Turning the unit tangent $\vb{T} = \langle x', y'\rangle/\norm{\vb{r}'}$ a quarter turn clockwise gives the **outward unit normal**
 
 $$\vb{n} = \frac{\langle y'(t), -x'(t)\rangle}{\norm{\vb{r}'(t)}},$$
 
@@ -646,7 +646,7 @@ $$\oint_C (-Q)\,dx + P\,dy = \iint_D \Big(\frac{\partial P}{\partial x} - \frac{
 which is the formula.
 :::
 
-If $\vb{F}$ is the velocity of a thin layer of fluid flowing in the plane, the flux is the rate at which fluid leaves $D$ across $C$ (in area per unit time), and $P_x + Q_y$ measures how fast the flow spreads out from each point; Section 20.5 names it the divergence. For the source $\vb{G} = \langle x, y\rangle$ and the unit circle, $\vb{G}\cdot\vb{n} = \cos^2 t + \sin^2 t = 1$, so the flux is $2\pi$, and indeed $\iint_D (1 + 1)\,dA = 2\pi$; the circulation is 0, since $\vb{G}$ is perpendicular to the circle. For the rotation field it is the other way round: circulation $2\pi$, flux 0. Try other fields and circles in the demonstration.
+If $\vb{F}$ is the velocity of a thin layer of fluid flowing in the plane, the flux is the rate at which fluid leaves $D$ across $C$ (in area per unit time), and $P_x + Q_y$, which Section 20.5 names the divergence, measures how fast the flow spreads out from each point. For the source $\vb{G} = \langle x, y\rangle$ and the unit circle, $\vb{G}\cdot\vb{n} = \cos^2 t + \sin^2 t = 1$, so the flux is $2\pi$, and indeed $\iint_D (1 + 1)\,dA = 2\pi$; the circulation is 0, since $\vb{G}$ is perpendicular to the circle. For the rotation field it is the other way round: circulation $2\pi$, flux 0.
 
 ```check
 Gs = Matrix([x, y]); on_c = lambda e_: e_.subs({x: cos(t), y: sin(t)}, simultaneous=True)
@@ -655,7 +655,7 @@ same(lint(Gs, rcu, 0, 2*pi), 0); same(lint(F204, rcu, 0, 2*pi), 2*pi); same(inte
 ```
 
 ::: widget name=vector-field
-Choose a field, then move the circle with the sliders, or drag on the picture to move its centre. The readout gives the circulation $\oint \vb{F}\cdot d\vb{r}$ (anticlockwise) and the outward flux $\oint \vb{F}\cdot\vb{n}\,ds$ round the circle, each beside the double integral over the disc that Green's theorem says it equals; all four are computed numerically. With the rotation field, move the circle anywhere: the circulation stays $2\pi r^2$, twice the area, because $Q_x - P_y = 2$ everywhere. With the shear $\langle y, 0\rangle$, every arrow is horizontal, yet the circulation is $-\pi r^2$. With the gradient field, whose potential's level curves are drawn, the circulation is 0 for every circle (Theorem 20.3). Finally choose your own field and type $P$ = `-y/(x^2+y^2)` and $Q$ = `x/(x^2+y^2)`, the field of Example 20.6. With the origin outside the circle the two sides agree; move the circle over the origin, and the circulation jumps to $2\pi$ while the double integral stays at 0: Green's theorem does not apply.
+Choose a field, then move the circle with the sliders, or drag on the picture to move its centre. The readout gives the circulation $\oint \vb{F}\cdot d\vb{r}$ (anticlockwise) and the outward flux $\oint \vb{F}\cdot\vb{n}\,ds$ round the circle, each beside the double integral over the disc that Green's theorem says it equals, all computed numerically. With the rotation field the circulation is $2\pi r^2$ wherever the circle is, because $Q_x - P_y = 2$ everywhere. With the shear $\langle y, 0\rangle$ every arrow is horizontal, yet the circulation is $-\pi r^2$. With the gradient field the circulation is 0 for every circle (Theorem 20.3). Then choose your own field, type $P$ = `-y/(x^2+y^2)` and $Q$ = `x/(x^2+y^2)` (Example 20.6), and move the circle over the origin: the circulation jumps to $2\pi$, although $Q_x - P_y = 0$ wherever $\vb{F}$ is defined, and the readout reports that Green's theorem does not apply.
 :::
 
 ### Area from the boundary {#area}
@@ -682,7 +682,7 @@ same(integrate(xe*diff(ye, t), (t, 0, 2*pi)), pi*ae*be_)
 ```
 :::
 
-**Planimeters.** A planimeter is a mechanical instrument that measures the area of a region drawn on paper, such as a field on a map. You trace the region's boundary once with its pointer, and a measuring wheel records a number proportional to the area, although the instrument never visits the inside of the region. Green's theorem explains how this can work: as the pointer goes round, the rolling of the wheel adds up a line integral round the boundary, and that line integral equals the area.
+**Planimeters.** A planimeter is a mechanical instrument that measures the area of a region drawn on paper, such as a field on a map, while its pointer traces the boundary once. It never visits the inside of the region: as the pointer goes round, the rolling of a measuring wheel adds up a line integral round the boundary, and by Green's theorem that line integral is the area.
 
 **Polygons.** For a polygon the area formula becomes a sum. Along the edge from $(x_1, y_1)$ to $(x_2, y_2)$, traced by $x = x_1 + t(x_2 - x_1)$, $y = y_1 + t(y_2 - y_1)$, $0 \le t \le 1$,
 
@@ -692,7 +692,7 @@ because on expanding, the terms with $t$ cancel. So each edge contributes $x_1y_
 
 $$A = \frac12\sum_{k=1}^{n} \big(x_ky_{k+1} - x_{k+1}y_k\big),$$
 
-where $(x_{n+1}, y_{n+1})$ means the first corner $(x_1, y_1)$ again. This is the **shoelace formula** (or surveyor's formula), which mapping and graphics software uses to compute the areas of polygons from the coordinates of their corners.
+where $(x_{n+1}, y_{n+1})$ means the first corner $(x_1, y_1)$ again. This is the **shoelace formula** (or surveyor's formula), which mapping and graphics software uses for the areas of polygons.
 
 ```check
 x1s, y1s, x2s, y2s = symbols('x_1 y_1 x_2 y_2')
@@ -712,7 +712,7 @@ def area(corners):
     total = 0
     for k in range(n):
         x1, y1 = corners[k]
-        x2, y2 = corners[(k + 1) % n]    # the next corner; after the last comes the first
+        x2, y2 = corners[(k + 1) % n]    # next corner; wraps round to the first
         total += x1*y2 - x2*y1
     return total/2
 
@@ -727,19 +727,20 @@ print(area([(0, 0), (4, 0), (4, 3), (2, 1), (0, 3)]))
 8.0
 ```
 
-The first rectangle, 2 by 1, has area 2. The second is the same rectangle with its corners listed clockwise: the sign of the answer gives the direction of the boundary, as Green's theorem says it should. The third polygon has a notch cut into its top; the formula does not need it to be convex. Regular polygons with more and more corners on the unit circle fill the circle:
+The first rectangle, 2 by 1, has area 2. The second is the same rectangle with its corners listed clockwise: the sign of the answer gives the direction of the boundary. The third polygon has a notch cut into its top; the formula does not need it to be convex. Regular polygons with more and more corners on the unit circle fill the circle:
 
 ```python
 for n in [6, 100, 10000]:
-    corners = [(math.cos(2*math.pi*k/n), math.sin(2*math.pi*k/n)) for k in range(n)]
+    step = 2*math.pi/n          # angle between neighbouring corners
+    corners = [(math.cos(k*step), math.sin(k*step)) for k in range(n)]
     print(n, area(corners))
 print(math.pi)
 ```
 
 ```output
 6 2.598076211353316
-100 3.139525976465666
-10000 3.1415924468808707
+100 3.1395259764656673
+10000 3.1415924468808574
 3.141592653589793
 ```
 
@@ -832,9 +833,9 @@ The curl measures the circulation per unit area round small loops: how strongly 
 
 **Expansion.** In the same way, the flux form of Green's theorem gives
 
-$$(\operatorname{div}\vb{F})(P_0) = \lim_{r\to0}\frac{1}{\pi r^2}\oint_{C_r} \vb{F}\cdot\vb{n}\,ds:$$
+$$(\operatorname{div}\vb{F})(P_0) = \lim_{r\to0}\frac{1}{\pi r^2}\oint_{C_r} \vb{F}\cdot\vb{n}\,ds.$$
 
-the divergence is the rate at which the flow carries fluid out of small regions, per unit of area (per unit of volume, in space, by the divergence theorem of Section 20.7). Where $\operatorname{div}\vb{F} > 0$ the fluid spreads out, as from the source; where it is negative the fluid gathers, as into the sink. A fluid that can be neither created nor compressed, as water nearly is, has $\operatorname{div}\vb{F} = 0$: what flows into a region flows out again.
+So the divergence is the rate at which the flow carries fluid out of small regions, per unit of area (per unit of volume, in space, by the divergence theorem of Section 20.7). Where $\operatorname{div}\vb{F} > 0$ the fluid spreads out, as from the source; where it is negative the fluid gathers, as into the sink. A fluid that can be neither created nor compressed, as water nearly is, has $\operatorname{div}\vb{F} = 0$: what flows into a region flows out again.
 
 ```check
 wv = symbols('omega', positive=True)
@@ -1075,7 +1076,11 @@ Let $S$ be an oriented surface with unit normal $\vb{n}$, and let $\vb{F}$ be a 
 $$\iint_S \vb{F}\cdot d\vb{S} = \iint_S \vb{F}\cdot\vb{n}\,dS.$$
 :::
 
-To compute it, trace $S$ once by $\vb{r}(u, v)$, $(u, v)$ in $D$, with $\vb{r}_u\times\vb{r}_v$ pointing to the side that $\vb{n}$ chooses. Then $\vb{n}\,dS = \dfrac{\vb{r}_u\times\vb{r}_v}{\norm{\vb{r}_u\times\vb{r}_v}}\,\norm{\vb{r}_u\times\vb{r}_v}\,dA$, and the lengths cancel:
+To compute it, trace $S$ once by $\vb{r}(u, v)$, $(u, v)$ in $D$, with $\vb{r}_u\times\vb{r}_v$ pointing to the side that $\vb{n}$ chooses. Then the lengths cancel,
+
+$$\vb{n}\,dS = \frac{\vb{r}_u\times\vb{r}_v}{\norm{\vb{r}_u\times\vb{r}_v}}\,\norm{\vb{r}_u\times\vb{r}_v}\,dA = \big(\vb{r}_u\times\vb{r}_v\big)\,dA,$$
+
+and so
 
 $$\iint_S \vb{F}\cdot d\vb{S} = \iint_D \vb{F}\big(\vb{r}(u, v)\big)\cdot\big(\vb{r}_u\times\vb{r}_v\big)\,dA.$$
 
@@ -1097,7 +1102,7 @@ same(Sa.dot(Sa/aS), aS); same(aS*4*pi*aS**2, 4*pi*aS**3)
 :::
 
 ::: pitfall
-Three slips with surfaces. **(1)** Forgetting $\norm{\vb{r}_u\times\vb{r}_v}$ in $\iint_S f\,dS$: it is the factor that turns $du\,dv$ into area, as $\norm{\vb{r}'(t)}$ turns $dt$ into length. **(2)** In a flux integral, using the length $\norm{\vb{r}_u\times\vb{r}_v}$ where the vector $\vb{r}_u\times\vb{r}_v$ belongs, or not checking which way it points: with $\vb{r}_\theta\times\vb{r}_\varphi = -\vb{r}_\varphi\times\vb{r}_\theta$, the normal of the sphere points inwards, and the flux of Example 20.14 comes out as $-4\pi a^3$. **(3)** Forgetting that orientation matters: the flux changes sign when the orientation is reversed, as $\int_C \vb{F}\cdot d\vb{r}$ does when $C$ is reversed, while $\iint_S f\,dS$, like $\int_C f\,ds$, does not.
+Two slips with surfaces. **(1)** Forgetting $\norm{\vb{r}_u\times\vb{r}_v}$ in $\iint_S f\,dS$: it is the factor that turns $du\,dv$ into area, as $\norm{\vb{r}'(t)}$ turns $dt$ into length. **(2)** In a flux integral, using the length $\norm{\vb{r}_u\times\vb{r}_v}$ where the vector $\vb{r}_u\times\vb{r}_v$ belongs, or not checking which way it points: with $\vb{r}_\theta\times\vb{r}_\varphi = -\vb{r}_\varphi\times\vb{r}_\theta$, the normal of the sphere points inwards, and the flux of Example 20.14 comes out as $-4\pi a^3$. The flux changes sign when the orientation is reversed, as $\int_C \vb{F}\cdot d\vb{r}$ does when $C$ is reversed, while $\iint_S f\,dS$, like $\int_C f\,ds$, does not.
 
 ```check
 same(Sa.dot(Sa.diff(ths).cross(Sa.diff(phs))), -aS**3*sin(phs)); same(integrate(-aS**3*sin(phs), (phs, 0, pi), (ths, 0, 2*pi)), -4*pi*aS**3)
@@ -1120,7 +1125,7 @@ $$\oint_C \vb{F}\cdot d\vb{r} = \iint_S \operatorname{curl}\vb{F}\cdot d\vb{S}.$
 
 When $S$ is a flat region of the $xy$-plane, oriented upwards, $\vb{n} = \vb{k}$ and $\operatorname{curl}\vb{F}\cdot\vb{k} = Q_x - P_y$: Stokes' theorem becomes Green's theorem.
 
-**The idea of the proof.** Cut $S$ into small patches, each nearly flat. Round each patch the circulation is about $(\operatorname{curl}\vb{F}\cdot\vb{n})\,\Delta S$: this is the small-square estimate of Section 20.4, made in the plane of the patch, with its normal $\vb{n}$ in place of $\vb{k}$. Now add over the patches. An edge shared by two patches is traced once in each direction, so its contributions cancel, and what is left is the circulation round the boundary $C$; meanwhile the terms $(\operatorname{curl}\vb{F}\cdot\vb{n})\,\Delta S$ add up to approximately $\iint_S \operatorname{curl}\vb{F}\cdot d\vb{S}$. For a surface that is a graph, a longer computation with the chain rule reduces Stokes' theorem to Green's theorem; the general proof is beyond this series.
+**The idea of the proof.** Cut $S$ into small, nearly flat patches. Round each patch the circulation is about $(\operatorname{curl}\vb{F}\cdot\vb{n})\,\Delta S$: the small-square estimate of Section 20.4, made in the plane of the patch, with its normal $\vb{n}$ in place of $\vb{k}$. Add over the patches. An edge shared by two patches is traced once in each direction, so its contributions cancel, and what is left is the circulation round $C$; meanwhile the terms $(\operatorname{curl}\vb{F}\cdot\vb{n})\,\Delta S$ add up to about $\iint_S \operatorname{curl}\vb{F}\cdot d\vb{S}$. For a surface that is a graph, a longer computation with the chain rule reduces Stokes' theorem to Green's theorem; the general proof is beyond this series.
 
 ::: example Stokes' theorem on a dome
 Let $\vb{F} = \langle z, x, y\rangle$, and let $S$ be the dome $z = 1 - x^2 - y^2$, $z \ge 0$, oriented upwards. Check Stokes' theorem by computing both sides.
@@ -1215,38 +1220,60 @@ same(side216, 4*pi); same(2*pi*1*2, 4*pi); same(top216 + bot216 + side216, 8*pi)
 Shrinking a ball $B_r$ of radius $r$ about a point $P_0$ gives the meaning of the divergence in space, as Green's theorem did in the plane: $(\operatorname{div}\vb{F})(P_0)$ is the limit of the outward flux through the surface of $B_r$ divided by the volume of $B_r$, the outflow per unit volume. Where $\operatorname{div}\vb{F} = 0$ throughout $E$, the flux in equals the flux out.
 
 ::: compute Both sides with SymPy
-The two theorems can be checked by computer. First Stokes' theorem on the dome of Example 20.15:
+The two theorems can be checked by computer. First Stokes' theorem on the dome of Example 20.15. The helper `at` puts a point into an expression, and `curl` follows Definition 20.6:
 
 ```python
 import sympy as sp
 x, y, z, t, r, th = sp.symbols('x y z t r theta')
+
+def at(e, p):
+    """e (an expression or a Matrix in x, y, z) at the point p."""
+    return e.subs({x: p[0], y: p[1], z: p[2]}, simultaneous=True)
+
+def curl(F):
+    P, Q, R = F
+    return sp.Matrix([sp.diff(R, y) - sp.diff(Q, z),
+                      sp.diff(P, z) - sp.diff(R, x),
+                      sp.diff(Q, x) - sp.diff(P, y)])
+
 F = sp.Matrix([z, x, y])
-at = lambda e, p: e.subs({x: p[0], y: p[1], z: p[2]}, simultaneous=True)   # e at the point p
-curlF = sp.Matrix([sp.diff(F[2], y) - sp.diff(F[1], z), sp.diff(F[0], z) - sp.diff(F[2], x), sp.diff(F[1], x) - sp.diff(F[0], y)])
 edge = sp.Matrix([sp.cos(t), sp.sin(t), 0])
 print(sp.integrate(at(F, edge).dot(edge.diff(t)), (t, 0, 2*sp.pi)))
-dome = sp.Matrix([r*sp.cos(th), r*sp.sin(th), 1 - r**2])    # the dome in polar coordinates
-N = dome.diff(r).cross(dome.diff(th))                         # r_r x r_theta: is it upwards?
-print(sp.simplify(N[2]))
-print(sp.integrate(sp.simplify(at(curlF, dome).dot(N)), (r, 0, 1), (th, 0, 2*sp.pi)))
 ```
 
 ```output
 pi
+```
+
+That is the line integral round the edge. For the surface integral, parametrise the dome with polar coordinates, $\vb{r}(r, \theta) = \langle r\cos\theta, r\sin\theta, 1 - r^2\rangle$:
+
+```python
+dome = sp.Matrix([r*sp.cos(th), r*sp.sin(th), 1 - r**2])
+N = dome.diff(r).cross(dome.diff(th))          # r_r x r_theta
+print(sp.simplify(N[2]))
+integrand = sp.simplify(at(curl(F), dome).dot(N))
+print(sp.integrate(integrand, (r, 0, 1), (th, 0, 2*sp.pi)))
+```
+
+```output
 r
 pi
 ```
 
-The dome is parametrised by polar coordinates, $\vb{r}(r, \theta) = \langle r\cos\theta, r\sin\theta, 1 - r^2\rangle$; the $z$-component $r$ of $\vb{r}_r\times\vb{r}_\theta$ is positive, so this normal points upwards, as the orientation asks. Both sides are $\pi$. Now the divergence theorem for $\vb{F} = \langle x^3, y^3, z^3\rangle$ and the unit ball, whose surface is the unit sphere of Example 20.11:
+The $z$-component $r$ of $\vb{r}_r\times\vb{r}_\theta$ is positive, so this normal points upwards, as the orientation asks, and both sides are $\pi$. Now the divergence theorem for $\vb{F} = \langle x^3, y^3, z^3\rangle$ and the unit ball, whose surface is the unit sphere of Example 20.11:
 
 ```python
 phi, rho = sp.symbols('phi rho')
 G = sp.Matrix([x**3, y**3, z**3])
-sphere = sp.Matrix([sp.sin(phi)*sp.cos(th), sp.sin(phi)*sp.sin(th), sp.cos(phi)])
-N = sphere.diff(phi).cross(sphere.diff(th))                   # outwards
-flux = sp.integrate(sp.simplify(at(G, sphere).dot(N)), (phi, 0, sp.pi), (th, 0, 2*sp.pi))
+sphere = sp.Matrix([sp.sin(phi)*sp.cos(th), sp.sin(phi)*sp.sin(th),
+                    sp.cos(phi)])
+N = sphere.diff(phi).cross(sphere.diff(th))    # outwards
+flux = sp.integrate(sp.simplify(at(G, sphere).dot(N)),
+                    (phi, 0, sp.pi), (th, 0, 2*sp.pi))
 divG = sp.diff(G[0], x) + sp.diff(G[1], y) + sp.diff(G[2], z)
-inside = sp.integrate(at(divG, rho*sphere)*rho**2*sp.sin(phi), (rho, 0, 1), (phi, 0, sp.pi), (th, 0, 2*sp.pi))
+dV = rho**2*sp.sin(phi)                         # spherical coordinates
+inside = sp.integrate(at(divG, rho*sphere)*dV,
+                      (rho, 0, 1), (phi, 0, sp.pi), (th, 0, 2*sp.pi))
 print(divG)
 print(flux, inside)
 ```

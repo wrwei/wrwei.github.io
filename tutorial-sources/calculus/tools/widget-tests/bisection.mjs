@@ -30,13 +30,17 @@ export async function run(t) {
   for (let i = 0; i < 4; i++) await t.click('Run 10 steps')
   t.check((await t.text('.cw-readout')).includes('neighbouring floating-point numbers') && (await t.count('tbody tr')) === 53, 'stops after 52 steps: the ends are neighbouring floating-point numbers')
 
-  // Reset returns to row 0.
+  // Reset returns to row 0; then [-2, 2]: f(-2) and f(2) have the same sign, so the method cannot start.
   await t.click('Reset')
-  t.check((await t.count('tbody tr')) === 1, 'Reset returns to the starting bracket')
-
-  // [-2, 2]: f(-2) and f(2) have the same sign, so the method cannot start.
+  const rowsAfterReset = await t.count('tbody tr')
   await t.type('.bi-a', '-2'); await t.wait(400)
-  t.check((await t.text('.cw-readout')).includes('cannot start') && (await t.attr('button.cw-primary', 'disabled')) !== null, 'a = −2: same signs, the method cannot start and Step is disabled')
+  t.check(rowsAfterReset === 1 && (await t.text('.cw-readout')).includes('cannot start') && (await t.attr('button.cw-primary', 'disabled')) !== null, 'Reset returns to the starting bracket; a = −2: same signs, the method cannot start and Step is disabled')
+
+  // x^3 - x on [-2, 3] contains the three roots -1, 0 and 1; bisection closes in on one of them, 1.
+  await t.select('select', 'three')
+  await t.click('Run 10 steps')
+  row = await lastRow(t)
+  t.check(num(row[1]) < 1 && 1 < num(row[2]) && num(row[2]) - num(row[1]) < 0.01, `x³ − x on [−2, 3]: after 10 steps the bracket [${row[1]}, ${row[2]}] holds only the root 1`)
 
   // The cubic of Example 3.5 on [2, 3].
   await t.select('select', 'cubic')

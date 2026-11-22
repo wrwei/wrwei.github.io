@@ -29,6 +29,12 @@ export async function run(t) {
   r = await t.text('.cw-readout')
   t.check(r.includes('a = 0.5') && r.includes('f(a) ≈ 0.47943') && r.includes('f′(a) ≈ 0.8776'), 'sin(x) at a = 0.5: f′(a) ≈ cos 0.5 ≈ 0.8776')
 
+  // The caption's second step: x·sin(x) at a = 0 is flat, as the product rule predicts (f′(0) = sin 0 + 0·cos 0 = 0).
+  await t.select('select', 'xsin')
+  await t.set('input[type=range]', 0)
+  r = await t.text('.cw-readout')
+  t.check(r.includes('f(a) = 0') && r.includes('f′(a) ≈ 0') && r.includes('Flat'), 'x·sin(x) at a = 0: flat, f′(0) = 0')
+
   // A typed function: x^2 is flat at 0; a mistake in the formula gives a message, not an error.
   await t.type('input[type=text]', 'x^2')
   await t.wait(400)
@@ -40,7 +46,7 @@ export async function run(t) {
   await t.wait(400)
   t.check((await t.text('.cw-msg')).length > 0, 'a mistyped formula shows a message')
 
-  // Example 5.14 close to its asymptote at π (the view is still −7 to 7): steep, but differentiable and rising;
+  // Example 5.13 close to its asymptote at π (the view is still −7 to 7): steep, but differentiable and rising;
   // the cube root at 0 has a vertical tangent: no derivative.
   await t.type('input[type=text]', 'sin(x)/(1 + cos(x))')
   await t.wait(400)

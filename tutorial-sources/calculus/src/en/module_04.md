@@ -111,13 +111,13 @@ h | \dfrac{(1+h)^3 - 1}{h}
 -0.1 | 2.71
 ```
 
-They approach 3, from above when $h > 0$ and from below when $h < 0$. By direct substitution, $m = \lim_{h\to0}(3 + 3h + h^2) = 3$, so the tangent line is
+They approach 3, from above when $h > 0$ and from below when $h < 0$. By direct substitution, $m = \lim_{h\to0}(3 + 3h + h^2) = 3$, so the tangent line is $y = 1 + 3(x - 1)$, that is,
 
-$$y = 1 + 3(x - 1), \quad\text{that is,}\quad y = 3x - 2.$$
+$$y = 3x - 2.$$
 
 It meets the curve where $x^3 = 3x - 2$, that is, where $x^3 - 3x + 2 = 0$. Since $x = 1$ is a solution, $x - 1$ is a factor ([Module 2](module_02_EN.html#factor)). To find the other factor, write $-3x + 2$ as $-x - (2x - 2)$ and group the terms:
 
-$$\begin{aligned} x^3 - 3x + 2 &= (x^3 - x) - (2x - 2) \\ &= x(x - 1)(x + 1) - 2(x - 1) \\ &= (x - 1)(x^2 + x - 2) \\ &= (x - 1)^2(x + 2), \end{aligned}$$
+$$\begin{aligned} &x^3 - 3x + 2 \\ &\quad= (x^3 - x) - (2x - 2) \\ &\quad= x(x - 1)(x + 1) - 2(x - 1) \\ &\quad= (x - 1)(x^2 + x - 2) \\ &\quad= (x - 1)^2(x + 2), \end{aligned}$$
 
 where the last step factors $x^2 + x - 2 = (x - 1)(x + 2)$. So the line meets the curve again at $x = -2$, at the point $(-2, -8)$. The repeated factor $(x - 1)^2$ is the algebraic mark of a tangent: the line meets the curve "twice" at $x = 1$.
 
@@ -178,7 +178,7 @@ Let $f(x) = 2x^2 - 5x + 1$. Find $f'(2)$ and the tangent line to the graph at $x
 
 First, $f(2) = 8 - 10 + 1 = -1$. Next substitute $2 + h$, keeping the brackets, and expand, with $(2 + h)^2 = 4 + 4h + h^2$:
 
-$$\begin{aligned} f(2 + h) &= 2(2 + h)^2 - 5(2 + h) + 1 \\ &= 2(4 + 4h + h^2) - 10 - 5h + 1 \\ &= 8 + 8h + 2h^2 - 10 - 5h + 1 \\ &= -1 + 3h + 2h^2. \end{aligned}$$
+$$\begin{aligned} &f(2 + h) \\ &\quad= 2(2 + h)^2 - 5(2 + h) + 1 \\ &\quad= 2(4 + 4h + h^2) - 10 - 5h + 1 \\ &\quad= 8 + 8h + 2h^2 - 10 - 5h + 1 \\ &\quad= -1 + 3h + 2h^2. \end{aligned}$$
 
 So $f(2 + h) - f(2) = 3h + 2h^2$, and
 
@@ -211,7 +211,7 @@ Find (a) $f'(2)$ for $f(x) = \dfrac1x$, using the second form, and (b) $g'(4)$ f
 
 **(a)** Combine the fractions over the common denominator $2x$:
 
-$$f(x) - f(2) = \frac1x - \frac12 = \frac{2 - x}{2x} = -\frac{x - 2}{2x}.$$
+$$\begin{aligned} f(x) - f(2) &= \frac1x - \frac12 = \frac{2 - x}{2x} \\ &= -\frac{x - 2}{2x}. \end{aligned}$$
 
 Divide by $x - 2$ (allowed, since $x \ne 2$ inside the limit) and let $x \to 2$:
 
@@ -219,19 +219,20 @@ $$f'(2) = \lim_{x\to2}\left(-\frac{1}{2x}\right) = -\frac14.$$
 
 The tangent line is $y = \tfrac12 - \tfrac14(x - 2)$, that is, $y = 1 - \tfrac{x}{4}$. The slope is negative because $1/x$ decreases; [Exercise 1.9](module_01_EN.html#ex-1-9) found the same number, $-1/a^2$ at $a = 2$, with the first form.
 
-**(b)** The quotient $\dfrac{\sqrt{4 + h} - 2}{h}$ is $\tfrac00$ at $h = 0$ and contains a square root, so rationalise: multiply the top and the bottom by $\sqrt{4 + h} + 2$, and use $(p - q)(p + q) = p^2 - q^2$ on the top:
+**(b)** Putting $h = 0$ in the quotient $\dfrac{\sqrt{4 + h} - 2}{h}$ gives $\tfrac00$, and the quotient contains a square root, so rationalise, as in Module 2: multiply the top and the bottom by $\sqrt{4 + h} + 2$, use $(p - q)(p + q) = p^2 - q^2$ on the top, and cancel the factor $h$ (allowed, since $h \ne 0$):
 
 $$\begin{aligned} \frac{\sqrt{4 + h} - 2}{h} &= \frac{(4 + h) - 4}{h\big(\sqrt{4 + h} + 2\big)} \\ &= \frac{1}{\sqrt{4 + h} + 2}. \end{aligned}$$
 
-By the limit laws, $g'(4) = \dfrac{1}{\sqrt4 + 2} = \dfrac14$. The tangent line is $y = 2 + \tfrac14(x - 4)$, that is, $y = 1 + \tfrac{x}{4}$. Near $x = 4$ it is a good stand-in for the curve: at $x = 4.1$ it gives 2.025, while $\sqrt{4.1} \approx 2.0248$. Module 7 turns this observation into a method, linear approximation.
+The square root is continuous at 4 (Module 3), so $\sqrt{4 + h} \to 2$ as $h \to 0$, and $g'(4) = \dfrac{1}{2 + 2} = \dfrac14$. The tangent line is $y = 2 + \tfrac14(x - 4)$, that is, $y = 1 + \tfrac{x}{4}$. Near $x = 4$ it is a good stand-in for the curve: at $x = 4.1$ it gives 2.025, while $\sqrt{4.1} \approx 2.0248$. Module 7 turns this observation into a method, linear approximation.
 
 ```check
 steps(1/x - Rational(1, 2), (2 - x)/(2*x), -(x - 2)/(2*x))
 same((1/x - Rational(1, 2))/(x - 2), -1/(2*x))
 limit_is((1/x - Rational(1, 2))/(x - 2), x, 2, -Rational(1, 4)); same((-1/a**2).subs(a, 2), -Rational(1, 4))
 same(expand(Rational(1, 2) - Rational(1, 4)*(x - 2)), 1 - x/4)
-steps((sqrt(4 + h) - 2)/h, ((4 + h) - 4)/(h*(sqrt(4 + h) + 2)), 1/(sqrt(4 + h) + 2))
-limit_is((sqrt(4 + h) - 2)/h, h, 0, Rational(1, 4)); same(1/(sqrt(4) + 2), Rational(1, 4))
+same((sqrt(4 + h) - 2).subs(h, 0), 0)
+steps((sqrt(4 + h) - 2)/h, ((sqrt(4 + h) - 2)*(sqrt(4 + h) + 2))/(h*(sqrt(4 + h) + 2)), ((4 + h) - 4)/(h*(sqrt(4 + h) + 2)), 1/(sqrt(4 + h) + 2))
+limit_is(sqrt(4 + h), h, 0, 2); limit_is((sqrt(4 + h) - 2)/h, h, 0, Rational(1, 4)); same(1/(2 + 2), Rational(1, 4))
 same(expand(2 + Rational(1, 4)*(x - 4)), 1 + x/4); same((1 + x/4).subs(x, Rational(41, 10)), Rational(2025, 1000))
 rounds(sqrt(Rational(41, 10)), '2.0248')
 ```
@@ -250,7 +251,7 @@ The **derivative** of $f$ is the function $f'$ given by
 
 $$f'(x) = \lim_{h\to0}\frac{f(x + h) - f(x)}{h}$$
 
-at every $x$ where this limit exists. Its domain is the set of those $x$, which may be smaller than the domain of $f$. Finding $f'$ is called **differentiating** $f$.
+at every $x$ at which $f$ is differentiable, that is, at which this limit exists in the sense of Definition 4.3. Its domain is the set of those $x$, which may be smaller than the domain of $f$. Finding $f'$ is called **differentiating** $f$.
 :::
 
 In the limit, $x$ stays fixed while $h$ moves.
@@ -258,19 +259,21 @@ In the limit, $x$ stays fixed while $h$ moves.
 ::: example The derivatives of $x^2$ and $\sqrt x$
 Find $f'(x)$ for $f(x) = x^2$ and $g'(x)$ for $g(x) = \sqrt x$, with their domains.
 
-For $f$: $(x + h)^2 - x^2 = 2xh + h^2$, so for $h \ne 0$ the difference quotient is $2x + h$, and $f'(x) = \lim_{h\to0}(2x + h) = 2x$ for every real $x$.
+For $f$: $(x + h)^2 - x^2 = (x^2 + 2xh + h^2) - x^2 = 2xh + h^2$, so for $h \ne 0$ the difference quotient is $\dfrac{2xh + h^2}{h} = 2x + h$, and $f'(x) = \lim_{h\to0}(2x + h) = 2x$ for every real $x$.
 
-For $g$, rationalise as in Example 4.4: for $x > 0$,
+For $g$, rationalise as in Example 4.4: for $x > 0$ (and $h \ne 0$ small enough that $x + h > 0$),
 
-$$\begin{aligned} \frac{\sqrt{x + h} - \sqrt x}{h} &= \frac{(x + h) - x}{h\big(\sqrt{x + h} + \sqrt x\big)} \\ &= \frac{1}{\sqrt{x + h} + \sqrt x}, \end{aligned}$$
+$$\begin{aligned} \frac{\sqrt{x + h} - \sqrt x}{h} &= \frac{(x + h) - x}{h\big(\sqrt{x + h} + \sqrt x\big)} \\ &= \frac{1}{\sqrt{x + h} + \sqrt x}. \end{aligned}$$
 
-so $g'(x) = \dfrac{1}{2\sqrt x}$ for $x > 0$. (At $x = 4$ this gives $\tfrac14$, as before.) At $x = 0$ the definition does not apply, because $\sqrt x$ is not defined to the left of 0; and even from the right, the quotient $\dfrac{\sqrt h - 0}{h} = \dfrac{1}{\sqrt h}$ grows without bound as $h \to 0^+$. So $g$ has domain $[0, \infty)$, but $g'$ has domain $(0, \infty)$: the graph of $\sqrt x$ starts out vertically at the origin.
+As $h \to 0$, $\sqrt{x + h} \to \sqrt x$, because the square root is continuous, so $g'(x) = \dfrac{1}{\sqrt x + \sqrt x} = \dfrac{1}{2\sqrt x}$ for $x > 0$. (At $x = 4$ this gives $\tfrac14$, as before.) At $x = 0$ the definition does not apply, because $\sqrt x$ is not defined to the left of 0; and even from the right, the quotient $\dfrac{\sqrt h - 0}{h} = \dfrac{1}{\sqrt h}$ grows without bound as $h \to 0^+$. So $g$ has domain $[0, \infty)$, but $g'$ has domain $(0, \infty)$: the graph of $\sqrt x$ starts out vertically at the origin.
 
 ```check
+steps((x + h)**2 - x**2, (x**2 + 2*x*h + h**2) - x**2, 2*x*h + h**2)
 steps(((x + h)**2 - x**2)/h, (2*x*h + h**2)/h, 2*x + h)
 limit_is(((x + h)**2 - x**2)/h, h, 0, 2*x)
 xp = symbols('x', positive=True)
 steps((sqrt(xp + h) - sqrt(xp))/h, ((xp + h) - xp)/(h*(sqrt(xp + h) + sqrt(xp))), 1/(sqrt(xp + h) + sqrt(xp)))
+limit_is(sqrt(xp + h), h, 0, sqrt(xp)); same(1/(sqrt(xp) + sqrt(xp)), 1/(2*sqrt(xp)))
 limit_is((sqrt(xp + h) - sqrt(xp))/h, h, 0, 1/(2*sqrt(xp)))
 same((1/(2*sqrt(x))).subs(x, 4), Rational(1, 4))
 hp = symbols('h', positive=True)
@@ -302,7 +305,7 @@ Now compare with the top graph.
 - The graph of $f$ has horizontal tangents at its peak $(-1, 2)$ and at its trough $(1, -2)$. Indeed $f'(x) = 3x^2 - 3 = 0$ exactly when $x = \pm1$.
 - To the left of $-1$ and to the right of 1 the graph rises, and there $f'(x) = 3(x^2 - 1) > 0$, since $x^2 > 1$.
 - Between $-1$ and 1 the graph falls, and $f'(x) < 0$. It falls most steeply at $x = 0$, where $f'(0) = -3$ is the smallest value of $f'$.
-- A half turn about the origin leaves the graph of $f$ unchanged ($f$ is odd), and a half turn turns every line into a parallel one. So the tangents at $x$ and at $-x$ have the same slope: $f'$ is even, $f'(-x) = f'(x)$.
+- A half turn about the origin leaves the graph of $f$ unchanged ($f$ is odd), so it takes the point at $x$ to the point at $-x$, and the tangent there to the tangent at $-x$. A half turn turns every line into a parallel one, so these two tangents have the same slope: $f'$ is even, $f'(-x) = f'(x)$.
 
 ```check
 from sympy.calculus.util import function_range
@@ -332,7 +335,7 @@ To sketch $f'$ from the graph of $f$:
 - where $f$ has a corner, a cusp, a vertical tangent or a jump, $f'$ is not defined (Section 4.4).
 :::
 
-The second rule follows from the definition. Call $f$ **increasing** on an interval if $x_1 < x_2$ in the interval always gives $f(x_1) < f(x_2)$ (strictly increasing, in [Exercise 1.10](module_01_EN.html#ex-1-10)). If $f$ is increasing on an open interval that contains $x$, then for every small $h \ne 0$ the numerator $f(x + h) - f(x)$ has the same sign as $h$, so every difference quotient is positive. Their limit $f'(x)$ cannot be negative: if it were, the quotients for small $h$ would lie within $\abs{f'(x)}/2$ of it and so would be negative too. The limit can be 0, though: $x^3$ is increasing, yet its tangent at 0 is horizontal. The converse, that $f' > 0$ on an interval makes $f$ increasing there, is true as well, but its proof needs the Mean Value Theorem of Module 8.
+The second rule follows from the definition. Call $f$ **increasing** on an interval if $x_1 < x_2$ in the interval always gives $f(x_1) < f(x_2)$ (strictly increasing, in [Exercise 1.10](module_01_EN.html#ex-1-10)), and **decreasing** if it always gives $f(x_1) > f(x_2)$. Suppose that $f$ is increasing on an open interval that contains $x$, and differentiable at $x$. For every $h \ne 0$ small enough that $x + h$ lies in the interval, the numerator $f(x + h) - f(x)$ has the same sign as $h$, so every such difference quotient is positive. Their limit $f'(x)$ cannot be negative: if it were, the quotients for small $h$ would lie within $\abs{f'(x)}/2$ of it and so would be negative too. The limit can be 0, though: $x^3$ is increasing, yet its tangent at 0 is horizontal. In the same way, $f'(x) \le 0$ where $f$ is decreasing. A partial converse is true as well: if $f' > 0$ at every point of an interval, then $f$ is increasing there. Its proof needs the Mean Value Theorem of Module 8.
 
 ```check
 same(diff(x**3, x).subs(x, 0), 0)
@@ -416,7 +419,7 @@ The **right-hand derivative** and the **left-hand derivative** of $f$ at $a$ are
 
 $$\begin{aligned} f'_+(a) &= \lim_{h\to0^+}\frac{f(a + h) - f(a)}{h}, \\ f'_-(a) &= \lim_{h\to0^-}\frac{f(a + h) - f(a)}{h}, \end{aligned}$$
 
-when these limits exist. A function is **differentiable on an open interval** if it is differentiable at every point of the interval, and **differentiable on a closed interval** $[a, b]$ if it is differentiable on $(a, b)$ and has a right-hand derivative at $a$ and a left-hand derivative at $b$.
+when these limits exist (as real numbers). A function is **differentiable on an open interval** if it is differentiable at every point of the interval, and **differentiable on a closed interval** $[a, b]$ if it is differentiable on $(a, b)$ and has a right-hand derivative at $a$ and a left-hand derivative at $b$.
 :::
 
 The symbols read "f prime plus of a" and "f prime minus of a". A two-sided limit exists exactly when both one-sided limits exist and are equal (Module 2), so $f'(a)$ exists exactly when both one-sided derivatives exist and are equal, and then all three are the same number. Now the four functions, one by one.
@@ -471,10 +474,12 @@ Two consequences are worth separating.
 - **The contrapositive**: if $f$ is not continuous at $a$, it is not differentiable at $a$. That settles the jump of Figure 4.3, and every other discontinuity, at once.
 - **The converse is false**: a continuous function need not be differentiable. $\abs{x}$, $x^{2/3}$ and $x^{1/3}$ are all continuous at 0 (Module 3), and none of them is differentiable there.
 
-So differentiability is the stronger property. Continuity says that the graph has no breaks; differentiability says, in addition, that it has no corners, cusps or vertical tangents there: zoomed in, it looks like a line that is not vertical.
+So differentiability is the stronger property. Continuity at $a$ says that the graph does not break there; differentiability says, in addition, that zoomed in at $a$, the graph looks like a line that is not vertical. That rules out corners, cusps and vertical tangents, and other failures too: in [Exercise 4.11](#ex-4-11) a continuous function wiggles so fast near 0 that its secants from the origin never settle on any slope, from either side.
 
 ```check
 limit_is(Abs(x), x, 0, 0); limit_is(real_root(x**2, 3), x, 0, 0); limit_is(real_root(x, 3), x, 0, 0)
+limit_is(x*sin(1/x), x, 0, 0); same(x*sin(1/x)/x, sin(1/x))                     # Exercise 4.11: continuous, and the quotient is sin(1/h)
+same(limit(sin(1/h), h, 0, '+'), AccumBounds(-1, 1)); same(limit(sin(1/h), h, 0, '-'), AccumBounds(-1, 1))
 ```
 
 ::: pitfall
@@ -512,12 +517,12 @@ Look at what the definition has given so far: $\big(x^2\big)' = 2x$ (Example 4.5
 
 $$(x + h)^3 = x^3 + 3x^2h + 3xh^2 + h^3,$$
 
-the $x^3$ cancels against $-x^3$, the term $3x^2h$ becomes $3x^2$ after dividing by $h$, and every other term contains $h^2$, so it still contains $h$ after dividing and vanishes in the limit. That is the whole proof, for every power.
+the $x^3$ cancels against $-x^3$, the term $3x^2h$ becomes $3x^2$ after dividing by $h$, and every other term contains $h^2$, so it still contains $h$ after dividing and vanishes in the limit. That is the idea of the proof, and the proof below carries it out for every power.
 
 ::: theorem Constant rule and power rule
 For every constant $c$, every positive integer $n$ and every real $x$,
 
-$$\frac{d}{dx}(c) = 0 \qquad\text{and}\qquad \frac{d}{dx}\big(x^n\big) = nx^{n-1}.$$
+$$\frac{d}{dx}(c) = 0 \quad\text{and}\quad \frac{d}{dx}\big(x^n\big) = nx^{n-1}.$$
 
 In particular, $\dfrac{d}{dx}(x) = 1$ (here $x^0$ means 1, also at $x = 0$).
 :::
@@ -579,18 +584,19 @@ $$\begin{aligned} (cf)'(x) &= c\,f'(x), \\ (f + g)'(x) &= f'(x) + g'(x), \\ (f -
 ::: proof
 Each rule follows from a limit law of Module 2. For the constant multiple, the difference quotient of $cf$ is
 
-$$\frac{cf(x + h) - cf(x)}{h} = c\cdot\frac{f(x + h) - f(x)}{h},$$
+$$\begin{aligned} &\frac{cf(x + h) - cf(x)}{h} \\ &\quad= c\cdot\frac{f(x + h) - f(x)}{h}, \end{aligned}$$
 
-which tends to $c\,f'(x)$ by the constant multiple law. For the sum, the difference quotient of $f + g$ splits into two:
+which tends to $c\,f'(x)$ by the constant multiple law. For the sum, write $\Delta f = f(x + h) - f(x)$ and $\Delta g = g(x + h) - g(x)$ for the changes in $f$ and $g$, with the $\Delta$ of Module 1. Regrouping the terms, the change in $f + g$ is
 
-$$\begin{aligned} &\frac{\big(f(x + h) + g(x + h)\big) - \big(f(x) + g(x)\big)}{h} \\ &\quad= \frac{f(x + h) - f(x)}{h} + \frac{g(x + h) - g(x)}{h}, \end{aligned}$$
+$$\begin{aligned} &\big(f(x + h) + g(x + h)\big) \\ &\quad - \big(f(x) + g(x)\big) = \Delta f + \Delta g, \end{aligned}$$
 
-which tends to $f'(x) + g'(x)$ by the sum law. Finally, $f - g = f + (-1)g$, so the first two rules give $(f - g)' = f' + (-1)g' = f' - g'$.
+so the difference quotient of $f + g$ is $\dfrac{\Delta f + \Delta g}{h} = \dfrac{\Delta f}{h} + \dfrac{\Delta g}{h}$, which tends to $f'(x) + g'(x)$ by the sum law. Finally, $f - g = f + (-1)g$, so the first two rules give $(f - g)' = f' + (-1)g' = f' - g'$.
 :::
 
 ```check
 G = Function('G')
 same((c*F(x + h) - c*F(x))/h, c*(F(x + h) - F(x))/h)
+same((F(x + h) + G(x + h)) - (F(x) + G(x)), (F(x + h) - F(x)) + (G(x + h) - G(x)))
 same(((F(x + h) + G(x + h)) - (F(x) + G(x)))/h, (F(x + h) - F(x))/h + (G(x + h) - G(x))/h)
 same(diff(c*F(x), x), c*diff(F(x), x)); same(diff(F(x) + G(x), x), diff(F(x), x) + diff(G(x), x))
 same(diff(F(x) - G(x), x), diff(F(x), x) - diff(G(x), x))
@@ -642,7 +648,7 @@ Find the points where the graph of $g(x) = 2x^3 - 9x^2 + 12x - 4$ has a horizont
 
 A horizontal tangent has slope 0, so solve $g'(x) = 0$. By the rules,
 
-$$\begin{aligned} g'(x) &= 6x^2 - 18x + 12 \\ &= 6(x^2 - 3x + 2) = 6(x - 1)(x - 2), \end{aligned}$$
+$$\begin{aligned} g'(x) &= 6x^2 - 18x + 12 \\ &= 6(x^2 - 3x + 2) \\ &= 6(x - 1)(x - 2), \end{aligned}$$
 
 which is 0 exactly at $x = 1$ and $x = 2$. Since $g(1) = 2 - 9 + 12 - 4 = 1$ and $g(2) = 16 - 36 + 24 - 4 = 0$, the graph has horizontal tangents at $(1, 1)$ and $(2, 0)$. For $1 < x < 2$ one factor is positive and the other negative, so $g'(x) < 0$: the tangents there slope downwards. Module 8 proves that the graph then falls from $(1, 1)$ to $(2, 0)$, and turns this reasoning into a method for finding maxima and minima.
 
@@ -767,6 +773,7 @@ The sign of $a$ tells you which way $v$ is changing (Module 8 proves that a posi
 
 ```check
 same(diff(Rational(98, 10)*t, t), Rational(98, 10)); same(diff(s49, t, 2), Rational(98, 10))
+same(diff(20*t - 2*t**2, t), 20 - 4*t); same(diff(20*t - 2*t**2, t, 2), -4)      # the braking car
 ```
 
 ::: example A particle moving back and forth
@@ -873,7 +880,7 @@ h | \text{forward} - \tfrac14 | \text{central} - \tfrac14
 
 Each row divides $h$ by 10; the forward error shrinks by a factor of 10 and the central error by a factor of 100.
 
-Central differences are also the natural choice for measured data. [Exercise 1.11](module_01_EN.html#ex-1-11) showed that for a quadratic, such as the falling ball's $s(t) = 4.9t^2$, the central difference is exact for every $h$.
+Central differences are also the natural choice for data measured at equally spaced times: the estimate at each inner time uses the measurements on both sides of it. And [Exercise 1.11](module_01_EN.html#ex-1-11) showed that for a quadratic, such as the falling ball's $s(t) = 4.9t^2$, the central difference is exact for every $h$.
 
 ::: compute Velocities from measurements
 Suppose you know the falling ball only from its table of positions in Section 1.3, measured every 0.5 s. Central differences estimate the velocity at the inner times; NumPy's `np.gradient` computes the same central differences, with a forward and a backward difference at the two ends:
@@ -927,10 +934,12 @@ This is not special to $x^3$:
 If $f''$ is continuous near $a$, the forward difference has error about $\tfrac{h}{2}f''(a)$, which is $O(h)$. If $f'''$ is continuous near $a$, the central difference has error about $\tfrac{h^2}{6}f'''(a)$, which is $O(h^2)$. Module 15 proves both, with Taylor's theorem.
 :::
 
-For $x^3$ these give $3ah$ and $h^2$, the leading parts of the errors of Example 4.11. For $\sqrt x$ at 4 they predict $-\tfrac{h}{64}$ and $\tfrac{h^2}{512}$; for $h = 0.1$ that is $-0.00156$ and $0.0000195$, close to the first row of the table above.
+For $x^3$, with $f''(a) = 6a$ and $f'''(a) = 6$, these give $3ah$ and $h^2$, the leading parts of the errors of Example 4.11. For $\sqrt x$ at 4, where $f''(4) = -\tfrac{1}{32}$ and $f'''(4) = \tfrac{3}{256}$ (by the power rule for fractional exponents, which Module 6 proves), they predict $-\tfrac{h}{64}$ and $\tfrac{h^2}{512}$; for $h = 0.1$ that is $-0.00156$ and $0.0000195$, close to the first row of the table above.
 
 ```check
+same(diff(x**3, x, 2).subs(x, a), 6*a); same(diff(x**3, x, 3), 6)
 same(diff(x**3, x, 2).subs(x, a)*h/2, 3*a*h); same(diff(x**3, x, 3)*h**2/6, h**2)
+same(diff(sqrt(x), x, 2).subs(x, 4), -Rational(1, 32)); same(diff(sqrt(x), x, 3).subs(x, 4), Rational(3, 256))
 same(diff(sqrt(x), x, 2).subs(x, 4)*h/2, -h/64); same(diff(sqrt(x), x, 3).subs(x, 4)*h**2/6, h**2/512)
 rounds(-Rational(1, 640), '-0.00156'); rounds(Rational(1, 51200), '0.0000195')
 holds(Abs((sqrt(Rational(41, 10)) - 2)/Rational(1, 10) - Rational(1, 4) + Rational(1, 640)) < Rational(2, 10**5))
@@ -1003,7 +1012,7 @@ for k in range(1, 16):
   1e-15       3.31e-01       1.64e-01
 ```
 
-Read down the columns. The forward error shrinks tenfold per row, as $3h$ predicts, down to about $4 \times 10^{-9}$ at $h = 10^{-8}$; then it grows again. The central error shrinks a hundredfold per row, to about $10^{-10}$ at $h = 10^{-5}$, stays there down to $h = 10^{-7}$, and then grows too. At $h = 10^{-15}$ both estimates are wrong in the first decimal place.
+Read down the columns. The forward error shrinks tenfold per row, as $3h$ predicts, down to about $3 \times 10^{-7}$ at $h = 10^{-7}$. At $h = 10^{-8}$ it is smaller still, about $4 \times 10^{-9}$, but by luck: there the rounding error is about as large as the truncation error $3h = 3 \times 10^{-8}$, with the opposite sign, and the two nearly cancel. For smaller $h$ the rounding error takes over, and the error grows again. The central error shrinks a hundredfold per row, to about $10^{-10}$ at $h = 10^{-5}$, stays there down to $h = 10^{-7}$, and then grows too. At $h = 10^{-15}$ both estimates are wrong in the first decimal place.
 :::
 
 ```check
@@ -1012,6 +1021,9 @@ cen_f = lambda hv: abs(((1.0 + hv)**3 - (1.0 - hv)**3)/(2*hv) - 3.0)
 rounds(fwd_f(1e-8), '4e-9'); holds(fwd_f(1e-8) < min(fwd_f(10.0**-k_) for k_ in range(1, 16) if k_ != 8))
 for k_ in range(1, 8):
     holds(Rational(8, 100) < fwd_f(10.0**-k_)/10.0**-k_/3 < 2)              # about 3h: tenfold per row
+rounds(fwd_f(1e-7), '3e-7'); holds(fwd_f(1e-8) < Rational(3, 10**8)/5)      # at 1e-8 far below 3h = 3e-8
+rnd8 = (((1.0 + 1e-8)**3 - 1.0)/1e-8 - 3.0) - (3*Rational(1, 10**8) + Rational(1, 10**16))   # its rounding part
+holds(rnd8 < 0); holds(-rnd8 > Rational(3, 10**8)/2); holds(-rnd8 < 2*Rational(3, 10**8))    # opposite sign, about 3h in size
 for k_ in range(1, 5):
     near(cen_f(10.0**-k_)/10.0**(-2*k_), 1, 1e-3)                           # h^2: a hundredfold per row
 for k_ in (5, 6, 7):
@@ -1027,7 +1039,7 @@ Figure 4.5 plots the same errors for 481 values of $h$. On logarithmic axes a po
 The errors of the forward (blue) and central (orange) differences of $f(x) = x^3$ at $a = 1$, computed in floating point for 481 steps $h$ between $10^{-16}$ and 1, on logarithmic scales. On the right, truncation error dominates, along the dashed lines $3h$ and $h^2$. On the left, rounding error dominates, ragged and close to $\varepsilon/h$ (dashed grey). The dotted lines mark the best steps, about $10^{-8}$ for the forward difference and $5 \times 10^{-6}$ for the central one.
 :::
 
-The best step is where the two kinds of error balance. For the forward difference, $3h + \varepsilon/h$ is smallest when its two parts are equal (Exercise 4.12 proves it), at $h = \sqrt{\varepsilon/3} \approx 9 \times 10^{-9}$, where the error is about $2\sqrt{3\varepsilon} \approx 5 \times 10^{-8}$. For the central difference, $h^2 + \varepsilon/h$ is smallest at $h = (\varepsilon/2)^{1/3} \approx 5 \times 10^{-6}$ (Module 8 shows how to find such minima), where the error is about $7 \times 10^{-11}$. The table agrees: errors of a few times $10^{-9}$ and about $10^{-10}$ near those steps.
+The best step is where the two kinds of error balance. For the forward difference, $3h + \varepsilon/h$ is smallest when its two parts are equal (Exercise 4.12 proves it), at $h = \sqrt{\varepsilon/3} \approx 9 \times 10^{-9}$, where the error is about $2\sqrt{3\varepsilon} \approx 5 \times 10^{-8}$. For the central difference, $h^2 + \varepsilon/h$ is smallest at $h = (\varepsilon/2)^{1/3} \approx 5 \times 10^{-6}$ (Module 8 shows how to find such minima), where the error is about $7 \times 10^{-11}$. The table agrees: its smallest errors lie near those steps. The central ones, about $10^{-10}$, match the estimate; the forward one, $4 \times 10^{-9}$ at $h = 10^{-8}$, beats it, thanks to the lucky cancellation (Exercise 4.12 looks at the rows near the best step).
 
 ```check
 eps_ = Integer(2)**-52
@@ -1036,6 +1048,7 @@ hstar = (eps_/2)**Rational(1, 3)
 rounds(hstar, '5e-6'); rounds(hstar**2 + eps_/hstar, '7e-11')
 same(diff(h**2 + eps_/h, h).subs(h, hstar), 0); holds(diff(h**2 + eps_/h, h, 2).subs(h, hstar) > 0)
 same(3*sqrt(eps_/3), eps_/sqrt(eps_/3))
+holds(fwd_f(1e-8) < 2*sqrt(3*eps_))                                          # the table's 4e-9 is below the estimate 5e-8
 ```
 
 ::: keyidea
@@ -1055,7 +1068,7 @@ rounds(abs(((1.0 + 1e-15)**3 - 1.0)/1e-15 - 3.0), '0.33'); same(((1.0 + 1e-16)**
 - The velocity of a moving object and the slope of the tangent line to a graph are both limits of difference quotients. That limit is the derivative, $f'(a) = \lim_{h\to0}\dfrac{f(a + h) - f(a)}{h} = \lim_{x\to a}\dfrac{f(x) - f(a)}{x - a}$.
 - The tangent line at $(a, f(a))$ is $y = f(a) + f'(a)(x - a)$; zoomed in, the graph of a differentiable function looks like it. A derivative is measured in units of $f$ per unit of $x$.
 - The derivative is a function, $f'$, whose height at $x$ is the slope of $f$ at $x$; it is written $f'(x)$, $y'$, $\dfrac{dy}{dx}$, $\dfrac{d}{dx}f(x)$ or $Df(x)$.
-- A function has no derivative at a corner, a cusp, a vertical tangent or a discontinuity. Differentiable implies continuous; continuous does not imply differentiable ($\abs{x}$ at 0).
+- A function has no derivative at a corner, a cusp, a vertical tangent or a discontinuity, nor where its difference quotients keep oscillating. Differentiable implies continuous; continuous does not imply differentiable ($\abs{x}$ at 0).
 - $\dfrac{d}{dx}(c) = 0$, $\dfrac{d}{dx}\big(x^n\big) = nx^{n-1}$ for positive integers $n$, $(cf)' = cf'$ and $(f \pm g)' = f' \pm g'$: polynomials are differentiated term by term.
 - Higher derivatives $f''$, $f'''$, $f^{(n)}$. For motion along a line, velocity $v = s'$, acceleration $a = s''$ and jerk $j = s'''$; an object speeds up when $v$ and $a$ have the same sign.
 - Numerically, the forward difference has truncation error $O(h)$ and the central difference $O(h^2)$. Rounding error grows like $\varepsilon/h$, so in floating point the best steps are about $10^{-8}$ and $10^{-5}$, and smaller steps make things worse.
@@ -1068,11 +1081,11 @@ rounds(abs(((1.0 + 1e-15)**3 - 1.0)/1e-15 - 3.0), '0.33'); same(((1.0 + 1e-16)**
 - (b) Use the form $\lim_{x\to a}\dfrac{g(x) - g(a)}{x - a}$ to find $g'(3)$ for $g(x) = x^2 - 4x$.
 
 ::: solution
-**(a)** First $f(-1) = 3 + 1 = 4$. Substitute $-1 + h$, with brackets:
+**(a)** First $f(-1) = 3 + 1 = 4$. Substitute $-1 + h$, with brackets, and expand, with $(-1 + h)^2 = 1 - 2h + h^2$:
 
-$$\begin{aligned} f(-1 + h) &= 3(-1 + h)^2 - (-1 + h) \\ &= 3 - 6h + 3h^2 + 1 - h \\ &= 4 - 7h + 3h^2. \end{aligned}$$
+$$\begin{aligned} &f(-1 + h) \\ &\quad= 3(-1 + h)^2 - (-1 + h) \\ &\quad= 3(1 - 2h + h^2) + 1 - h \\ &\quad= 3 - 6h + 3h^2 + 1 - h \\ &\quad= 4 - 7h + 3h^2. \end{aligned}$$
 
-So
+Subtract $f(-1) = 4$: $f(-1 + h) - f(-1) = -7h + 3h^2$. So
 
 $$\begin{aligned} f'(-1) &= \lim_{h\to0}\frac{-7h + 3h^2}{h} \\ &= \lim_{h\to0}\,(-7 + 3h) = -7. \end{aligned}$$
 
@@ -1085,7 +1098,10 @@ $$\begin{aligned} g'(3) &= \lim_{x\to3}\frac{(x - 1)(x - 3)}{x - 3} \\ &= \lim_{
 ```check
 fe1 = 3*x**2 - x
 same(fe1.subs(x, -1), 4)
-steps(fe1.subs(x, -1 + h), 3 - 6*h + 3*h**2 + 1 - h, 4 - 7*h + 3*h**2)
+same(expand((-1 + h)**2), 1 - 2*h + h**2)
+steps(fe1.subs(x, -1 + h), 3*(1 - 2*h + h**2) + 1 - h, 3 - 6*h + 3*h**2 + 1 - h, 4 - 7*h + 3*h**2)
+same(fe1.subs(x, -1 + h) - fe1.subs(x, -1), -7*h + 3*h**2)
+steps(Limit((-7*h + 3*h**2)/h, h, 0, '+-'), Limit(-7 + 3*h, h, 0, '+-'), -7)
 same((fe1.subs(x, -1 + h) - 4)/h, -7 + 3*h); limit_is((fe1.subs(x, -1 + h) - fe1.subs(x, -1))/h, h, 0, -7)
 same(expand(4 - 7*(x + 1)), -7*x - 3); same((-7*x - 3).subs(x, -1), 4)
 ge1 = x**2 - 4*x
@@ -1153,7 +1169,7 @@ For each function, find the points where it is not differentiable, and say wheth
 ::: solution
 **(a)** Away from 2, $f$ is $x - 2$ or $2 - x$ near each point, so it is differentiable, with derivative 1 or $-1$. At 2, $f(2) = 0$ and the quotient is $\dfrac{\abs{h}}{h}$, as for $\abs{x}$ at 0: $f'_+(2) = 1$ and $f'_-(2) = -1$. A corner at $x = 2$.
 
-**(b)** At $-1$, $g(-1) = 0$ and the quotient is $\dfrac{(h^2)^{1/3}}{h} = h^{-1/3}$, which tends to $\infty$ as $h \to 0^+$ and to $-\infty$ as $h \to 0^-$. A cusp at $x = -1$, the cusp of $x^{2/3}$ moved 1 to the left; no one-sided derivative exists there. Elsewhere $g$ is differentiable (Module 5's chain rule gives the formula).
+**(b)** At $-1$, $g(-1) = 0$ and the quotient is $\dfrac{(h^2)^{1/3}}{h} = h^{-1/3}$, which tends to $\infty$ as $h \to 0^+$ and to $-\infty$ as $h \to 0^-$. A cusp at $x = -1$, the cusp of $x^{2/3}$ moved 1 to the left; no one-sided derivative exists there. Elsewhere $g$ is differentiable: the chain rule of Module 5 and the power rule for fractional exponents of Module 6 give $g'(x) = \tfrac23(x + 1)^{-1/3}$ for $x \ne -1$.
 
 **(c)** $k(1) = 2$, but as $x \to 1^-$, $k(x) = x^2 \to 1$: $k$ is not continuous at 1, so by Theorem 4.1 it is not differentiable there. A discontinuity (a jump). With $k(1) = 2$, the quotients for $h > 0$ and for $h < 0$ are
 
@@ -1166,6 +1182,8 @@ hp = symbols('h', positive=True); hn = symbols('h', negative=True)
 same(Abs((2 + hp) - 2)/hp, 1); same(Abs((2 + hn) - 2)/hn, -1)
 limit_is(real_root(h**2, 3)/h, h, 0, oo, '+'); limit_is(real_root(h**2, 3)/h, h, 0, -oo, '-')
 same(real_root(((-1 + hp) + 1)**2, 3)/hp, hp**Rational(-1, 3))
+up_ = symbols('u', positive=True); un_ = symbols('u', negative=True)            # u = x + 1, on each side of -1
+same(diff(real_root(up_**2, 3), up_), Rational(2, 3)*up_**Rational(-1, 3)); same(diff(real_root(un_**2, 3), un_), Rational(2, 3)/real_root(un_, 3))
 same((2*(1 + h) - 2)/h, 2); same(expand((1 + h)**2 - 2), -1 + 2*h + h**2)
 limit_is(((1 + h)**2 - 2)/h, h, 0, oo, '-'); limit_is(x**2, x, 1, 1, '-')
 ```
@@ -1247,7 +1265,7 @@ Suppose you throw a ball straight up at 14.7 m/s from 1.5 m above the ground. If
 
 $$\begin{aligned} t &= \frac{14.7 \pm \sqrt{14.7^2 + 4 \cdot 4.9 \cdot 1.5}}{2 \cdot 4.9} \\ &= \frac{14.7 \pm \sqrt{245.49}}{9.8}. \end{aligned}$$
 
-The minus sign gives a negative time, before the throw, so $t = \dfrac{14.7 + \sqrt{245.49}}{9.8} \approx 3.10$ s. Then $9.8t = 14.7 + \sqrt{245.49}$, so $v = 14.7 - 9.8t = -\sqrt{245.49} \approx -15.67$ m/s: the ball lands at about 15.67 m/s, faster than it was thrown, because it falls from higher than it started.
+The minus sign gives a negative time, before the throw, so $t = \dfrac{14.7 + \sqrt{245.49}}{9.8} \approx 3.10$ s. Then $9.8t = 14.7 + \sqrt{245.49}$, so $v = 14.7 - 9.8t = -\sqrt{245.49} \approx -15.67$ m/s. The ball lands at about 15.67 m/s, faster than it was thrown, because it lands 1.5 m below the point where it left your hand: it falls 12.525 m from the top, further than the 11.025 m it rose.
 
 ```check
 yb = Rational(3, 2) + Rational(147, 10)*t - Rational(49, 10)*t**2
@@ -1259,6 +1277,7 @@ tl = (Rational(147, 10) + sqrt(Rational(24549, 100)))/Rational(98, 10)
 same_set(solve(yb, t), [tl, (Rational(147, 10) - sqrt(Rational(24549, 100)))/Rational(98, 10)]); holds(Rational(147, 10) - sqrt(Rational(24549, 100)) < 0)
 rounds(tl, '3.10'); same(diff(yb, t).subs(t, tl), -sqrt(Rational(24549, 100))); rounds(sqrt(Rational(24549, 100)), '15.67'); rounds(-sqrt(Rational(24549, 100)), '-15.67')
 holds(sqrt(Rational(24549, 100)) > Rational(147, 10))
+same(yb.subs(t, Rational(3, 2)) - yb.subs(t, 0), Rational(11025, 1000))    # it rises 11.025 m, then falls 12.525 m
 ```
 :::
 ::::
@@ -1277,11 +1296,11 @@ Two conditions are needed.
 
 **Equal one-sided derivatives.** With $f(1) = 1$, the left-hand quotient is $\dfrac{(1 + h)^2 - 1}{h} = 2 + h$, so $f'_-(1) = 2$. For $h > 0$ the right-hand quotient is
 
-$$\begin{aligned} \frac{b(1 + h) + c - 1}{h} &= \frac{(b + c - 1) + bh}{h} \\ &= b, \end{aligned}$$
+$$\begin{aligned} &\frac{b(1 + h) + c - 1}{h} \\ &\quad= \frac{(b + c - 1) + bh}{h} = b, \end{aligned}$$
 
 using $b + c = 1$. So $f'_+(1) = b$, and the two agree exactly when $b = 2$. Then $c = 1 - b = -1$.
 
-So $b = 2$ and $c = -1$. The line $y = 2x - 1$ is the tangent to $y = x^2$ at $(1, 1)$: the graph leaves the parabola along its own tangent line. If $b + c \ne 1$, the right-hand quotient has the term $\dfrac{b + c - 1}{h}$, which grows without bound, as Theorem 4.1 predicts for a function that is not continuous.
+So $b = 2$ and $c = -1$. With these values both one-sided derivatives at 1 are 2, so $f'(1) = 2$. The line $y = 2x - 1$ is the tangent to $y = x^2$ at $(1, 1)$: the graph leaves the parabola along its own tangent line. If $b + c \ne 1$, the right-hand quotient contains the term $\dfrac{b + c - 1}{h}$, which grows without bound as $h \to 0^+$: there is no right-hand derivative, and $f$ is not differentiable at 1, as Theorem 4.1 predicts for a function that is not continuous there.
 
 ```check
 bb, cc = symbols('b c')
@@ -1289,6 +1308,7 @@ same(solve(Eq(bb + cc, 1), cc), [1 - bb])
 same(((1 + h)**2 - 1)/h, 2 + h); limit_is(((1 + h)**2 - 1)/h, h, 0, 2, '-')
 same(((bb*(1 + h) + (1 - bb)) - 1)/h, bb)
 same(solve([Eq(bb + cc, 1), Eq(bb, 2)], [bb, cc]), {bb: 2, cc: -1})
+same(((2*(1 + h) - 1) - 1)/h, 2)                                         # with b = 2, c = -1 the right-hand quotient is 2
 same(expand(1 + 2*(x - 1)), 2*x - 1)
 limit_is(((2*(1 + h) + 3) - 1)/h, h, 0, oo, '+')
 ```
@@ -1296,7 +1316,7 @@ limit_is(((2*(1 + h) + 3) - 1)/h, h, 0, oo, '+')
 ::::
 
 :::: exercise Forward and central differences for 1/x {#ex-4-9} ★★
-Let $f(x) = \dfrac1x$ and $a = 1$, so that $f'(1) = -1$ (as in Example 4.4).
+Let $f(x) = \dfrac1x$ and $a = 1$, so that $f'(1) = -1$ (the method of Example 4.4 gives $f'(a) = -1/a^2$).
 
 - (a) Show that, for $0 < h < 1$, the forward difference equals $-\dfrac{1}{1 + h}$ and the central difference equals $-\dfrac{1}{1 - h^2}$.
 - (b) Compute both, and their errors, for $h = 0.1$ and $h = 0.01$, to six decimal places.
@@ -1305,11 +1325,11 @@ Let $f(x) = \dfrac1x$ and $a = 1$, so that $f'(1) = -1$ (as in Example 4.4).
 ::: solution
 **(a)** Forward: put the two terms over the common denominator $1 + h$,
 
-$$\frac{1}{1 + h} - 1 = \frac{1 - (1 + h)}{1 + h} = \frac{-h}{1 + h},$$
+$$\begin{aligned} \frac{1}{1 + h} - 1 &= \frac{1 - (1 + h)}{1 + h} \\ &= \frac{-h}{1 + h}, \end{aligned}$$
 
 and dividing by $h$ gives $-\dfrac{1}{1 + h}$. Central: over the common denominator $(1 + h)(1 - h) = 1 - h^2$,
 
-$$\begin{aligned} \frac{1}{1 + h} - \frac{1}{1 - h} &= \frac{(1 - h) - (1 + h)}{1 - h^2} \\ &= \frac{-2h}{1 - h^2}, \end{aligned}$$
+$$\begin{aligned} &\frac{1}{1 + h} - \frac{1}{1 - h} \\ &\quad= \frac{(1 - h) - (1 + h)}{1 - h^2} \\ &\quad= \frac{-2h}{1 - h^2}, \end{aligned}$$
 
 and dividing by $2h$ gives $-\dfrac{1}{1 - h^2}$.
 
@@ -1324,11 +1344,12 @@ At the two steps:
 
 **(c)** The sizes of the errors are
 
-$$\frac{h}{1 + h} < h \qquad\text{and}\qquad \frac{h^2}{1 - h^2} > h^2.$$
+$$\begin{aligned} \frac{h}{1 + h} &< h, \\[6pt] \frac{h^2}{1 - h^2} &> h^2. \end{aligned}$$
 
 The forward error is a little less than $h$, so it falls below $10^{-6}$ when $h$ is about $10^{-6}$; at $h = 10^{-6}$ it is $10^{-6}/(1 + 10^{-6}) < 10^{-6}$. The central error is a little more than $h^2$, so $h$ about $10^{-3}$ suffices: $h = 0.000999$ gives about $9.98 \times 10^{-7}$. The central difference reaches the same accuracy with a step a thousand times larger; in floating point that matters, because larger steps suffer less rounding error.
 
 ```check
+same(cancel((1/x - 1/a)/(x - a)), -1/(a*x)); limit_is((1/x - 1/a)/(x - a), x, a, -1/a**2); same((-1/a**2).subs(a, 1), -1)
 steps((1/(1 + h) - 1)/h, ((1 - (1 + h))/(1 + h))/h, -1/(1 + h))
 steps(1/(1 + h) - 1/(1 - h), ((1 - h) - (1 + h))/(1 - h**2), -2*h/(1 - h**2)); same((-2*h/(1 - h**2))/(2*h), -1/(1 - h**2))
 same(-1/(1 + h) + 1, h/(1 + h)); same(-1/(1 - h**2) + 1, -h**2/(1 - h**2))
@@ -1344,23 +1365,23 @@ holds(hh9**2/(1 - hh9**2) < Rational(1, 10**6)); rounds(hh9**2/(1 - hh9**2), '9.
 
 :::: exercise The power rule by factoring {#ex-4-10} ★★★
 - (a) Show that for every positive integer $n$,
-  $$\begin{aligned} x^n - a^n &= (x - a)\big(x^{n-1} + x^{n-2}a \\ &\qquad + \dots + xa^{n-2} + a^{n-1}\big). \end{aligned}$$
+  $$\begin{aligned} &x^n - a^n \\ &\quad= (x - a)\big(x^{n-1} + x^{n-2}a \\ &\qquad + \dots + xa^{n-2} + a^{n-1}\big). \end{aligned}$$
 - (b) Use (a) and the second form of the definition, $f'(a) = \lim_{x\to a}\dfrac{f(x) - f(a)}{x - a}$, to give another proof of the power rule.
 
 ::: solution
 **(a)** Multiply out the right-hand side. Multiplying the long bracket by $x$ gives
 
-$$x^n + x^{n-1}a + x^{n-2}a^2 + \dots + xa^{n-1},$$
+$$\begin{aligned} &x^n + x^{n-1}a + x^{n-2}a^2 \\ &\quad + \dots + xa^{n-1}, \end{aligned}$$
 
 and multiplying it by $-a$ gives
 
-$$-x^{n-1}a - x^{n-2}a^2 - \dots - xa^{n-1} - a^n.$$
+$$\begin{aligned} &-x^{n-1}a - x^{n-2}a^2 \\ &\quad - \dots - xa^{n-1} - a^n. \end{aligned}$$
 
 Every term of the first line except $x^n$ cancels against a term of the second line, and every term of the second line except $-a^n$ cancels against a term of the first. What remains is $x^n - a^n$. (For $n = 1$ the bracket is the single term 1, and the identity reads $x - a = x - a$.)
 
 **(b)** For $x \ne a$, divide (a) by $x - a$:
 
-$$\begin{aligned} \frac{x^n - a^n}{x - a} &= x^{n-1} + x^{n-2}a \\ &\quad + \dots + xa^{n-2} + a^{n-1}. \end{aligned}$$
+$$\begin{aligned} &\frac{x^n - a^n}{x - a} \\ &\quad= x^{n-1} + x^{n-2}a \\ &\qquad + \dots + xa^{n-2} + a^{n-1}. \end{aligned}$$
 
 The right-hand side is a polynomial in $x$ with $n$ terms. As $x \to a$, direct substitution turns each term into $a^{n-1}$, so the limit is $na^{n-1}$. So $\big(x^n\big)' = nx^{n-1}$ at every point $a$: the power rule again, this time without the binomial expansion.
 
@@ -1386,13 +1407,13 @@ Let $f(x) = x\sin\dfrac1x$ and $g(x) = x^2\sin\dfrac1x$ for $x \ne 0$, with $f(0
 ::: solution
 **(a)** For $x \ne 0$, $\abs{\sin(1/x)} \le 1$, so $-\abs{x} \le x\sin\dfrac1x \le \abs{x}$. Both bounds tend to 0, so by the squeeze theorem $\lim_{x\to0}f(x) = 0 = f(0)$: $f$ is continuous at 0. Its difference quotient at 0 is
 
-$$\frac{f(h) - f(0)}{h} = \frac{h\sin(1/h)}{h} = \sin\frac1h,$$
+$$\begin{aligned} \frac{f(h) - f(0)}{h} &= \frac{h\sin(1/h)}{h} \\ &= \sin\frac1h, \end{aligned}$$
 
 which has no limit as $h \to 0$. At $h = \dfrac{1}{\pi/2 + 2k\pi}$ it equals 1, and at $h = \dfrac{1}{3\pi/2 + 2k\pi}$ it equals $-1$, for every positive integer $k$; both lists of $h$ tend to 0. A limit $L$ would have to be within $\tfrac12$ of both 1 and $-1$ for all small $h$, which is impossible. So $f'(0)$ does not exist: the secants from the origin swing between slopes $-1$ and 1 forever.
 
 **(b)** The difference quotient of $g$ at 0 is
 
-$$\frac{g(h) - g(0)}{h} = \frac{h^2\sin(1/h)}{h} = h\sin\frac1h,$$
+$$\begin{aligned} \frac{g(h) - g(0)}{h} &= \frac{h^2\sin(1/h)}{h} \\ &= h\sin\frac1h, \end{aligned}$$
 
 and $-\abs{h} \le h\sin\dfrac1h \le \abs{h}$, so it tends to 0 by the squeeze theorem: $g'(0) = 0$. The graph of $g$ wiggles infinitely often near 0, but the wiggles are trapped between $y = x^2$ and $y = -x^2$, which both have the horizontal tangent $y = 0$ at the origin, and so does $g$.
 
@@ -1422,7 +1443,7 @@ $$\begin{aligned} &\Big(\sqrt{Ch} - \sqrt{K/h}\Big)^2 \\ &\quad= Ch - 2\sqrt{Ch 
 
 A square is never negative, so $Ch + \dfrac{K}{h} \ge 2\sqrt{CK}$. Equality holds exactly when the square is 0, that is, when $\sqrt{Ch} = \sqrt{K/h}$, which means $Ch = K/h$, or $h^2 = K/C$, or (since $h > 0$) $h = \sqrt{K/C}$. At that $h$ the two parts $Ch$ and $K/h$ are equal.
 
-**(b)** $h^* = \sqrt{\varepsilon/3} \approx 8.6 \times 10^{-9}$ and $E(h^*) = 2\sqrt{3\varepsilon} \approx 5.2 \times 10^{-8}$. The table in Section 4.7 has its smallest forward error at $h = 10^{-8}$, the step nearest $h^*$, as predicted. The error there, about $4 \times 10^{-9}$, is smaller than the model's $5.2 \times 10^{-8}$, because the rounding errors partly cancelled by luck; at the neighbouring steps $10^{-7}$ and $10^{-9}$ the errors, about $3 \times 10^{-7}$ and $2.5 \times 10^{-7}$, are what the model predicts ($3.0 \times 10^{-7}$ and $2.3 \times 10^{-7}$).
+**(b)** $h^* = \sqrt{\varepsilon/3} \approx 8.6 \times 10^{-9}$ and $E(h^*) = 2\sqrt{3\varepsilon} \approx 5.2 \times 10^{-8}$. The table in Section 4.7 has its smallest forward error at $h = 10^{-8}$, the step nearest $h^*$, as predicted. The error there, about $4 \times 10^{-9}$, is smaller than the model's $5.2 \times 10^{-8}$, because by luck the rounding error had the opposite sign to the truncation error and cancelled most of it; at the neighbouring steps $10^{-7}$ and $10^{-9}$ the errors, about $3 \times 10^{-7}$ and $2.5 \times 10^{-7}$, are what the model predicts ($3.0 \times 10^{-7}$ and $2.3 \times 10^{-7}$).
 
 **(c)** $h^* = \sqrt{10^{-8}/3} \approx 5.8 \times 10^{-5}$, and $E(h^*) = 2\sqrt{3 \times 10^{-8}} \approx 3.5 \times 10^{-4}$. With values good to 8 digits, a forward difference gives only about 4 correct digits, and it needs a much larger step. Noisy data give rough derivatives.
 

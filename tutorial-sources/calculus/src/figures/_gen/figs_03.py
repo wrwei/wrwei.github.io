@@ -52,10 +52,11 @@ def fig_03_1(L):
 
     # Oscillating: sin(1/(x - 2)), drawn along x = 2 +- 1/u so that every swing is resolved.
     a = ax[3]
-    math_axes(a, (-0.5, 4.2), (-1.7, 1.9), yticks=[-1, 1], **ticks)
+    math_axes(a, (-0.5, 4.2), (-1.7, 1.9), yticks=[-1, 1], xticks=[(1, '1'), (2, ''), (3, '3')], xlabel='$x$', ylabel='$y$')
     for side in (1, -1):
         plot_param(a, lambda u, s=side: 2 + s / u, lambda u, s=side: np.sin(s * u), 0.4, 320, n=9000,
                    color=C['blue'], lw=1.3)
+    label(a, 2, -1.38, '2', size=10, color=C['slate'], ha='center')   # below the swings, which hide the usual place
     label(a, 2.75, 1.42, r'$y = \sin\frac{1}{x - 2}$', size=11.5, color=C['blue'])
     title(a, 'oscillating', size=11.5, pad=16)
 

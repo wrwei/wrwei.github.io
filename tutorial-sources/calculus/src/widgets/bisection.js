@@ -93,8 +93,8 @@ CalcWidgets.register('bisection', function (root, api) {
         S.msg = t('f(' + num(c, 10) + ') = 0: ' + (fa === 0 ? 'a' : 'b') + ' is itself a root, so there is nothing to search for.',
           'f(' + num(c, 10) + ') = 0：' + (fa === 0 ? 'a' : 'b') + ' 本身就是根，无需再找。')
       } else if ((fa > 0) === (fb > 0)) {
-        S.msg = t('f(' + num(A, 10) + ') ' + eq(fa, 5) + ' and f(' + num(B, 10) + ') ' + eq(fb, 5) + ' have the same sign, so the bisection method cannot start: it needs f(a) and f(b) of opposite signs. (f may still have roots in [a, b]: an even number of them, or one where the graph touches the axis without crossing it.)',
-          'f(' + num(A, 10) + ') ' + eq(fa, 5) + ' 与 f(' + num(B, 10) + ') ' + eq(fb, 5) + ' 同号，二分法无法开始：它要求 f(a) 与 f(b) 异号。（[a, b] 中仍可能有根：偶数个根，或图像只碰到 x 轴而不穿过的根。）')
+        S.msg = t('f(' + num(A, 10) + ') ' + eq(fa, 5) + ' and f(' + num(B, 10) + ') ' + eq(fb, 5) + ' have the same sign, so the bisection method cannot start: it needs f(a) and f(b) of opposite signs. (f may still have roots in [a, b]: its graph may cross the axis an even number of times, or touch it without crossing.)',
+          'f(' + num(A, 10) + ') ' + eq(fa, 5) + ' 与 f(' + num(B, 10) + ') ' + eq(fb, 5) + ' 同号，二分法无法开始：它要求 f(a) 与 f(b) 异号。（[a, b] 中仍可能有根：图像可能穿过 x 轴偶数次，或只碰到 x 轴而不穿过。）')
       } else {
         S.sa = fa > 0 ? 1 : -1
         S.rows = [row(A, B, fa, fb)]
@@ -205,9 +205,17 @@ CalcWidgets.register('bisection', function (root, api) {
       })
       if (S.status === 'ready' || S.status === 'root') P.point(r.m, 0, { color: 'var(--orange)', hollow: true, r: 5 })
       if (P.X(r.b) - P.X(r.a) > 44) {
-        var below = P.Y(0) + 44 < P.H ? 34 : -12           // below the tick labels, or above the axis
-        P.text(r.a, 0, 'a' + sub(n), { anchor: 'middle', dy: below, color: 'var(--navy)' })
-        P.text(r.b, 0, 'b' + sub(n), { anchor: 'middle', dy: below, color: 'var(--navy)' })
+        // Each label goes on the side of the axis away from the curve at that end, where the dot and the
+        // dashed guide are: under the x tick labels, or just above the axis. It also keeps out of the strip
+        // beside the y-axis where P.axes writes the y tick labels (on a phone, a0 is close to it).
+        var room = P.Y(0) + 44 < P.H
+        var lo = P.X(v[0]), hi = P.X(v[1]), ya = P.X(Math.min(Math.max(0, v[0]), v[1])) - 5
+        var z0 = ya < lo + 20 ? Math.max(lo + 2, ya) : ya - 32, z1 = z0 + 32
+        ;[[r.a, r.fa, 'a'], [r.b, r.fb, 'b']].forEach(function (q) {
+          var px = P.X(q[0]), dx = 0
+          if (px + 9 > z0 && px - 9 < z1) dx = z1 + 18 < hi ? z1 + 9 - px : z0 - 9 - px
+          P.text(q[0], 0, q[2] + sub(n), { anchor: 'middle', dx: dx, dy: q[1] > 0 && room ? 34 : -10, color: 'var(--navy)' })
+        })
       }
     },
   })

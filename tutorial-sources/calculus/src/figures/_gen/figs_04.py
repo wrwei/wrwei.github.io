@@ -61,11 +61,12 @@ def fig_04_2(L):
     plot_fn(a2, df, -2.45, 2.45, color=C['purple'], lw=2.6)
     for x0 in xs0:
         dot(a2, x0, df(x0), color=C['orange'], size=6)
-    label(a2, 0.14, 8.6, r"$y = f'(x) = 3x^2 - 3$", color=C['purple'], size=11.5)
+    # Two lines, so that the label fits between the y-axis and the dashed line at x = 1.
+    label(a2, 0.14, 8.4, r"$y = f'(x)$" + '\n' + r"$\quad = 3x^2 - 3$", color=C['purple'], size=11.5, linespacing=1.5)
     label(a2, -2.0, 2.0, r"$f' > 0$", color=C['slate'], size=10.5, ha='center')
     label(a2, 0.45, -0.9, r"$f' < 0$", color=C['slate'], size=10.5, ha='center')
     label(a2, 2.0, 2.0, r"$f' > 0$", color=C['slate'], size=10.5, ha='center')
-    label(a2, -2.07, 9.6, 'slope 9', color=C['orange'], size=10, ha='right')
+    label(a2, -1.86, 9.7, 'slope 9', color=C['orange'], size=10)
     label(a2, 0.16, -3.85, 'slope $-3$', color=C['orange'], size=10)
 
     # Horizontal tangents of f line up with the zeros of f'.

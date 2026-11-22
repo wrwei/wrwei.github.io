@@ -2,7 +2,7 @@
 title: Continuity and infinity
 part: 1
 lead: Learn what it means for a function to be continuous, and what continuity guarantees: solutions of equations, which the bisection method finds to any accuracy you ask for, and largest and smallest values. Then follow functions out to infinity, through asymptotes and limits at infinity, to the orders of growth behind big-O notation.
-minutes: 255
+minutes: 270
 needs: Modules 1 and 2
 goals:
   - Decide whether a function is continuous at a point, and classify its discontinuities
@@ -46,7 +46,7 @@ Near 2, the values of $h$ crowd around 4 from both sides, and $h(2) = 4$: the va
 For a polynomial $p$, Module 2 found that $\lim_{x\to a} p(x) = p(a)$: the limit is the value. Functions with this property at a point are called continuous there.
 
 ::: definition Continuity at a point
-Let $f$ be defined on an open interval that contains $a$. Then $f$ is **continuous at $a$** if
+Let $f$ be defined on an open interval that contains $a$, except perhaps at $a$ itself. Then $f$ is **continuous at $a$** if
 
 $$\lim_{x\to a} f(x) = f(a).$$
 
@@ -56,7 +56,7 @@ This asks for three things:
 2. $\lim_{x\to a} f(x)$ exists;
 3. the limit equals the value.
 
-If $f$ is defined on an open interval containing $a$, except perhaps at $a$ itself, and $f$ is not continuous at $a$, then $f$ is **discontinuous** at $a$, and $a$ is a **discontinuity** of $f$.
+If $f$ is not continuous at $a$, then $f$ is **discontinuous** at $a$, and $a$ is a **discontinuity** of $f$.
 :::
 
 In words: inputs close to $a$ give outputs close to $f(a)$, and the graph does not break at $(a, f(a))$. In the ε–δ language of Module 2: for every $\varepsilon > 0$ there is a $\delta > 0$ such that
@@ -100,7 +100,7 @@ Two opposite mistakes. Being defined at $a$ and having a limit at $a$ is not eno
 
 ### One-sided continuity {#one-sided}
 
-Some functions jump, yet their value at the jump fits one of the two sides, like the floor function. The **floor** of $x$, written $\lfloor x\rfloor$ and read "floor $x$", is the largest whole number less than or equal to $x$: $\lfloor 2.7\rfloor = 2$, $\lfloor 3\rfloor = 3$ and $\lfloor -2.7\rfloor = -3$. In Python it is `math.floor`, and integer division `7 // 2` gives $\lfloor 7/2\rfloor = 3$. Its graph is a staircase. At $x = 3$: for $x$ slightly less than 3, $\lfloor x\rfloor = 2$, and for $3 \le x < 4$, $\lfloor x\rfloor = 3$. So
+Some functions jump, yet their value at the jump fits one of the two sides, like the floor function. The **floor** of $x$, written $\lfloor x\rfloor$ and read "floor $x$", is the largest integer less than or equal to $x$: $\lfloor 2.7\rfloor = 2$, $\lfloor 3\rfloor = 3$ and $\lfloor -2.7\rfloor = -3$. In Python it is `math.floor`, and integer division `7 // 2` gives $\lfloor 7/2\rfloor = 3$. Its graph is a staircase. At $x = 3$: for $x$ slightly less than 3, $\lfloor x\rfloor = 2$, and for $3 \le x < 4$, $\lfloor x\rfloor = 3$. So
 
 $$\lim_{x\to3^-}\lfloor x\rfloor = 2, \qquad \lim_{x\to3^+}\lfloor x\rfloor = 3 = \lfloor 3\rfloor.$$
 
@@ -117,7 +117,7 @@ A function $f$ is **continuous from the right** at $a$ if $\lim_{x\to a^+} f(x) 
 $f$ is **continuous on an interval** $I$ if it is continuous at every number of $I$, except that at an endpoint that belongs to $I$ it need only be continuous from the side of $I$: from the right at a left endpoint, from the left at a right endpoint.
 :::
 
-So $\lfloor x\rfloor$ is continuous from the right at every whole number, and continuous on each interval $[n, n + 1)$, but not on $[n, n + 1]$: at $n + 1$ it is not continuous from the left. The square root is defined only for $x \ge 0$, so at 0 only one side counts: $\lim_{x\to0^+}\sqrt x = 0 = \sqrt0$, and $\sqrt x$ is continuous on $[0, \infty)$ (Section 3.2). Since a limit exists exactly when both one-sided limits exist and are equal (Module 2), $f$ is continuous at $a$ exactly when it is continuous from both sides there.
+So $\lfloor x\rfloor$ is continuous from the right at every integer, and continuous on each interval $[n, n + 1)$, but not on $[n, n + 1]$: at $n + 1$ it is not continuous from the left. The square root is defined only for $x \ge 0$, so at 0 only one side counts: $\lim_{x\to0^+}\sqrt x = 0 = \sqrt0$, and $\sqrt x$ is continuous on $[0, \infty)$ (Section 3.2). Since a limit exists exactly when both one-sided limits exist and are equal (Module 2), $f$ is continuous at $a$ exactly when it is continuous from both sides there.
 
 Staircases are everywhere in computing: a digital thermometer that shows whole degrees, rounding down, displays $\lfloor T\rfloor$ for a true temperature $T$, and its reading jumps at every whole degree.
 
@@ -138,11 +138,11 @@ Let $a$ be a discontinuity of $f$. The discontinuity is
 
 - **removable** if $\lim_{x\to a} f(x)$ exists;
 - a **jump** if both one-sided limits exist but are different;
-- **infinite** if, as $x$ approaches $a$ from at least one side, the values $f(x)$ become, and stay, as large as you like, positive or negative (Section 3.6 writes this $\lim_{x\to a^+} f(x) = \infty$, and so on);
+- **infinite** if, as $x$ approaches $a$ from at least one side, the values $f(x)$ become, and stay, larger than any number you name, or smaller than any number you name (Section 3.6 writes this $\lim_{x\to a^+} f(x) = \infty$, $\lim_{x\to a^-} f(x) = -\infty$, and so on);
 - **oscillating** in every other case: then at least one one-sided limit fails to exist without becoming infinite, as when $f$ keeps swinging between values.
 :::
 
-A removable discontinuity is removed by redefining $f$ at the single point $a$: set $f(a) = \lim_{x\to a} f(x)$. That repairs $g$ of Example 3.1: give it the value 4 at 2. No single value repairs a jump or an infinite discontinuity.
+A removable discontinuity is removed by defining, or redefining, $f$ at the single point $a$: set $f(a) = \lim_{x\to a} f(x)$. That repairs $g$ of Example 3.1: give it the value 4 at 2. No single value repairs the other three kinds, because at them $\lim_{x\to a} f(x)$ does not exist.
 
 ::: example Classifying discontinuities
 Find and classify the discontinuities of
@@ -197,7 +197,7 @@ are continuous at $a$, and so is $f/g$ if $g(a) \ne 0$. The same holds for conti
 ::: proof
 Each statement is a limit law of Module 2 in disguise. For the product: since $\lim_{x\to a} f(x) = f(a)$ and $\lim_{x\to a} g(x) = g(a)$, the product law gives
 
-$$\lim_{x\to a} f(x)\,g(x) = \lim_{x\to a} f(x) \cdot \lim_{x\to a} g(x) = f(a)\,g(a),$$
+$$\begin{aligned} \lim_{x\to a} f(x)\,g(x) &= \lim_{x\to a} f(x) \cdot \lim_{x\to a} g(x) \\ &= f(a)\,g(a), \end{aligned}$$
 
 which says that $fg$ is continuous at $a$. Sums, differences and constant multiples work the same way. The quotient law needs the limit of the denominator to be non-zero, and it is: $\lim_{x\to a} g(x) = g(a) \ne 0$. (So $g(x) \ne 0$ for $x$ close to $a$, and $f/g$ is defined on an open interval around $a$.) One-sided limits obey the same laws, which gives the one-sided statements.
 :::
@@ -281,20 +281,21 @@ $$\lim_{x\to a} f\big(g(x)\big) = f\big(g(a)\big),$$
 which says that $f \circ g$ is continuous at $a$.
 :::
 
-For example, $\abs{x} = \sqrt{x^2}$ is continuous on $\R$, as the composition of $x^2$ with the square root.
+For example, $\abs{x} = \sqrt{x^2}$, the composition of $x^2$ with the square root, is continuous at every $x \ne 0$, where $x^2 > 0$ and the square root is continuous. At 0 the theorem does not apply, since the square root is continuous there only from the right; but $\lim_{x\to0}\abs{x} = 0 = \abs{0}$, as [Example 2.9](module_02_EN.html#squeeze) showed. So $\abs{x}$ is continuous on $\R$.
 
 ```check
-xr2 = symbols('x', real=True); same(sqrt(xr2**2), Abs(xr2)); limit_is(Abs(x), x, 0, 0)
+xr2 = symbols('x', real=True); same(sqrt(xr2**2), Abs(xr2)); limit_is(Abs(x), x, 0, 0); same(Abs(0), 0)
+xnz = symbols('x', real=True, nonzero=True); holds(xnz**2 > 0)
 ```
 
 ::: deeper Why limits pass inside continuous functions
 Here is the proof of Theorem 3.4, with the ε–δ definition of Module 2. Let $\varepsilon > 0$. Because $f$ is continuous at $b$, there is a number $\eta > 0$ ($\eta$ is the Greek letter eta) such that
 
-$$\abs{u - b} < \eta \quad\text{implies}\quad \abs{f(u) - f(b)} < \varepsilon.$$
+$$\abs{u - b} < \eta \ \text{implies}\ \abs{f(u) - f(b)} < \varepsilon.$$
 
 Because $g(x) \to b$ as $x \to a$, the definition of that limit, applied with $\eta$ in the role of $\varepsilon$, gives a $\delta > 0$ such that
 
-$$0 < \abs{x - a} < \delta \quad\text{implies}\quad \abs{g(x) - b} < \eta.$$
+$$0 < \abs{x - a} < \delta \ \text{implies}\ \abs{g(x) - b} < \eta.$$
 
 Chain the two: if $0 < \abs{x - a} < \delta$, then $u = g(x)$ satisfies $\abs{u - b} < \eta$, so $\abs{f(g(x)) - f(b)} < \varepsilon$. That is the definition of $\lim_{x\to a} f(g(x)) = f(b)$.
 
@@ -321,6 +322,7 @@ same(solve_univariate_inequality(9 - x**2 >= 0, x, relational=False), Interval(-
 same(continuous_domain(sqrt(9 - x**2), x, S.Reals), Interval(-3, 3))
 limit_is(9 - x**2, x, 3, 0, '-'); holds((9 - x**2).subs(x, Rational(29, 10)) > 0)
 limit_is(sqrt(9 - x**2), x, 3, 0, '-'); limit_is(sqrt(9 - x**2), x, -3, 0, '+'); same(sqrt(9 - x**2).subs(x, 3), 0)
+same(x**2 + sqrt(9 - x**2)**2, 9)                  # the graph lies on the circle x^2 + y^2 = 9
 same(function_range(1 + cos(x), x, S.Reals), Interval(0, 2))
 same(solveset(1 + cos(x), x, Interval(-6*pi, 6*pi)), FiniteSet(-5*pi, -3*pi, -pi, pi, 3*pi, 5*pi))
 limit_is(log(1 + cos(x)), x, pi, -oo)
@@ -332,7 +334,7 @@ Find (a) $\displaystyle\lim_{x\to 1} \ln\frac{x^2 - 1}{x - 1}$ and (b) $\display
 
 **(a)** The inner function $g(x) = \dfrac{x^2 - 1}{x - 1}$ is not defined at 1, but for $x \ne 1$ it equals $\dfrac{(x - 1)(x + 1)}{x - 1} = x + 1$, so $\lim_{x\to1} g(x) = 2$. The logarithm is continuous at 2, so by Theorem 3.4
 
-$$\lim_{x\to 1} \ln\frac{x^2 - 1}{x - 1} = \ln\Big(\lim_{x\to1}\frac{x^2 - 1}{x - 1}\Big) = \ln 2 \approx 0.6931.$$
+$$\begin{aligned} \lim_{x\to 1} \ln\frac{x^2 - 1}{x - 1} &= \ln\Big(\lim_{x\to1}\frac{x^2 - 1}{x - 1}\Big) \\ &= \ln 2 \approx 0.6931. \end{aligned}$$
 
 The theorem needs the inner limit to exist, not the inner function to be continuous: here it has a removable discontinuity at 1.
 
@@ -375,6 +377,13 @@ The hypothesis is continuity on the whole closed interval, endpoints included, a
 - *Without continuity.* Let $f(x) = -1$ for $x < 0$ and $f(x) = 1$ for $x \ge 0$. On $[-1, 1]$, $f(-1) = -1 < 0 < 1 = f(1)$, but $f$ is never 0: the jump at 0 skips every value strictly between $-1$ and 1.
 - *Without continuity at an endpoint.* Let $g(0) = -1$ and $g(x) = x$ for $0 < x \le 1$. Then $g$ is continuous on $(0, 1]$, and $g(0) = -1 < 0 < 1 = g(1)$, but $g(x) = x$ is positive for every $x$ in $(0, 1]$: $g$ has no root. The culprit is the endpoint 0, where $g$ is not continuous from the right, since $\lim_{x\to0^+} g(x) = 0 \ne g(0)$.
 
+```check
+fj = Piecewise((-1, x < 0), (1, True))
+same(fj.subs(x, -1), -1); same(fj.subs(x, 1), 1); same(solveset(Eq(fj, 0), x, Interval(-1, 1)), S.EmptySet)
+gj = Piecewise((-1, Eq(x, 0)), (x, True))
+same(gj.subs(x, 0), -1); same(gj.subs(x, 1), 1); limit_is(x, x, 0, 0, '+'); holds(Ne(0, -1))
+```
+
 Notice also what the theorem does not say. It promises at least one $c$, not exactly one: in Figure 3.2 there are three. And it does not say where $c$ is: it is an existence theorem. Section 3.4 turns it into a method for finding $c$.
 
 ::: example A root of a cubic
@@ -382,7 +391,7 @@ Show that the equation $x^3 - 2x - 5 = 0$ has a solution between 2 and 3.
 
 Let $f(x) = x^3 - 2x - 5$. It is a polynomial, so it is continuous on $[2, 3]$ (Theorem 3.2). At the ends of the interval,
 
-$$f(2) = 8 - 4 - 5 = -1, \qquad f(3) = 27 - 6 - 5 = 16.$$
+$$\begin{aligned} f(2) &= 8 - 4 - 5 = -1, \\ f(3) &= 27 - 6 - 5 = 16. \end{aligned}$$
 
 Since $f(2) < 0 < f(3)$, the Intermediate Value Theorem with $N = 0$ gives a number $c$ in $(2, 3)$ with $f(c) = 0$. The theorem does not say where in $(2, 3)$; since $f(2) = -1$ is much closer to 0 than $f(3) = 16$, you may guess that $c$ is nearer 2. Section 3.4 finds $c \approx 2.0946$.
 
@@ -399,7 +408,7 @@ Show that the equation $\cos x = x$ has a solution, and find an interval of leng
 
 No algebra solves $\cos x = x$. Rewrite it as $f(x) = 0$ with $f(x) = \cos x - x$, which is continuous on $\R$ as a difference of continuous functions (Theorems 3.1 and 3.3). Try a few values, in radians as always:
 
-$$f(0) = \cos 0 - 0 = 1 > 0, \qquad f(1) = \cos 1 - 1 \approx 0.5403 - 1 = -0.4597 < 0.$$
+$$\begin{aligned} f(0) &= \cos 0 - 0 = 1 > 0, \\ f(1) &= \cos 1 - 1 \approx 0.5403 - 1 \\ &= -0.4597 < 0. \end{aligned}$$
 
 By the Intermediate Value Theorem, $\cos x - x = 0$ has a solution in $(0, 1)$. Equations of this kind, mixing a trigonometric function with a polynomial, are common in physics and engineering, and no formula solves them; Section 3.4 finds this solution, about 0.739.
 
@@ -420,11 +429,15 @@ limit_is(tan(x), x, pi/2, oo, '-'); limit_is(tan(x), x, pi/2, -oo, '+')
 :::
 
 ::: deeper Why the Intermediate Value Theorem is true
-Here is the idea of the proof. Suppose $f$ is continuous on $[a, b]$ and $f(a) < N < f(b)$ (otherwise apply the argument to $-f$ and $-N$). Halve $[a, b]$. If $f$ takes the value $N$ at the midpoint, that is $c$; otherwise keep the half at whose left end $f$ is below $N$ and at whose right end it is above. Repeating gives intervals $[a_n, b_n]$, each half the one before, with $f(a_n) < N < f(b_n)$: the bisection method of the next section.
+A first reading may skip this proof. It takes one property of the real numbers as an axiom, and proves the rest.
 
-The left ends $a_0 \le a_1 \le a_2 \le \cdots$ never decrease, the right ends $b_0 \ge b_1 \ge b_2 \ge \cdots$ never increase, and the gap $b_n - a_n = (b - a)/2^n$ shrinks to 0. Here the proof needs a property of the real numbers themselves, their **completeness**: the number line has no gaps, so the $a_n$ and the $b_n$ close in on one and the same number $c$. (Module 14 states this property as the monotone convergence theorem: a sequence that never decreases and stays below a fixed bound has a limit.) Since $f$ is continuous at $c$, $f(a_n) \to f(c)$ and $f(b_n) \to f(c)$. Every $f(a_n)$ is below $N$ and every $f(b_n)$ above, so $f(c) \le N$ and $f(c) \ge N$: $f(c) = N$. Finally $c$ is neither $a$ nor $b$, because $f(a) \ne N \ne f(b)$.
+Suppose that $f$ is continuous on $[a, b]$ and $f(a) < N < f(b)$. (If $f(a) > N > f(b)$, apply the argument to $-f$ and $-N$.) Halve $[a, b]$. If $f$ takes the value $N$ at the midpoint, that midpoint is the $c$ wanted; otherwise keep the half at whose left end $f$ is below $N$ and at whose right end it is above. Repeat. Either some midpoint gives the value $N$, or you get intervals $[a_n, b_n]$, each half the one before, with $f(a_n) < N < f(b_n)$ for every $n$: the bisection method of the next section, with $N$ in place of 0.
 
-Completeness is essential. Within the rational numbers alone the theorem is false: $x^2 - 2$ is negative at 1 and positive at 2, but no rational number $c$ has $c^2 = 2$, because $\sqrt2$ is irrational; the intervals $[a_n, b_n]$ close in on the gap where $\sqrt2$ would be. That the real numbers have no gaps is one of their axioms, studied in courses on real analysis.
+The left ends $a_0 \le a_1 \le a_2 \le \cdots$ never decrease, the right ends $b_0 \ge b_1 \ge b_2 \ge \cdots$ never increase, and the width $b_n - a_n = (b - a)/2^n$ shrinks to 0. Here the proof needs the **completeness** of the real numbers: the number line has no gaps, so some number $c$ lies in every one of the intervals, $a_n \le c \le b_n$ for every $n$. This is the axiom. (Module 14 states it as the Monotone Convergence Theorem: a sequence that never decreases and stays below a fixed bound has a limit. Here $c$ is the limit of the $a_n$.)
+
+It remains to show that $f(c) = N$. Suppose not, and challenge the continuity of $f$ at $c$ with $\varepsilon = \abs{f(c) - N}$. There is a $\delta > 0$ such that $\abs{f(x) - f(c)} < \varepsilon$ for every $x$ in $[a, b]$ with $\abs{x - c} < \delta$: all those $f(x)$ are closer to $f(c)$ than $N$ is, so they lie on the same side of $N$ as $f(c)$. Take $n$ so large that $b_n - a_n < \delta$. Since $c$ lies in $[a_n, b_n]$, both ends are within $\delta$ of $c$, so $f(a_n)$ and $f(b_n)$ lie on the same side of $N$. But $f(a_n) < N < f(b_n)$. So $f(c) = N$. Finally, $c$ is neither $a$ nor $b$, because $f(a) \ne N \ne f(b)$.
+
+Completeness is essential. Within the rational numbers alone the theorem is false: $x^2 - 2$ is negative at 1 and positive at 2, but no rational number $c$ has $c^2 = 2$, because $\sqrt2$ is irrational; the intervals $[a_n, b_n]$ close in on the gap where $\sqrt2$ would be. Courses in real analysis either build the real numbers and prove completeness, or take it as an axiom, as here.
 :::
 
 ## The bisection method {#bisection}
@@ -495,7 +508,7 @@ The values $f(m_n)$ in the table are rounded, but the signs, which are all that 
 ::: theorem The error of the bisection method
 Let $f$ be continuous on $[a, b]$, with $f(a)$ and $f(b)$ of opposite signs. If the bisection method has not stopped at an exact root, then after $n$ steps the bracket $[a_n, b_n]$ contains a root $r$ of $f$, and
 
-$$b_n - a_n = \frac{b - a}{2^n}, \qquad \abs{m_n - r} \le \frac{b - a}{2^{n+1}}.$$
+$$b_n - a_n = \frac{b - a}{2^n}, \quad \abs{m_n - r} \le \frac{b - a}{2^{n+1}}.$$
 :::
 
 ::: proof
@@ -525,16 +538,23 @@ same(2**10, 1024); rounds(1/log(2, 10), '3.3')
 **Strengths and weaknesses.** Bisection always works when its hypotheses hold, with a guaranteed error. But it is slow, one binary digit per step whatever the function; Newton's method (Module 7) usually doubles the number of correct digits at every step, though it can fail. Bisection needs a sign change, so it cannot find a root where the graph touches the axis without crossing it, as $(x - 1)^2$ does at 1; and when a bracket contains several roots, it finds only one.
 
 ::: pitfall
-The bisection method needs continuity, as the theorem behind it does. On $[1, 2]$, $f(x) = \tan x$ has $f(1) \approx 1.557 > 0$ and $f(2) \approx -2.185 < 0$, and bisection closes in on $1.5708\ldots = \pi/2$, the asymptote, where $\tan x$ has no root at all. The warning sign is in the table: the values $f(m_n)$ grow instead of shrinking. Try it in the widget below.
+The bisection method needs continuity, as the theorem behind it does. On $[1, 2]$, $f(x) = \tan x$ has $f(1) \approx 1.557 > 0$ and $f(2) \approx -2.185 < 0$, and bisection closes in on $1.5708\ldots = \pi/2$, the asymptote, where $\tan x$ has no root at all. The warning sign is in the values $f(m_n)$: instead of shrinking towards 0, they grow in size, from $f(m_0) \approx 14.1$ to $f(m_3) \approx 120.5$ and $f(m_6) \approx 2067$. Try it in the widget below.
 
 ```check
 rounds(tan(1), '1.557'); rounds(tan(2), '-2.185'); holds(tan(1) > 0); holds(tan(2) < 0)
 rounds(pi/2, '1.5708'); holds(1 < pi/2 < 2); same(solveset(tan(x), x, Interval(1, 2)), S.EmptySet)
+At, Bt, mt = Rational(1), Rational(2), []
+for k_ in range(7):
+    Mt = (At + Bt)/2; mt.append(Mt)
+    if sign(tan(Mt)) == sign(tan(At)): At = Mt
+    else: Bt = Mt
+same((mt[0], mt[3], mt[6]), (Rational(3, 2), Rational(25, 16), Rational(201, 128)))
+rounds(tan(mt[0]), '14.1'); rounds(tan(mt[3]), '120.5'); rounds(tan(mt[6]), '2067'); holds(At < pi/2 < Bt)
 ```
 :::
 
 ::: widget name=bisection
-Start with $x^2 - 2$ on $[1, 2]$. Press **Step** six times and compare the table with Example 3.7; the shaded band is the bracket. Press **Run 10 steps**: how many decimals of $\sqrt2$ are certain now? Choose $x^3 - 2x - 5$ on $[2, 3]$ (Example 3.5) and $\cos x - x$ on $[0, 1]$ (Example 3.6). For $x^2 - 2$, set $a = -2$: $f(-2)$ and $f(2)$ have the same sign, so the method cannot start, although $[-2, 2]$ contains two roots. Finally choose $\tan x$ on $[1, 2]$ and watch what happens without continuity.
+Start with $x^2 - 2$ on $[1, 2]$. Press **Step** six times and compare the table with Example 3.7; the shaded band is the bracket. Press **Run 10 steps**: how many decimals of $\sqrt2$ are certain now? Choose $x^3 - 2x - 5$ on $[2, 3]$ (Example 3.5) and $\cos x - x$ on $[0, 1]$ (Example 3.6). For $x^2 - 2$, set $a = -2$: $f(-2)$ and $f(2)$ have the same sign, so the method cannot start, although $[-2, 2]$ contains two roots. Choose $x^3 - x$ on $[-2, 3]$, which contains three roots: which one does the method find? Finally choose $\tan x$ on $[1, 2]$ and watch what happens without continuity.
 :::
 
 ::: compute The bisection method in Python
@@ -599,7 +619,7 @@ bisection(lambda x: (x - 1)**2, 0, 3, 10)
 ValueError: f(a) and f(b) must have opposite signs
 ```
 
-Finally, floating-point numbers (Module 1) set a limit. Between 1 and 2 they are $2^{-52} \approx 2.2 \times 10^{-16}$ apart, so after 52 steps from $[1, 2]$ the ends of the bracket are neighbouring floating-point numbers, and further steps change nothing:
+Finally, floating-point numbers (Module 2) set a limit. Between 1 and 2 they are $2^{-52} \approx 2.2 \times 10^{-16}$ apart, so after 52 steps from $[1, 2]$ the ends of the bracket are neighbouring floating-point numbers, and further steps change nothing:
 
 ```python
 a, b = bisection(lambda x: x**2 - 2, 1, 2, 60)
@@ -626,19 +646,19 @@ Let $f$ be defined on an interval $I$. The number $f(c)$, for a $c$ in $I$, is t
 A maximum value must be a value: a number $f(c)$ that $f$ actually takes, not merely a number that the values approach. Module 8 calls these the absolute maximum and minimum, and finds them with derivatives.
 
 ::: theorem The Extreme Value Theorem
-If $f$ is continuous on a closed interval $[a, b]$, then $f$ has a maximum value and a minimum value on $[a, b]$: there are numbers $c$ and $d$ in $[a, b]$ such that
+If $f$ is continuous on a closed interval $[a, b]$, then $f$ has a maximum value and a minimum value on $[a, b]$: there are numbers $c$ and $d$ in $[a, b]$ such that, for every $x$ in $[a, b]$,
 
-$$f(d) \le f(x) \le f(c) \quad\text{for every } x \text{ in } [a, b].$$
+$$f(d) \le f(x) \le f(c).$$
 :::
 
-The proof needs the completeness of the real numbers, in a stronger form than the Intermediate Value Theorem did, and it belongs to a course in real analysis; this series uses the theorem without proof. What you can see now is why each hypothesis is needed (Figure 3.4):
+Its proof also rests on the completeness of the real numbers, but takes more work than the proof of the Intermediate Value Theorem; it belongs to a course in real analysis, and this series uses the theorem without proof. What you can see now is why each hypothesis is needed (Figure 3.4):
 
 - *A closed interval.* $f(x) = x$ is continuous on the open interval $(0, 1)$ but has no maximum value there: for any $x$ in $(0, 1)$, the number $\tfrac{x + 1}{2}$ is in $(0, 1)$ too, and larger. The values approach 1, but the end where they would reach it is missing. Likewise there is no minimum value.
-- *Continuity.* On $[0, 1]$, let $f(x) = x$ for $0 \le x < 1$ and $f(1) = 0$. Again the values approach 1 without reaching it: the jump at 1 drops the value to 0. This $f$ has the minimum value 0, but no maximum value.
-- *A bounded interval.* $[0, \infty)$ contains its endpoint but has no right end, so it is not a closed interval $[a, b]$. On it, $f(x) = \dfrac{x}{x + 1}$ is continuous and creeps up towards 1 (Section 3.7), but never reaches 1, since $x < x + 1$: no maximum value.
+- *Continuity.* On $[0, 1]$, let $f(x) = x$ for $0 \le x < 1$ and $f(1) = 0$. Again the values approach 1 without reaching it: at 1, where $f$ is not continuous from the left, the value drops to 0. This $f$ has the minimum value 0, but no maximum value.
+- *A bounded interval.* $[0, \infty)$ contains its endpoint but has no right end, so it is not a closed interval $[a, b]$. On it, $f(x) = \dfrac{x}{x + 1} = 1 - \dfrac{1}{x + 1}$ is continuous, and it increases as $x$ increases, creeping up towards 1 (Section 3.7) without reaching it. Every value is beaten by a later one: no maximum value.
 
 ::: figure id=fig-03-4
-The Extreme Value Theorem. Left: $f(x) = x^2 - 4x + 1$ is continuous on the closed interval $[0, 3]$ and reaches a maximum value 1 (at 0) and a minimum value $-3$ (at 2), as Example 3.9 shows. Centre: $x$ on the open interval $(0, 1)$ has neither; the hollow dots are the missing ends. Right: with a jump at 1, the values approach 1 without reaching it.
+The Extreme Value Theorem. Left: $f(x) = x^2 - 4x + 1$ is continuous on the closed interval $[0, 3]$ and reaches a maximum value 1 (at 0) and a minimum value $-3$ (at 2), as Example 3.9 shows. Centre: $x$ on the open interval $(0, 1)$ has neither; the hollow dots are the missing ends. Right: $f(x) = x$ for $0 \le x < 1$ and $f(1) = 0$ is not continuous at 1, and its values approach 1 without reaching it.
 :::
 
 ```check
@@ -647,6 +667,9 @@ xs_ = symbols('x', positive=True)
 holds(half(Rational(9, 10)) > Rational(9, 10)); holds(half(Rational(9, 10)) < 1)
 same(simplify(half(x) - x), (1 - x)/2)
 same(simplify(1 - x/(x + 1)), 1/(x + 1)); holds(1/(xs_ + 1) > 0); limit_is(x/(x + 1), x, oo, 1)
+same(x/(x + 1), 1 - 1/(x + 1)); dx_ = symbols('d', positive=True)
+same((1 - 1/(xs_ + dx_ + 1)) - (1 - 1/(xs_ + 1)), dx_/((xs_ + 1)*(xs_ + dx_ + 1))); holds(dx_/((xs_ + 1)*(xs_ + dx_ + 1)) > 0)   # f(x + d) > f(x): f increases
+fe_ = Piecewise((x, x < 1), (0, True)); same(fe_.subs(x, 1), 0); limit_is(x, x, 1, 1, '-'); same(fe_.subs(x, 0), 0)
 ```
 
 The theorem says that extreme values exist, not where: at an end of the interval, like the maximum in Figure 3.4, or inside it, like the minimum. In optimisation it guarantees that a best choice exists: a cost that depends continuously on a setting has a cheapest setting in every closed interval of settings. Module 8 shows how to find it.
@@ -708,7 +731,7 @@ Let $f$ be defined on an open interval containing $a$, except perhaps at $a$ its
 
 $$\lim_{x\to a} f(x) = \infty,$$
 
-read "the limit of $f$ of $x$ as $x$ approaches $a$ is infinity", means that $f(x)$ is larger than any number $M$ you choose, for every $x \ne a$ close enough to $a$. Likewise $\lim_{x\to a} f(x) = -\infty$ means that $f(x)$ is less than any number you choose, for every $x \ne a$ close enough to $a$. One-sided infinite limits, such as $\lim_{x\to a^+} f(x) = \infty$, look only at $x$ on one side of $a$.
+read "the limit of $f$ of $x$ as $x$ approaches $a$ is infinity", means that, whatever number $M$ you choose, $f(x) > M$ for every $x \ne a$ close enough to $a$ (how close depends on $M$). Likewise $\lim_{x\to a} f(x) = -\infty$ means that, whatever number $M$ you choose, $f(x) < M$ for every $x \ne a$ close enough to $a$. One-sided infinite limits, such as $\lim_{x\to a^+} f(x) = \infty$, look only at $x$ on one side of $a$.
 
 The line $x = a$ is a **vertical asymptote** of the graph of $f$ if at least one of the one-sided limits $\lim_{x\to a^-} f(x)$ and $\lim_{x\to a^+} f(x)$ is $\infty$ or $-\infty$.
 :::
@@ -729,7 +752,7 @@ Most vertical asymptotes come from a fraction whose denominator tends to 0 while
 ::: theorem Non-zero over zero
 Suppose that $\lim_{x\to a^+} f(x) = L$, a number with $L \ne 0$, and $\lim_{x\to a^+} g(x) = 0$. If $g(x) > 0$ for every $x$ in some interval $(a, a + \delta)$, then
 
-$$\lim_{x\to a^+}\frac{f(x)}{g(x)} = \infty \text{ if } L > 0, \qquad \lim_{x\to a^+}\frac{f(x)}{g(x)} = -\infty \text{ if } L < 0.$$
+$$\begin{aligned} \lim_{x\to a^+}\frac{f(x)}{g(x)} &= \infty \quad \text{if } L > 0, \\ \lim_{x\to a^+}\frac{f(x)}{g(x)} &= -\infty \quad \text{if } L < 0. \end{aligned}$$
 
 If instead $g(x) < 0$ on such an interval, the two signs swap. The same holds for limits from the left and for two-sided limits.
 :::
@@ -752,7 +775,7 @@ Find the one-sided limits and the vertical asymptotes of (a) $r(x) = \dfrac{x^2 
 
 **(a)** For $x$ near $-1$ (and $x \ne -1$), $r(x) = \dfrac{x + 2}{x + 1}$ (Example 3.2). The numerator tends to 1, which is positive, and the denominator to 0. For $x$ slightly greater than $-1$, $x + 1 > 0$; for $x$ slightly less, $x + 1 < 0$. By Theorem 3.9,
 
-$$\lim_{x\to-1^+} r(x) = \infty, \qquad \lim_{x\to-1^-} r(x) = -\infty,$$
+$$\begin{aligned} \lim_{x\to-1^+} r(x) &= \infty, \\ \lim_{x\to-1^-} r(x) &= -\infty, \end{aligned}$$
 
 and the line $x = -1$ is a vertical asymptote. The other zero of the denominator, 2, gives no asymptote: there the limit is $\tfrac43$ (Example 3.2), and the graph has a hole.
 
@@ -764,7 +787,7 @@ and the $y$-axis is a vertical asymptote of $y = \ln x$, as in [Figure 1.3](modu
 
 **(c)** As $x \to \pi/2$, $\sin x \to 1$ and $\cos x \to 0$. On the unit circle, $\cos x$ is positive for $x$ slightly less than $\pi/2$ and negative for $x$ slightly greater. By Theorem 3.9,
 
-$$\lim_{x\to\pi/2^-}\tan x = \infty, \qquad \lim_{x\to\pi/2^+}\tan x = -\infty,$$
+$$\begin{aligned} \lim_{x\to\pi/2^-}\tan x &= \infty, \\ \lim_{x\to\pi/2^+}\tan x &= -\infty, \end{aligned}$$
 
 so $x = \pi/2$ is a vertical asymptote of $y = \tan x$, and so is every line $x = \pi/2 + k\pi$, since $\tan$ has period $\pi$.
 
@@ -821,9 +844,9 @@ Let $f$ be defined on an interval $(c, \infty)$. Then
 
 $$\lim_{x\to\infty} f(x) = L,$$
 
-read "the limit of $f$ of $x$ as $x$ tends to infinity is $L$", means that $f(x)$ is as close to $L$ as you like for every large enough $x$. For $f$ defined on an interval $(-\infty, c)$, $\lim_{x\to-\infty} f(x) = L$ means the same, for every $x$ that is negative and large enough in size. The line $y = L$ is a **horizontal asymptote** of the graph of $f$ if $\lim_{x\to\infty} f(x) = L$ or $\lim_{x\to-\infty} f(x) = L$.
+read "the limit of $f$ of $x$ as $x$ tends to infinity is $L$", means that $f(x)$ can be made as close to $L$ as you like by taking $x$ large enough. For $f$ defined on an interval $(-\infty, c)$, $\lim_{x\to-\infty} f(x) = L$ means the same, with $x$ negative and large enough in size. The line $y = L$ is a **horizontal asymptote** of the graph of $f$ if $\lim_{x\to\infty} f(x) = L$ or $\lim_{x\to-\infty} f(x) = L$.
 
-Similarly, $\lim_{x\to\infty} f(x) = \infty$ means that $f(x)$ is larger than any number $M$ you choose, for every large enough $x$; and so on for $-\infty$.
+Similarly, $\lim_{x\to\infty} f(x) = \infty$ means that, whatever number $M$ you choose, $f(x) > M$ for every large enough $x$; and so on for $-\infty$.
 :::
 
 So the line $y = 1$ is a horizontal asymptote of $r$, at both ends (Figure 3.5). The limit laws, the squeeze theorem and Theorem 3.4 all hold for limits at infinity, with the same proofs.
@@ -860,9 +883,9 @@ with $a_m \ne 0$ and $b_n \ne 0$, so that the numerator has degree $m$ and the d
 ::: proof
 For $x \ne 0$, take the leading term out of the numerator and out of the denominator:
 
-$$f(x) = \frac{a_m x^m}{b_n x^n} \cdot \frac{1 + c_1/x + \dots + c_m/x^m}{1 + d_1/x + \dots + d_n/x^n},$$
+$$\begin{aligned} f(x) &= \frac{a_m x^m}{b_n x^n} \cdot Q(x), \quad\text{where} \\ Q(x) &= \frac{1 + c_1/x + \dots + c_m/x^m}{1 + d_1/x + \dots + d_n/x^n} \end{aligned}$$
 
-where $c_k = a_{m-k}/a_m$ and $d_k = b_{n-k}/b_n$ are constants. As $x \to \pm\infty$, every term $c_k/x^k$ and $d_k/x^k$ tends to 0, so the second fraction tends to $\dfrac{1 + 0 + \dots + 0}{1 + 0 + \dots + 0} = 1$. The first fraction equals $\dfrac{a_m}{b_n}x^{m-n}$: it tends to 0 if $m < n$, it is the constant $\dfrac{a_m}{b_n}$ if $m = n$, and it tends to $\infty$ or $-\infty$ if $m > n$. In the last case the product of a factor that grows without bound and a factor that tends to 1 grows without bound, with the same sign.
+and $c_k = a_{m-k}/a_m$ and $d_k = b_{n-k}/b_n$ are constants. As $x \to \pm\infty$, every term $c_k/x^k$ and $d_k/x^k$ tends to 0, so $Q(x)$ tends to $\dfrac{1 + 0 + \dots + 0}{1 + 0 + \dots + 0} = 1$. The first fraction equals $\dfrac{a_m}{b_n}x^{m-n}$: it tends to 0 if $m < n$, it is the constant $\dfrac{a_m}{b_n}$ if $m = n$, and it tends to $\infty$ or $-\infty$ if $m > n$. In the last case the product of a factor that grows without bound and a factor that tends to 1 grows without bound, with the same sign.
 :::
 
 ```check
@@ -880,7 +903,7 @@ Find
 
 **(a)** The degrees are equal, 3 and 3. Divide the numerator and the denominator by $x^3$:
 
-$$\frac{6x^3 - 5x + 1}{2x^3 + x^2} = \frac{6 - 5/x^2 + 1/x^3}{2 + 1/x} \to \frac{6 - 0 + 0}{2 + 0} = 3.$$
+$$\begin{aligned} \frac{6x^3 - 5x + 1}{2x^3 + x^2} &= \frac{6 - 5/x^2 + 1/x^3}{2 + 1/x} \\ &\to \frac{6 - 0 + 0}{2 + 0} = 3. \end{aligned}$$
 
 The line $y = 3$ is a horizontal asymptote, as Theorem 3.10 predicts: $3 = 6/2$, the ratio of the leading coefficients.
 
@@ -913,17 +936,17 @@ Find the horizontal asymptotes of $f(x) = \dfrac{\sqrt{4x^2 + 1}}{x - 3}$.
 
 The leading term under the root is $4x^2$, so take $x^2$ out of the root: for $x \ne 0$,
 
-$$\sqrt{4x^2 + 1} = \sqrt{x^2\Big(4 + \frac{1}{x^2}\Big)} = \abs{x}\sqrt{4 + \frac{1}{x^2}}.$$
+$$\begin{aligned} \sqrt{4x^2 + 1} &= \sqrt{x^2\Big(4 + \frac{1}{x^2}\Big)} \\ &= \abs{x}\sqrt{4 + \frac{1}{x^2}}. \end{aligned}$$
 
-For $x > 3$, $\abs{x} = x$; divide the numerator and the denominator by $x$:
+For $x > 3$, $\abs{x} = x$; divide the numerator and the denominator by $x$. As $x \to \infty$,
 
-$$f(x) = \frac{\sqrt{4 + 1/x^2}}{1 - 3/x} \to \frac{\sqrt4}{1} = 2 \qquad (x \to \infty),$$
+$$f(x) = \frac{\sqrt{4 + 1/x^2}}{1 - 3/x} \to \frac{\sqrt4}{1} = 2,$$
 
 using the continuity of the square root at 4 (Theorem 3.4). For $x < 0$, $\abs{x} = -x$, and
 
-$$f(x) = \frac{-x\sqrt{4 + 1/x^2}}{x - 3} = -\frac{\sqrt{4 + 1/x^2}}{1 - 3/x} \to -2 \qquad (x \to -\infty).$$
+$$\begin{aligned} f(x) &= \frac{-x\sqrt{4 + 1/x^2}}{x - 3} \\ &= -\frac{\sqrt{4 + 1/x^2}}{1 - 3/x}, \end{aligned}$$
 
-So the graph has two horizontal asymptotes: $y = 2$ on the right and $y = -2$ on the left. Forgetting the sign of $\abs{x}$ gives the wrong answer 2 on the left. (There is also the vertical asymptote $x = 3$, by Theorem 3.9: the numerator tends to $\sqrt{37} \ne 0$ there.)
+which tends to $-\sqrt4/1 = -2$ as $x \to -\infty$. So the graph has two horizontal asymptotes: $y = 2$ on the right and $y = -2$ on the left. Forgetting the sign of $\abs{x}$ gives the wrong answer 2 on the left. (There is also the vertical asymptote $x = 3$, by Theorem 3.9: the numerator tends to $\sqrt{37} \ne 0$ there.)
 
 ```check
 f12 = sqrt(4*x**2 + 1)/(x - 3)
@@ -938,13 +961,13 @@ same(sqrt(4*x**2 + 1).subs(x, 3), sqrt(37)); limit_is(f12, x, 3, oo, '+'); limit
 
 ### Exponentials, logarithms and oscillations {#other-limits}
 
-**Exponentials.** Let $a > 1$, and write $a = 1 + q$ with $q > 0$. Then $a^n = (1 + q)^n \ge 1 + nq$ for every whole number $n \ge 1$: it is an equality for $n = 1$, and each further factor $1 + q$ keeps it true, since
+**Exponentials.** Let $a > 1$, and write $a = 1 + q$ with $q > 0$. Then $a^n = (1 + q)^n \ge 1 + nq$ for every whole number $n \ge 1$. It is an equality for $n = 1$; and if it holds for some $n$, multiplying both sides by the positive number $1 + q$ shows that it holds for $n + 1$:
 
-$$(1 + nq)(1 + q) = 1 + (n + 1)q + nq^2 \ge 1 + (n + 1)q.$$
+$$\begin{aligned} (1 + q)^{n+1} &\ge (1 + nq)(1 + q) \\ &= 1 + (n + 1)q + nq^2 \\ &\ge 1 + (n + 1)q. \end{aligned}$$
 
-So $a^n$ exceeds any number $M$ once $n > M/q$, and since $a^x$ increases with $x$,
+So it holds for $n = 2$, then for $n = 3$, and so on for every $n$. Hence $a^n$ exceeds any number $M$ once $n > M/q$, and since $a^x$ increases with $x$, for every $a > 1$
 
-$$\lim_{x\to\infty} a^x = \infty, \qquad \lim_{x\to-\infty} a^x = \lim_{x\to-\infty}\frac{1}{a^{-x}} = 0 \qquad (a > 1).$$
+$$\begin{aligned} \lim_{x\to\infty} a^x &= \infty, \\ \lim_{x\to-\infty} a^x &= \lim_{x\to-\infty}\frac{1}{a^{-x}} = 0. \end{aligned}$$
 
 For $0 < a < 1$ the two limits are swapped. In particular $e^x \to \infty$ as $x \to \infty$ and $e^x \to 0$ as $x \to -\infty$: the $x$-axis is a horizontal asymptote of $y = e^x$ on the left, as [Figure 1.3](module_01_EN.html#fig-01-3) shows.
 
@@ -970,7 +993,7 @@ limit_is(sin(x)/x, x, oo, 0); limit_is(1/x, x, oo, 0); limit_is(exp(-x)*sin(x), 
 ```
 
 ::: pitfall
-A graph can cross its horizontal asymptote, even infinitely often: $\dfrac{\sin x}{x}$ is 0 at every multiple of $\pi$. An asymptote describes the graph far out; it is not a line that the graph never touches.
+A graph can cross its horizontal asymptote, even infinitely often: $\dfrac{\sin x}{x}$ is 0 at every non-zero multiple of $\pi$. An asymptote describes the graph far out; it is not a line that the graph never touches.
 
 ```check
 same((sin(x)/x).subs(x, 5*pi), 0); same((sin(x)/x).subs(x, 100*pi), 0)
@@ -984,7 +1007,7 @@ When the degree of the numerator is one more than that of the denominator, a rat
 ::: definition Oblique asymptote
 The line $y = mx + c$, with $m \ne 0$, is an **oblique asymptote** (or slant asymptote) of the graph of $f$ if
 
-$$\lim_{x\to\infty}\big[f(x) - (mx + c)\big] = 0 \quad\text{or}\quad \lim_{x\to-\infty}\big[f(x) - (mx + c)\big] = 0.$$
+$$\begin{aligned} \lim_{x\to\infty}\big[f(x) - (mx + c)\big] &= 0 \quad\text{or} \\ \lim_{x\to-\infty}\big[f(x) - (mx + c)\big] &= 0. \end{aligned}$$
 :::
 
 The bracket is the vertical distance between the graph and the line, and it shrinks to 0. For a rational function $p/q$ whose numerator has degree one more than its denominator, divide: $p(x) = q(x)(mx + c) + s(x)$, with a remainder $s$ of lower degree than $q$ (polynomial long division from school algebra, or the trick in the next example). Then
@@ -1104,7 +1127,7 @@ same(len(str(factorial(100))), 158); same(factorial(4), 1*2*3*4)
 ```
 
 ::: definition Orders of growth
-Let $f$ and $g$ be positive for all large $x$. Then $f$ **grows more slowly than** $g$ as $x \to \infty$, written $f \ll g$, if
+Let $f$ and $g$ be positive for all large $x$. Then $f$ **grows more slowly than** $g$ as $x \to \infty$, written $f \ll g$ and read "f is much smaller than g", if
 
 $$\lim_{x\to\infty}\frac{f(x)}{g(x)} = 0.$$
 
@@ -1139,7 +1162,7 @@ because every factor after the first is at most 1. Since $0 < \dfrac{n!}{n^n} \l
 
 For $\dfrac{a^n}{n!}$, choose a whole number $N \ge 2a$. For $n > N$, split off the first $N$ factors of the top and of the bottom:
 
-$$\frac{a^n}{n!} = \frac{a^N}{N!}\cdot\frac{a}{N + 1}\cdot\frac{a}{N + 2}\cdots\frac{a}{n} \le \frac{a^N}{N!}\Big(\frac12\Big)^{n - N},$$
+$$\begin{aligned} \frac{a^n}{n!} &= \frac{a^N}{N!}\cdot\frac{a}{N + 1}\cdot\frac{a}{N + 2}\cdots\frac{a}{n} \\ &\le \frac{a^N}{N!}\Big(\frac12\Big)^{n - N}, \end{aligned}$$
 
 because each of the last $n - N$ factors is at most $\dfrac{a}{N} \le \dfrac12$. The number $\dfrac{a^N}{N!}$ is fixed, and $\big(\tfrac12\big)^{n-N} \to 0$ (Section 3.7), so $\dfrac{a^n}{n!} \to 0$ by the squeeze theorem.
 :::
@@ -1183,7 +1206,7 @@ To show that $\dfrac{x^p}{a^x} \to 0$ for $p > 0$ and $a > 1$, start with whole 
 
 $$\frac{u_{n+1}}{u_n} = \frac{(n + 1)^p}{a^{n+1}}\cdot\frac{a^n}{n^p} = \frac1a\Big(1 + \frac1n\Big)^p,$$
 
-tends to $\frac1a < 1$ as $n \to \infty$, because $t^p$ is continuous at $t = 1$. So for a number $\rho$ between $\frac1a$ and 1 (the Greek letter rho), say $\rho = \frac12\big(1 + \frac1a\big)$, the ratio is less than $\rho$ for every $n$ from some $N$ on, and
+tends to $\frac1a < 1$ as $n \to \infty$, because $t^p = e^{p\ln t}$ is continuous at $t = 1$ (Theorems 3.3 and 3.5). So for a number $\rho$ between $\frac1a$ and 1 (the Greek letter rho), say $\rho = \frac12\big(1 + \frac1a\big)$, the ratio is less than $\rho$ for every $n$ from some $N$ on, and
 
 $$u_{N+k} \le u_N\,\rho^k \quad\text{for } k = 1, 2, 3, \dots$$
 
@@ -1199,7 +1222,7 @@ pp2 = symbols('p', positive=True); a2 = symbols('a', positive=True); n2 = symbol
 same(((n2 + 1)**pp2/a2**(n2 + 1))*(a2**n2/n2**pp2), (1 + 1/n2)**pp2/a2)
 limit_is((1 + 1/n2)**pp2/a2, n2, oo, 1/a2)
 same((n2 + 1)**pp2/a2**n2, a2*((n2 + 1)**pp2/a2**(n2 + 1)))
-tt = symbols('t', positive=True); same(log(exp(tt))/exp(tt)**pp2, tt/exp(pp2)**tt)
+tt = symbols('t', positive=True); same(log(exp(tt))/exp(tt)**pp2, tt/exp(pp2)**tt); same(exp(pp2*log(tt)), tt**pp2)
 limit_is(x**3/2**x, x, oo, 0); limit_is(log(x)/x**Rational(1, 10), x, oo, 0)
 ```
 
@@ -1250,7 +1273,7 @@ Show that $3n^2 + 5n + 7 = O(n^2)$, and that $n^2$ is not $O(n)$.
 
 For $n \ge 1$, $n \le n^2$ and $1 \le n^2$, so
 
-$$3n^2 + 5n + 7 \le 3n^2 + 5n^2 + 7n^2 = 15n^2.$$
+$$\begin{aligned} 3n^2 + 5n + 7 &\le 3n^2 + 5n^2 + 7n^2 \\ &= 15n^2. \end{aligned}$$
 
 That is the definition, with $C = 15$ and $N = 1$. The limit test gives the same: $\dfrac{3n^2 + 5n + 7}{n^2} = 3 + \dfrac5n + \dfrac{7}{n^2} \to 3$. The lower-order terms $5n + 7$ and the factor 3 do not matter.
 
@@ -1394,7 +1417,7 @@ holds(ue.subs(xr1, 1) is S.NaN); limit_is(ue, xr1, 1, 1, '+'); limit_is(ue, xr1,
 ::::
 
 :::: exercise Repairing discontinuities {#ex-3-2} ★
-Each function is undefined at one or two numbers. At each of them, decide whether the discontinuity is removable, and if it is, give the value that repairs it.
+Each formula has a zero denominator at one or two numbers. At each of them, decide whether the discontinuity is removable, and if it is, give the value that repairs it.
 
 - (a) $f(x) = \dfrac{x^3 - 8}{x - 2}$
 - (b) $g(x) = \dfrac{\sqrt{x + 4} - 2}{x}$
@@ -1403,9 +1426,9 @@ Each function is undefined at one or two numbers. At each of them, decide whethe
 ::: solution
 **(a)** $f$ is undefined at 2. Factor the difference of cubes: $x^3 - 8 = (x - 2)(x^2 + 2x + 4)$, so for $x \ne 2$, $f(x) = x^2 + 2x + 4$, which tends to $4 + 4 + 4 = 12$. The limit exists: the discontinuity is removable, and the value $f(2) = 12$ repairs it.
 
-**(b)** $g$ is defined for $x \ge -4$, except at 0. Rationalise, as in Module 2: since $\big(\sqrt{x + 4} - 2\big)\big(\sqrt{x + 4} + 2\big) = (x + 4) - 4 = x$,
+**(b)** $g$ is defined for $x \ge -4$, except at 0. Rationalise, as in Module 2: multiply the numerator and the denominator by $\sqrt{x + 4} + 2$. Since $\big(\sqrt{x + 4} - 2\big)\big(\sqrt{x + 4} + 2\big) = (x + 4) - 4 = x$, for $x \ne 0$
 
-$$g(x) = \frac{x}{x\big(\sqrt{x + 4} + 2\big)} = \frac{1}{\sqrt{x + 4} + 2} \qquad (x \ne 0).$$
+$$\begin{aligned} g(x) &= \frac{x}{x\big(\sqrt{x + 4} + 2\big)} \\ &= \frac{1}{\sqrt{x + 4} + 2}. \end{aligned}$$
 
 The square root is continuous at 4, so the limit at 0 is $1/(2 + 2) = \tfrac14$: removable, repaired by $g(0) = \tfrac14$.
 
@@ -1525,7 +1548,7 @@ $$f(x) = \frac{x + 2}{(x + 2)(x - 1)} = \frac{1}{x - 1}.$$
 
 At $-2$ the factor cancels, and $\lim_{x\to-2} f(x) = \dfrac{1}{-3} = -\dfrac13$: a hole at $\big(-2, -\tfrac13\big)$, not an asymptote. At 1 the numerator is 1 and the denominator $x - 1$ tends to 0, positive on the right and negative on the left, so by Theorem 3.9
 
-$$\lim_{x\to1^+} f(x) = \infty, \qquad \lim_{x\to1^-} f(x) = -\infty,$$
+$$\begin{aligned} \lim_{x\to1^+} f(x) &= \infty, \\ \lim_{x\to1^-} f(x) &= -\infty, \end{aligned}$$
 
 and $x = 1$ is the only vertical asymptote.
 
@@ -1550,21 +1573,21 @@ Find
 ::: solution
 **(a)** The degrees are equal, so divide the numerator and the denominator by $x^3$:
 
-$$\frac{2x^3 - x}{4x^3 + 5x^2 + 1} = \frac{2 - 1/x^2}{4 + 5/x + 1/x^3} \to \frac{2}{4} = \frac12.$$
+$$\begin{aligned} &\frac{2x^3 - x}{4x^3 + 5x^2 + 1} \\ &\quad= \frac{2 - 1/x^2}{4 + 5/x + 1/x^3} \to \frac{2}{4} = \frac12. \end{aligned}$$
 
 **(b)** For $x < 0$, $\sqrt{x^2 + 4} = \abs{x}\sqrt{1 + 4/x^2} = -x\sqrt{1 + 4/x^2}$. Dividing the numerator and the denominator by $-x$, which is positive,
 
-$$\frac{3x + 1}{\sqrt{x^2 + 4}} = \frac{3x + 1}{-x\sqrt{1 + 4/x^2}} = -\frac{3 + 1/x}{\sqrt{1 + 4/x^2}} \to -\frac{3}{1} = -3.$$
+$$\begin{aligned} \frac{3x + 1}{\sqrt{x^2 + 4}} &= \frac{3x + 1}{-x\sqrt{1 + 4/x^2}} \\ &= -\frac{3 + 1/x}{\sqrt{1 + 4/x^2}} \\ &\to -\frac{3}{1} = -3. \end{aligned}$$
 
 The common wrong answer 3 forgets that $\sqrt{x^2} = \abs{x} = -x$ for negative $x$. (As $x \to \infty$ the limit is 3.)
 
-**(c)** Both $\sqrt{x^2 + x}$ and $x$ tend to $\infty$, and "$\infty - \infty$" decides nothing, so rationalise, as in Module 2. For $x > 0$,
+**(c)** Both $\sqrt{x^2 + x}$ and $x$ tend to $\infty$, and "$\infty - \infty$" decides nothing, so rationalise, as in Module 2. For $x > 0$, write $s = \sqrt{x^2 + x}$, so that $s^2 = x^2 + x$. Multiply and divide by $s + x$, and multiply out the difference of squares on top:
 
-$$\begin{aligned} \sqrt{x^2 + x} - x &= \frac{\big(\sqrt{x^2 + x} - x\big)\big(\sqrt{x^2 + x} + x\big)}{\sqrt{x^2 + x} + x} \\ &= \frac{(x^2 + x) - x^2}{\sqrt{x^2 + x} + x} = \frac{x}{\sqrt{x^2 + x} + x}. \end{aligned}$$
+$$\begin{aligned} s - x &= \frac{(s - x)(s + x)}{s + x} \\ &= \frac{s^2 - x^2}{s + x} = \frac{x}{s + x}. \end{aligned}$$
 
-Divide the numerator and the denominator by $x$, using $\sqrt{x^2 + x} = x\sqrt{1 + 1/x}$ for $x > 0$:
+Put $s = \sqrt{x^2 + x}$ back, and divide the numerator and the denominator by $x$, using $\sqrt{x^2 + x} = x\sqrt{1 + 1/x}$ for $x > 0$:
 
-$$\frac{x}{\sqrt{x^2 + x} + x} = \frac{1}{\sqrt{1 + 1/x} + 1} \to \frac{1}{1 + 1} = \frac12.$$
+$$\begin{aligned} \frac{x}{\sqrt{x^2 + x} + x} &= \frac{1}{\sqrt{1 + 1/x} + 1} \\ &\to \frac{1}{1 + 1} = \frac12. \end{aligned}$$
 
 The answer is $\tfrac12$, not 0: the two terms grow together, and their difference settles at $\tfrac12$. On a computer the original form is also numerically dangerous. For large $x$ it subtracts two nearly equal numbers, and the cancellation of Module 2 destroys the digits; the rewritten form keeps them:
 
@@ -1588,7 +1611,9 @@ xn8 = symbols('x', negative=True)
 same(sqrt(xn8**2 + 4), -xn8*sqrt(1 + 4/xn8**2)); same((3*xn8 + 1)/(-xn8*sqrt(1 + 4/xn8**2)), -(3 + 1/xn8)/sqrt(1 + 4/xn8**2))
 limit_is((3*x + 1)/sqrt(x**2 + 4), x, -oo, -3); limit_is((3*x + 1)/sqrt(x**2 + 4), x, oo, 3)
 xp8 = symbols('x', positive=True)
-steps(sqrt(xp8**2 + xp8) - xp8, ((sqrt(xp8**2 + xp8) - xp8)*(sqrt(xp8**2 + xp8) + xp8))/(sqrt(xp8**2 + xp8) + xp8), xp8/(sqrt(xp8**2 + xp8) + xp8), 1/(sqrt(1 + 1/xp8) + 1))
+s8 = symbols('s', positive=True)                                                     # s stands for sqrt(x^2 + x)
+same(expand((s8 - xp8)*(s8 + xp8)), s8**2 - xp8**2); same((s8**2 - xp8**2).subs(s8, sqrt(xp8**2 + xp8)), xp8)   # the difference of squares on top
+steps(sqrt(xp8**2 + xp8) - xp8, (sqrt(xp8**2 + xp8) - xp8)*(sqrt(xp8**2 + xp8) + xp8)/(sqrt(xp8**2 + xp8) + xp8), xp8/(sqrt(xp8**2 + xp8) + xp8), 1/(sqrt(1 + 1/xp8) + 1))
 same(sqrt(xp8**2 + xp8), xp8*sqrt(1 + 1/xp8)); limit_is(sqrt(x**2 + x) - x, x, oo, Rational(1, 2))
 same((1/(sqrt(1 + 1/x) + 1)).subs(x, 10**16), 1/(sqrt(1 + Rational(1, 10**16)) + 1)); rounds(1/(sqrt(1 + Rational(1, 10**16)) + 1), '0.5')
 ```
@@ -1627,14 +1652,13 @@ holds(f9.subs(x, Rational(3, 4)) < 0)
 ::::
 
 :::: exercise Orders of growth and big-O {#ex-3-9} ★★★
-- (a) Arrange these functions in order of growth as $n \to \infty$, from the slowest-growing to the fastest, and justify each comparison:
-  $$n^{100}, \quad 2^n, \quad (\ln n)^3, \quad n\log_2 n, \quad \sqrt n, \quad 1.01^n, \quad n!.$$
+- (a) Arrange these functions in order of growth as $n \to \infty$, from the slowest-growing to the fastest, and justify each comparison: $n^{100}$, $2^n$, $(\ln n)^3$, $n\log_2 n$, $\sqrt n$, $1.01^n$, $n!$.
 - (b) A program takes $T(n) = 5n\log_2 n + 100n$ microseconds on an input of size $n$. Show that $T(n) = O(n\log_2 n)$.
 
 ::: solution
 **(a)** The order is
 
-$$(\ln n)^3 \ll \sqrt n \ll n\log_2 n \ll n^{100} \ll 1.01^n \ll 2^n \ll n!.$$
+$$\begin{aligned} (\ln n)^3 &\ll \sqrt n \ll n\log_2 n \\ &\ll n^{100} \ll 1.01^n \\ &\ll 2^n \ll n!. \end{aligned}$$
 
 Each comparison is a ratio that tends to 0:
 
@@ -1649,7 +1673,7 @@ The fourth comparison holds only in the long run: $n^{100}$ stays ahead of $1.01
 
 **(b)** For $n \ge 2$, $\log_2 n \ge 1$, so $100n \le 100\,n\log_2 n$, and
 
-$$T(n) \le 5n\log_2 n + 100\,n\log_2 n = 105\,n\log_2 n.$$
+$$\begin{aligned} T(n) &\le 5n\log_2 n + 100\,n\log_2 n \\ &= 105\,n\log_2 n. \end{aligned}$$
 
 That is the definition of $T(n) = O(n\log_2 n)$, with $C = 105$ and $N = 2$. With limits instead: $\dfrac{T(n)}{n\log_2 n} = 5 + \dfrac{100}{\log_2 n} \to 5$.
 
@@ -1675,7 +1699,7 @@ same((5*npos*log(npos, 2) + 100*npos)/(npos*log(npos, 2)), 5 + 100/log(npos, 2))
 ::: solution
 **(a)** Let $p(x) = a_nx^n + \dots + a_1x + a_0$ with $n$ odd and $a_n \ne 0$. Dividing by $a_n$ does not change the roots, so take $a_n = 1$. A polynomial is a rational function with denominator 1, so by Theorem 3.10 $p(x)$ behaves like its leading term $x^n$ as $x \to \pm\infty$. Since $n$ is odd, $x^n \to \infty$ as $x \to \infty$ and $x^n \to -\infty$ as $x \to -\infty$; hence
 
-$$\lim_{x\to\infty} p(x) = \infty, \qquad \lim_{x\to-\infty} p(x) = -\infty.$$
+$$\begin{aligned} \lim_{x\to\infty} p(x) &= \infty, \\ \lim_{x\to-\infty} p(x) &= -\infty. \end{aligned}$$
 
 The first limit means that $p(x) > 0$ for every large enough $x$: pick such a number $B$, so $p(B) > 0$. The second gives a number $A < B$ with $p(A) < 0$. The polynomial $p$ is continuous on $[A, B]$, so by the Intermediate Value Theorem it has a root in $(A, B)$.
 
@@ -1687,7 +1711,7 @@ The first limit means that $p(x) > 0$ for every large enough $x$: pick such a nu
 |---|---|---|---|---|---|
 | $p(x)$ | $-1$ | $3$ | $1$ | $-1$ | $3$ |
 
-$p$ changes sign on $[-2, -1]$, on $[0, 1]$ and on $[1, 2]$, so by the Intermediate Value Theorem it has a root in each of $(-2, -1)$, $(0, 1)$ and $(1, 2)$: at least three roots. A polynomial of degree 3 has at most three roots (each root $r$ gives a factor $x - r$, and three factors already make degree 3), so $p$ has exactly three real roots.
+$p$ changes sign on $[-2, -1]$, on $[0, 1]$ and on $[1, 2]$, so by the Intermediate Value Theorem it has a root in each of $(-2, -1)$, $(0, 1)$ and $(1, 2)$: at least three roots, $r_1 < r_2 < r_3$. It has no more. A root $r$ of a polynomial gives a factor $x - r$ ([Section 2.5](module_02_EN.html#factor)), so $p(x) = (x - r_1)\,q(x)$ with $q$ quadratic, leading coefficient 1. Since $p(r_2) = 0$ and $r_2 \ne r_1$, $q(r_2) = 0$, so $q(x) = (x - r_2)(x - s)$ for some number $s$; and $p(r_3) = 0$ forces $s = r_3$. So $p(x) = (x - r_1)(x - r_2)(x - r_3)$, which is not 0 at any other number: $p$ has exactly three real roots.
 
 ```check
 x1_ = symbols('x', positive=True)
@@ -1697,6 +1721,9 @@ pc = x**3 - 3*x + 1
 same([pc.subs(x, v) for v in (-2, -1, 0, 1, 2)], [-1, 3, 1, -1, 3])
 rts = Poly(pc, x).real_roots(); same(len(rts), 3)
 holds(-2 < rts[0] < -1); holds(0 < rts[1] < 1); holds(1 < rts[2] < 2)
+r1_, r2_, r3_, s_ = symbols('r1 r2 r3 s'); same(solve(((x - r1_)*(x - r2_)*(x - s_)).subs(x, r3_), s_), [r3_])   # p(r3) = 0 forces s = r3
+for v in (-3, Rational(1, 2), 4, 10):
+    near(pc.subs(x, v), Mul(*[(v - r_) for r_ in rts]), 1e-25)              # p(x) = (x - r1)(x - r2)(x - r3)
 ```
 :::
 ::::
@@ -1713,7 +1740,7 @@ is continuous on $[7, 15]$ (Theorem 3.1). At the start of the day $g(7) = u(7) -
 
 The same argument as a picture: two hikers on one day, one walking up on Saturday's schedule and one walking down on Sunday's, must meet somewhere. The theorem promises at least one such time, but not when. For a hypothetical example, suppose that on Saturday she starts slowly, with $u(t) = Ls^2$ where $s = (t - 7)/8$ is the fraction of the day's walk that has passed, and that on Sunday she walks down at a steady pace, $d(t) = L(1 - s)$. Then $u = d$ when $s^2 = 1 - s$, that is, $s^2 + s - 1 = 0$, whose solution between 0 and 1 is
 
-$$s = \frac{\sqrt5 - 1}{2} \approx 0.618, \qquad t = 7 + 8s \approx 11.94.$$
+$$\begin{aligned} s &= \frac{\sqrt5 - 1}{2} \approx 0.618, \\ t &= 7 + 8s \approx 11.94. \end{aligned}$$
 
 So at about 11:57 on both days she is at the same point, about 38% of the way up ($s^2 \approx 0.382$).
 

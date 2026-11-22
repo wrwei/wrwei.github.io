@@ -30,6 +30,7 @@ same([F81.subs(x, v_) for v_ in (-1, 0, 2, 5)], [Rational(91, 12), 0, Rational(1
 same(maximum(F81, x, Interval(-1, Rational(11, 2))), Rational(91, 12)); same(minimum(F81, x, Interval(-1, Rational(11, 2))), -Rational(125, 12))
 holds(F81.subs(x, Rational(11, 2)) > F81.subs(x, 5)); holds(F81.subs(x, Rational(11, 2)) < F81.subs(x, -1))
 holds(diff(F81, x).subs(x, -1) != 0); holds(diff(F81, x).subs(x, Rational(11, 2)) != 0)
+holds(diff(F81, x, 2).subs(x, 2) < 0); holds(diff(F81, x, 2).subs(x, 0) > 0); holds(diff(F81, x, 2).subs(x, 5) > 0)   # peak at 2, valleys at 0 and 5
 ```
 
 ::: definition Absolute and local extrema
@@ -162,7 +163,7 @@ Find the absolute maximum and minimum values of (a) $f(x) = 2x^3 - 3x^2 - 12x + 
 
 For instance $f(-1) = -2 - 3 + 12 + 1 = 8$. The absolute maximum value is 8, at $x = -1$, and the absolute minimum value is $-19$, at $x = 2$; here both are inside the interval.
 
-**(b)** The real cube root is continuous everywhere (Module 3), so $g$ is continuous on $[-1, 4]$, and both of its critical numbers, 0 and 2, lie in $(-1, 4)$. Since $(-1)^{2/3} = (-1)^2 = 1$, $4^{2/3} = \sqrt[3]{16}$ and $2^{2/3} = \sqrt[3]{4}$:
+**(b)** The real cube root is continuous everywhere (Module 3), so $g$ is continuous on $[-1, 4]$, and both of its critical numbers, 0 and 2, lie in $(-1, 4)$. Since $(-1)^{2/3} = \big(\sqrt[3]{-1}\big)^2 = (-1)^2 = 1$, $4^{2/3} = \sqrt[3]{16}$ and $2^{2/3} = \sqrt[3]{4}$:
 
 | $x$ | $-1$ | $0$ | $2$ | $4$ |
 |---|---|---|---|---|
@@ -181,7 +182,7 @@ holds(-6 < -3*real_root(4, 3)); holds(-real_root(16, 3) < 0)
 :::
 
 ::: pitfall
-Three slips with the closed interval method. Forgetting the endpoints: the minimum in Example 8.2(b) is at one. Forgetting the points where $f'$ does not exist: the maximum there is at one. And using critical numbers outside the interval: on $[0, 3]$ the function of part (a) has only the critical number 2, its values $f(0) = 1$, $f(2) = -19$ and $f(3) = -8$ give the maximum value 1, and the number $f(-1) = 8$ is not a value of $f$ on $[0, 3]$ at all. Finally, the method needs a function continuous on a closed interval: $1/x$ on $[-1, 1]$ has no maximum value, since it is not defined at 0.
+Three slips with the closed interval method. Forgetting the endpoints: the minimum in Example 8.2(b) is at one. Forgetting the points where $f'$ does not exist: the maximum there is at one. And using critical numbers outside the interval: on $[0, 3]$ the function of part (a) has only the critical number 2, its values $f(0) = 1$, $f(2) = -19$ and $f(3) = -8$ give the maximum value 1, and the number $f(-1) = 8$ is not a value of $f$ on $[0, 3]$ at all. Finally, the method needs a function continuous on a closed interval. $1/x$ is not even defined at 0, which lies in $[-1, 1]$, and it has no maximum value there: $1/x \to \infty$ as $x \to 0^+$.
 :::
 
 ```check
@@ -257,7 +258,7 @@ By the Extreme Value Theorem, $f$ has an absolute maximum value and an absolute 
 In pictures (Figure 8.2, left): a smooth graph that starts and ends at the same height must turn round somewhere in between, and where it turns, its tangent is horizontal.
 
 ::: figure id=fig-08-2
-Left: Rolle's theorem for $f(x) = x^3 - 3x$ on $[a, b] = [-2, 1]$, where $f(a) = f(b) = -2$: the tangent at $c = -1$ is horizontal. Right: the Mean Value Theorem for the same function on $[-2, 2]$: the secant from $(-2, -2)$ to $(2, 2)$ has slope 1, and so have the tangents at $c_1 = -2/\sqrt3$ and $c_2 = 2/\sqrt3$. Tilt the left picture and you get the right one.
+Left: Rolle's theorem for $f(x) = x^3 - 3x$ on $[a, b] = [-2, 1]$, where $f(a) = f(b) = -2$: the tangent at $c = -1$ is horizontal. Right: the Mean Value Theorem for the same function on $[-2, 2]$: the secant from $(-2, -2)$ to $(2, 2)$ has slope 1, and so have the tangents at $c_1 = -2/\sqrt3$ and $c_2 = 2/\sqrt3$. The Mean Value Theorem is Rolle's theorem tilted: the secant takes the place of the horizontal segment, and the tangents parallel to it the place of the horizontal tangent.
 :::
 
 ```check
@@ -268,6 +269,12 @@ holds(-2 < -2/sqrt(3)); holds(2/sqrt(3) < 2)
 ```
 
 Each hypothesis is needed. Without continuity on the closed interval: $f(x) = x$ for $0 \le x < 1$ with $f(1) = 0$ has $f(0) = f(1)$, but $f'(x) = 1$ on $(0, 1)$. Without differentiability: $\abs{x}$ on $[-1, 1]$ has equal values at the ends, but its derivative is $-1$ or 1 wherever it exists. Without $f(a) = f(b)$: $x$ on $[0, 1]$ has slope 1 everywhere.
+
+```check
+fjump = Piecewise((x, x < 1), (0, True))
+same(fjump.subs(x, 0), fjump.subs(x, 1)); same(diff(x, x), 1); limit_is(fjump, x, 1, 1, '-')   # f(0) = f(1) = 0, slope 1, but f jumps at 1
+same(Abs(-1), Abs(1)); same(diff(Abs(xp), xp), 1); same(diff(Abs(xn), xn), -1)
+```
 
 ::: example Exactly one root
 Show that the equation $x^5 + 3x - 1 = 0$ has exactly one real solution.
@@ -291,7 +298,9 @@ Now tilt the picture. In Figure 8.2, right, the ends of the graph are at differe
 ::: theorem The Mean Value Theorem
 Let $f$ be continuous on $[a, b]$ and differentiable on $(a, b)$. Then there is a number $c$ in $(a, b)$ with
 
-$$f'(c) = \frac{f(b) - f(a)}{b - a}, \quad\text{that is,}\quad f(b) - f(a) = f'(c)(b - a).$$
+$$f'(c) = \frac{f(b) - f(a)}{b - a},$$
+
+that is, $f(b) - f(a) = f'(c)(b - a)$.
 :::
 
 ::: proof
@@ -299,7 +308,7 @@ Let $m = \dfrac{f(b) - f(a)}{b - a}$, the slope of the secant line, and let
 
 $$h(x) = f(x) - \big(f(a) + m(x - a)\big),$$
 
-the height of the graph above the secant line. Like $f$, $h$ is continuous on $[a, b]$ and differentiable on $(a, b)$, because it is $f$ minus a linear function. At the ends, $h(a) = 0$ and $h(b) = f(b) - f(a) - m(b - a) = 0$. By Rolle's theorem there is a $c$ in $(a, b)$ with $h'(c) = 0$, and $h'(c) = f'(c) - m$.
+the height of the graph above the secant line. Like $f$, $h$ is continuous on $[a, b]$ and differentiable on $(a, b)$, because it is $f$ minus a linear function. At the ends, $h(a) = 0$ and $h(b) = f(b) - f(a) - m(b - a) = 0$. By Rolle's theorem there is a $c$ in $(a, b)$ with $h'(c) = 0$. Since $h'(c) = f'(c) - m$, this says $f'(c) = m$.
 :::
 
 ```check
@@ -368,7 +377,7 @@ Let $F(x) = \arcsin x + \arccos x$. For $-1 < x < 1$, the derivatives of Module 
 
 $$F'(x) = \frac{1}{\sqrt{1 - x^2}} - \frac{1}{\sqrt{1 - x^2}} = 0,$$
 
-so by Theorem 8.5, $F$ is constant on $(-1, 1)$. Its value at 0 is $0 + \dfrac{\pi}{2}$, so $F(x) = \dfrac{\pi}{2}$ for $-1 < x < 1$. At the ends, $F(1) = \dfrac{\pi}{2} + 0$ and $F(-1) = -\dfrac{\pi}{2} + \pi = \dfrac{\pi}{2}$. So $F(x) = \dfrac{\pi}{2}$ on all of $[-1, 1]$.
+so by Theorem 8.5, $F$ is constant on $(-1, 1)$. Its value at 0 is $0 + \dfrac{\pi}{2}$, so $F(x) = \dfrac{\pi}{2}$ for $-1 < x < 1$. At the ends, $F(1) = \dfrac{\pi}{2} + 0$ and $F(-1) = -\dfrac{\pi}{2} + \pi = \dfrac{\pi}{2}$. So $F(x) = \dfrac{\pi}{2}$ on all of $[-1, 1]$. Module 6 proved the same identity from the addition formula; here a derivative of 0 proves it.
 
 ```check
 same(diff(asin(x), x), 1/sqrt(1 - x**2)); same(diff(acos(x), x), -1/sqrt(1 - x**2)); same(diff(asin(x) + acos(x), x), 0)
@@ -402,7 +411,7 @@ $$\frac{f(b) - f(a)}{g(b) - g(a)} = \frac{f'(c)}{g'(c)}.$$
 Let $h(x) = \big(f(b) - f(a)\big)g(x) - \big(g(b) - g(a)\big)f(x)$. It is continuous on $[a, b]$ and differentiable on $(a, b)$, and multiplying out shows that $h(a) = f(b)g(a) - f(a)g(b) = h(b)$. By Rolle's theorem, $h'(c) = 0$ for some $c$ in $(a, b)$, which is the first equation. If $g' \ne 0$ on $(a, b)$, then $g(b) \ne g(a)$, since otherwise Rolle's theorem would give a zero of $g'$; so you may divide by $\big(g(b) - g(a)\big)g'(c)$.
 :::
 
-With $g(x) = x$ it is the Mean Value Theorem. Recall the general rule, as Module 7 states it: let $f$ and $g$ be differentiable on an open interval $I$ containing $a$, except possibly at $a$, with $g'(x) \ne 0$ for $x \ne a$ in $I$; if $f(x)/g(x)$ has the form $0/0$ or $\infty/\infty$ as $x \to a$, and $f'(x)/g'(x) \to L$, a real number or $\pm\infty$, then $f(x)/g(x) \to L$; and the same holds for one-sided limits and for $x \to \pm\infty$.
+With $g(x) = x$ it is the Mean Value Theorem. Recall the general rule, as [Theorem 7.5](module_07_EN.html#the-rule) states it: let $f$ and $g$ be differentiable on an open interval $I$ containing $a$, except possibly at $a$, with $g'(x) \ne 0$ for $x \ne a$ in $I$; if $f(x)/g(x)$ has the form $0/0$ or $\infty/\infty$ as $x \to a$, and $f'(x)/g'(x) \to L$, a real number or $\pm\infty$, then $f(x)/g(x) \to L$; and the same holds for one-sided limits and for $x \to \pm\infty$.
 
 ::: proof of L'Hôpital's rule
 **The form $0/0$, from the right.** Suppose that $f$ and $g$ are differentiable on $(a, b)$, $g' \ne 0$ there, $f(x) \to 0$ and $g(x) \to 0$ as $x \to a^+$, and $f'(x)/g'(x) \to L$. Give $f$ and $g$ the values $f(a) = g(a) = 0$; this changes no limit as $x \to a^+$, and makes $f$ and $g$ continuous on $[a, y]$ for every $y$ in $(a, b)$. By Cauchy's theorem on $[a, y]$, there is a $c_y$ with $a < c_y < y$ and
@@ -415,16 +424,16 @@ Let $L$ be a real number and $\varepsilon > 0$. There is a $\delta > 0$, with $a
 
 **The form $\infty/\infty$, from the right, with $L$ real.** Now $\abs{g(x)} \to \infty$ as $x \to a^+$. Let $0 < \varepsilon < 1$, choose $\delta$ as before, and fix $y = a + \delta$ (shrinking $\delta$ first if necessary, so that $y < b$). For $a < x < y$, Cauchy's theorem on $[x, y]$ gives a $c$ between $x$ and $y$ with
 
-$$Q = \frac{f(x) - f(y)}{g(x) - g(y)} = \frac{f'(c)}{g'(c)}, \quad\text{so}\quad \abs{Q - L} < \varepsilon \text{ and } \abs{Q} < \abs{L} + 1.$$
+$$Q = \frac{f(x) - f(y)}{g(x) - g(y)} = \frac{f'(c)}{g'(c)},$$
 
-For $x$ so close to $a$ that $g(x) \ne 0$, solving $f(x) = Q\big(g(x) - g(y)\big) + f(y)$ for the ratio gives
+so $\abs{Q - L} < \varepsilon$ and $\abs{Q} < \abs{L} + 1$. For $x$ so close to $a$ that $g(x) \ne 0$, solving $f(x) = Q\big(g(x) - g(y)\big) + f(y)$ for the ratio gives
 
 $$\frac{f(x)}{g(x)} - L = (Q - L) - Q\,\frac{g(y)}{g(x)} + \frac{f(y)}{g(x)}.$$
 
-Since $y$ is fixed and $\abs{g(x)} \to \infty$, the last two fractions tend to 0 as $x \to a^+$; for $x$ close enough to $a$ each is smaller than $\varepsilon$ in size, and then $\abs{f(x)/g(x) - L} < \varepsilon + (\abs{L} + 1)\varepsilon + \varepsilon = (\abs{L} + 3)\varepsilon$. As $\varepsilon$ is arbitrary, $f(x)/g(x) \to L$. If $L = \infty$, choose $y$ so that $Q > 2M$ for an arbitrary $M > 0$; for $x$ close to $a$, $1 - g(y)/g(x) > \tfrac12$ and $\abs{f(y)/g(x)} < 1$, so $f(x)/g(x) = Q\big(1 - g(y)/g(x)\big) + f(y)/g(x) > M - 1$. The other directions follow as for $0/0$.
+Since $y$ is fixed and $\abs{g(x)} \to \infty$, the last two fractions tend to 0 as $x \to a^+$; for $x$ close enough to $a$ each is smaller than $\varepsilon$ in size, and then $\abs{f(x)/g(x) - L} < \varepsilon + (\abs{L} + 1)\varepsilon + \varepsilon = (\abs{L} + 3)\varepsilon$. As $\varepsilon$ is arbitrary, $f(x)/g(x) \to L$. If $L = \infty$, take an arbitrary $M > 0$ and choose $y$ so that $f'(t)/g'(t) > 2M$ for $a < t < y$; then $Q > 2M$ for every $x$ in $(a, y)$. For $x$ close enough to $a$, also $1 - g(y)/g(x) > \tfrac12$ and $\abs{f(y)/g(x)} < 1$, so $f(x)/g(x) = Q\big(1 - g(y)/g(x)\big) + f(y)/g(x) > M - 1$; as $M$ is arbitrary, $f(x)/g(x) \to \infty$. If $L = -\infty$, apply this to $-f$. The other directions follow as for $0/0$.
 :::
 
-The proof of the form $\infty/\infty$ used only $\abs{g(x)} \to \infty$, not $f(x) \to \pm\infty$: the rule holds whenever the denominator blows up and $f'/g'$ has a limit.
+The proof of the form $\infty/\infty$ used only $\abs{g(x)} \to \infty$, not $f(x) \to \pm\infty$: the rule holds whenever $\abs{g(x)} \to \infty$ and $f'/g'$ has a limit.
 
 ```check
 Fc, Gc = Function('F'), Function('G')
@@ -439,7 +448,7 @@ same(Q_*(1 - gy/gx) + fy/gx, (Q_*(gx - gy) + fy)/gx)
 
 ## Increasing and decreasing functions {#monotonic}
 
-Module 4 observed that where a graph rises its tangents slope upwards, and promised the converse: where $f' > 0$, $f$ rises. The Mean Value Theorem delivers it.
+Module 4 observed that where a graph rises its tangents slope upwards, and promised a partial converse: where $f' > 0$ on an interval, $f$ rises. The Mean Value Theorem delivers it.
 
 ::: definition Increasing and decreasing functions
 A function $f$ is **increasing** on an interval $I$ if $f(x_1) < f(x_2)$ whenever $x_1 < x_2$ in $I$, and **decreasing** on $I$ if $f(x_1) > f(x_2)$ whenever $x_1 < x_2$ in $I$.
@@ -465,7 +474,14 @@ same(solve_univariate_inequality(2*x > 0, x, relational=False), Interval.open(0,
 same(diff(x**3, x), 3*x**2); same(solve(3*x**2, x), [0])
 ```
 
-To use the test you need the intervals on which $f'$ has one sign. If $f'$ is continuous on an interval and never 0 there, it cannot change sign there, because by the Intermediate Value Theorem a change of sign would need a zero in between. In this series $f'$ is continuous wherever it exists, so it can change sign only at critical numbers and at points outside the domain of $f$. Mark those points on the number line; they cut it into intervals, and the sign of $f'$ at one test point of each interval is its sign on the whole interval. A table of these signs is a **sign chart**.
+To use the test you need the intervals on which $f'$ has one sign. If $f'$ is continuous on an interval and never 0 there, it cannot change sign there, because by the Intermediate Value Theorem a change of sign would need a zero in between. Every derivative in this module is continuous wherever it exists, so it can change sign only at critical numbers and at points outside the domain of $f$. (Not every derivative is continuous. The function $x^2\sin(1/x)$, with the value 0 at 0, of [Exercise 4.11](module_04_EN.html#ex-4-11) has a derivative at every point, but for $x \ne 0$ its derivative is $2x\sin(1/x) - \cos(1/x)$, which swings between values near $-1$ and near 1 as $x \to 0$, so it is not continuous at 0.) Mark those points on the number line; they cut it into intervals, and the sign of $f'$ at one test point of each interval is its sign on the whole interval. A table of these signs is a **sign chart**.
+
+```check
+gw = x**2*sin(1/x)
+same(diff(gw, x), 2*x*sin(1/x) - cos(1/x)); limit_is(gw/x, x, 0, 0)                     # g'(0) = 0 from the definition
+same([diff(gw, x).subs(x, 1/(2*k_*pi)) for k_ in (1, 2, 3)], [-1, -1, -1])                  # x = 1/(2k pi) -> 0
+same([diff(gw, x).subs(x, 1/((2*k_ + 1)*pi)) for k_ in (1, 2, 3)], [1, 1, 1])              # x = 1/((2k+1) pi) -> 0
+```
 
 ::: example Where a cubic rises and falls
 Find where $g(x) = 2x^3 - 9x^2 + 12x - 4$ is increasing and where it is decreasing.
@@ -526,7 +542,7 @@ same(sign(real_root(-8, 3)), -1); same(gR(0), 0)
 ```
 :::
 
-The first derivative test also gives inequalities that are hard to prove by algebra.
+The same reasoning proves inequalities that are hard to prove by algebra.
 
 ::: example An inequality for $e^x$
 Show that $e^x \ge 1 + x$ for every real $x$, with equality only at $x = 0$.

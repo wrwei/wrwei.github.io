@@ -84,7 +84,7 @@ def fig_05_2(L):
         else:                                      # below the rising tangents, above the falling one
             label(a1, p + 0.3, -0.5 if slope > 0 else 0.5, txt, color=C['orange'], size=10.5, ha='left')
     label(a1, 7.0, 0.95, r'$y = \sin x$', color=C['blue'], ha='right', size=12)
-    plot_fn(a2, np.cos, -0.5, 7.1, color=C['green'])
+    plot_fn(a2, np.cos, 0, 7.1, color=C['green'])     # from 0: left of the axis it would run through the label 1
     for p in xs:
         dot(a2, p, np.cos(p), color=C['orange'], size=6)
         a1.plot([p, p], [-1.6, np.sin(p)], ls=(0, (3, 3)), color=C['muted'], lw=1.0, zorder=1)
