@@ -344,7 +344,7 @@ same(diff(exp(t), t, 2)*h**2/2*exp(1 - t), h**2/2*E); same(h**2/2*E*(1/h), E*h/2
 ```
 
 ::: keyidea
-Euler's method has **order 1**: at a fixed time, its error is about a constant times $h$, that is, $O(h)$ in the notation of [Section 4.7](module_04_EN.html#truncation). Halving $h$ halves the error and doubles the work; one more correct decimal costs ten times as many steps.
+Euler's method has **order 1**: at a fixed time, its error is about a constant times $h$, that is, $O(h)$ in the notation of [Section 4.7](module_04_EN.html#truncation). Halving $h$ roughly halves the error and doubles the work; one more correct decimal costs about ten times as many steps.
 :::
 
 ::: deeper A bound for the error of Euler's method
@@ -1429,7 +1429,7 @@ Here $p(t) = 2/t$ is continuous on $(0, \infty)$, with antiderivative $2\ln t$, 
 
 $$y = t^2 + \frac{C}{t^2}.$$
 
-$y(1) = 1 + C = 2$ gives $C = 1$: $y = t^2 + \dfrac{1}{t^2}$ for $t > 0$. By Theorem 13.5 it is the only solution with $y(1) = 2$ on $(0, \infty)$. As $t \to 0^+$ (a [one-sided limit](module_02_EN.html#one-sided)), $C/t^2$ grows without bound unless $C = 0$, so the only solution that stays finite is $y = t^2$; indeed it solves the original equation for every $t$, since $t \cdot 2t + 2t^2 = 4t^2$.
+$y(1) = 1 + C = 2$ gives $C = 1$: $y = t^2 + \dfrac{1}{t^2}$ for $t > 0$. By Theorem 13.5 it is the only solution with $y(1) = 2$ on $(0, \infty)$. As $t \to 0^+$ (a [one-sided limit](module_02_EN.html#one-sided)), $C/t^2$ is unbounded unless $C = 0$ (it tends to $\infty$ if $C > 0$ and to $-\infty$ if $C < 0$), so the only solution that stays finite is $y = t^2$; indeed it solves the original equation for every $t$, since $t \cdot 2t + 2t^2 = 4t^2$.
 
 ```check
 tq = symbols('t', positive=True)
@@ -1560,7 +1560,7 @@ For fast bodies, air resistance is closer to proportional to $v^2$. Suppose that
 ::: solution
 **(a)** $v' = 0$ when $v^2 = 9.8 \cdot 245 = 2401$, at the terminal velocity $v = 49$ m/s.
 
-**(b)** Write $v' = \dfrac{2401 - v^2}{245}$. The solution starts at 0, below the equilibrium 49, so $0 \le v < 49$ and you may separate:
+**(b)** Write $v' = \dfrac{2401 - v^2}{245}$. The solution starts at 0, below the equilibrium 49, so $0 \le v < 49$ for $t \ge 0$ (it rises, since $v' > 0$ there, and cannot cross the equilibrium), and you may separate:
 
 $$\int\frac{dv}{2401 - v^2} = \int\frac{dt}{245}.$$
 
