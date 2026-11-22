@@ -15,7 +15,7 @@ goals:
 
 ## Parametric curves {#parametric}
 
-Until now every curve in this series has been the graph of a function, $y = f(x)$. Many curves are not graphs: a circle fails the vertical line test of [Section 1.3](module_01_EN.html#graphs), and so do the orbit of a satellite, the outline of a letter in a font and the track of a point on a rolling wheel. A graph also says only where a curve goes, not how a point travels along it. This module describes a curve the way physics describes motion: by giving the position of a moving point at each time $t$.
+So far the curves in this series have mostly been graphs of functions, $y = f(x)$. Many curves are not: a circle fails the vertical line test of [Section 1.3](module_01_EN.html#graphs), and so do the orbit of a satellite and the track of a point on a rolling wheel. An equation such as the circle's $x^2 + y^2 = 25$ ([Section 6.4](module_06_EN.html#implicit)) says where such a curve goes, but not how a point travels along it. This module describes a curve the way physics describes motion: by the position of a moving point at each time $t$.
 
 Suppose a point moves so that at time $t$ it is at $x = t^2$, $y = t^3 - 3t$. Its positions at a few times:
 
@@ -89,7 +89,7 @@ same(sin(t)**2 + cos(t)**2, 1); same((sin(0), cos(0)), (0, 1)); same((sin(pi/2),
 :::
 
 ::: pitfall
-Do not confuse the curve with the graphs of $x(t)$ and $y(t)$. Those graphs (Figure 16.1, right) have $t$ on the horizontal axis and pass the vertical line test; the curve lives in the $xy$-plane, where $t$ is not a coordinate at all. Reading Figure 16.1, left, as "$y$ against $t$" would make no sense: the curve doubles back on itself.
+Do not confuse the curve with the graphs of $x(t)$ and $y(t)$ (Figure 16.1, right). Those graphs have $t$ on the horizontal axis; the curve lives in the $xy$-plane, where $t$ is not a coordinate but a label on its points.
 :::
 
 ### Eliminating the parameter {#eliminating}
@@ -109,7 +109,7 @@ The curve is the line of slope $-\tfrac12$ through $(1, 3)$, the point at $t = 0
 
 $$y^2 = t^2\big(t^2 - 3\big)^2 = x(x - 3)^2.$$
 
-Conversely, every point with $y^2 = x(x - 3)^2$ is on the curve. Such a point has $x \ge 0$ (for $x < 0$ the right side is negative), so $y = \pm\sqrt{x}\,(x - 3)$, and the two signs come from $t = \sqrt x$ and $t = -\sqrt x$, which give $y = t(t^2 - 3) = \pm\sqrt{x}\,(x - 3)$. So the curve is exactly the curve $y^2 = x(x - 3)^2$; Figure 16.1 shows its part with $-2 \le t \le 2$.
+Conversely, every point with $y^2 = x(x - 3)^2$ is on the curve: such a point has $x \ge 0$ (for $x < 0$ the right side is negative), and its two possible values $y = \pm\sqrt{x}\,(x - 3)$ come from $t = \sqrt x$ and $t = -\sqrt x$. So the curve is exactly $y^2 = x(x - 3)^2$; Figure 16.1 shows its part with $-2 \le t \le 2$.
 
 **(c)** $y = e^{2t} = \big(e^t\big)^2 = x^2$. But $x = e^t$ is always positive, and takes every positive value. So the curve is only the right half of the parabola $y = x^2$, the part with $x > 0$: the origin and the left half are never reached.
 
@@ -164,7 +164,7 @@ same(cyx.subs(t, t + 2*pi) - cyx, 2*pi*r); same(cyy.subs(t, t + 2*pi), cyy)
 A circle of radius $r$ rolls to the right along the $x$-axis. When it has turned through the angle $t$, it has rolled the distance $rt$ (the green segment, as long as the green arc), so its centre is $C = (rt, r)$. The point $P$, which started at the origin, is then $r\sin t$ to the left of $C$ and $r\cos t$ below it. As $t$ runs from 0 to $2\pi$, $P$ traces one arch of the cycloid; the dashed part is still to come.
 :::
 
-**Lissajous curves.** Let $x$ and $y$ oscillate at different rates: $x = \sin 2t$, $y = \sin 3t$, $0 \le t \le 2\pi$. The point stays in the square $-1 \le x \le 1$, $-1 \le y \le 1$, swinging left and right twice while it swings up and down three times, and returns to its start at $t = 2\pi$, having traced a closed, knotted-looking curve. Such a **Lissajous curve** appears on an oscilloscope when two sine-wave signals drive the horizontal and the vertical deflection of its beam, and the ratio of the two frequencies can be read off the picture: this curve touches the top and the bottom of the square three times each (at $t = \pi/6, 5\pi/6, 3\pi/2$ and $t = \pi/2, 7\pi/6, 11\pi/6$), and each side twice. Trace it in the widget of Section 16.2.
+**Lissajous curves.** Let $x$ and $y$ oscillate at different rates: $x = \sin 2t$, $y = \sin 3t$, $0 \le t \le 2\pi$. The point stays in the square $-1 \le x \le 1$, $-1 \le y \le 1$, swinging left and right twice while it swings up and down three times, and returns to its start at $t = 2\pi$. Such a **Lissajous curve** appears on an oscilloscope when two sine waves drive the horizontal and the vertical deflection of its beam, and the ratio of their frequencies can be read off the picture: this curve touches the top and the bottom of the square three times each (at $t = \pi/6, 5\pi/6, 3\pi/2$ and $t = \pi/2, 7\pi/6, 11\pi/6$) and each side twice. Trace it in the widget of Section 16.2.
 
 ```check
 same_set(solveset(Eq(sin(3*x), 1), x, Interval.Ropen(0, 2*pi)), [pi/6, 5*pi/6, 3*pi/2])
@@ -178,7 +178,7 @@ same((sin(2*(t + 2*pi)), sin(3*(t + 2*pi))), (sin(2*t), sin(3*t)))
 
 ### Tangent lines {#tangents}
 
-Near most of its points, a parametric curve is the graph of a function, and has a tangent line. Its slope comes from the chain rule. Suppose that near some value of $t$ the curve $x = f(t)$, $y = g(t)$ is the graph of a differentiable function $y = F(x)$, so that $g(t) = F\big(f(t)\big)$. The chain rule ([Section 5.5](module_05_EN.html#chain)) gives $g'(t) = F'\big(f(t)\big)\,f'(t)$, that is,
+Near most of its points, a parametric curve is the graph of a function and has a tangent line, whose slope comes from the chain rule. If near some $t$ the curve $x = f(t)$, $y = g(t)$ is the graph of a differentiable function $y = F(x)$, then $g(t) = F\big(f(t)\big)$, and the chain rule ([Section 5.5](module_05_EN.html#chain)) gives $g'(t) = F'\big(f(t)\big)\,f'(t)$, that is,
 
 $$\frac{dy}{dt} = \frac{dy}{dx}\cdot\frac{dx}{dt},$$
 
@@ -260,7 +260,7 @@ the last step by $\cos^2 + \sin^2 = 1$. So $1 - \cos t = 2\sin^2\tfrac{t}{2}$, a
 
 $$\frac{dy}{dx} = \frac{2\sin\frac{t}{2}\cos\frac{t}{2}}{2\sin^2\frac{t}{2}} = \frac{\cos\frac{t}{2}}{\sin\frac{t}{2}} = \cot\frac{t}{2}.$$
 
-At $t = \pi$, the top of the arch, the slope is $\cot\tfrac{\pi}{2} = 0$. As $t \to 0^+$, $\cos\tfrac{t}{2} \to 1$ and $\sin\tfrac{t}{2} \to 0^+$, so the slope tends to $+\infty$; as $t \to 2\pi^-$ it tends to $-\infty$. Each arch rises vertically out of the ground and comes down vertically into it, and neighbouring arches meet in a sharp point, a **cusp**. At the cusps both $dx/dt$ and $dy/dt$ are 0: $P$ is momentarily at rest. The point of a rolling wheel that touches the ground is at rest at that instant, which is what rolling without slipping means, and the cusp is the trace of that pause.
+At $t = \pi$, the top of the arch, the slope is $\cot\tfrac{\pi}{2} = 0$. As $t \to 0^+$, $\cos\tfrac{t}{2} \to 1$ and $\sin\tfrac{t}{2} \to 0^+$, so the slope tends to $+\infty$; as $t \to 2\pi^-$ it tends to $-\infty$. So each arch leaves the ground vertically and comes back down vertically, and neighbouring arches meet in a sharp point, a **cusp**. There both $dx/dt$ and $dy/dt$ are 0: $P$ is momentarily at rest, as the point of a rolling wheel that touches the ground always is.
 
 ```check
 same(diff(r*(t - sin(t)), t), r*(1 - cos(t))); same(diff(r*(1 - cos(t)), t), r*sin(t))
@@ -278,14 +278,15 @@ The slope is $\dfrac{dy/dt}{dx/dt}$, not $\dfrac{dx/dt}{dy/dt}$: the second is $
 
 ```check
 same(diff(t**3, t).subs(t, 0), 0); same(diff(t**2, t).subs(t, 0), 0)
-tp16 = symbols('t', positive=True); same(real_root(tp16**3, 3)**2, tp16**2); same((t**3, t**3), (t**3, t**3))
+tp16 = symbols('t', positive=True); same(real_root(tp16**3, 3)**2, tp16**2); limit_is(diff(t**2, t)/diff(t**3, t), t, 0, oo, '+')
+same(diff(t**3, t)/diff(t**3, t), 1)                     # x = t^3, y = t^3: slope 1 wherever t != 0
 ```
 :::
 
-**Velocity.** If $t$ is time, $dx/dt$ is the rate at which the point moves horizontally and $dy/dt$ the rate at which it moves vertically. Draw an arrow from the point $(x, y)$ with horizontal part $dx/dt$ and vertical part $dy/dt$. Its slope is $\dfrac{dy/dt}{dx/dt} = \dfrac{dy}{dx}$, so it lies along the tangent line, and it points the way the curve is traced. Its length, $\sqrt{(dx/dt)^2 + (dy/dt)^2}$, is the **speed** of the point: the next subsection shows that integrating it gives the distance travelled. Section 16.4 calls such an arrow a vector, and Section 16.8 calls this one the **velocity**.
+**Velocity.** If $t$ is time, draw an arrow from the point $(x, y)$ with horizontal part $dx/dt$ and vertical part $dy/dt$, the rates at which the point moves across and up. Its slope is $\dfrac{dy/dt}{dx/dt} = \dfrac{dy}{dx}$, so it lies along the tangent line, pointing the way the curve is traced, and its length $\sqrt{(dx/dt)^2 + (dy/dt)^2}$ is the **speed** of the point (integrating it gives the distance travelled, as the next subsection shows). Section 16.4 calls such an arrow a vector, and Section 16.8 calls this one the **velocity**.
 
 ::: widget name=parametric-curve
-Choose a curve and press **Play**, or move the slider. The blue curve is traced up to the current value of the parameter; the orange arrow is the velocity $\langle x', y'\rangle$, drawn to the scale stated under the plot, and the readout gives its exact components and the speed. With the circle, check Example 16.1(a): where is the point at $t = \pi/2$, and which way does the arrow point? With the cycloid, watch the arrow shrink to nothing as $P$ reaches the ground (Example 16.4). With the Lissajous curve, count the swings. For the polar curves of Section 16.3 the parameter is the angle $\theta$ and a dashed ray shows the direction $\theta$: with the rose $r = \cos 3\theta$, watch where the point is when $r$ is negative.
+Choose a curve and press **Play**, or move the slider. The blue curve is traced up to the current value of the parameter, and the orange arrow is the velocity $\langle x', y'\rangle$, drawn to the scale stated under the plot; the readout gives its exact components and the speed. With the circle, check Example 16.1(a) at $t = \pi/2$: where is the point, and which way does the arrow point? With the cycloid, watch the arrow shrink to nothing as $P$ reaches the ground (Example 16.4). For the polar curves of Section 16.3 the parameter is the angle $\theta$, and a dashed ray shows the direction $\theta$: with the rose $r = \cos 3\theta$, watch where the point is when $r < 0$.
 :::
 
 ### Arc length {#arc-length}
@@ -314,18 +315,17 @@ $$\sum_{i=1}^{n} \sqrt{f'(t_i^*)^2 + g'(t_i^{**})^2}\;\Delta t.$$
 If $t_i^{**}$ were $t_i^*$, this would be a Riemann sum of the continuous function $\sqrt{f'(t)^2 + g'(t)^2}$, and it would approach the integral (Module 9), exactly as in Module 12. The two points may differ, but they are at most $\Delta t$ apart, so $g'(t_i^{**})$ is close to $g'(t_i^*)$ when $\Delta t$ is small. The Going deeper box makes "close" precise.
 
 ::: deeper Why the polygons approach the integral
-Let $P_n$ be the length of the polygon above, and $Q_n = \sum \sqrt{f'(t_i^*)^2 + g'(t_i^*)^2}\,\Delta t$, a Riemann sum that tends to $L$ as $n \to \infty$ (Module 9). For any numbers $p$, $q$ and $q'$,
+Let $P_n$ be the length of the polygon, and $Q_n = \sum \sqrt{f'(t_i^*)^2 + g'(t_i^*)^2}\,\Delta t$, a Riemann sum that tends to $L$ (Module 9). For any numbers $p$, $q$ and $q'$,
 
 $$\Big|\sqrt{p^2 + q^2} - \sqrt{p^2 + q'^2}\Big| \le \abs{q - q'}:$$
 
-the two square roots are the distances from the origin to the points $(p, q)$ and $(p, q')$, which are $\abs{q - q'}$ apart, and two distances from the origin cannot differ by more than the distance between the points (the triangle inequality). So
+the square roots are the distances from the origin to the points $(p, q)$ and $(p, q')$, which are $\abs{q - q'}$ apart, and by the triangle inequality two such distances differ by at most that much. So
 
 $$\abs{P_n - Q_n} \le \sum_{i=1}^{n} \abs{g'(t_i^{**}) - g'(t_i^*)}\,\Delta t.$$
 
-A function that is continuous on a closed interval is **uniformly continuous** there: for every $\varepsilon > 0$ there is a $\delta > 0$ such that $\abs{g'(s) - g'(s')} < \varepsilon$ for all $s$ and $s'$ in $[a, b]$ less than $\delta$ apart. (This theorem, like the integrability of continuous functions in Module 9, needs the completeness of the real numbers, and the series uses it without proof.) Once $\Delta t < \delta$, every term of the sum is less than $\varepsilon\,\Delta t$, so $\abs{P_n - Q_n} < \varepsilon\,n\,\Delta t = \varepsilon(b - a)$. Hence $P_n - Q_n \to 0$, and $P_n \to L$.
+A function continuous on a closed interval is **uniformly continuous** there: for every $\varepsilon > 0$ there is a $\delta > 0$ such that $\abs{g'(s) - g'(s')} < \varepsilon$ whenever $s$ and $s'$ in $[a, b]$ are less than $\delta$ apart. (This theorem, like the integrability of continuous functions in Module 9, needs the completeness of the real numbers; the series uses it without proof.) Once $\Delta t < \delta$, every term of the sum is less than $\varepsilon\,\Delta t$, so $\abs{P_n - Q_n} < \varepsilon(b - a)$. Hence $P_n - Q_n \to 0$, and $P_n \to L$.
 
 ```check
-pq16, qa16, qb16 = symbols('p q qq', real=True)
 for vals in ((1, 2, 5), (-3, 1, -2), (0, 4, 4), (2, -7, 3)):
     holds(Abs(sqrt(vals[0]**2 + vals[1]**2) - sqrt(vals[0]**2 + vals[2]**2)) <= Abs(vals[1] - vals[2]))
 ```
@@ -470,7 +470,7 @@ Polar coordinates and polar curves; the grey circles and rays are a polar grid. 
 same((2*cos(pi/3), 2*sin(pi/3)), (1, sqrt(3)))
 ```
 
-Two more families. The **rose** $r = \cos 3\theta$ (Figure 16.3, bottom middle) has three petals. For $-\pi/6 \le \theta \le \pi/6$, $r \ge 0$ and the point draws the petal along the polar axis, reaching $(1, 0)$ at $\theta = 0$. For $\pi/6 \le \theta \le \pi/2$, $r \le 0$, so the point is on the ray opposite to $\theta$: it draws the petal that points down to the left, whose tip $r = -1$ comes at $\theta = \pi/3$, in the direction $\pi/3 + \pi = 4\pi/3$. The third petal points in the direction $2\pi/3$. After $\theta = \pi$ the curve repeats itself, because $\cos\big(3(\theta + \pi)\big) = -\cos 3\theta$, and $(-r, \theta + \pi)$ is the same point as $(r, \theta)$. In general $r = \cos n\theta$ has $n$ petals when $n$ is odd and $2n$ when $n$ is even.
+Two more families. The **rose** $r = \cos 3\theta$ (Figure 16.3, bottom middle) has three petals. For $-\pi/6 \le \theta \le \pi/6$, $r \ge 0$, and the point draws the petal along the polar axis. For $\pi/6 \le \theta \le \pi/2$, $r \le 0$, so the point lies on the ray opposite to $\theta$ and draws the petal pointing in the direction $4\pi/3$ (its tip, $r = -1$, comes at $\theta = \pi/3$); the third petal points in the direction $2\pi/3$. After $\theta = \pi$ the curve repeats, because $\cos\big(3(\theta + \pi)\big) = -\cos 3\theta$ and $(-r, \theta + \pi)$ is the same point as $(r, \theta)$. In general $r = \cos n\theta$ has $n$ petals when $n$ is odd and $2n$ when $n$ is even.
 
 ```check
 same(cos(3*(theta + pi)), -cos(3*theta)); same(cos(3*0), 1); same(cos(3*pi/3), -1); same(cos(3*2*pi/3), 1)
@@ -480,7 +480,7 @@ same((-1*cos(pi/3), -1*sin(pi/3)), (cos(4*pi/3), sin(4*pi/3)))
 same(cos(2*(theta + pi)), cos(2*theta)); same(cos(5*(theta + pi)), -cos(5*theta))
 ```
 
-The spiral $r = \theta/2$, $\theta \ge 0$ (Figure 16.3, bottom right), is an **Archimedean spiral**: its distance from the pole grows in proportion to the angle, so each full turn adds $2\pi$ to $\theta$ and $\pi$ to $r$, and successive turns are the same distance $\pi$ apart, like the layers of a tightly rolled carpet seen from the end.
+The spiral $r = \theta/2$, $\theta \ge 0$ (Figure 16.3, bottom right), is an **Archimedean spiral**: each full turn adds $2\pi$ to $\theta$ and $\pi$ to $r$, so successive turns are the same distance $\pi$ apart, like the layers of a rolled carpet seen from the end.
 
 ```check
 same((theta + 2*pi)/2 - theta/2, pi)
@@ -513,7 +513,7 @@ Find the tangent line to the cardioid $r = 1 + \cos\theta$ at the point where $\
 
 Here $f(\theta) = 1 + \cos\theta$ and $f'(\theta) = -\sin\theta$, so
 
-$$\begin{aligned} \frac{dx}{d\theta} &= -\sin\theta\cos\theta - (1 + \cos\theta)\sin\theta = -\sin\theta\,(1 + 2\cos\theta), \\ \frac{dy}{d\theta} &= -\sin^2\theta + (1 + \cos\theta)\cos\theta = 2\cos^2\theta + \cos\theta - 1, \end{aligned}$$
+$$\begin{aligned} \frac{dx}{d\theta} &= -\sin\theta\cos\theta - (1 + \cos\theta)\sin\theta = -\sin\theta\,(1 + 2\cos\theta), \\ \frac{dy}{d\theta} &= -\sin^2\theta + (1 + \cos\theta)\cos\theta \\ &= 2\cos^2\theta + \cos\theta - 1, \end{aligned}$$
 
 where the last step replaced $\sin^2\theta$ by $1 - \cos^2\theta$. The quadratic in $\cos\theta$ factors: $\dfrac{dy}{d\theta} = (2\cos\theta - 1)(\cos\theta + 1)$.
 
@@ -571,13 +571,13 @@ $$\cos^2 u = \frac{1 + \cos 2u}{2}.$$
 
 **(a)** The cardioid is traced once as $\theta$ runs from 0 to $2\pi$, with $r \ge 0$. Expand the square and replace $\cos^2\theta$:
 
-$$\begin{aligned} A &= \frac12\int_0^{2\pi} (1 + \cos\theta)^2\,d\theta = \frac12\int_0^{2\pi} \big(1 + 2\cos\theta + \cos^2\theta\big)\,d\theta \\ &= \frac12\int_0^{2\pi} \Big(\frac32 + 2\cos\theta + \frac12\cos 2\theta\Big)\,d\theta \\ &= \frac12\Big[\frac{3\theta}{2} + 2\sin\theta + \frac14\sin 2\theta\Big]_0^{2\pi} = \frac12\cdot 3\pi = \frac{3\pi}{2}. \end{aligned}$$
+$$\begin{aligned} A &= \frac12\int_0^{2\pi} (1 + \cos\theta)^2\,d\theta = \frac12\int_0^{2\pi} \big(1 + 2\cos\theta + \cos^2\theta\big)\,d\theta \\ &= \frac12\int_0^{2\pi} \Big(\frac32 + 2\cos\theta + \frac12\cos 2\theta\Big)\,d\theta \\ &= \frac12\Big[\frac{3\theta}{2} + 2\sin\theta + \frac14\sin 2\theta\Big]_0^{2\pi} \\ &= \frac12\cdot 3\pi = \frac{3\pi}{2}. \end{aligned}$$
 
 The cardioid encloses $3\pi/2 \approx 4.712$, one and a half times the area of the unit circle.
 
 **(b)** One petal is traced as $\theta$ runs from $-\pi/6$ to $\pi/6$, where $r = \cos 3\theta \ge 0$. With $u = 3\theta$ in the formula for $\cos^2 u$:
 
-$$\begin{aligned} A &= \frac12\int_{-\pi/6}^{\pi/6} \cos^2 3\theta\,d\theta = \frac12\int_{-\pi/6}^{\pi/6} \frac{1 + \cos 6\theta}{2}\,d\theta \\ &= \frac14\Big[\theta + \frac{\sin 6\theta}{6}\Big]_{-\pi/6}^{\pi/6} = \frac14\cdot\frac{\pi}{3} = \frac{\pi}{12}, \end{aligned}$$
+$$\begin{aligned} A &= \frac12\int_{-\pi/6}^{\pi/6} \cos^2 3\theta\,d\theta = \frac12\int_{-\pi/6}^{\pi/6} \frac{1 + \cos 6\theta}{2}\,d\theta \\ &= \frac14\Big[\theta + \frac{\sin 6\theta}{6}\Big]_{-\pi/6}^{\pi/6} \\ &= \frac14\cdot\frac{\pi}{3} = \frac{\pi}{12}, \end{aligned}$$
 
 since $\sin 6\theta = \sin(\pm\pi) = 0$ at both limits. One petal has area $\pi/12 \approx 0.2618$, and the three petals together $3\cdot\pi/12 = \pi/4$.
 
@@ -602,7 +602,8 @@ Choose limits that trace the region exactly once. $\tfrac12\int_0^{2\pi} \cos^2 
 
 ```check
 same(integrate(cos(3*theta)**2/2, (theta, 0, 2*pi)), pi/2); same(pi/2, 2*(pi/4))
-holds(Ne(integrate(((2) - (1))**2, (theta, 0, 1)), integrate((2**2 - 1**2), (theta, 0, 1))))
+fo_, gi_ = 3*cos(theta), 1 + cos(theta)                     # the circle and the cardioid of Exercise 16.7
+holds(Ne(integrate((fo_**2 - gi_**2)/2, (theta, -pi/3, pi/3)), integrate((fo_ - gi_)**2/2, (theta, -pi/3, pi/3))))
 ```
 :::
 
@@ -653,7 +654,7 @@ print(ellipse.evalf(10))
 15.86543959
 ```
 
-Polar areas are ordinary integrals in $\theta$; here are the cardioid and the petal of Example 16.7:
+Polar areas are ordinary integrals in $\theta$; here are the cardioid and the petal of Example 16.8:
 
 ```python
 th = sp.symbols('theta')
@@ -679,11 +680,13 @@ The distance between $P_1(x_1, y_1, z_1)$ and $P_2(x_2, y_2, z_2)$ is
 
 $$\abs{P_1P_2} = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2 + (z_2 - z_1)^2}.$$
 
-This is Pythagoras' theorem twice. The point $Q(x_2, y_2, z_1)$ lies at the height of $P_1$, directly above or below $P_2$. In the horizontal plane $z = z_1$, $\abs{P_1Q}^2 = (x_2 - x_1)^2 + (y_2 - y_1)^2$; and the triangle $P_1QP_2$ has a right angle at $Q$, so $\abs{P_1P_2}^2 = \abs{P_1Q}^2 + (z_2 - z_1)^2$. For example, the distance from $(1, 2, -1)$ to $(3, -1, 5)$ is $\sqrt{4 + 9 + 36} = \sqrt{49} = 7$. The points at distance $R$ from a point $(a, b, c)$ form the **sphere** $(x - a)^2 + (y - b)^2 + (z - c)^2 = R^2$.
+This is Pythagoras' theorem twice: the point $Q(x_2, y_2, z_1)$, level with $P_1$ and directly above or below $P_2$, has $\abs{P_1Q}^2 = (x_2 - x_1)^2 + (y_2 - y_1)^2$, and the triangle $P_1QP_2$ has a right angle at $Q$, so $\abs{P_1P_2}^2 = \abs{P_1Q}^2 + (z_2 - z_1)^2$. For example, the distance from $(1, 2, -1)$ to $(3, -1, 5)$ is $\sqrt{4 + 9 + 36} = \sqrt{49} = 7$. The points at distance $R$ from a point $(a, b, c)$ form the **sphere** $(x - a)^2 + (y - b)^2 + (z - c)^2 = R^2$.
 
 ```check
 x1_, y1_, z1_, x2_, y2_, z2_ = symbols('x1 y1 z1 x2 y2 z2', real=True)
-same(((x2_ - x1_)**2 + (y2_ - y1_)**2) + (z2_ - z1_)**2, (x2_ - x1_)**2 + (y2_ - y1_)**2 + (z2_ - z1_)**2)
+P1m, Qm, P2m = Matrix([x1_, y1_, z1_]), Matrix([x2_, y2_, z1_]), Matrix([x2_, y2_, z2_])
+same((Qm - P1m).dot(P2m - Qm), 0)                                  # the right angle at Q
+same((Qm - P1m).dot(Qm - P1m) + (P2m - Qm).dot(P2m - Qm), (x2_ - x1_)**2 + (y2_ - y1_)**2 + (z2_ - z1_)**2)
 steps(sqrt((3 - 1)**2 + (-1 - 2)**2 + (5 - (-1))**2), sqrt(4 + 9 + 36), sqrt(49), 7)
 ```
 
@@ -701,7 +704,7 @@ $$\norm{\vb{a}} = \sqrt{a_1^2 + a_2^2 + a_3^2}.$$
 Vectors in the plane have two components, $\vb{a} = \langle a_1, a_2\rangle$, and $\norm{\vb{a}} = \sqrt{a_1^2 + a_2^2}$.
 :::
 
-Vectors are printed in bold, $\vb{a}$; by hand, write $\vec a$ (with an arrow on top). The angle brackets keep the vector $\langle a_1, a_2, a_3\rangle$ apart from the point $(a_1, a_2, a_3)$; the arrow from $O$ to that point represents the vector, the point's **position vector**. $\norm{\vb{a}}$ reads "the length of a" (or "the norm of a", the name used in linear algebra). By the distance formula, the length of $\overrightarrow{AB}$ is the distance from $A$ to $B$. The **zero vector** $\vb{0} = \langle 0, 0, 0\rangle$ has length 0 and no direction. Ordinary numbers are called **scalars**, to keep them apart from vectors.
+Vectors are printed in bold, $\vb{a}$, and handwritten with an arrow, $\vec a$. The angle brackets keep the vector $\langle a_1, a_2, a_3\rangle$ apart from the point $(a_1, a_2, a_3)$; the arrow from $O$ to that point, which represents the vector, is the point's **position vector**. $\norm{\vb{a}}$ reads "the length of a" (also called its norm). By the distance formula, the length of $\overrightarrow{AB}$ is the distance from $A$ to $B$. The **zero vector** $\vb{0} = \langle 0, 0, 0\rangle$ has length 0 and no direction, and ordinary numbers are called **scalars**.
 
 ### Adding and scaling {#arithmetic}
 
@@ -709,7 +712,7 @@ Walk along the arrow $\vb{a}$ and then along $\vb{b}$, drawn from where $\vb{a}$
 
 $$\begin{aligned} \vb{a} + \vb{b} &= \langle a_1 + b_1,\ a_2 + b_2,\ a_3 + b_3\rangle, \\ c\,\vb{a} &= \langle c a_1,\ c a_2,\ c a_3\rangle. \end{aligned}$$
 
-The length of $c\,\vb{a}$ is $\sqrt{c^2a_1^2 + c^2a_2^2 + c^2a_3^2} = \abs{c}\,\norm{\vb{a}}$. The **difference** is $\vb{a} - \vb{b} = \vb{a} + (-1)\vb{b}$; when $\vb{a}$ and $\vb{b}$ start at the same point, $\vb{a} - \vb{b}$ is the arrow from the tip of $\vb{b}$ to the tip of $\vb{a}$. Two nonzero vectors are **parallel** if one is a scalar multiple of the other. Because everything works component by component, the rules of ordinary algebra hold: $\vb{a} + \vb{b} = \vb{b} + \vb{a}$, $(\vb{a} + \vb{b}) + \vb{c} = \vb{a} + (\vb{b} + \vb{c})$, $\vb{a} + \vb{0} = \vb{a}$, $\vb{a} + (-\vb{a}) = \vb{0}$, $c(\vb{a} + \vb{b}) = c\vb{a} + c\vb{b}$, $(c + d)\vb{a} = c\vb{a} + d\vb{a}$ and $(cd)\vb{a} = c(d\vb{a})$.
+The length of $c\,\vb{a}$ is $\sqrt{c^2a_1^2 + c^2a_2^2 + c^2a_3^2} = \abs{c}\,\norm{\vb{a}}$. The **difference** is $\vb{a} - \vb{b} = \vb{a} + (-1)\vb{b}$; when $\vb{a}$ and $\vb{b}$ start at the same point, $\vb{a} - \vb{b}$ is the arrow from the tip of $\vb{b}$ to the tip of $\vb{a}$. Two nonzero vectors are **parallel** if one is a scalar multiple of the other. Because everything works component by component, the rules of ordinary algebra hold, such as $\vb{a} + \vb{b} = \vb{b} + \vb{a}$, $(\vb{a} + \vb{b}) + \vb{c} = \vb{a} + (\vb{b} + \vb{c})$, $c(\vb{a} + \vb{b}) = c\vb{a} + c\vb{b}$ and $(c + d)\vb{a} = c\vb{a} + d\vb{a}$.
 
 ```check
 A3, B3, C3 = Matrix(symbols('a1:4')), Matrix(symbols('b1:4')), Matrix(symbols('c1:4'))
@@ -752,7 +755,7 @@ $$\begin{aligned} \vb{a} + \vb{b} &= \langle 2 + 1,\ -1 + 3,\ 2 + 0\rangle = \la
 
 The lengths are $\norm{\vb{a}} = \sqrt{4 + 1 + 4} = 3$ and $\norm{\vb{b}} = \sqrt{1 + 9 + 0} = \sqrt{10}$. The unit vector in the direction of $\vb{a}$ is $\tfrac13\vb{a} = \big\langle \tfrac23, -\tfrac13, \tfrac23\big\rangle$; check: $\tfrac49 + \tfrac19 + \tfrac49 = 1$. Finally, $\vb{a} = 2\vb{i} - \vb{j} + 2\vb{k}$.
 
-These two vectors return in Examples 16.12 and 16.15.
+These two vectors return in Sections 16.5 and 16.6.
 
 ```check
 av, bv = Matrix([2, -1, 2]), Matrix([1, 3, 0])
@@ -762,7 +765,7 @@ same(Rational(4, 9) + Rational(1, 9) + Rational(4, 9), 1); same(2*iv - jv + 2*kv
 ```
 :::
 
-Vectors model three kinds of quantity in this series. A **displacement** is the vector from where something starts to where it ends. A **velocity** has the direction of motion and the speed as its length. A **force** has the direction in which it pulls or pushes and its strength (in newtons, N) as its length; forces acting on one object add as vectors, and an object at rest has forces adding to $\vb{0}$ (Newton's first law).
+In applications, a **displacement** is the vector from where something starts to where it ends; a **velocity** has the direction of motion and the speed as its length; and a **force** has the direction of its push or pull and its strength (in newtons, N) as its length. Forces acting on one object add as vectors, and on an object at rest they add to $\vb{0}$.
 
 ::: example Velocities and forces
 (a) A boat heads due north across a river at 4 m/s relative to the water, while the current carries the water due east at 3 m/s. Find the boat's velocity relative to the ground, and its speed. (b) A weight of 100 N hangs at rest from two ropes, which make angles of $30^\circ$ and $60^\circ$ with the horizontal, one on each side. Find the tension in each rope. (The numbers in both parts are made up.)
@@ -791,7 +794,7 @@ same(solve(-sqrt(3)/2*T1_ + T2_/2, T2_), [sqrt(3)*T1_]); same(Rational(1, 2) + s
 :::
 
 ::: pitfall
-Lengths do not add: $\norm{\vb{a} + \vb{b}}$ is not $\norm{\vb{a}} + \norm{\vb{b}}$. In Example 16.10(a) the speeds 4 and 3 m/s combine to 5 m/s, not 7. The sides of the triangle in Figure 16.4 (middle) show the **triangle inequality**, $\norm{\vb{a} + \vb{b}} \le \norm{\vb{a}} + \norm{\vb{b}}$, with equality only when $\vb{a}$ and $\vb{b}$ point the same way (Exercise 16.12 proves it).
+Lengths do not add: $\norm{\vb{a} + \vb{b}}$ is not $\norm{\vb{a}} + \norm{\vb{b}}$. In Example 16.10(a) the speeds 4 and 3 m/s combine to 5 m/s, not 7. The sides of the triangle in Figure 16.4 (middle) show the **triangle inequality**, $\norm{\vb{a} + \vb{b}} \le \norm{\vb{a}} + \norm{\vb{b}}$, with equality only when $\vb{a}$ and $\vb{b}$ point the same way (Exercise 16.11 proves it).
 
 ```check
 same(Matrix([3, 4]).norm(), 5); holds(Matrix([3, 4]).norm() < 3 + 4)
@@ -817,7 +820,7 @@ read "a dot b". In the plane, $\vb{a}\cdot\vb{b} = a_1b_1 + a_2b_2$.
 
 The dot product of two vectors is a scalar, not a vector; it is also called the **scalar product**. From the definition, for all vectors $\vb{a}$, $\vb{b}$, $\vb{c}$ and scalars $k$:
 
-$$\begin{aligned} \vb{a}\cdot\vb{a} &= \norm{\vb{a}}^2, & \vb{a}\cdot\vb{b} &= \vb{b}\cdot\vb{a}, \\ \vb{a}\cdot(\vb{b} + \vb{c}) &= \vb{a}\cdot\vb{b} + \vb{a}\cdot\vb{c}, & (k\vb{a})\cdot\vb{b} &= k(\vb{a}\cdot\vb{b}) = \vb{a}\cdot(k\vb{b}). \end{aligned}$$
+$$\begin{aligned} \vb{a}\cdot\vb{a} &= \norm{\vb{a}}^2, \qquad \vb{a}\cdot\vb{b} = \vb{b}\cdot\vb{a}, \\ \vb{a}\cdot(\vb{b} + \vb{c}) &= \vb{a}\cdot\vb{b} + \vb{a}\cdot\vb{c}, \\ (k\vb{a})\cdot\vb{b} &= k(\vb{a}\cdot\vb{b}) = \vb{a}\cdot(k\vb{b}). \end{aligned}$$
 
 For example, with $\vb{a} = \langle 2, -1, 2\rangle$ and $\vb{b} = \langle 1, 3, 0\rangle$ from Example 16.9, $\vb{a}\cdot\vb{b} = 2 - 3 + 0 = -1$ and $\vb{a}\cdot\vb{a} = 4 + 1 + 4 = 9 = \norm{\vb{a}}^2$.
 
@@ -848,7 +851,7 @@ $$\norm{\vb{a} - \vb{b}}^2 = \norm{\vb{a}}^2 + \norm{\vb{b}}^2 - 2\norm{\vb{a}}\
 
 The rules of the dot product give the same left side another way:
 
-$$\begin{aligned} \norm{\vb{a} - \vb{b}}^2 &= (\vb{a} - \vb{b})\cdot(\vb{a} - \vb{b}) = \vb{a}\cdot\vb{a} - 2\,\vb{a}\cdot\vb{b} + \vb{b}\cdot\vb{b} \\ &= \norm{\vb{a}}^2 - 2\,\vb{a}\cdot\vb{b} + \norm{\vb{b}}^2. \end{aligned}$$
+$$\begin{aligned} \norm{\vb{a} - \vb{b}}^2 &= (\vb{a} - \vb{b})\cdot(\vb{a} - \vb{b}) \\ &= \vb{a}\cdot\vb{a} - 2\,\vb{a}\cdot\vb{b} + \vb{b}\cdot\vb{b} \\ &= \norm{\vb{a}}^2 - 2\,\vb{a}\cdot\vb{b} + \norm{\vb{b}}^2. \end{aligned}$$
 
 Comparing the two, $\vb{a}\cdot\vb{b} = \norm{\vb{a}}\,\norm{\vb{b}}\cos\theta$. If $\vb{a}$ and $\vb{b}$ are parallel, $\vb{b} = k\vb{a}$ with $k \ne 0$; then $\vb{a}\cdot\vb{b} = k\norm{\vb{a}}^2$, while $\theta = 0$ (if $k > 0$) or $\pi$ (if $k < 0$), and $\norm{\vb{a}}\,\norm{\vb{b}}\cos\theta = \abs{k}\,\norm{\vb{a}}^2\cdot(\pm1) = k\norm{\vb{a}}^2$ as well.
 :::
@@ -882,7 +885,7 @@ The bonds from the carbon to the first two hydrogens are $\vb{a} = \langle 1, 1,
 
 $$\cos\theta = \frac{-1}{\sqrt3\cdot\sqrt3} = -\frac13, \qquad \theta = \arccos\Big(-\frac13\Big) \approx 1.9106 \approx 109.47^\circ.$$
 
-Every pair of the four bond vectors has dot product $-1$, so every angle between two bonds is the same: this is the **tetrahedral angle**, about $109.5^\circ$, which chemistry predicts for the bonds of methane.
+Every pair of the four bond vectors has dot product $-1$, so every angle between two bonds is the same: this is the **tetrahedral angle**, about $109.5^\circ$, the angle between the bonds of a methane molecule.
 
 ```check
 Hs = [Matrix([1, 1, 1]), Matrix([1, -1, -1]), Matrix([-1, 1, -1]), Matrix([-1, -1, 1])]
@@ -893,19 +896,19 @@ rounds(acos(-Rational(1, 3)), '1.9106'); rounds(acos(-Rational(1, 3))*180/pi, '1
 ```
 :::
 
-The formula $\cos\theta = \dfrac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}\,\norm{\vb{b}}}$ makes sense for vectors with any number of components, and computing uses it all the time. Search engines and language models represent words and documents by vectors with hundreds of components, and the cosine of the angle between two such vectors, their **cosine similarity**, measures how alike they are: close to 1 for vectors pointing almost the same way, close to 0 for unrelated ones. Exercise 16.12 shows that the fraction always lies between $-1$ and 1, so that the angle exists.
+The formula $\cos\theta = \dfrac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}\,\norm{\vb{b}}}$ makes sense for vectors with any number of components. Search engines and language models represent words and documents by vectors with hundreds of components, and the cosine of the angle between two of them, their **cosine similarity**, measures how alike they are. (Exercise 16.11 shows that the fraction always lies between $-1$ and 1, so that the angle exists.)
 
 ### Projections {#projections}
 
-Shine a light straight down onto the line of $\vb{a}$ (Figure 16.5, left): the shadow of $\vb{b}$ on that line is the part of $\vb{b}$ that points along $\vb{a}$. Its signed length, $\norm{\vb{b}}\cos\theta$, is the **scalar projection** of $\vb{b}$ onto $\vb{a}$, and the shadow itself is the **vector projection**. By Theorem 16.4, for $\vb{a} \ne \vb{0}$,
+Drop a perpendicular from the tip of $\vb{b}$ to the line of $\vb{a}$ (Figure 16.5, left). It cuts off the shadow of $\vb{b}$ on that line, the part of $\vb{b}$ that points along $\vb{a}$. Its signed length, $\norm{\vb{b}}\cos\theta$, is the **scalar projection** of $\vb{b}$ onto $\vb{a}$, and the shadow itself is the **vector projection**. By Theorem 16.4, for $\vb{a} \ne \vb{0}$,
 
-$$\operatorname{comp}_{\vb{a}}\vb{b} = \norm{\vb{b}}\cos\theta = \frac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}}, \qquad \operatorname{proj}_{\vb{a}}\vb{b} = \frac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}}\cdot\frac{\vb{a}}{\norm{\vb{a}}} = \frac{\vb{a}\cdot\vb{b}}{\vb{a}\cdot\vb{a}}\,\vb{a},$$
+$$\begin{aligned} \operatorname{comp}_{\vb{a}}\vb{b} &= \norm{\vb{b}}\cos\theta = \frac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}}, \\ \operatorname{proj}_{\vb{a}}\vb{b} &= \frac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}}\cdot\frac{\vb{a}}{\norm{\vb{a}}} = \frac{\vb{a}\cdot\vb{b}}{\vb{a}\cdot\vb{a}}\,\vb{a}, \end{aligned}$$
 
 read "the component of b along a" and "the projection of b onto a". The rest of $\vb{b}$ is orthogonal to $\vb{a}$:
 
 $$\vb{a}\cdot\big(\vb{b} - \operatorname{proj}_{\vb{a}}\vb{b}\big) = \vb{a}\cdot\vb{b} - \frac{\vb{a}\cdot\vb{b}}{\vb{a}\cdot\vb{a}}\,(\vb{a}\cdot\vb{a}) = 0.$$
 
-So every vector $\vb{b}$ splits into a part along $\vb{a}$ and a part perpendicular to it, $\vb{b} = \operatorname{proj}_{\vb{a}}\vb{b} + \big(\vb{b} - \operatorname{proj}_{\vb{a}}\vb{b}\big)$. Engineers split forces this way: the weight of a box on a ramp splits into a part along the ramp, which makes it slide, and a part pressing into the ramp.
+So every vector $\vb{b}$ splits into a part along $\vb{a}$ and a part perpendicular to it, $\vb{b} = \operatorname{proj}_{\vb{a}}\vb{b} + \big(\vb{b} - \operatorname{proj}_{\vb{a}}\vb{b}\big)$; engineers split the weight of a box on a ramp this way, into a part along the ramp and a part pressing into it.
 
 ```check
 projv = lambda A_, B_: (A_.dot(B_)/A_.dot(A_))*A_
@@ -918,7 +921,7 @@ Find the scalar and vector projections of $\vb{b} = \langle 3, 4\rangle$ onto $\
 
 $\vb{a}\cdot\vb{b} = 6 + 4 = 10$ and $\vb{a}\cdot\vb{a} = 5$, so
 
-$$\operatorname{comp}_{\vb{a}}\vb{b} = \frac{10}{\sqrt5} = 2\sqrt5 \approx 4.472, \qquad \operatorname{proj}_{\vb{a}}\vb{b} = \frac{10}{5}\,\vb{a} = \langle 4, 2\rangle.$$
+$$\begin{aligned} \operatorname{comp}_{\vb{a}}\vb{b} &= \frac{10}{\sqrt5} = 2\sqrt5 \approx 4.472, \\ \operatorname{proj}_{\vb{a}}\vb{b} &= \frac{10}{5}\,\vb{a} = \langle 4, 2\rangle. \end{aligned}$$
 
 The perpendicular part is $\vb{b} - \langle 4, 2\rangle = \langle -1, 2\rangle$; check: $\langle -1, 2\rangle\cdot\langle 2, 1\rangle = -2 + 2 = 0$. So $\langle 3, 4\rangle = \langle 4, 2\rangle + \langle -1, 2\rangle$ (Figure 16.5, left). The angle between $\vb{a}$ and $\vb{b}$ has $\cos\theta = 10/(\sqrt5\cdot5) = 2/\sqrt5$, about $26.57^\circ$.
 
@@ -945,7 +948,7 @@ With the dot product, the work done by a constant force $\vb{F}$ along a straigh
 
 $$W = \vb{F}\cdot\vb{D} = \norm{\vb{F}}\,\norm{\vb{D}}\cos\theta.$$
 
-With $\vb{F}$ in newtons and $\vb{D}$ in metres, $W$ is in newton-metres, called **joules** (J). A force at right angles to the motion does no work; a force against the motion does negative work. Module 12 computes the work done by a force that varies along a straight line, $W = \int_a^b F(x)\,dx$; Module 20 combines the two ideas, for a varying force along a curved path.
+With $\vb{F}$ in newtons and $\vb{D}$ in metres, $W$ is in **joules** (J). A force at right angles to the motion does no work, and a force against it does negative work. Module 12 computes the work of a force that varies along a straight line, $W = \int_a^b F(x)\,dx$; Module 20 combines the two ideas, for a varying force along a curved path.
 
 ::: example Pulling a sled
 (a) A sled is pulled 50 m along level ground by a rope at $30^\circ$ above the horizontal, with a constant tension of 40 N. How much work does the rope do? (b) A constant force $\vb{F} = \langle 3, 4, 5\rangle$ N moves an object in a straight line from $(2, 1, 0)$ to $(4, 6, 2)$, in metres. How much work does it do?
@@ -971,7 +974,7 @@ Many questions in space need a vector perpendicular to two given vectors $\vb{a}
 
 $$a_1n_1 + a_2n_2 + a_3n_3 = 0, \qquad b_1n_1 + b_2n_2 + b_3n_3 = 0.$$
 
-Multiply the first equation by $b_3$ and the second by $a_3$, and subtract: $n_3$ drops out, leaving $(a_1b_3 - a_3b_1)\,n_1 + (a_2b_3 - a_3b_2)\,n_2 = 0$. One solution is $n_1 = a_2b_3 - a_3b_2$ and $n_2 = a_3b_1 - a_1b_3$, and then $n_3 = a_1b_2 - a_2b_1$ satisfies both of the original equations (substitute and expand: every term cancels). This solution is the cross product.
+Multiply the first equation by $b_3$ and the second by $a_3$, and subtract: $n_3$ drops out, leaving $(a_1b_3 - a_3b_1)\,n_1 + (a_2b_3 - a_3b_2)\,n_2 = 0$. One solution is $n_1 = a_2b_3 - a_3b_2$, $n_2 = a_3b_1 - a_1b_3$, and then $n_3 = a_1b_2 - a_2b_1$ satisfies both equations (substitute and expand). This solution is the cross product.
 
 ```check
 nn_ = Matrix([a2_*symbols('b3') - a3_*symbols('b2'), a3_*symbols('b1') - a1_*symbols('b3'), a1_*symbols('b2') - a2_*symbols('b1')])
@@ -991,7 +994,7 @@ read "a cross b". It is defined only for vectors in space.
 
 The formula is easier to remember as a determinant. A $2 \times 2$ **determinant** is $\begin{vmatrix} p & q \\ r & s \end{vmatrix} = ps - qr$, and each component of $\vb{a}\times\vb{b}$ is one of them. Arrange $\vb{i}$, $\vb{j}$, $\vb{k}$ and the components of $\vb{a}$ and $\vb{b}$ in three rows, and expand along the first row, covering up the row and the column of each entry in turn:
 
-$$\vb{a}\times\vb{b} = \begin{vmatrix} \vb{i} & \vb{j} & \vb{k} \\ a_1 & a_2 & a_3 \\ b_1 & b_2 & b_3 \end{vmatrix} = \begin{vmatrix} a_2 & a_3 \\ b_2 & b_3 \end{vmatrix}\vb{i} - \begin{vmatrix} a_1 & a_3 \\ b_1 & b_3 \end{vmatrix}\vb{j} + \begin{vmatrix} a_1 & a_2 \\ b_1 & b_2 \end{vmatrix}\vb{k}.$$
+$$\begin{aligned} \vb{a}\times\vb{b} &= \begin{vmatrix} \vb{i} & \vb{j} & \vb{k} \\ a_1 & a_2 & a_3 \\ b_1 & b_2 & b_3 \end{vmatrix} \\ &= \begin{vmatrix} a_2 & a_3 \\ b_2 & b_3 \end{vmatrix}\vb{i} - \begin{vmatrix} a_1 & a_3 \\ b_1 & b_3 \end{vmatrix}\vb{j} + \begin{vmatrix} a_1 & a_2 \\ b_1 & b_2 \end{vmatrix}\vb{k}. \end{aligned}$$
 
 Note the minus sign on the middle term. (The first row holds vectors, not numbers, so this is a memory aid rather than a true determinant.) For example, $\vb{i}\times\vb{j} = \langle 0\cdot0 - 0\cdot1,\ 0\cdot0 - 1\cdot0,\ 1\cdot1 - 0\cdot0\rangle = \vb{k}$.
 
@@ -1036,7 +1039,7 @@ C3v = Matrix(symbols('c1:4'))
 same(A3v.cross(B3v + C3v), A3v.cross(B3v) + A3v.cross(C3v)); same((k*A3v).cross(B3v), k*A3v.cross(B3v)); same(A3v.cross(k*B3v), k*A3v.cross(B3v))
 ```
 
-Theorem 16.5 fixes the line along which $\vb{a}\times\vb{b}$ points and its length, which leaves two opposite directions. Since $\vb{i}\times\vb{j} = \vb{k}$, the choice follows the right-hand rule that arranged the axes: if the fingers of your right hand curl from $\vb{a}$ towards $\vb{b}$, through the angle $\theta$, your thumb points along $\vb{a}\times\vb{b}$ (Figure 16.5, right). A proof needs more than this module has; the idea is that you can turn $\vb{a}$ and $\vb{b}$ gradually into $\vb{i}$ and $\vb{j}$ without ever making them parallel, and then $\vb{a}\times\vb{b}$ changes gradually, is never $\vb{0}$, and so never jumps to the opposite side. For the unit vectors,
+Theorem 16.5 fixes the line along which $\vb{a}\times\vb{b}$ points and its length, which leaves two opposite directions. Since $\vb{i}\times\vb{j} = \vb{k}$, the choice follows the right-hand rule that arranged the axes: if the fingers of your right hand curl from $\vb{a}$ towards $\vb{b}$, through the angle $\theta$, your thumb points along $\vb{a}\times\vb{b}$ (Figure 16.5, right). (The idea of a proof: turn $\vb{a}$ and $\vb{b}$ gradually into $\vb{i}$ and $\vb{j}$, never letting them become parallel; then $\vb{a}\times\vb{b}$ changes gradually and is never $\vb{0}$, so it cannot jump to the opposite side.) For the unit vectors,
 
 $$\begin{aligned} \vb{i}\times\vb{j} &= \vb{k}, & \vb{j}\times\vb{k} &= \vb{i}, & \vb{k}\times\vb{i} &= \vb{j}, \\ \vb{j}\times\vb{i} &= -\vb{k}, & \vb{k}\times\vb{j} &= -\vb{i}, & \vb{i}\times\vb{k} &= -\vb{j}, \end{aligned}$$
 
@@ -1060,13 +1063,13 @@ same(iv.cross(iv).cross(jv), zeros(3, 1)); same(iv.cross(iv.cross(jv)), -jv)
 
 **(a)** Expand the determinant:
 
-$$\begin{aligned} \vb{a}\times\vb{b} &= \begin{vmatrix} \vb{i} & \vb{j} & \vb{k} \\ 2 & -1 & 2 \\ 1 & 3 & 0 \end{vmatrix} \\ &= \big((-1)\cdot0 - 2\cdot3\big)\vb{i} - \big(2\cdot0 - 2\cdot1\big)\vb{j} + \big(2\cdot3 - (-1)\cdot1\big)\vb{k} \\ &= -6\vb{i} + 2\vb{j} + 7\vb{k} = \langle -6, 2, 7\rangle. \end{aligned}$$
+$$\begin{aligned} \vb{a}\times\vb{b} &= \begin{vmatrix} \vb{i} & \vb{j} & \vb{k} \\ 2 & -1 & 2 \\ 1 & 3 & 0 \end{vmatrix} \\ &= \big((-1)\cdot0 - 2\cdot3\big)\vb{i} - \big(2\cdot0 - 2\cdot1\big)\vb{j} \\ &\qquad + \big(2\cdot3 - (-1)\cdot1\big)\vb{k} \\ &= -6\vb{i} + 2\vb{j} + 7\vb{k} = \langle -6, 2, 7\rangle. \end{aligned}$$
 
 Check: $\langle 2, -1, 2\rangle\cdot\langle -6, 2, 7\rangle = -12 - 2 + 14 = 0$ and $\langle 1, 3, 0\rangle\cdot\langle -6, 2, 7\rangle = -6 + 6 + 0 = 0$. The area is $\norm{\vb{a}\times\vb{b}} = \sqrt{36 + 4 + 49} = \sqrt{89} \approx 9.434$. Lagrange's identity agrees: $\norm{\vb{a}}^2\norm{\vb{b}}^2 - (\vb{a}\cdot\vb{b})^2 = 9\cdot10 - (-1)^2 = 89$.
 
 **(b)** The triangle is half of the parallelogram spanned by $\overrightarrow{PQ} = \langle 1, 2, -1\rangle$ and $\overrightarrow{PR} = \langle -1, 1, 2\rangle$. Their cross product is
 
-$$\overrightarrow{PQ}\times\overrightarrow{PR} = \big\langle 2\cdot2 - (-1)\cdot1,\ (-1)(-1) - 1\cdot2,\ 1\cdot1 - 2\cdot(-1)\big\rangle = \langle 5, -1, 3\rangle,$$
+$$\begin{aligned} \overrightarrow{PQ}\times\overrightarrow{PR} &= \big\langle 2\cdot2 - (-1)\cdot1,\ (-1)(-1) - 1\cdot2,\ 1\cdot1 - 2\cdot(-1)\big\rangle \\ &= \langle 5, -1, 3\rangle, \end{aligned}$$
 
 of length $\sqrt{25 + 1 + 9} = \sqrt{35}$, so the triangle has area $\tfrac12\sqrt{35} \approx 2.958$.
 
@@ -1082,14 +1085,14 @@ same((Qp - Pp).cross(Rp - Pp), Matrix([5, -1, 3])); same(Matrix([5, -1, 3]).norm
 ```
 :::
 
-**Torque.** A force $\vb{F}$ that acts at a point with position vector $\vb{r}$, measured from an axis, tends to turn the object about the axis; think of a spanner turning a bolt. The turning effect is measured by the **torque** $\boldsymbol{\tau} = \vb{r}\times\vb{F}$ ($\tau$ is the Greek letter tau). Its length, $\norm{\vb{r}}\,\norm{\vb{F}}\sin\theta$, grows with the length of the lever arm and is greatest when you push at right angles to the spanner; its direction, by the right-hand rule, is along the axis about which the force turns the object. For example, a force of 40 N applied 0.25 m from the bolt, at right angles to the spanner, gives a torque of length $0.25\cdot40 = 10$ newton-metres (N·m); at $60^\circ$ to the spanner, $10\sin 60^\circ = 5\sqrt3 \approx 8.66$ N·m.
+**Torque.** A force $\vb{F}$ applied at the point with position vector $\vb{r}$, measured from an axis, tends to turn an object about the axis, as a spanner turns a bolt. The turning effect is the **torque** $\boldsymbol{\tau} = \vb{r}\times\vb{F}$ ($\tau$ is the Greek letter tau). Its length $\norm{\vb{r}}\,\norm{\vb{F}}\sin\theta$ grows with the lever arm and is greatest when you push at right angles to the spanner; its direction, by the right-hand rule, is along the axis of the turning. A force of 40 N applied 0.25 m from the bolt at right angles to the spanner gives a torque of length $0.25\cdot40 = 10$ newton-metres (N·m); at $60^\circ$ to the spanner, $10\sin 60^\circ = 5\sqrt3 \approx 8.66$ N·m.
 
 ```check
 same(Rational(1, 4)*40*sin(pi/2), 10); steps(10*sin(pi/3), 5*sqrt(3)); rounds(5*sqrt(3), '8.66')
 same(Matrix([Rational(1, 4), 0, 0]).cross(Matrix([0, 40, 0])), Matrix([0, 0, 10]))
 ```
 
-**Only in space.** For vectors in the plane, write them as $\langle a_1, a_2, 0\rangle$ and $\langle b_1, b_2, 0\rangle$: their cross product is $\langle 0, 0, a_1b_2 - a_2b_1\rangle$, which points out of the plane. So $\abs{a_1b_2 - a_2b_1}$ is the area of the parallelogram that two vectors span in the plane, but the cross product itself is not a vector of the plane. In four or more dimensions, the directions perpendicular to two given vectors form a whole plane or more, so there is no single perpendicular direction to choose. Space, with three dimensions, is where two vectors determine one perpendicular line; that is why the cross product, unlike the dot product, belongs to three dimensions.
+**Only in space.** Write two vectors of the plane as $\langle a_1, a_2, 0\rangle$ and $\langle b_1, b_2, 0\rangle$: their cross product, $\langle 0, 0, a_1b_2 - a_2b_1\rangle$, points out of the plane, although its length $\abs{a_1b_2 - a_2b_1}$ is the area of the parallelogram they span. In four or more dimensions, the directions perpendicular to two given vectors form a whole plane or more, and none of them is singled out. Only in three dimensions do two vectors determine one perpendicular line, which is why the cross product, unlike the dot product, belongs to space.
 
 ```check
 same(Matrix([a1_, a2_, 0]).cross(Matrix([b1_, b2_, 0])), Matrix([0, 0, a1_*b2_ - a2_*b1_]))
@@ -1119,7 +1122,7 @@ Find vector, parametric and symmetric equations of the line through $A(1, 2, 3)$
 
 A direction is $\vb{v} = \overrightarrow{AB} = \langle 2, 1, -2\rangle$. With $P_0 = A$:
 
-$$\vb{r} = \langle 1, 2, 3\rangle + t\langle 2, 1, -2\rangle; \qquad x = 1 + 2t,\ y = 2 + t,\ z = 3 - 2t; \qquad \frac{x - 1}{2} = \frac{y - 2}{1} = \frac{z - 3}{-2}.$$
+$$\begin{aligned} &\vb{r} = \langle 1, 2, 3\rangle + t\langle 2, 1, -2\rangle; \\ &x = 1 + 2t, \quad y = 2 + t, \quad z = 3 - 2t; \\ &\frac{x - 1}{2} = \frac{y - 2}{1} = \frac{z - 3}{-2}. \end{aligned}$$
 
 The parameter is $t = 0$ at $A$ and $t = 1$ at $B$. The line meets the $xy$-plane where $z = 3 - 2t = 0$, at $t = \tfrac32$: the point $\big(4, \tfrac72, 0\big)$. For $C$, the $x$-coordinate needs $1 + 2t = 5$, so $t = 2$; then $y = 4$ and $z = -1$, which match: $C$ is on the line. For $D$, $1 + 2t = 7$ gives $t = 3$, and then $y = 5$ but $z = -3 \ne -2$: $D$ is not on the line.
 
@@ -1144,7 +1147,9 @@ $$\vb{n}\cdot(\vb{r} - \vb{r}_0) = 0.$$
 
 With $\vb{n} = \langle a, b, c\rangle$ this reads
 
-$$a(x - x_0) + b(y - y_0) + c(z - z_0) = 0, \quad\text{or}\quad ax + by + cz = d, \quad\text{where } d = ax_0 + by_0 + cz_0.$$
+$$a(x - x_0) + b(y - y_0) + c(z - z_0) = 0,$$
+
+or, multiplying out, $ax + by + cz = d$, where $d = ax_0 + by_0 + cz_0$.
 
 Conversely, if $a$, $b$ and $c$ are not all 0, the solutions of $ax + by + cz = d$ form a plane with normal vector $\langle a, b, c\rangle$: pick one solution as $P_0$, and the equation says $\vb{n}\cdot(\vb{r} - \vb{r}_0) = 0$. So one linear equation in $x$, $y$ and $z$ describes a plane, not a line; a line in space needs parametric equations, or two linear equations (it is where two planes meet).
 
@@ -1157,7 +1162,7 @@ same(expand(aa_*(xs_ - x0_) + bb_*(ys_ - y0_) + cc_*(zs_ - z0_)), aa_*xs_ + bb_*
 ::: example The plane through three points
 Find an equation of the plane through $P(1, 0, 1)$, $Q(2, 2, 0)$ and $R(0, 1, 3)$.
 
-The vectors $\overrightarrow{PQ}$ and $\overrightarrow{PR}$ lie in the plane, so their cross product is a normal vector. Example 16.15(b) found it: $\vb{n} = \langle 5, -1, 3\rangle$. The plane through $P$ with this normal is
+The vectors $\overrightarrow{PQ}$ and $\overrightarrow{PR}$ lie in the plane, so their cross product is a normal vector. Example 16.14(b) found it: $\vb{n} = \langle 5, -1, 3\rangle$. The plane through $P$ with this normal is
 
 $$5(x - 1) - (y - 0) + 3(z - 1) = 0, \quad\text{that is,}\quad 5x - y + 3z = 8.$$
 
@@ -1171,10 +1176,10 @@ same(solve(10*x - 2*y + 6*z - 16, x), solve(5*x - y + 3*z - 8, x))
 ```
 :::
 
-The angle between two planes is the angle between their normal vectors, and two planes are parallel when their normals are.
+The angle between two planes is the angle between their normal vectors (or $\pi$ minus it, whichever is at most $\pi/2$), and two planes are parallel when their normals are.
 
 ::: theorem Distance from a point to a plane
-The distance from the point $P_1(x_1, y_1, z_1)$ to the plane $ax + by + cz = d$ is
+The distance from the point $P_1(x_1, y_1, z_1)$ to the plane $ax + by + cz = d$, where $a$, $b$ and $c$ are not all 0, is
 
 $$D = \frac{\abs{ax_1 + by_1 + cz_1 - d}}{\sqrt{a^2 + b^2 + c^2}}.$$
 :::
@@ -1182,7 +1187,7 @@ $$D = \frac{\abs{ax_1 + by_1 + cz_1 - d}}{\sqrt{a^2 + b^2 + c^2}}.$$
 ::: proof
 Let $\vb{n} = \langle a, b, c\rangle$, let $P_0$ be any point of the plane, and let $F$ be the foot of the perpendicular from $P_1$, the point where the line through $P_1$ with direction $\vb{n}$ meets the plane. For every point $X$ of the plane, the triangle $P_1FX$ has a right angle at $F$, so $\abs{P_1X}^2 = \abs{P_1F}^2 + \abs{FX}^2 \ge \abs{P_1F}^2$: $F$ is the point of the plane nearest to $P_1$, and $D = \abs{P_1F}$. Now $\overrightarrow{P_0P_1} = \overrightarrow{P_0F} + \overrightarrow{FP_1}$, where $\overrightarrow{P_0F}$ lies in the plane, orthogonal to $\vb{n}$, and $\overrightarrow{FP_1}$ is parallel to $\vb{n}$. So $\overrightarrow{FP_1}$ is the vector projection of $\overrightarrow{P_0P_1}$ onto $\vb{n}$, and its length is the absolute value of the scalar projection:
 
-$$D = \frac{\abs{\vb{n}\cdot\overrightarrow{P_0P_1}}}{\norm{\vb{n}}} = \frac{\abs{a(x_1 - x_0) + b(y_1 - y_0) + c(z_1 - z_0)}}{\sqrt{a^2 + b^2 + c^2}} = \frac{\abs{ax_1 + by_1 + cz_1 - d}}{\sqrt{a^2 + b^2 + c^2}},$$
+$$\begin{aligned} D &= \frac{\abs{\vb{n}\cdot\overrightarrow{P_0P_1}}}{\norm{\vb{n}}} = \frac{\abs{a(x_1 - x_0) + b(y_1 - y_0) + c(z_1 - z_0)}}{\sqrt{a^2 + b^2 + c^2}} \\ &= \frac{\abs{ax_1 + by_1 + cz_1 - d}}{\sqrt{a^2 + b^2 + c^2}}, \end{aligned}$$
 
 because $ax_0 + by_0 + cz_0 = d$.
 :::
@@ -1198,7 +1203,7 @@ same(nv_.dot(P1v - P0v), aa_*x1s + bb_*y1s + cc_*z1s - (aa_*x0_ + bb_*y0_ + cc_*
 ```
 
 ::: example Distances to a plane
-Find the distances from $S(2, 3, 4)$ and from the origin to the plane $5x - y + 3z = 8$ of Example 16.17.
+Find the distances from $S(2, 3, 4)$ and from the origin to the plane $5x - y + 3z = 8$ of Example 16.16.
 
 Here $\sqrt{a^2 + b^2 + c^2} = \sqrt{25 + 1 + 9} = \sqrt{35}$. For $S$,
 
@@ -1294,11 +1299,7 @@ $$\vb{r}'(t) = \lim_{h\to0} \frac{\vb{r}(t + h) - \vb{r}(t)}{h},$$
 where the limit exists. The difference quotient is formed component by component, so $\vb{r}'(t) = \langle f'(t), g'(t), h'(t)\rangle$: differentiate each component.
 :::
 
-Geometrically, $\vb{r}(t + h) - \vb{r}(t)$ is the vector from one point of the curve to a nearby one, a secant; dividing by $h$ rescales it, and as $h \to 0$ its direction turns into the direction of the tangent line. So where $\vb{r}'(t) \ne \vb{0}$ it is a **tangent vector**, pointing the way the curve is traced. If $t$ is time, the derivatives have the names of Module 4's motion along a line ([Section 4.6](module_04_EN.html#motion)), now as vectors:
-
-$$\text{velocity } \vb{v}(t) = \vb{r}'(t), \qquad \text{speed } \norm{\vb{v}(t)}, \qquad \text{acceleration } \vb{a}(t) = \vb{v}'(t) = \vb{r}''(t).$$
-
-For a parametric curve in the plane, the velocity is the arrow $\langle x'(t), y'(t)\rangle$ of Section 16.2. Working one component at a time, the rules of Modules 4 and 5 carry over: $(\vb{u} + \vb{w})' = \vb{u}' + \vb{w}'$, $(c\,\vb{u})' = c\,\vb{u}'$, $(f\vb{u})' = f'\vb{u} + f\vb{u}'$ for a scalar function $f$, the chain rule $\big(\vb{u}(f(t))\big)' = f'(t)\,\vb{u}'\big(f(t)\big)$, and two product rules:
+Geometrically, $\vb{r}(t + h) - \vb{r}(t)$ is the vector from one point of the curve to a nearby one, a secant; dividing by $h$ rescales it, and as $h \to 0$ its direction turns into the direction of the tangent line. So where $\vb{r}'(t) \ne \vb{0}$ it is a **tangent vector**, pointing the way the curve is traced. If $t$ is time, the derivatives have the names of Module 4's motion along a line ([Section 4.6](module_04_EN.html#motion)), now as vectors: the **velocity** is $\vb{v}(t) = \vb{r}'(t)$, the **speed** is its length $\norm{\vb{v}(t)}$, and the **acceleration** is $\vb{a}(t) = \vb{v}'(t) = \vb{r}''(t)$. For a parametric curve in the plane, the velocity is the arrow $\langle x'(t), y'(t)\rangle$ of Section 16.2. Working one component at a time, the rules of Modules 4 and 5 carry over: $(\vb{u} + \vb{w})' = \vb{u}' + \vb{w}'$, $(f\vb{u})' = f'\vb{u} + f\vb{u}'$ for a scalar function $f$, the chain rule $\big(\vb{u}(f(t))\big)' = f'(t)\,\vb{u}'\big(f(t)\big)$, and two product rules:
 
 $$(\vb{u}\cdot\vb{w})' = \vb{u}'\cdot\vb{w} + \vb{u}\cdot\vb{w}', \qquad (\vb{u}\times\vb{w})' = \vb{u}'\times\vb{w} + \vb{u}\times\vb{w}'.$$
 
@@ -1326,7 +1327,7 @@ Differentiate each component:
 
 $$\vb{v}(t) = \langle -\sin t, \cos t, 1\rangle, \qquad \vb{a}(t) = \langle -\cos t, -\sin t, 0\rangle.$$
 
-The speed is $\norm{\vb{v}(t)} = \sqrt{\sin^2 t + \cos^2 t + 1} = \sqrt2$, the same at every moment. The acceleration is horizontal, with length 1: it is $-\langle \cos t, \sin t, 0\rangle$, which points from the particle straight towards the axis of the helix. And $\vb{v}\cdot\vb{a} = \sin t\cos t - \sin t\cos t + 0 = 0$. That is no accident: the speed is constant, so $\vb{v}\cdot\vb{v}$ is constant, and its derivative $2\,\vb{v}\cdot\vb{a}$ is 0 (Exercise 16.11).
+The speed is $\norm{\vb{v}(t)} = \sqrt{\sin^2 t + \cos^2 t + 1} = \sqrt2$, the same at every moment. The acceleration is horizontal, with length 1: it is $-\langle \cos t, \sin t, 0\rangle$, which points from the particle straight towards the axis of the helix. And $\vb{v}\cdot\vb{a} = \sin t\cos t - \sin t\cos t + 0 = 0$. That is no accident: the speed is constant, so $\vb{v}\cdot\vb{v}$ is constant, and its derivative $2\,\vb{v}\cdot\vb{a}$ is 0 (Exercise 16.10).
 
 ```check
 vh = diff(rh, tR); ah = diff(vh, tR)
@@ -1375,7 +1376,7 @@ sfun = Integral(vh.norm().subs(tR, u), (u, 0, tR)); same(diff(sfun, tR), sqrt(2)
 
 ### Projectile motion {#projectiles}
 
-Throw a ball, kick a football or aim a jet of water from a hose. If air resistance is negligible, the only force is gravity, and the acceleration is constant: $g \approx 9.8$ m/s², straight down. Put the launch point at the origin, with $x$ horizontal and $y$ up, so that $\vb{a}(t) = \langle 0, -g\rangle$, and let the projectile leave with speed $v_0$ at the angle $\alpha$ above the horizontal (the Greek letter alpha), so that $\vb{v}(0) = \langle v_0\cos\alpha, v_0\sin\alpha\rangle$ and $\vb{r}(0) = \vb{0}$. Module 13 integrates $s'' = 9.8$ twice for a falling body; here the same is done for each component. Integrating $\vb{a}$, with the constant fixed by $\vb{v}(0)$, and then $\vb{v}$, with $\vb{r}(0) = \vb{0}$:
+Throw a ball or aim a jet of water. If air resistance is negligible, the only force is gravity, and the acceleration is constant: $g \approx 9.8$ m/s², straight down. With the launch point at the origin, $x$ horizontal and $y$ up, $\vb{a}(t) = \langle 0, -g\rangle$. Let the projectile leave with speed $v_0$ at the angle $\alpha$ (alpha) above the horizontal, so that $\vb{v}(0) = \langle v_0\cos\alpha, v_0\sin\alpha\rangle$ and $\vb{r}(0) = \vb{0}$. Module 13 integrates $s'' = 9.8$ twice for a falling body; do the same for each component, fixing the constants by $\vb{v}(0)$ and $\vb{r}(0)$:
 
 $$\begin{aligned} \vb{v}(t) &= \langle v_0\cos\alpha,\ v_0\sin\alpha - gt\rangle, \\ \vb{r}(t) &= \big\langle (v_0\cos\alpha)\,t,\ (v_0\sin\alpha)\,t - \tfrac12 gt^2\big\rangle. \end{aligned}$$
 
@@ -1383,7 +1384,6 @@ The horizontal velocity never changes; only the vertical velocity feels gravity.
 
 ```check
 g_, v0_, al_ = symbols('g v_0 alpha', positive=True)
-C1, C2 = symbols('C1 C2')
 vproj = Matrix([integrate(0, t) + v0_*cos(al_), integrate(-g_, t) + v0_*sin(al_)])
 same(vproj, Matrix([v0_*cos(al_), v0_*sin(al_) - g_*t])); same(diff(vproj, t), Matrix([0, -g_])); same(vproj.subs(t, 0), Matrix([v0_*cos(al_), v0_*sin(al_)]))
 rproj = Matrix([v0_*cos(al_)*t, v0_*sin(al_)*t - g_*t**2/2])
@@ -1420,7 +1420,7 @@ same(solve(vproj[1], t), [v0_*sin(al_)/g_]); same(v0_*sin(al_)/g_, tf_/2); same(
 same([d_*pi/180 for d_ in (15, 30, 45, 60, 75)], [pi/12, pi/6, pi/4, pi/3, 5*pi/12])
 ```
 
-**The best angle.** Which angle gives the longest range? On $[0, \pi/2]$, $R(\alpha) = \dfrac{v_0^2}{g}\sin 2\alpha$ is continuous, so the closed interval method of Module 8 finds its largest value. Its derivative $R'(\alpha) = \dfrac{2v_0^2}{g}\cos 2\alpha$ is 0 only where $2\alpha = \pi/2$, at $\alpha = \pi/4$. Compare the values there and at the ends: $R(0) = R(\pi/2) = 0$ and $R(\pi/4) = v_0^2/g$. So the greatest range, $v_0^2/g$, comes at $45^\circ$: about 40.82 m for $v_0 = 20$ m/s. The table also shows a symmetry: since $\sin(\pi - 2\alpha) = \sin 2\alpha$, $R(\pi/2 - \alpha) = R(\alpha)$, and complementary angles such as $30^\circ$ and $60^\circ$ give the same range. The steeper throw goes higher and stays up longer, but moves forwards more slowly.
+**The best angle.** Which angle gives the longest range? On $[0, \pi/2]$, $R(\alpha) = \dfrac{v_0^2}{g}\sin 2\alpha$ is continuous, so the closed interval method of Module 8 applies. $R'(\alpha) = \dfrac{2v_0^2}{g}\cos 2\alpha$ is 0 only at $2\alpha = \pi/2$, that is, $\alpha = \pi/4$; comparing $R(0) = R(\pi/2) = 0$ with $R(\pi/4) = v_0^2/g$, the greatest range, $v_0^2/g$, comes at $45^\circ$: about 40.82 m for $v_0 = 20$ m/s. The table also shows a symmetry: since $\sin(\pi - 2\alpha) = \sin 2\alpha$, $R(\pi/2 - \alpha) = R(\alpha)$, so complementary angles such as $30^\circ$ and $60^\circ$ give the same range. The steeper throw goes higher and stays up longer, but moves forwards more slowly.
 
 ```check
 Ra = v0_**2*sin(2*al_)/g_
@@ -1432,9 +1432,9 @@ rounds(400/Rational(98, 10), '40.82'); same(sin(pi - 2*al_), sin(2*al_)); same(R
 ::: example A kicked ball
 A ball is kicked from level ground at 20 m/s, at $30^\circ$ above the horizontal (the numbers are made up). Ignoring air resistance, find its velocity after 1 s, its flight time, range and greatest height, and its velocity when it lands.
 
-With $v_0 = 20$, $\alpha = \pi/6$ and $g = 9.8$: $v_0\cos\alpha = 10\sqrt3$ and $v_0\sin\alpha = 10$, so $\vb{v}(t) = \big\langle 10\sqrt3, 10 - 9.8t\big\rangle$. After 1 s, $\vb{v}(1) = \big\langle 10\sqrt3, 0.2\big\rangle \approx \langle 17.32, 0.2\rangle$ m/s: the ball is still rising, but only just. Then
+With $v_0 = 20$, $\alpha = \pi/6$ and $g = 9.8$: $v_0\cos\alpha = 10\sqrt3$ and $v_0\sin\alpha = 10$, so $\vb{v}(t) = \big\langle 10\sqrt3, 10 - 9.8t\big\rangle$. After 1 s, $\vb{v}(1) = \big\langle 10\sqrt3, 0.2\big\rangle \approx \langle 17.32, 0.2\rangle$ m/s: the ball is still rising, but slowly. Then
 
-$$t_f = \frac{2\cdot10}{9.8} \approx 2.041\text{ s}, \qquad R = \frac{400\sin 60^\circ}{9.8} = \frac{200\sqrt3}{9.8} \approx 35.35\text{ m}, \qquad H = \frac{400\cdot\frac14}{2\cdot9.8} \approx 5.102\text{ m}.$$
+$$\begin{aligned} t_f &= \frac{2\cdot10}{9.8} \approx 2.041\text{ s}, \\ R &= \frac{400\sin 60^\circ}{9.8} = \frac{200\sqrt3}{9.8} \approx 35.35\text{ m}, \\ H &= \frac{400\cdot\frac14}{2\cdot9.8} \approx 5.102\text{ m}. \end{aligned}$$
 
 On landing, $\vb{v}(t_f) = \big\langle 10\sqrt3,\ 10 - 9.8\cdot\tfrac{20}{9.8}\big\rangle = \big\langle 10\sqrt3, -10\big\rangle$, with speed $\sqrt{300 + 100} = 20$ m/s, at $30^\circ$ below the horizontal: the flight is symmetric, and the ball lands as fast as it was kicked.
 
@@ -1448,7 +1448,7 @@ same(vb(tfb), Matrix([10*sqrt(3), -10])); same(vb(tfb).norm(), 20); same(atan(Ra
 :::
 
 ::: pitfall
-The $45^\circ$ rule assumes that the projectile lands at the height from which it was launched, and that air resistance is negligible. Launched from above the ground, a projectile does best at a lower angle: a shot put released 2 m above the ground at 14 m/s (made-up numbers) goes furthest when launched at about $42^\circ$, not $45^\circ$. Air resistance shortens every range, and usually lowers the best angle too.
+The $45^\circ$ rule assumes that the projectile lands at the height from which it was launched, and that air resistance is negligible. A shot put released 2 m above the ground at 14 m/s (made-up numbers) goes furthest when launched at about $42^\circ$, not $45^\circ$; and air resistance shortens every range and usually lowers the best angle too.
 
 ```check
 import mpmath
@@ -1473,7 +1473,7 @@ A formula without $\vb{T}$: $\kappa = \dfrac{\norm{\vb{r}'(t)\times\vb{r}''(t)}}
 
 $$\vb{r}'\times\vb{r}'' = s's''\,(\vb{T}\times\vb{T}) + (s')^2\,(\vb{T}\times\vb{T}') = (s')^2\,(\vb{T}\times\vb{T}').$$
 
-$\vb{T}$ has constant length 1, so $\vb{T}\cdot\vb{T}' = 0$ (Section 16.8): $\vb{T}$ and $\vb{T}'$ are orthogonal, and by Theorem 16.5, $\norm{\vb{T}\times\vb{T}'} = 1\cdot\norm{\vb{T}'}\cdot\sin\tfrac{\pi}{2} = \norm{\vb{T}'}$. So $\norm{\vb{r}'\times\vb{r}''} = (s')^2\,\norm{\vb{T}'} = (s')^3\kappa$. For the helix, $\vb{r}'\times\vb{r}'' = \langle -\sin t, \cos t, 1\rangle\times\langle -\cos t, -\sin t, 0\rangle = \langle \sin t, -\cos t, 1\rangle$, of length $\sqrt2$, and $\norm{\vb{r}'}^3 = 2\sqrt2$: $\kappa = \tfrac12$. The helix bends half as sharply as the unit circle it winds round; the climb straightens it.
+$\vb{T}$ has constant length 1, so $\vb{T}\cdot\vb{T}' = 0$, as shown above for every vector function of constant length: $\vb{T}$ and $\vb{T}'$ are orthogonal, and by Theorem 16.5, $\norm{\vb{T}\times\vb{T}'} = 1\cdot\norm{\vb{T}'}\cdot\sin\tfrac{\pi}{2} = \norm{\vb{T}'}$. So $\norm{\vb{r}'\times\vb{r}''} = (s')^2\,\norm{\vb{T}'} = (s')^3\kappa$. For the helix, $\vb{r}'\times\vb{r}'' = \langle -\sin t, \cos t, 1\rangle\times\langle -\cos t, -\sin t, 0\rangle = \langle \sin t, -\cos t, 1\rangle$, of length $\sqrt2$, and $\norm{\vb{r}'}^3 = 2\sqrt2$: $\kappa = \tfrac12$. The helix bends half as sharply as the unit circle it winds round; the climb straightens it.
 
 The same computation explains why fast bends are dangerous. If a car moves at constant speed $v$, then $s'' = 0$ and the acceleration is $\vb{r}'' = s'\vb{T}'$, of length $v\cdot\kappa v = \kappa v^2$: on a bend of radius $R$ the car needs a sideways acceleration $v^2/R$, supplied by the grip of its tyres. Double the speed and it needs four times as much.
 
@@ -1498,8 +1498,10 @@ Projectile motion from the acceleration alone: integrate twice, choosing the con
 import sympy as sp
 t, alpha = sp.symbols('t alpha', positive=True)
 g, v0 = sp.Rational(98, 10), 20
-v = sp.Matrix([v0*sp.cos(alpha), v0*sp.sin(alpha)]) + sp.integrate(sp.Matrix([0, -g]), (t, 0, t))
-r = sp.integrate(v, (t, 0, t))
+a = sp.Matrix([0, -g])                       # the acceleration
+v_start = sp.Matrix([v0*sp.cos(alpha), v0*sp.sin(alpha)])
+v = v_start + sp.integrate(a, (t, 0, t))
+r = sp.integrate(v, (t, 0, t))               # starts at the origin
 print(r.T)
 t_f = sp.solve(r[1], t)
 print(t_f)
@@ -1531,3 +1533,407 @@ sqrt(2) 2*sqrt(2)*pi
 1/2
 ```
 :::
+
+## What you learned {#summary}
+
+- A parametric curve $x = f(t)$, $y = g(t)$ is traced by a moving point. Eliminating $t$ gives an equation in $x$ and $y$, but forgets the direction and which part is traced. Examples: ellipses $x = a\cos t$, $y = b\sin t$; the cycloid $x = r(t - \sin t)$, $y = r(1 - \cos t)$; Lissajous curves.
+- The slope of a parametric curve is $\dfrac{dy}{dx} = \dfrac{dy/dt}{dx/dt}$ where $dx/dt \ne 0$: horizontal tangents where $dy/dt = 0$, vertical ones where $dx/dt = 0$. The length of a path is $\int_a^b \sqrt{(dx/dt)^2 + (dy/dt)^2}\,dt$, the integral of the speed; a cycloid arch is $8r$ long.
+- Polar coordinates: $x = r\cos\theta$, $y = r\sin\theta$, $r^2 = x^2 + y^2$, with $\theta$ in the right quadrant. Polar curves $r = f(\theta)$ (circles, cardioids, roses, spirals) are parametric curves with parameter $\theta$; the area they sweep out is $\tfrac12\int_\alpha^\beta r^2\,d\theta$, with limits that trace the region once.
+- Vectors $\vb{a} = \langle a_1, a_2, a_3\rangle = a_1\vb{i} + a_2\vb{j} + a_3\vb{k}$ have a length $\norm{\vb{a}}$ and a direction; they add tip to tail and scale component by component, and $\vb{a}/\norm{\vb{a}}$ is a unit vector. They model displacements, velocities and forces.
+- The dot product $\vb{a}\cdot\vb{b} = a_1b_1 + a_2b_2 + a_3b_3 = \norm{\vb{a}}\,\norm{\vb{b}}\cos\theta$ gives angles and orthogonality ($\vb{a}\cdot\vb{b} = 0$), the projections $\operatorname{comp}_{\vb{a}}\vb{b} = \vb{a}\cdot\vb{b}/\norm{\vb{a}}$ and $\operatorname{proj}_{\vb{a}}\vb{b} = (\vb{a}\cdot\vb{b}/\vb{a}\cdot\vb{a})\,\vb{a}$, and the work $W = \vb{F}\cdot\vb{D}$.
+- The cross product $\vb{a}\times\vb{b}$, defined only in space, is orthogonal to $\vb{a}$ and $\vb{b}$, has length $\norm{\vb{a}}\,\norm{\vb{b}}\sin\theta$ (the area of their parallelogram) and follows the right-hand rule; $\vb{b}\times\vb{a} = -\vb{a}\times\vb{b}$, and brackets matter. Torque is $\vb{r}\times\vb{F}$.
+- A line is $\vb{r} = \vb{r}_0 + t\vb{v}$ (or parametric or symmetric equations); a plane is $\vb{n}\cdot(\vb{r} - \vb{r}_0) = 0$, that is, $ax + by + cz = d$, with a normal from a cross product; the distance from a point to a plane is $\abs{ax_1 + by_1 + cz_1 - d}/\sqrt{a^2 + b^2 + c^2}$.
+- Vector functions are differentiated and integrated component by component: velocity $\vb{r}'$, speed $\norm{\vb{r}'}$, acceleration $\vb{r}''$, unit tangent $\vb{T} = \vb{r}'/\norm{\vb{r}'}$, length $\int_a^b \norm{\vb{r}'(t)}\,dt$ (one turn of the helix $\langle \cos t, \sin t, t\rangle$: $2\pi\sqrt2$).
+- A projectile without air resistance follows $\vb{r}(t) = \big\langle (v_0\cos\alpha)t, (v_0\sin\alpha)t - \tfrac12gt^2\big\rangle$; on level ground its range is $v_0^2\sin 2\alpha/g$, greatest at $45^\circ$.
+
+## Exercises {#exercises}
+
+:::: exercise Eliminating the parameter {#ex-16-1} ★
+Eliminate the parameter, and describe the curve: which part of it is traced, from where to where?
+
+- (a) $x = 2t - 1$, $y = 4 - t$, $0 \le t \le 2$
+- (b) $x = 2\cos t$, $y = 5\sin t$, $0 \le t \le \pi$
+- (c) $x = \cosh t$, $y = \sinh t$, for all real $t$ (the hyperbolic functions of [Section 6.7](module_06_EN.html#hyperbolic))
+- (d) $x = \sqrt t$, $y = 1 - t$, $t \ge 0$
+
+::: solution
+**(a)** $t = \dfrac{x + 1}{2}$, so $y = 4 - \dfrac{x + 1}{2} = \dfrac{7 - x}{2}$: a line of slope $-\tfrac12$. Only $0 \le t \le 2$ is used, so the curve is the segment from $(-1, 4)$ (at $t = 0$) to $(3, 2)$ (at $t = 2$).
+
+**(b)** $\dfrac{x^2}{4} + \dfrac{y^2}{25} = \cos^2 t + \sin^2 t = 1$: an ellipse that crosses the $x$-axis at $\pm2$ and the $y$-axis at $\pm5$. For $0 \le t \le \pi$, $y = 5\sin t \ge 0$: the upper half, traced anticlockwise from $(2, 0)$ to $(-2, 0)$.
+
+**(c)** By the identity $\cosh^2 t - \sinh^2 t = 1$ of Module 6, $x^2 - y^2 = 1$: a hyperbola. But $x = \cosh t \ge 1$, so only its right branch is traced; as $t$ increases, $y = \sinh t$ increases through every real number, so the branch is traced from bottom to top. (Every point of the branch is reached: for any $y$, $t = \operatorname{arsinh} y$ gives $\sinh t = y$ and $\cosh t = \sqrt{1 + y^2} = x$.)
+
+**(d)** From $x = \sqrt t$, $x \ge 0$ and $t = x^2$, so $y = 1 - x^2$ with $x \ge 0$: the right half of a parabola opening downwards, traced from $(0, 1)$ downwards to the right. Forgetting $x \ge 0$ would give the whole parabola.
+
+```check
+same(solve(Eq(x, 2*t - 1), t), [(x + 1)/2]); same((4 - t).subs(t, (x + 1)/2), (7 - x)/2); same([((7 - x)/2).subs(x, v) for v in (-1, 3)], [4, 2])
+same(((2*t - 1).subs(t, 0), (4 - t).subs(t, 0)), (-1, 4)); same(((2*t - 1).subs(t, 2), (4 - t).subs(t, 2)), (3, 2))
+same((2*cos(t))**2/4 + (5*sin(t))**2/25, 1); same(((2*cos(0)), 5*sin(0)), (2, 0)); same((2*cos(pi), 5*sin(pi)), (-2, 0))
+same(cosh(t)**2 - sinh(t)**2, 1); same(minimum(cosh(x), x, S.Reals), 1); same(diff(sinh(t), t), cosh(t))
+same(sinh(asinh(y)), y); same(cosh(asinh(y)), sqrt(1 + y**2))
+tpos = symbols('t', nonnegative=True); same(sqrt(tpos)**2, tpos); same((1 - x**2).subs(x, sqrt(tpos)), 1 - tpos)
+```
+:::
+::::
+
+:::: exercise Polar coordinates {#ex-16-2} ★
+- (a) Find the Cartesian coordinates of the points with polar coordinates $(6, -\pi/3)$ and $(-4, 7\pi/6)$.
+- (b) Find polar coordinates, with $r > 0$ and $0 \le \theta < 2\pi$, of $(0, -5)$ and $(\sqrt3, -1)$.
+- (c) Write $r = 4\cos\theta$ as an equation in $x$ and $y$, and describe the curve.
+
+::: solution
+**(a)** $\big(6\cos(-\tfrac{\pi}{3}), 6\sin(-\tfrac{\pi}{3})\big) = \big(3, -3\sqrt3\big)$. For $(-4, 7\pi/6)$: $x = -4\cos\tfrac{7\pi}{6} = -4\big(-\tfrac{\sqrt3}{2}\big) = 2\sqrt3$ and $y = -4\sin\tfrac{7\pi}{6} = -4\big(-\tfrac12\big) = 2$: the point $\big(2\sqrt3, 2\big)$, in the first quadrant, opposite to the direction $7\pi/6$.
+
+**(b)** $(0, -5)$ is 5 units below the origin: $r = 5$, $\theta = \tfrac{3\pi}{2}$. (Here $\tan\theta = y/x$ is undefined, since $x = 0$: read the angle from the picture.) For $\big(\sqrt3, -1\big)$: $r = \sqrt{3 + 1} = 2$, $\cos\theta = \tfrac{\sqrt3}{2}$ and $\sin\theta = -\tfrac12$, so the point is in the fourth quadrant and $\theta = \tfrac{11\pi}{6}$. (The arctangent gives $-\tfrac{\pi}{6}$, the same direction, but outside $[0, 2\pi)$.)
+
+**(c)** Multiply by $r$: $r^2 = 4r\cos\theta$, that is, $x^2 + y^2 = 4x$. Complete the square: $(x - 2)^2 + y^2 = 4$, the circle of radius 2 centred at $(2, 0)$, which passes through the pole. (Multiplying by $r$ could only add the pole, and the pole is already on the curve, at $\theta = \pi/2$.)
+
+```check
+same((6*cos(-pi/3), 6*sin(-pi/3)), (3, -3*sqrt(3))); same((-4*cos(7*pi/6), -4*sin(7*pi/6)), (2*sqrt(3), 2))
+same((5*cos(3*pi/2), 5*sin(3*pi/2)), (0, -5)); same(sqrt(3 + 1), 2); same((2*cos(11*pi/6), 2*sin(11*pi/6)), (sqrt(3), -1))
+same(atan(-1/sqrt(3)), -pi/6); same(-pi/6 + 2*pi, 11*pi/6)
+same(expand((x - 2)**2 + y**2 - 4), x**2 + y**2 - 4*x)
+Xc4, Yc4 = 4*cos(theta)*cos(theta), 4*cos(theta)*sin(theta); same((Xc4 - 2)**2 + Yc4**2, 4); same((Xc4.subs(theta, pi/2), Yc4.subs(theta, pi/2)), (0, 0))
+```
+:::
+::::
+
+:::: exercise Vector arithmetic {#ex-16-3} ★
+Let $\vb{u} = \langle 1, -2, 2\rangle$ and $\vb{w} = \langle 3, 0, -4\rangle$.
+
+- (a) Find $\vb{u} + \vb{w}$ and $3\vb{u} - 2\vb{w}$.
+- (b) Find $\norm{\vb{u}}$, $\norm{\vb{w}}$ and the unit vector in the direction of $\vb{w}$.
+- (c) Find $\vb{u}\cdot\vb{w}$ and the angle between $\vb{u}$ and $\vb{w}$.
+- (d) Find $\vb{u}\times\vb{w}$, check that it is orthogonal to $\vb{u}$ and $\vb{w}$, and find the area of the parallelogram that $\vb{u}$ and $\vb{w}$ span.
+
+::: solution
+**(a)** $\vb{u} + \vb{w} = \langle 4, -2, -2\rangle$ and $3\vb{u} - 2\vb{w} = \langle 3 - 6, -6 - 0, 6 + 8\rangle = \langle -3, -6, 14\rangle$.
+
+**(b)** $\norm{\vb{u}} = \sqrt{1 + 4 + 4} = 3$ and $\norm{\vb{w}} = \sqrt{9 + 0 + 16} = 5$, so the unit vector is $\tfrac15\vb{w} = \big\langle \tfrac35, 0, -\tfrac45\big\rangle$.
+
+**(c)** $\vb{u}\cdot\vb{w} = 3 + 0 - 8 = -5$, so $\cos\theta = \dfrac{-5}{3\cdot5} = -\dfrac13$ and $\theta = \arccos\big(-\tfrac13\big) \approx 109.47^\circ$: the tetrahedral angle of Example 16.11 again.
+
+**(d)** Expanding the determinant,
+
+$$\begin{aligned} \vb{u}\times\vb{w} &= \big((-2)(-4) - 2\cdot0\big)\vb{i} - \big(1\cdot(-4) - 2\cdot3\big)\vb{j} \\ &\qquad + \big(1\cdot0 - (-2)\cdot3\big)\vb{k} = \langle 8, 10, 6\rangle. \end{aligned}$$
+
+Check: $\vb{u}\cdot\langle 8, 10, 6\rangle = 8 - 20 + 12 = 0$ and $\vb{w}\cdot\langle 8, 10, 6\rangle = 24 + 0 - 24 = 0$. The area is $\sqrt{64 + 100 + 36} = \sqrt{200} = 10\sqrt2 \approx 14.14$; by Lagrange's identity it is also $\sqrt{9\cdot25 - (-5)^2} = \sqrt{200}$. The middle term is where slips happen: forgetting its minus sign gives $\langle 8, -10, 6\rangle$, which is not orthogonal to $\vb{u}$.
+
+```check
+uu, ww = Matrix([1, -2, 2]), Matrix([3, 0, -4])
+same(uu + ww, Matrix([4, -2, -2])); same(3*uu - 2*ww, Matrix([-3, -6, 14]))
+same(uu.norm(), 3); same(ww.norm(), 5); same(ww/ww.norm(), Matrix([Rational(3, 5), 0, -Rational(4, 5)]))
+same(uu.dot(ww), -5); same(uu.dot(ww)/(uu.norm()*ww.norm()), -Rational(1, 3)); rounds(acos(-Rational(1, 3))*180/pi, '109.47')
+same(uu.cross(ww), Matrix([8, 10, 6])); same(Matrix([[I_, J_, K_], [1, -2, 2], [3, 0, -4]]).det(), 8*I_ + 10*J_ + 6*K_)
+same(uu.dot(uu.cross(ww)), 0); same(ww.dot(uu.cross(ww)), 0); steps(uu.cross(ww).norm(), sqrt(200), 10*sqrt(2)); rounds(10*sqrt(2), '14.14')
+same(sqrt(9*25 - (-5)**2), sqrt(200)); holds(Ne(uu.dot(Matrix([8, -10, 6])), 0))
+```
+:::
+::::
+
+:::: exercise A line in space {#ex-16-4} ★
+Let $L$ be the line through $P(2, 0, -1)$ and $Q(5, 2, 3)$.
+
+- (a) Give vector, parametric and symmetric equations of $L$.
+- (b) Does $(8, 4, 7)$ lie on $L$? Does $(-1, -2, -4)$?
+- (c) Where does $L$ cross the $xy$-plane?
+- (d) Show that $L$ is parallel to the plane $2x + y - 2z = 7$ but does not lie in it.
+
+::: solution
+**(a)** A direction is $\overrightarrow{PQ} = \langle 3, 2, 4\rangle$, so $\vb{r} = \langle 2, 0, -1\rangle + t\langle 3, 2, 4\rangle$; that is, $x = 2 + 3t$, $y = 2t$, $z = -1 + 4t$; and $\dfrac{x - 2}{3} = \dfrac{y}{2} = \dfrac{z + 1}{4}$.
+
+**(b)** For $(8, 4, 7)$: $2 + 3t = 8$ gives $t = 2$, and then $y = 4$ and $z = 7$: yes. For $(-1, -2, -4)$: $2 + 3t = -1$ gives $t = -1$, and then $y = -2$ but $z = -5 \ne -4$: no.
+
+**(c)** $z = -1 + 4t = 0$ at $t = \tfrac14$, the point $\big(\tfrac{11}{4}, \tfrac12, 0\big)$.
+
+**(d)** The plane has normal $\vb{n} = \langle 2, 1, -2\rangle$, and $\vb{n}\cdot\langle 3, 2, 4\rangle = 6 + 2 - 8 = 0$: the direction of $L$ is orthogonal to the normal, so $L$ is parallel to the plane. But $P$ gives $2\cdot2 + 0 - 2\cdot(-1) = 6 \ne 7$, so $P$, and hence $L$, is not in the plane: $L$ never meets it. (Substituting the parametric equations confirms this: $2(2 + 3t) + 2t - 2(-1 + 4t) = 6$ for every $t$, never 7.)
+
+```check
+P4, Q4 = Matrix([2, 0, -1]), Matrix([5, 2, 3]); v4 = Q4 - P4; same(v4, Matrix([3, 2, 4])); L4 = P4 + t*v4
+same(L4, Matrix([2 + 3*t, 2*t, -1 + 4*t])); same([(L4[0] - 2)/3, L4[1]/2, (L4[2] + 1)/4], [t, t, t])
+same(solve(L4[0] - 8, t), [2]); same(L4.subs(t, 2), Matrix([8, 4, 7])); same(solve(L4[0] + 1, t), [-1]); same(L4.subs(t, -1), Matrix([-1, -2, -5]))
+same(solve(L4[2], t), [Rational(1, 4)]); same(L4.subs(t, Rational(1, 4)), Matrix([Rational(11, 4), Rational(1, 2), 0]))
+same(Matrix([2, 1, -2]).dot(v4), 0); same(2*2 + 0 - 2*(-1), 6); same(expand(2*L4[0] + L4[1] - 2*L4[2]), 6)
+```
+:::
+::::
+
+:::: exercise A figure eight {#ex-16-5} ★★
+The Lissajous curve $x = \sin t$, $y = \sin 2t$, $0 \le t \le 2\pi$, looks like a figure eight lying on its side.
+
+- (a) Show that it passes through the origin twice, and find its two tangent lines there.
+- (b) Find the points where the tangent line is horizontal, and where it is vertical.
+- (c) Show that every point of the curve satisfies $y^2 = 4x^2\big(1 - x^2\big)$.
+
+::: solution
+Here $\dfrac{dx}{dt} = \cos t$ and $\dfrac{dy}{dt} = 2\cos 2t$.
+
+**(a)** $x = \sin t = 0$ at $t = 0$, $\pi$ and $2\pi$, and there $y = \sin 2t = 0$ too; $t = 2\pi$ is the end of the loop, back at its start, so the curve passes through the origin at $t = 0$ and at $t = \pi$. At $t = 0$ the slope is $\dfrac{2\cos 0}{\cos 0} = 2$; at $t = \pi$ it is $\dfrac{2\cos 2\pi}{\cos\pi} = -2$. The tangent lines are $y = 2x$ and $y = -2x$.
+
+**(b)** Horizontal: $\cos 2t = 0$ at $t = \tfrac{\pi}{4}, \tfrac{3\pi}{4}, \tfrac{5\pi}{4}, \tfrac{7\pi}{4}$, where $\cos t = \pm\tfrac{\sqrt2}{2} \ne 0$. The points are $\big(\tfrac{\sqrt2}{2}, 1\big)$, $\big(\tfrac{\sqrt2}{2}, -1\big)$, $\big(-\tfrac{\sqrt2}{2}, 1\big)$ and $\big(-\tfrac{\sqrt2}{2}, -1\big)$, the tops and bottoms of the two loops. Vertical: $\cos t = 0$ at $t = \tfrac{\pi}{2}$ and $\tfrac{3\pi}{2}$, where $\dfrac{dy}{dt} = 2\cos\pi = 2\cos 3\pi = -2 \ne 0$. The points are $(1, 0)$ and $(-1, 0)$, the two ends of the eight.
+
+**(c)** By the double-angle formula, $y = \sin 2t = 2\sin t\cos t$, so $y^2 = 4\sin^2 t\cos^2 t = 4\sin^2 t\big(1 - \sin^2 t\big) = 4x^2\big(1 - x^2\big)$.
+
+```check
+xf, yf = sin(t), sin(2*t)
+same(diff(xf, t), cos(t)); same(diff(yf, t), 2*cos(2*t))
+same_set(solveset(sin(x), x, Interval(0, 2*pi)), [0, pi, 2*pi]); same([yf.subs(t, v) for v in (0, pi, 2*pi)], [0, 0, 0])
+slf = diff(yf, t)/diff(xf, t); same(slf.subs(t, 0), 2); same(slf.subs(t, pi), -2)
+same_set(solveset(cos(2*x), x, Interval.Ropen(0, 2*pi)), [pi/4, 3*pi/4, 5*pi/4, 7*pi/4])
+same([(xf.subs(t, v), yf.subs(t, v)) for v in (pi/4, 3*pi/4, 5*pi/4, 7*pi/4)], [(sqrt(2)/2, 1), (sqrt(2)/2, -1), (-sqrt(2)/2, 1), (-sqrt(2)/2, -1)])
+holds(all(cos(v) != 0 for v in (pi/4, 3*pi/4, 5*pi/4, 7*pi/4)))
+same_set(solveset(cos(x), x, Interval.Ropen(0, 2*pi)), [pi/2, 3*pi/2]); same([diff(yf, t).subs(t, v) for v in (pi/2, 3*pi/2)], [-2, -2])
+same([(xf.subs(t, v), yf.subs(t, v)) for v in (pi/2, 3*pi/2)], [(1, 0), (-1, 0)])
+same(yf**2, 4*xf**2*(1 - xf**2))
+```
+:::
+::::
+
+:::: exercise The length of an astroid {#ex-16-6} ★★
+The **astroid** is the curve $x = \cos^3 t$, $y = \sin^3 t$, $0 \le t \le 2\pi$.
+
+- (a) Show that its points satisfy $x^{2/3} + y^{2/3} = 1$.
+- (b) Find the points where $dx/dt$ and $dy/dt$ are both 0.
+- (c) Find the length of the astroid.
+
+::: solution
+**(a)** With real cube roots, $x^{1/3} = \cos t$ and $y^{1/3} = \sin t$, so $x^{2/3} + y^{2/3} = \cos^2 t + \sin^2 t = 1$.
+
+**(b)** $\dfrac{dx}{dt} = -3\cos^2 t\,\sin t$ and $\dfrac{dy}{dt} = 3\sin^2 t\,\cos t$ are both 0 exactly when $\sin t\cos t = 0$, at $t = 0, \tfrac{\pi}{2}, \pi, \tfrac{3\pi}{2}$: the points $(1, 0)$, $(0, 1)$, $(-1, 0)$ and $(0, -1)$. The astroid has a cusp at each of them.
+
+**(c)** Square, add and factor:
+
+$$\begin{aligned} \Big(\frac{dx}{dt}\Big)^2 + \Big(\frac{dy}{dt}\Big)^2 &= 9\cos^4 t\sin^2 t + 9\sin^4 t\cos^2 t \\ &= 9\sin^2 t\cos^2 t\big(\cos^2 t + \sin^2 t\big) = 9\sin^2 t\cos^2 t. \end{aligned}$$
+
+The square root is $3\abs{\sin t\cos t}$. The four quarters of the astroid are mirror images of each other, and on $[0, \pi/2]$ both $\sin t$ and $\cos t$ are non-negative. So, with the substitution $u = \sin t$, $du = \cos t\,dt$,
+
+$$L = 4\int_0^{\pi/2} 3\sin t\cos t\,dt = 12\int_0^1 u\,du = 12\cdot\frac12 = 6.$$
+
+The common wrong answer is 0: $\int_0^{2\pi} 3\sin t\cos t\,dt = 0$, because without the absolute value the negative values cancel the positive ones.
+
+```check
+xa, ya = cos(t)**3, sin(t)**3
+tq_ = symbols('t', positive=True)
+same(real_root(cos(Rational(1, 3))**3, 3), cos(Rational(1, 3))); same(real_root(cos(Rational(5, 2))**3, 3), cos(Rational(5, 2)))
+same(cos(t)**2 + sin(t)**2, 1)
+same(diff(xa, t), -3*cos(t)**2*sin(t)); same(diff(ya, t), 3*sin(t)**2*cos(t))
+same_set(solveset(sin(x)*cos(x), x, Interval.Ropen(0, 2*pi)), [0, pi/2, pi, 3*pi/2])
+same([(xa.subs(t, v), ya.subs(t, v)) for v in (0, pi/2, pi, 3*pi/2)], [(1, 0), (0, 1), (-1, 0), (0, -1)])
+steps(diff(xa, t)**2 + diff(ya, t)**2, 9*cos(t)**4*sin(t)**2 + 9*sin(t)**4*cos(t)**2, 9*sin(t)**2*cos(t)**2*(cos(t)**2 + sin(t)**2), 9*sin(t)**2*cos(t)**2)
+steps(4*Integral(3*sin(t)*cos(t), (t, 0, pi/2)), 12*Integral(u, (u, 0, 1)), 12*Rational(1, 2), 6)
+near(Integral(3*Abs(sin(t)*cos(t)), (t, 0, 2*pi)).evalf(30), 6, 1e-20); same(integrate(3*sin(t)*cos(t), (t, 0, 2*pi)), 0)
+```
+:::
+::::
+
+:::: exercise Area between polar curves {#ex-16-7} ★★
+Find the area of the region inside the circle $r = 3\cos\theta$ and outside the cardioid $r = 1 + \cos\theta$.
+
+::: solution
+The curves meet where $3\cos\theta = 1 + \cos\theta$, that is, $\cos\theta = \tfrac12$: at $\theta = \pm\tfrac{\pi}{3}$. For $-\tfrac{\pi}{3} \le \theta \le \tfrac{\pi}{3}$, $\cos\theta \ge \tfrac12$, so $3\cos\theta \ge 1 + \cos\theta$: the circle is the outer curve, and the region is $1 + \cos\theta \le r \le 3\cos\theta$. Both curves are traced once over this interval, with $r \ge 0$. Subtract the areas, by Theorem 16.3 and the pitfall that follows it, and use $\cos^2\theta = \tfrac12(1 + \cos 2\theta)$:
+
+$$\begin{aligned} A &= \frac12\int_{-\pi/3}^{\pi/3} \Big(9\cos^2\theta - (1 + \cos\theta)^2\Big)\,d\theta \\ &= \frac12\int_{-\pi/3}^{\pi/3} \big(8\cos^2\theta - 2\cos\theta - 1\big)\,d\theta \\ &= \frac12\int_{-\pi/3}^{\pi/3} \big(3 + 4\cos 2\theta - 2\cos\theta\big)\,d\theta \\ &= \frac12\Big[3\theta + 2\sin 2\theta - 2\sin\theta\Big]_{-\pi/3}^{\pi/3}. \end{aligned}$$
+
+At $\theta = \tfrac{\pi}{3}$ the bracket is $\pi + \sqrt3 - \sqrt3 = \pi$, and at $-\tfrac{\pi}{3}$ it is $-\pi$. So $A = \tfrac12(\pi + \pi) = \pi$.
+
+```check
+same_set(solveset(Eq(3*cos(x), 1 + cos(x)), x, Interval(-pi, pi)), [-pi/3, pi/3])
+holds(minimum(3*cos(x) - (1 + cos(x)), x, Interval(-pi/3, pi/3)) >= 0); holds(minimum(1 + cos(x), x, Interval(-pi/3, pi/3)) >= 0)
+same(expand(9*cos(theta)**2 - (1 + cos(theta))**2), 8*cos(theta)**2 - 2*cos(theta) - 1)
+same(8*cos(theta)**2 - 2*cos(theta) - 1, 3 + 4*cos(2*theta) - 2*cos(theta))
+antideriv(3*theta + 2*sin(2*theta) - 2*sin(theta), 3 + 4*cos(2*theta) - 2*cos(theta), theta)
+Fa = 3*theta + 2*sin(2*theta) - 2*sin(theta); same(Fa.subs(theta, pi/3), pi); same(Fa.subs(theta, -pi/3), -pi)
+same(integrate((9*cos(theta)**2 - (1 + cos(theta))**2)/2, (theta, -pi/3, pi/3)), pi)
+```
+:::
+::::
+
+:::: exercise A plane, a triangle and a distance {#ex-16-8} ★★
+Let $A(1, 0, 0)$, $B(0, 2, 0)$ and $C(0, 0, 3)$.
+
+- (a) Find an equation of the plane through $A$, $B$ and $C$.
+- (b) Find the area of the triangle $ABC$.
+- (c) Find the distance from the origin $O$ to the plane.
+- (d) Check your answers: the tetrahedron $OABC$ has volume $\tfrac13\times(\text{area of a face})\times(\text{height above it})$. Compute it with the face $ABC$, and with the face $OAB$ in the $xy$-plane.
+
+::: solution
+**(a)** $\overrightarrow{AB} = \langle -1, 2, 0\rangle$ and $\overrightarrow{AC} = \langle -1, 0, 3\rangle$, so a normal is
+
+$$\begin{aligned} \vb{n} = \overrightarrow{AB}\times\overrightarrow{AC} &= \big\langle 2\cdot3 - 0\cdot0,\ 0\cdot(-1) - (-1)\cdot3,\ (-1)\cdot0 - 2\cdot(-1)\big\rangle \\ &= \langle 6, 3, 2\rangle. \end{aligned}$$
+
+Through $A$: $6(x - 1) + 3y + 2z = 0$, that is, $6x + 3y + 2z = 6$. Check: $B$ gives $6$ and $C$ gives $6$.
+
+**(b)** $\norm{\vb{n}} = \sqrt{36 + 9 + 4} = 7$, so the triangle has area $\tfrac72$.
+
+**(c)** $D = \dfrac{\abs{0 + 0 + 0 - 6}}{7} = \dfrac67 \approx 0.857$.
+
+**(d)** With face $ABC$: $\tfrac13\cdot\tfrac72\cdot\tfrac67 = 1$. With face $OAB$, a right triangle with legs 1 and 2 and area 1, and height 3 (the distance from $C$ to the $xy$-plane): $\tfrac13\cdot1\cdot3 = 1$. The answers agree.
+
+```check
+A9, B9, C9 = Matrix([1, 0, 0]), Matrix([0, 2, 0]), Matrix([0, 0, 3])
+same(B9 - A9, Matrix([-1, 2, 0])); same(C9 - A9, Matrix([-1, 0, 3])); n9 = (B9 - A9).cross(C9 - A9); same(n9, Matrix([6, 3, 2]))
+same(expand(6*(x - 1) + 3*y + 2*z), 6*x + 3*y + 2*z - 6); same([6*q_[0] + 3*q_[1] + 2*q_[2] for q_ in (A9, B9, C9)], [6, 6, 6])
+same(n9.norm(), 7); same(n9.norm()/2, Rational(7, 2)); same(Abs(0 - 6)/n9.norm(), Rational(6, 7)); rounds(Rational(6, 7), '0.857')
+same(Rational(1, 3)*Rational(7, 2)*Rational(6, 7), 1); same(Rational(1, 3)*(Rational(1, 2)*1*2)*3, 1)
+same(Abs(Matrix([1, 0, 0]).dot(Matrix([0, 2, 0]).cross(Matrix([0, 0, 3]))))/6, 1)
+```
+:::
+::::
+
+:::: exercise Hitting a target {#ex-16-9} ★★
+A ball is thrown from ground level at 15 m/s towards a target on the ground 20 m away. Ignoring air resistance, with $g = 9.8$ m/s², at what angles can it be thrown to hit the target? How long does each throw take? What is the furthest target that can be hit at this speed?
+
+::: solution
+The range must be $R = \dfrac{v_0^2\sin 2\alpha}{g} = 20$, so
+
+$$\sin 2\alpha = \frac{20\cdot9.8}{15^2} = \frac{196}{225} \approx 0.8711.$$
+
+With $0 < \alpha < \tfrac{\pi}{2}$, $2\alpha$ lies between 0 and $\pi$, where the sine takes this value twice: $2\alpha = \arcsin\tfrac{196}{225} \approx 60.59^\circ$ and $2\alpha \approx 180^\circ - 60.59^\circ = 119.41^\circ$. So $\alpha \approx 30.29^\circ$ or $\alpha \approx 59.71^\circ$, two complementary angles. The flight times $t_f = \dfrac{2v_0\sin\alpha}{g}$ are about $1.544$ s for the low throw and $2.643$ s for the high one. The furthest target is at the range for $45^\circ$, $\dfrac{v_0^2}{g} = \dfrac{225}{9.8} \approx 22.96$ m; beyond that, $\sin 2\alpha$ would have to exceed 1.
+
+```check
+gq_ = Rational(98, 10)
+same(20*gq_/15**2, Rational(196, 225)); rounds(Rational(196, 225), '0.8711')
+a2a = asin(Rational(196, 225)); rounds(a2a*180/pi, '60.59'); rounds(180 - a2a*180/pi, '119.41')
+al1, al2 = a2a/2, (pi - a2a)/2; rounds(al1*180/pi, '30.29'); rounds(al2*180/pi, '59.71'); same(al1 + al2, pi/2)
+same(15**2*sin(2*al1)/gq_, 20); same(15**2*sin(2*al2)/gq_, 20)
+rounds(2*15*sin(al1)/gq_, '1.544'); rounds(2*15*sin(al2)/gq_, '2.643'); rounds(225/gq_, '22.96')
+```
+:::
+::::
+
+:::: exercise Constant speed {#ex-16-10} ★★★
+- (a) Prove that if a particle moves with constant speed, its acceleration is always orthogonal to its velocity.
+- (b) A particle moves round the circle of radius $R$ centred at the origin with constant speed $v$: $\vb{r}(t) = \big\langle R\cos\omega t, R\sin\omega t\big\rangle$, where $\omega = v/R$. Show that its acceleration is $-\omega^2\,\vb{r}(t)$: it points towards the centre and has length $v^2/R$.
+- (c) Is the converse of (a) true: if $\vb{a}(t)\cdot\vb{v}(t) = 0$ for all $t$, is the speed constant?
+
+::: solution
+**(a)** The speed $\norm{\vb{v}}$ is constant, so $\vb{v}\cdot\vb{v} = \norm{\vb{v}}^2 = c$ for a constant $c$. Differentiate with the product rule for dot products: $\vb{v}'\cdot\vb{v} + \vb{v}\cdot\vb{v}' = 0$, that is, $2\,\vb{a}\cdot\vb{v} = 0$. So $\vb{a}\cdot\vb{v} = 0$ at every time: $\vb{a}$ is orthogonal to $\vb{v}$ (or $\vb{0}$).
+
+**(b)** By the chain rule,
+
+$$\begin{aligned} \vb{v}(t) &= \langle -R\omega\sin\omega t,\ R\omega\cos\omega t\rangle, \\ \vb{a}(t) &= \langle -R\omega^2\cos\omega t,\ -R\omega^2\sin\omega t\rangle = -\omega^2\,\vb{r}(t). \end{aligned}$$
+
+The speed is $\norm{\vb{v}} = R\omega = v$, constant, as required. The acceleration points opposite to the position vector, towards the centre, and has length $\omega^2\norm{\vb{r}} = \omega^2 R = \dfrac{v^2}{R^2}\,R = \dfrac{v^2}{R}$. This **centripetal acceleration** is the $\kappa v^2$ of the Going deeper box on curvature, with $\kappa = 1/R$; it also confirms (a), since $\vb{a}$ is along the radius and $\vb{v}$ along the tangent.
+
+**(c)** Yes. If $\vb{a}\cdot\vb{v} = 0$ for all $t$, then $\dfrac{d}{dt}(\vb{v}\cdot\vb{v}) = 2\,\vb{a}\cdot\vb{v} = 0$, so $\vb{v}\cdot\vb{v} = \norm{\vb{v}}^2$ has derivative 0 on an interval and is constant there (Module 8), and so is the speed. A force that always pushes at right angles to the motion, such as the tension in the string of a stone whirled round in a circle, changes the direction of motion but never the speed.
+
+```check
+Vv = Matrix([Function('v1')(t), Function('v2')(t), Function('v3')(t)])
+same(diff(Vv.dot(Vv), t), 2*diff(Vv, t).dot(Vv))
+Rq, wq = symbols('R omega', positive=True); rq = Matrix([Rq*cos(wq*tR), Rq*sin(wq*tR)])
+same(diff(rq, tR), Matrix([-Rq*wq*sin(wq*tR), Rq*wq*cos(wq*tR)])); same(diff(rq, tR, 2), -wq**2*rq)
+same(diff(rq, tR).norm(), Rq*wq); same((wq**2*rq).norm(), wq**2*Rq)
+vq = symbols('v', positive=True); same((wq**2*Rq).subs(wq, vq/Rq), vq**2/Rq); same(diff(rq, tR, 2).dot(diff(rq, tR)), 0)
+```
+:::
+::::
+
+:::: exercise The Cauchy–Schwarz inequality {#ex-16-11} ★★★
+For vectors with $n$ components, $\vb{a} = \langle a_1, \dots, a_n\rangle$, define $\vb{a}\cdot\vb{b} = a_1b_1 + \dots + a_nb_n$ and $\norm{\vb{a}} = \sqrt{\vb{a}\cdot\vb{a}}$; the rules of the dot product in Section 16.5 hold, with the same proofs.
+
+- (a) Prove the **Cauchy–Schwarz inequality** $\abs{\vb{a}\cdot\vb{b}} \le \norm{\vb{a}}\,\norm{\vb{b}}$. (Hint: for $\vb{a} \ne \vb{0}$, the quadratic $q(s) = \norm{s\vb{a} + \vb{b}}^2$ is never negative.)
+- (b) Deduce the triangle inequality $\norm{\vb{a} + \vb{b}} \le \norm{\vb{a}} + \norm{\vb{b}}$.
+- (c) Explain why $\cos\theta = \dfrac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}\,\norm{\vb{b}}}$ defines an angle $\theta$ for any two nonzero vectors with $n$ components, and find the angle between $\langle 1, 1, 0, 1\rangle$ and $\langle 1, 0, 1, 1\rangle$.
+
+::: solution
+**(a)** If $\vb{a} = \vb{0}$, both sides are 0. Otherwise expand, with the rules of the dot product:
+
+$$q(s) = (s\vb{a} + \vb{b})\cdot(s\vb{a} + \vb{b}) = \norm{\vb{a}}^2 s^2 + 2(\vb{a}\cdot\vb{b})\,s + \norm{\vb{b}}^2.$$
+
+This is a quadratic in $s$ with positive leading coefficient, and $q(s) \ge 0$ for every $s$, as a squared length. So it has at most one real root, and its discriminant is not positive:
+
+$$4(\vb{a}\cdot\vb{b})^2 - 4\norm{\vb{a}}^2\norm{\vb{b}}^2 \le 0.$$
+
+So $(\vb{a}\cdot\vb{b})^2 \le \norm{\vb{a}}^2\norm{\vb{b}}^2$; take square roots.
+
+**(b)** By (a), $\vb{a}\cdot\vb{b} \le \abs{\vb{a}\cdot\vb{b}} \le \norm{\vb{a}}\,\norm{\vb{b}}$, so
+
+$$\begin{aligned} \norm{\vb{a} + \vb{b}}^2 &= \norm{\vb{a}}^2 + 2\,\vb{a}\cdot\vb{b} + \norm{\vb{b}}^2 \\ &\le \norm{\vb{a}}^2 + 2\norm{\vb{a}}\,\norm{\vb{b}} + \norm{\vb{b}}^2 = \big(\norm{\vb{a}} + \norm{\vb{b}}\big)^2. \end{aligned}$$
+
+Both sides are non-negative, so taking square roots gives the triangle inequality.
+
+**(c)** By (a), the fraction lies in $[-1, 1]$, and on that interval the arccosine gives exactly one $\theta$ in $[0, \pi]$. In three dimensions this $\theta$ is the geometric angle (Theorem 16.4); in more dimensions it is the definition of the angle, which is how cosine similarity works. For the two vectors, $\vb{a}\cdot\vb{b} = 1 + 0 + 0 + 1 = 2$ and $\norm{\vb{a}} = \norm{\vb{b}} = \sqrt3$, so $\cos\theta = \tfrac23$ and $\theta \approx 48.19^\circ$.
+
+```check
+s_ = symbols('s', real=True)
+An, Bn = Matrix(symbols('a1:5', real=True)), Matrix(symbols('b1:5', real=True))
+same(expand((s_*An + Bn).dot(s_*An + Bn)), expand(An.dot(An)*s_**2 + 2*An.dot(Bn)*s_ + Bn.dot(Bn)))
+same(discriminant(An.dot(An)*s_**2 + 2*An.dot(Bn)*s_ + Bn.dot(Bn), s_), 4*An.dot(Bn)**2 - 4*An.dot(An)*Bn.dot(Bn))
+same(expand((An + Bn).dot(An + Bn)), expand(An.dot(An) + 2*An.dot(Bn) + Bn.dot(Bn)))
+a4, b4 = Matrix([1, 1, 0, 1]), Matrix([1, 0, 1, 1])
+same(a4.dot(b4), 2); same(a4.norm(), sqrt(3)); same(b4.norm(), sqrt(3)); same(a4.dot(b4)/(a4.norm()*b4.norm()), Rational(2, 3)); rounds(acos(Rational(2, 3))*180/pi, '48.19')
+holds(Abs(a4.dot(b4)) <= a4.norm()*b4.norm()); holds((a4 + b4).norm() <= a4.norm() + b4.norm())
+```
+:::
+::::
+
+## Check yourself {#quiz}
+
+```quiz
+? For the curve $x = t^2$, $y = t^3$, the slope $dy/dx$ at the point where $t = 2$ is
+- [ ] $\dfrac13$
+- [ ] $12$
+- [x] $3$
+- [ ] $4$
+> $\dfrac{dy}{dx} = \dfrac{dy/dt}{dx/dt} = \dfrac{3t^2}{2t} = \dfrac{3t}{2}$, which is 3 at $t = 2$. $\tfrac13$ is the ratio upside down, $dx/dy$; 12 is $dy/dt$ alone and 4 is $dx/dt$ alone.
+
+? The curve $x = \cos t$, $y = \sin t$, $0 \le t \le \pi$, is
+- [x] the upper half of the unit circle, traced anticlockwise from $(1, 0)$ to $(-1, 0)$
+- [ ] the whole unit circle, traced once
+- [ ] the upper half of the unit circle, traced clockwise from $(-1, 0)$ to $(1, 0)$
+- [ ] the right half of the unit circle
+> The point is at angle $t$ on the unit circle, and $y = \sin t \ge 0$ for $0 \le t \le \pi$: it covers the upper half once, from $(\cos 0, \sin 0) = (1, 0)$ to $(\cos\pi, \sin\pi) = (-1, 0)$, anticlockwise. The whole circle needs $0 \le t \le 2\pi$, and the right half would need $-\pi/2 \le t \le \pi/2$.
+
+? The point with polar coordinates $(-2, \pi/3)$ has Cartesian coordinates
+- [ ] $\big(1, \sqrt3\big)$
+- [x] $\big(-1, -\sqrt3\big)$
+- [ ] $\big(-1, \sqrt3\big)$
+- [ ] $\big(\sqrt3, 1\big)$
+> $x = r\cos\theta = -2\cdot\tfrac12 = -1$ and $y = r\sin\theta = -2\cdot\tfrac{\sqrt3}{2} = -\sqrt3$: with $r < 0$ the point lies on the ray opposite to the direction $\pi/3$. $\big(1, \sqrt3\big)$ ignores the sign of $r$, and $\big(\sqrt3, 1\big)$ swaps cosine and sine.
+
+? The area of the region inside the circle $r = 2\sin\theta$ is
+- [ ] $2\pi$
+- [ ] $4\pi$
+- [ ] $\pi/2$
+- [x] $\pi$
+> $r = 2\sin\theta$ is a circle of radius 1, traced once for $0 \le \theta \le \pi$, and $\tfrac12\int_0^\pi 4\sin^2\theta\,d\theta = \pi$. Integrating from 0 to $2\pi$ gives $2\pi$, because the circle is traced twice. $4\pi$ would be the area of a circle of radius 2, but here 2 is the diameter.
+
+? Which vector is orthogonal to $\langle 2, -1, 3\rangle$?
+- [ ] $\langle 1, 2, 1\rangle$
+- [x] $\langle 1, 5, 1\rangle$
+- [ ] $\langle -2, 1, -3\rangle$
+- [ ] $\langle 3, -1, 2\rangle$
+> Orthogonal means a dot product of 0: $\langle 2, -1, 3\rangle\cdot\langle 1, 5, 1\rangle = 2 - 5 + 3 = 0$. The others give $2 - 2 + 3 = 3$, $-4 - 1 - 9 = -14$ (it is parallel to the given vector, pointing the opposite way) and $6 + 1 + 6 = 13$.
+
+? $(\vb{i}\times\vb{j})\times\vb{j}$ equals
+- [ ] $\vb{0}$
+- [ ] $\vb{i}$
+- [x] $-\vb{i}$
+- [ ] $\vb{k}$
+> $\vb{i}\times\vb{j} = \vb{k}$, and $\vb{k}\times\vb{j} = -(\vb{j}\times\vb{k}) = -\vb{i}$. The answer $\vb{0}$ comes from computing $\vb{i}\times(\vb{j}\times\vb{j})$ instead: the cross product is not associative, so the brackets matter. $\vb{k}$ is only the first step, and $\vb{i}$ has the wrong sign: $\vb{k}\times\vb{j}$ is $-\vb{i}$ by the right-hand rule.
+
+? The plane through $(1, 3, 2)$ with normal vector $\langle 2, -1, 4\rangle$ has equation
+- [x] $2x - y + 4z = 7$
+- [ ] $x + 3y + 2z = 7$
+- [ ] $2x - y + 4z = 0$
+- [ ] $\dfrac{x - 1}{2} = \dfrac{y - 3}{-1} = \dfrac{z - 2}{4}$
+> $2(x - 1) - (y - 3) + 4(z - 2) = 0$ gives $2x - y + 4z = 2 - 3 + 8 = 7$. The second swaps the roles of the point and the normal; the third is the parallel plane through the origin; the fourth describes the line through the point in the direction of the normal, not a plane.
+
+? The helix $\vb{r}(t) = \langle 3\cos t, 3\sin t, 4t\rangle$, from $t = 0$ to $t = 2\pi$, has length
+- [ ] $6\pi$
+- [ ] $8\pi$
+- [ ] $14\pi$
+- [x] $10\pi$
+> $\vb{r}'(t) = \langle -3\sin t, 3\cos t, 4\rangle$ has length $\sqrt{9 + 16} = 5$ for every $t$, so $L = \int_0^{2\pi} 5\,dt = 10\pi$. $6\pi$ is the length of the circle that the helix winds round and $8\pi$ the height it climbs; adding the speeds 3 and 4 instead of combining them by Pythagoras gives $14\pi$.
+```
+
+```check
+same(diff(t**3, t)/diff(t**2, t), 3*t/2); same((3*t/2).subs(t, 2), 3); same(diff(t**3, t).subs(t, 2), 12); same(diff(t**2, t).subs(t, 2), 4)
+holds(minimum(sin(x), x, Interval(0, pi)) >= 0); same((cos(pi), sin(pi)), (-1, 0))
+same((-2*cos(pi/3), -2*sin(pi/3)), (-1, -sqrt(3)))
+same(integrate(4*sin(theta)**2/2, (theta, 0, pi)), pi); same(integrate(4*sin(theta)**2/2, (theta, 0, 2*pi)), 2*pi)
+nq = Matrix([2, -1, 3]); same([nq.dot(Matrix(w_)) for w_ in ([1, 2, 1], [1, 5, 1], [-2, 1, -3], [3, -1, 2])], [3, 0, -14, 13])
+same(iv.cross(jv).cross(jv), -iv); same(iv.cross(jv.cross(jv)), zeros(3, 1))
+same(expand(2*(x - 1) - (y - 3) + 4*(z - 2)), 2*x - y + 4*z - 7); same(1*1 + 3*3 + 2*2, 14); same(2*1 - 3 + 4*2, 7)
+rq8 = Matrix([3*cos(tR), 3*sin(tR), 4*tR]); same(diff(rq8, tR).norm(), 5); same(integrate(5, (tR, 0, 2*pi)), 10*pi)
+```

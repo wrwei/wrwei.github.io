@@ -41,7 +41,7 @@ def dome(x, y):
 def fig_19_1(L):
     """Boxes under the surface z = 8 - x^2 - y^2 over the square [0, 2] x [0, 2]: a double Riemann sum with 16 boxes."""
     fig = plt.figure(figsize=(7.6, 4.3))
-    ax = fig.add_axes([0.0, -0.06, 0.78, 1.12], projection='3d')
+    ax = fig.add_axes([0.0, -0.06, 0.72, 1.12], projection='3d')
     ax.set_proj_type('ortho')
     ax.computed_zorder = False
     n = 4
@@ -87,12 +87,12 @@ def fig_19_1(L):
     plain3d(ax)
     text3d(ax, 0.0, 0.0, 8.0, r'$z = 8 - x^2 - y^2$', color=C['orange'], dx=8, dy=10, size=12)
     # Explanations beside the picture.
-    fig.text(0.74, 0.70, '16 boxes, one on each\nsmall square of area\n$\\Delta A = 0.25$', fontsize=11, color=C['navy'],
+    fig.text(0.71, 0.72, '16 boxes, each on a\nsquare of area $\\Delta A = 0.25$', fontsize=11, color=C['navy'],
              ha='left', va='center', linespacing=1.5)
-    fig.text(0.74, 0.42, 'height of a box: the\nvalue of $f$ at a point\nof its square (dot)', fontsize=11,
+    fig.text(0.71, 0.46, 'height of a box: the\nvalue of $f$ at the far\ncorner of its square\n(the dot)', fontsize=11,
              color=C['navy'], ha='left', va='center', linespacing=1.5)
-    fig.text(0.74, 0.17, 'total volume of the\nboxes: 17', fontsize=11, color=C['blue'], ha='left', va='center',
-             linespacing=1.5)
+    fig.text(0.71, 0.18, 'volume of the boxes: 17\nvolume under the\nsurface: $64/3 \\approx 21.33$', fontsize=11,
+             color=C['blue'], ha='left', va='center', linespacing=1.5)
     return fig
 
 
@@ -105,6 +105,7 @@ def fig_19_2(L):
     g2 = lambda x: 2.55 + 0.45 * np.sin(1.4 * (x - 0.9))
     a, b, x0 = 0.8, 3.6, 2.45
     math_axes(a1, (-0.15, 4.3), (-0.35, 3.6), xticks=[(a, r'$a$'), (x0, r'$x$'), (b, r'$b$')], yticks=[], grid=False)
+    a1.tick_params(labelsize=12)
     shade(a1, g2, a, b, g=g1, color=C['blue'], alpha=0.18)
     plot_fn(a1, g1, a, b, color=C['blue'], lw=2.0)
     plot_fn(a1, g2, a, b, color=C['green'], lw=2.0)
@@ -125,6 +126,7 @@ def fig_19_2(L):
     h2 = lambda y: 3.1 + 0.4 * np.sin(1.5 * y)
     c, d, y0 = 0.5, 3.0, 1.95
     math_axes(a2, (-0.15, 4.3), (-0.35, 3.6), xticks=[], yticks=[(c, r'$c$'), (y0, r'$y$'), (d, r'$d$')], grid=False)
+    a2.tick_params(labelsize=12)
     ys = np.linspace(c, d, 400)
     a2.fill_betweenx(ys, h1(ys), h2(ys), color=C['blue'], alpha=0.18, linewidth=0, zorder=2)
     a2.plot(h1(ys), ys, color=C['blue'], lw=2.0, zorder=4)
@@ -203,10 +205,10 @@ def fig_19_3(L):
     a2.plot([0, A * np.cos(PI / 4)], [0, A * np.sin(PI / 4)], color=C['blue'], lw=1.4, zorder=5)
     label(a2, 0.2, 0.42, r'$a$', color=C['blue'], size=11)
     a2.plot([0, A], [0, -A], color=C['amber'], lw=1.4, zorder=5)
-    label(a2, 0.62, -0.28, r'$a\sqrt{2}$', color=C['amber'], size=11)
+    label(a2, 0.1, -0.6, r'$a\sqrt{2}$', color=C['amber'], size=11)
     label(a2, -0.55, 0.3, r'$D_a$', color=C['blue'], size=12, ha='center')
     label(a2, -0.8, -0.82, r'$S_a$', color=C['orange'], size=12, ha='center')
-    label(a2, -1.12, 1.12, r'$D_{a\sqrt{2}}$', color=C['amber'], size=12, ha='center')
+    label(a2, -0.5, 1.2, r'$D_{a\sqrt{2}}$', color=C['amber'], size=12, ha='center')
     a2.text(A + 0.03, -0.04, r'$a$', fontsize=11, color=C['navy'], ha='left', va='top', zorder=6)
     a2.text(-A - 0.03, -0.04, r'$-a$', fontsize=11, color=C['navy'], ha='right', va='top', zorder=6)
     title(a2, r'$D_a \subset S_a \subset D_{a\sqrt{2}}$', size=12)
@@ -222,62 +224,57 @@ def arc3d(ax, pts, color, lw=1.4, **kw):
 
 def fig_19_4(L):
     """Spherical coordinates: the point P at distance rho from the origin, at angle phi from the positive z-axis, and with the angle theta of cylindrical coordinates."""
-    fig = plt.figure(figsize=(7.6, 4.2))
-    rho, phi, theta = 1.0, 0.8, 0.95
+    fig = plt.figure(figsize=(7.6, 3.9))
+    rho, phi, theta = 1.0, 0.78, 0.95
     r = rho * np.sin(phi)
     P = np.array([r * np.cos(theta), r * np.sin(theta), rho * np.cos(phi)])
     Q = np.array([P[0], P[1], 0.0])
+    sph = lambda p_, t_: np.array([rho * np.sin(p_) * np.cos(t_), rho * np.sin(p_) * np.sin(t_), rho * np.cos(p_)])
 
-    ax = fig.add_axes([-0.06, -0.06, 0.62, 1.14], projection='3d')
+    ax = fig.add_axes([0.0, 0.0, 0.58, 1.0], projection='3d')
     ax.set_proj_type('ortho')
     ax.computed_zorder = False
-    # Axes.
-    L0 = 1.35
-    for v, name in ((np.array([L0, 0, 0]), r'$x$'), (np.array([0, L0, 0]), r'$y$'), (np.array([0, 0, L0]), r'$z$')):
+    # The axes.
+    L0 = 1.25
+    for v, name in ((np.array([L0, 0, 0]), r'$x$'), (np.array([0, L0, 0]), r'$y$'), (np.array([0, 0, 1.12]), r'$z$')):
         ax.plot([0, v[0]], [0, v[1]], [0, v[2]], color=C['navy'], lw=1.2, zorder=2)
         text3d(ax, *(v * 1.06), name, size=13, ha='center')
-    # A faint sphere of radius rho: a few parallels and meridians.
-    tt = np.linspace(0, 2 * PI, 120)
-    for pp in (PI / 6, PI / 3, PI / 2, 2 * PI / 3):
-        ax.plot(rho * np.sin(pp) * np.cos(tt), rho * np.sin(pp) * np.sin(tt), np.full_like(tt, rho * np.cos(pp)),
-                color=C['border'], lw=0.8, zorder=1)
-    pp = np.linspace(0, PI, 80)
-    for t_ in (0, PI / 2, theta):
-        ax.plot(rho * np.sin(pp) * np.cos(t_), rho * np.sin(pp) * np.sin(t_), rho * np.cos(pp),
-                color=C['border'] if t_ != theta else C['muted'], lw=0.8, zorder=1)
-    # rho, its projection, and the height.
-    ax.plot([0, P[0]], [0, P[1]], [0, P[2]], color=C['blue'], lw=2.4, zorder=5)
+    # The part of the sphere of radius rho in the first octant: its edges, and the meridian and parallel through P.
+    s_ = np.linspace(0, PI / 2, 60)
+    for pts in (np.array([sph(PI / 2, t_) for t_ in s_]), np.array([sph(p_, 0) for p_ in s_]), np.array([sph(p_, PI / 2) for p_ in s_])):
+        arc3d(ax, pts, C['muted'], lw=0.9, zorder=1)
+    arc3d(ax, np.array([sph(p_, theta) for p_ in s_]), C['muted'], lw=0.9, ls=(0, (3, 2)), zorder=1)
+    arc3d(ax, np.array([sph(phi, t_) for t_ in s_]), C['muted'], lw=0.9, ls=(0, (3, 2)), zorder=1)
+    # rho, its shadow r in the xy-plane, and the height z.
     ax.plot([0, Q[0]], [0, Q[1]], [0, 0], color=C['green'], lw=2.0, ls=(0, (4, 2)), zorder=4)
-    ax.plot([Q[0], P[0]], [Q[1], P[1]], [0, P[2]], color=C['slate'], lw=1.2, ls=(0, (4, 3)), zorder=4)
-    ax.plot([0, 0], [0, 0], [0, P[2]], color=C['slate'], lw=1.0, ls=(0, (2, 2)), zorder=3)
-    ax.plot([0, P[0]], [0, P[1]], [P[2], P[2]], color=C['slate'], lw=1.0, ls=(0, (2, 2)), zorder=3)
+    ax.plot([Q[0], P[0]], [Q[1], P[1]], [0, P[2]], color=C['slate'], lw=1.3, ls=(0, (4, 3)), zorder=4)
+    ax.plot([0, P[0]], [0, P[1]], [0, P[2]], color=C['blue'], lw=2.6, zorder=5)
     ax.plot([P[0]], [P[1]], [P[2]], 'o', color=C['navy'], markersize=6, zorder=8)
     # The angles.
-    s = np.linspace(0, phi, 40)
-    arc3d(ax, np.column_stack([0.42 * np.sin(s) * np.cos(theta), 0.42 * np.sin(s) * np.sin(theta), 0.42 * np.cos(s)]), C['orange'], lw=1.8, zorder=6)
-    s = np.linspace(0, theta, 40)
-    arc3d(ax, np.column_stack([0.36 * np.cos(s), 0.36 * np.sin(s), 0 * s]), C['purple'], lw=1.8, zorder=6)
-    text3d(ax, *P, r'$P(\rho, \theta, \varphi)$', dx=6, dy=8, size=12)
-    text3d(ax, *(P * 0.55), r'$\rho$', color=C['blue'], dx=-4, dy=8, ha='right', size=13)
-    text3d(ax, 0.55 * np.sin(phi / 2) * np.cos(theta), 0.55 * np.sin(phi / 2) * np.sin(theta), 0.55 * np.cos(phi / 2),
-           r'$\varphi$', color=C['orange'], dx=2, dy=4, size=13)
-    text3d(ax, 0.5 * np.cos(theta / 2), 0.5 * np.sin(theta / 2), 0, r'$\theta$', color=C['purple'], dx=0, dy=-6, size=13, ha='center')
-    text3d(ax, *(Q * 0.55), r'$r = \rho\sin\varphi$', color=C['green'], dx=6, dy=-10, size=11)
-    text3d(ax, 0, 0, P[2] * 0.6, r'$z = \rho\cos\varphi$', color=C['slate'], dx=-6, dy=0, ha='right', size=11)
-    ax.set_xlim(-0.2, 1.2)
-    ax.set_ylim(-0.2, 1.2)
-    ax.set_zlim(-0.1, 1.3)
-    ax.set_box_aspect((1, 1, 1), zoom=1.15)
-    ax.view_init(elev=20, azim=28)
+    s_ = np.linspace(0, phi, 40)
+    arc3d(ax, np.array([0.38 * sph(p_, theta) for p_ in s_]), C['orange'], lw=2.0, zorder=6)
+    s_ = np.linspace(0, theta, 40)
+    arc3d(ax, np.column_stack([0.34 * np.cos(s_), 0.34 * np.sin(s_), 0 * s_]), C['purple'], lw=2.0, zorder=6)
+    text3d(ax, *P, r'$P$', dx=7, dy=7, size=13)
+    text3d(ax, *(P * 0.62), r'$\rho$', color=C['blue'], dx=7, dy=-2, size=14)
+    text3d(ax, *(0.5 * sph(phi / 2, theta)), r'$\varphi$', color=C['orange'], dx=5, dy=-3, size=14, ha='center')
+    text3d(ax, 0.34 * np.cos(theta / 2), 0.34 * np.sin(theta / 2), 0, r'$\theta$', color=C['purple'], dx=-2, dy=-11, size=14, ha='center')
+    text3d(ax, *(Q * 0.62), r'$r$', color=C['green'], dx=2, dy=-14, size=13, ha='center')
+    text3d(ax, Q[0], Q[1], P[2] * 0.45, r'$z$', color=C['slate'], dx=-7, dy=0, size=13, ha='right')
+    ax.set_xlim(0, 1.25)
+    ax.set_ylim(0, 1.25)
+    ax.set_zlim(0, 1.25)
+    ax.set_box_aspect((1, 1, 1), zoom=1.06)
+    ax.view_init(elev=22, azim=32)
     ax.set_axis_off()
 
-    # The text beside: the formulas.
+    # The formulas beside the picture.
     lines = [r'$x = \rho\sin\varphi\cos\theta$', r'$y = \rho\sin\varphi\sin\theta$', r'$z = \rho\cos\varphi$',
-             r'$\rho \geq 0,\quad 0 \leq \varphi \leq \pi$', r'$\rho^2 = x^2 + y^2 + z^2$']
-    for k, s_ in enumerate(lines):
-        fig.text(0.6, 0.78 - 0.12 * k, s_, fontsize=13, color=C['navy'], ha='left', va='center')
-    fig.text(0.6, 0.15, r'$\varphi$: the angle from the positive $z$-axis' + '\n' + r'$\theta$: the angle of cylindrical coordinates',
-             fontsize=10.5, color=C['slate'], ha='left', va='center', linespacing=1.5)
+             r'$r = \rho\sin\varphi,\quad \rho^2 = x^2 + y^2 + z^2$', r'$\rho \geq 0,\quad 0 \leq \varphi \leq \pi$']
+    for k, s2 in enumerate(lines):
+        fig.text(0.6, 0.86 - 0.12 * k, s2, fontsize=13, color=C['navy'], ha='left', va='center')
+    fig.text(0.6, 0.17, r'$\rho$: the distance from the origin' + '\n' + r'$\varphi$: the angle from the positive $z$-axis' + '\n'
+             + r'$\theta$: the angle of polar coordinates', fontsize=11, color=C['slate'], ha='left', va='center', linespacing=1.6)
     return fig
 
 
@@ -286,9 +283,9 @@ def fig_19_5(L):
     """A change of variables: a grid of small rectangles in the uv-plane becomes a grid of small curved quadrilaterals; each is nearly a parallelogram."""
     fig, (a1, a2) = figure_grid(1, 2, w=7.6, h=3.7, gridspec_kw={'width_ratios': [1, 1.35]})
     T = lambda u, v: (u**2 - v**2, 2 * u * v)
-    u0, v0, du, dv = 1.4, 0.45, 0.2, 0.2
+    u0, v0, du, dv = 1.4, 0.4, 0.2, 0.2
     us = np.linspace(1.0, 2.0, 6)
-    vs = np.linspace(0.05, 1.05, 6)
+    vs = np.linspace(0.0, 1.0, 6)
 
     a1.set_xlim(0.75, 2.25)
     a1.set_ylim(-0.15, 1.3)
@@ -313,6 +310,8 @@ def fig_19_5(L):
     a2.set_aspect('equal')
     for side in ('top', 'right'):
         a2.spines[side].set_visible(False)
+    a2.set_xticks([0, 1, 2, 3, 4])
+    a2.set_yticks([0, 1, 2, 3, 4])
     a2.tick_params(labelsize=10, colors=C['slate'])
     tt = np.linspace(0, 1, 100)
     for u in us:
@@ -341,7 +340,14 @@ def fig_19_5(L):
     a2.set_xlabel(r'$x$', fontsize=13)
     a2.set_ylabel(r'$y$', fontsize=13, rotation=0, labelpad=10)
     title(a2, r'the $xy$-plane: $x = u^2 - v^2$, $y = 2uv$', size=12)
-    fig.tight_layout(w_pad=2.0)
+    fig.tight_layout(w_pad=3.0)
+    # An arrow from the first plane to the second: the transformation T.
+    from matplotlib.patches import FancyArrowPatch
+    b1, b2 = a1.get_position(), a2.get_position()
+    xm0, xm1, ym = b1.x1 - 0.03, b2.x0 - 0.06, 0.6
+    fig.add_artist(FancyArrowPatch((xm0, ym), (xm1, ym), transform=fig.transFigure, arrowstyle='-|>', mutation_scale=14,
+                                   color=C['navy'], lw=1.4, connectionstyle='arc3,rad=-0.3'))
+    fig.text((xm0 + xm1) / 2, ym + 0.085, r'$T$', fontsize=14, color=C['navy'], ha='center', va='bottom')
     return fig
 
 

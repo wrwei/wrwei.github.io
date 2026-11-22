@@ -9,10 +9,12 @@ CalcWidgets.register('lagrange', function (root, api) {
 
   // ------------------------------------------------------------------ the choices
   var OBJ = [
-    { value: 'sum', label: 'x + y', f: function (x, y) { return x + y }, grad: function () { return [1, 1] }, levels: [-3, -2, -1, 1, 2, 3], line: false },
+    { value: 'sum', label: 'x + y', f: function (x, y) { return x + y }, grad: function () { return [1, 1] }, levels: [-3, -2, -1, 1, 2, 3], line: false,
+      why: ['x + y = 1 at every point of the line x + y = 1: there is nothing to optimise', '在直线 x + y = 1 上处处有 x + y = 1：没有什么可优化的'] },
     { value: 'prod', label: 'xy', f: function (x, y) { return x * y }, grad: function (x, y) { return [y, x] }, levels: [-2, -1, -0.5, 0.5, 1, 2], line: true },
     { value: 'quad', label: 'x² + 2y²', f: function (x, y) { return x * x + 2 * y * y }, grad: function (x, y) { return [2 * x, 4 * y] }, levels: [1, 2, 4, 6, 8], line: true },
-    { value: 'lin', label: '2x + y', f: function (x, y) { return 2 * x + y }, grad: function () { return [2, 1] }, levels: [-4, -3, -2, -1, 1, 2, 3, 4], line: false },
+    { value: 'lin', label: '2x + y', f: function (x, y) { return 2 * x + y }, grad: function () { return [2, 1] }, levels: [-4, -3, -2, -1, 1, 2, 3, 4], line: false,
+      why: ['on the line x + y = 1, 2x + y = x + 1 has no maximum and no minimum', '在直线 x + y = 1 上 2x + y = x + 1，既没有最大值也没有最小值'] },
   ]
   // r(s): the point at parameter s; dr(s): its velocity (the direction in which s increases); grad: ∇g.
   // Circle and ellipse: s is an angle t in degrees. Line: s is the x-coordinate.
@@ -119,14 +121,14 @@ CalcWidgets.register('lagrange', function (root, api) {
       var o = state.obj, c = state.con, r = compute()
       var g = P.contour(o.f, o.levels, { color: 'var(--muted)', width: 1.1, n: 90 })
       g.setAttribute('class', 'lg-levels')
-      var placed = []
+      var placed = []                                    // labels already drawn: [x, y, half-width] in pixels
       o.levels.forEach(function (L) {
         var q = labelPoint(o.f, L)
         if (!q) return
-        var px = P.X(q[0]), py = P.Y(q[1])
-        if (placed.some(function (b) { return Math.abs(b[0] - px) < 30 && Math.abs(b[1] - py) < 16 })) return
-        placed.push([px, py])
-        P.text(q[0], q[1], minus(String(L)), { anchor: 'middle', dy: 4, color: 'var(--slate)', size: 11 }).setAttribute('class', 'cw-label lg-value')
+        var txt = minus(String(L)), px = P.X(q[0]), py = P.Y(q[1]), hw = 3.5 * txt.length + 2
+        if (placed.some(function (b) { return Math.abs(b[0] - px) < b[2] + hw + 3 && Math.abs(b[1] - py) < 15 })) return
+        placed.push([px, py, hw])
+        P.text(q[0], q[1], txt, { anchor: 'middle', dy: 4, color: 'var(--slate)', size: 11 }).setAttribute('class', 'cw-label lg-value')
       })
       var curve = c.angle ? P.param(function (s) { return c.r(s)[0] }, function (s) { return c.r(s)[1] }, 0, 2 * Math.PI, { color: 'var(--green)', width: 3 })
         : P.param(function (s) { return c.r(s)[0] }, function (s) { return c.r(s)[1] }, VIEW[0] - 1, VIEW[1] + 1, { color: 'var(--green)', width: 3 })
@@ -181,8 +183,7 @@ CalcWidgets.register('lagrange', function (root, api) {
   function setConstraint(c) {
     if (c.value === 'line' && !state.obj.line) {      // the line goes with xy and x² + 2y² only
       conSel.set(state.con.value)
-      state.note = t('On the line x + y = 1, ' + state.obj.label + ' has no maximum or minimum: choose xy or x² + 2y² for the line.',
-        '在直线 x + y = 1 上，' + state.obj.label + ' 没有最大值也没有最小值：请为直线选择 xy 或 x² + 2y²。')
+      state.note = t('The line goes with xy and x² + 2y² only: ' + state.obj.why[0] + '.', '直线只与 xy 和 x² + 2y² 搭配：' + state.obj.why[1] + '。')
       update()
       return
     }
@@ -200,8 +201,7 @@ CalcWidgets.register('lagrange', function (root, api) {
     Array.prototype.forEach.call(conSel.input.options, function (op) { if (op.value === 'line') op.disabled = !o.line })
     if (state.con.value === 'line' && !o.line) {
       state.con = CON[0]; conSel.set('circle'); setSlider(CON[0]); state.s = 20; slider.set(20)
-      state.note = t('On the line x + y = 1, ' + o.label + ' has no maximum or minimum, so the constraint is now the circle.',
-        '在直线 x + y = 1 上，' + o.label + ' 没有最大值也没有最小值，所以约束改为圆。')
+      state.note = t('The constraint is now the circle: ' + o.why[0] + '.', '约束已改为圆：' + o.why[1] + '。')
     }
     update()
   }
