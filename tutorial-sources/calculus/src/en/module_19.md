@@ -76,6 +76,13 @@ $L_n$ = Sum(Sum(8 - (2*i/n)**2 - (2*j/n)**2, (i, 1, n)), (j, 1, n)).doit()*4/n**
 $U_n$ = Sum(Sum(8 - (2*i/n)**2 - (2*j/n)**2, (i, 0, n - 1)), (j, 0, n - 1)).doit()*4/n**2
 $M_n$ = Sum(Sum(8 - ((2*i - 1)/n)**2 - ((2*j - 1)/n)**2, (i, 1, n)), (j, 1, n)).doit()*4/n**2
 digits = 9
+---
+n | L_n | U_n | M_n
+2 | 12 | 28 | 22
+4 | 17 | 25 | 21.5
+8 | 19.25 | 23.25 | 21.375
+16 | 20.3125 | 22.3125 | 21.34375
+32 | 20.828125 | 21.828125 | 21.3359375
 ```
 
 The lower sums rise and the upper sums fall, and the gap between them, $U_n - L_n = 32/n$, halves each time $n$ doubles. The midpoint sums close in on $\tfrac{64}{3} = 21.333\ldots$ much faster: the error of $M_n$ is exactly $\tfrac{8}{3n^2}$, divided by 4 each time $n$ doubles, as for the midpoint sums of Module 9.

@@ -162,9 +162,9 @@ By LIATE, $u = x^2$ and $dv = \sin x\,dx$, so $du = 2x\,dx$ and $v = -\cos x$:
 
 $$\begin{aligned} &\int x^2\sin x\,dx \\ &\quad= -x^2\cos x + \int 2x\cos x\,dx. \end{aligned}$$
 
-The new integrand is again a product, with a lower power of $x$. It is twice the integral found at the start of this section (by parts with $u = x$ and $dv = \cos x\,dx$), so
+The new integrand is again a product, with a lower power of $x$. It is twice the integral found at the start of this section (by parts with $u = x$ and $dv = \cos x\,dx$), that is, $2(x\sin x + \cos x) + C$. So
 
-$$\begin{aligned} \int x^2\sin x\,dx &= -x^2\cos x \\ &\quad + 2(x\sin x + \cos x) + C \\ &= -x^2\cos x + 2x\sin x \\ &\quad + 2\cos x + C. \end{aligned}$$
+$$\begin{aligned} &\int x^2\sin x\,dx \\ &\quad= -x^2\cos x + 2x\sin x \\ &\qquad + 2\cos x + C. \end{aligned}$$
 
 Each round lowers the power of $x$ by one, so $x^n$ needs $n$ rounds.
 
@@ -517,7 +517,7 @@ $$\begin{aligned} &\int \sec^3 x\,dx \\ &\quad= \sec x\tan x - \int \sec x\tan^2
 
 The integral has come back, as in Example 11.6. Solve for it, and use Theorem 11.4:
 
-$$\begin{aligned} \int \sec^3 x\,dx &= \tfrac12\sec x\tan x \\ &\quad + \tfrac12\ln\abs{\sec x + \tan x} + C. \end{aligned}$$
+$$\begin{aligned} &\int \sec^3 x\,dx \\ &\quad= \tfrac12\sec x\tan x \\ &\qquad + \tfrac12\ln\abs{\sec x + \tan x} + C. \end{aligned}$$
 
 ```check
 same(diff(sec(x), x), sec(x)*tan(x)); antideriv(tan(x), sec(x)**2, x)
@@ -611,7 +611,7 @@ Find $\displaystyle\int \frac{\sqrt{9 - x^2}}{x^2}\,dx$ for $0 < x < 3$.
 
 Substitute $x = 3\sin\theta$ with $0 < \theta < \tfrac{\pi}{2}$, one-to-one onto $(0, 3)$. Then $dx = 3\cos\theta\,d\theta$ and $\sqrt{9 - x^2} = 3\cos\theta$, so
 
-$$\begin{aligned} &\int \frac{\sqrt{9 - x^2}}{x^2}\,dx \\ &\quad= \int \frac{3\cos\theta}{9\sin^2\theta}\,3\cos\theta\,d\theta = \int \cot^2\theta\,d\theta \\ &\quad= \int \big(\csc^2\theta - 1\big)\,d\theta \\ &\quad= -\cot\theta - \theta + C, \end{aligned}$$
+$$\begin{aligned} &\int \frac{\sqrt{9 - x^2}}{x^2}\,dx \\ &\quad= \int \frac{3\cos\theta}{9\sin^2\theta}\,3\cos\theta\,d\theta \\ &\quad= \int \cot^2\theta\,d\theta \\ &\quad= \int \big(\csc^2\theta - 1\big)\,d\theta \\ &\quad= -\cot\theta - \theta + C, \end{aligned}$$
 
 where $\cot^2\theta = \csc^2\theta - 1$ comes from dividing $\cos^2\theta + \sin^2\theta = 1$ by $\sin^2\theta$, and $-\cot\theta$ is an antiderivative of $\csc^2\theta$ (Module 10's table). Now back to $x$, with the left triangle of Figure 11.2 and $a = 3$: $\cot\theta = \dfrac{\sqrt{9 - x^2}}{x}$ and $\theta = \arcsin\dfrac{x}{3}$. By Theorem 11.5(b),
 
@@ -637,7 +637,7 @@ Find (a) $\displaystyle\int \frac{dx}{\sqrt{x^2 + 4}}$ and (b) $\displaystyle\in
 
 **(a)** Substitute $x = 2\tan\theta$ with $-\tfrac{\pi}{2} < \theta < \tfrac{\pi}{2}$. Then $dx = 2\sec^2\theta\,d\theta$ and $\sqrt{x^2 + 4} = \sqrt{4\tan^2\theta + 4} = 2\sec\theta$, so, by Theorem 11.4,
 
-$$\begin{aligned} \int \frac{dx}{\sqrt{x^2 + 4}} &= \int \frac{2\sec^2\theta}{2\sec\theta}\,d\theta = \int \sec\theta\,d\theta \\ &= \ln\abs{\sec\theta + \tan\theta} + C_1. \end{aligned}$$
+$$\begin{aligned} \int \frac{dx}{\sqrt{x^2 + 4}} &= \int \frac{2\sec^2\theta}{2\sec\theta}\,d\theta \\ &= \int \sec\theta\,d\theta \\ &= \ln\abs{\sec\theta + \tan\theta} + C_1. \end{aligned}$$
 
 The middle triangle of Figure 11.2, with $a = 2$, gives $\tan\theta = \dfrac{x}{2}$ and $\sec\theta = \dfrac{\sqrt{x^2 + 4}}{2}$. So the integral is
 
@@ -851,7 +851,7 @@ $$\begin{aligned} 4x &= A(x - 1)(x + 1) \\ &\quad + B(x + 1) + D(x - 1)^2, \end{
 
 and compare the coefficients of $x^2$: $0 = A + D$, so $A = 1$. Then
 
-$$\begin{aligned} &\int \frac{4x}{(x - 1)^2(x + 1)}\,dx \\ &\quad= \int \Big(\frac{1}{x - 1} + \frac{2}{(x - 1)^2} \\ &\qquad - \frac{1}{x + 1}\Big)\,dx \\ &\quad= \ln\abs{x - 1} - \frac{2}{x - 1} - \ln\abs{x + 1} + C. \end{aligned}$$
+$$\begin{aligned} &\int \frac{4x}{(x - 1)^2(x + 1)}\,dx \\ &\quad= \int \Big(\frac{1}{x - 1} + \frac{2}{(x - 1)^2} \\ &\qquad - \frac{1}{x + 1}\Big)\,dx \\ &\quad= \ln\abs{x - 1} - \frac{2}{x - 1} \\ &\qquad - \ln\abs{x + 1} + C. \end{aligned}$$
 
 **(b)** $x^2 + 1$ is irreducible ($0^2 < 4\cdot 1$), so
 
@@ -1566,7 +1566,7 @@ Find:
 ::: solution
 **(a)** $u = x$, $dv = \sin 2x\,dx$, so $du = dx$ and $v = -\tfrac12\cos 2x$:
 
-$$\begin{aligned} &\int x\sin 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac12\int \cos 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac14\sin 2x + C. \end{aligned}$$
+$$\begin{aligned} &\int x\sin 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac12\int \cos 2x\,dx \\ &\quad= -\tfrac12x\cos 2x + \tfrac14\sin 2x \\ &\qquad + C. \end{aligned}$$
 
 **(b)** By LIATE, $u = \ln x$ and $dv = x^2\,dx$, so $du = \dfrac{dx}{x}$ and $v = \dfrac{x^3}{3}$:
 
@@ -1632,7 +1632,7 @@ steps(Integral(sec(x)**4, (x, 0, pi/4)), Integral(1 + u**2, (u, 0, 1)), 1 + Rati
 ::: solution
 **(a)** $x^2 - x - 6 = (x - 3)(x + 2)$. Cover-up: the coefficient of $\dfrac{1}{x - 3}$ is $\dfrac{3 + 7}{3 + 2} = 2$, and that of $\dfrac{1}{x + 2}$ is $\dfrac{-2 + 7}{-2 - 3} = -1$. So
 
-$$\begin{aligned} &\int \frac{x + 7}{x^2 - x - 6}\,dx \\ &\quad= 2\ln\abs{x - 3} - \ln\abs{x + 2} + C. \end{aligned}$$
+$$\begin{aligned} &\int \frac{x + 7}{x^2 - x - 6}\,dx \\ &\quad= 2\ln\abs{x - 3} \\ &\qquad - \ln\abs{x + 2} + C. \end{aligned}$$
 
 **(b)** Cover-up: $\dfrac{1}{(x + 1)(x + 2)} = \dfrac{1}{x + 1} - \dfrac{1}{x + 2}$. On $[0, 1]$ both factors are positive, so
 
@@ -1666,7 +1666,7 @@ In [Exercise 9.9](module_09_EN.html#ex-9-9), a program logged a GPU's power draw
 ::: solution
 **(a)** There are $n = 6$ intervals of $\Delta t = 10$ s, an even number, so both rules apply:
 
-$$\begin{aligned} T_6 &= \frac{10}{2}\big[120 + 2(180 + 250 \\ &\qquad + 260 + 240 + 200) + 150\big] \\ &= 5\cdot 2530 = 12{,}650 \text{ J}, \\ S_6 &= \frac{10}{3}\big[120 + 4\cdot 180 \\ &\qquad + 2\cdot 250 + 4\cdot 260 \\ &\qquad + 2\cdot 240 + 4\cdot 200 + 150\big] \\ &= \frac{10}{3}\cdot 3810 = 12{,}700 \text{ J}. \end{aligned}$$
+$$\begin{aligned} T_6 &= \frac{10}{2}\big[120 + 2(180 \\ &\qquad + 250 + 260 + 240 \\ &\qquad + 200) + 150\big] \\ &= 5\cdot 2530 = 12{,}650 \text{ J}, \\ S_6 &= \frac{10}{3}\big[120 + 4\cdot 180 \\ &\qquad + 2\cdot 250 + 4\cdot 260 \\ &\qquad + 2\cdot 240 + 4\cdot 200 \\ &\qquad + 150\big] \\ &= \frac{10}{3}\cdot 3810 \\ &= 12{,}700 \text{ J}. \end{aligned}$$
 
 **(b)** $T_6 = 12{,}650$ J is the average of 12,500 J and 12,800 J, as Definition 11.4 says it must be.
 
@@ -1703,7 +1703,7 @@ Find:
 
 Multiplying along the diagonals with the signs,
 
-$$\begin{aligned} &\int x^3e^{-x}\,dx \\ &\quad= -x^3e^{-x} - 3x^2e^{-x} \\ &\qquad - 6xe^{-x} - 6e^{-x} + C \\ &\quad= -\big(x^3 + 3x^2 + 6x + 6\big)e^{-x} + C. \end{aligned}$$
+$$\begin{aligned} &\int x^3e^{-x}\,dx \\ &\quad= -x^3e^{-x} - 3x^2e^{-x} \\ &\qquad - 6xe^{-x} - 6e^{-x} + C \\ &\quad= -e^{-x}\big(x^3 + 3x^2 \\ &\qquad + 6x + 6\big) + C. \end{aligned}$$
 
 **(b)** Call it $I$. With $u = \cos x$ and $dv = e^{2x}\,dx$, so $v = \tfrac12e^{2x}$:
 
@@ -1719,7 +1719,7 @@ $$\begin{aligned} &\int e^{2x}\cos x\,dx \\ &\quad= \tfrac15e^{2x}(2\cos x + \si
 
 **(c)** $u = (\ln x)^2$ and $dv = dx$, so $du = \dfrac{2\ln x}{x}\,dx$ and $v = x$. Then, with Example 11.1(b),
 
-$$\begin{aligned} &\int (\ln x)^2\,dx \\ &\quad= x(\ln x)^2 - 2\int \ln x\,dx \\ &\quad= x(\ln x)^2 - 2x\ln x + 2x + C. \end{aligned}$$
+$$\begin{aligned} &\int (\ln x)^2\,dx \\ &\quad= x(\ln x)^2 - 2\int \ln x\,dx \\ &\quad= x(\ln x)^2 - 2x\ln x \\ &\qquad + 2x + C. \end{aligned}$$
 
 ```check
 same([diff(x**3, x, k_) for k_ in range(5)], [x**3, 3*x**2, 6*x, 6, 0]); same([diff((-1)**k_*exp(-x), x) for k_ in range(1, 5)], [(-1)**(k_ - 1)*exp(-x) for k_ in range(1, 5)])
@@ -1747,7 +1747,7 @@ $$\begin{aligned} &\int \frac{9\sin^2\theta}{3\cos\theta}\,3\cos\theta\,d\theta 
 
 by Example 11.7(a). The left triangle of Figure 11.2, with $a = 3$, gives $\sin\theta = \tfrac{x}{3}$ and $\cos\theta = \tfrac{\sqrt{9 - x^2}}{3}$, so
 
-$$\begin{aligned} &\int \frac{x^2}{\sqrt{9 - x^2}}\,dx \\ &\quad= \frac92\arcsin\frac{x}{3} - \frac{x}{2}\sqrt{9 - x^2} + C. \end{aligned}$$
+$$\begin{aligned} &\int \frac{x^2}{\sqrt{9 - x^2}}\,dx \\ &\quad= \frac92\arcsin\frac{x}{3} \\ &\qquad - \frac{x}{2}\sqrt{9 - x^2} + C. \end{aligned}$$
 
 **(b)** $x = 3\tan\theta$ with $-\tfrac{\pi}{2} < \theta < \tfrac{\pi}{2}$, so $dx = 3\sec^2\theta\,d\theta$ and $\big(x^2 + 9\big)^{3/2} = \big(9\sec^2\theta\big)^{3/2} = 27\sec^3\theta$:
 
@@ -1951,7 +1951,7 @@ same(Tq_(lambda X: sympify(X)**2, 0, 1, 3) - integrate(x**2, (x, 0, 1)), Rationa
 This exercise proves the midpoint half of Theorem 11.8. Centre a subinterval at 0: for a subinterval $[m - h, m + h]$, apply what follows to $g(t) = f(m + t)$, whose integral over $[-h, h]$ is the integral of $f$ over $[m - h, m + h]$. So let $f''$ be continuous on $[-h, h]$, where $h > 0$.
 
 - (a) Integrate by parts twice to show that
-  $$\begin{aligned} \int_0^h f(x)\,dx &= hf(0) + \frac{h^2}{2}f'(0) \\ &\quad + \frac12\int_0^h (h - x)^2 f''(x)\,dx. \end{aligned}$$
+  $$\begin{aligned} &\int_0^h f(x)\,dx \\ &\quad= hf(0) + \frac{h^2}{2}f'(0) \\ &\qquad + \frac12\int_0^h (h - x)^2 f''(x)\,dx. \end{aligned}$$
   (Start with $u = f(x)$ and $dv = dx$, taking $v = x - h$.)
 - (b) Find the corresponding formula for $\int_{-h}^0 f(x)\,dx$, and deduce that
   $$\begin{aligned} &\int_{-h}^{h} f(x)\,dx - 2hf(0) \\ &\quad= \frac12\int_{-h}^{h} \big(h - \abs{x}\big)^2 f''(x)\,dx. \end{aligned}$$
@@ -1960,23 +1960,23 @@ This exercise proves the midpoint half of Theorem 11.8. Centre a subinterval at 
 ::: solution
 **(a)** With $u = f(x)$, $dv = dx$ and $v = x - h$, which is 0 at $x = h$,
 
-$$\begin{aligned} \int_0^h f\,dx &= \big[f(x)(x - h)\big]_0^h \\ &\quad - \int_0^h f'(x)(x - h)\,dx \\ &= hf(0) + \int_0^h (h - x)f'(x)\,dx. \end{aligned}$$
+$$\begin{aligned} &\int_0^h f\,dx \\ &\quad= \big[f(x)(x - h)\big]_0^h \\ &\qquad - \int_0^h f'(x)(x - h)\,dx \\ &\quad= hf(0) + \int_0^h (h - x)f'(x)\,dx. \end{aligned}$$
 
 Again, with $u = f'(x)$ and $dv = (h - x)\,dx$, so that $v = -\tfrac12(h - x)^2$:
 
-$$\begin{aligned} &\int_0^h (h - x)f'(x)\,dx \\ &\quad= \Big[-\tfrac12(h - x)^2f'(x)\Big]_0^h \\ &\qquad + \frac12\int_0^h (h - x)^2f''(x)\,dx \\ &\quad= \frac{h^2}{2}f'(0) + \frac12\int_0^h (h - x)^2f''(x)\,dx. \end{aligned}$$
+$$\begin{aligned} &\int_0^h (h - x)f'(x)\,dx \\ &\quad= \Big[-\tfrac12(h - x)^2f'(x)\Big]_0^h \\ &\qquad + \frac12\int_0^h (h - x)^2f''(x)\,dx \\ &\quad= \frac{h^2}{2}f'(0) \\ &\qquad + \frac12\int_0^h (h - x)^2f''(x)\,dx. \end{aligned}$$
 
 Putting this into the first result gives the formula.
 
 **(b)** In the same way, with $v = x + h$ and then $v = \tfrac12(x + h)^2$,
 
-$$\begin{aligned} \int_{-h}^0 f\,dx &= hf(0) - \frac{h^2}{2}f'(0) \\ &\quad + \frac12\int_{-h}^0 (x + h)^2f''(x)\,dx. \end{aligned}$$
+$$\begin{aligned} &\int_{-h}^0 f\,dx \\ &\quad= hf(0) - \frac{h^2}{2}f'(0) \\ &\qquad + \frac12\int_{-h}^0 (x + h)^2f''(x)\,dx. \end{aligned}$$
 
 Add the two formulas: the terms in $f'(0)$ cancel. On $[0, h]$, $h - x = h - \abs{x}$, and on $[-h, 0]$, $x + h = h - \abs{x}$, so the two integrals combine into the one stated.
 
 **(c)** $2hf(0)$ is the midpoint rule on $[-h, h]$, a subinterval of width $w = 2h$, so the left side of (b) is the error of the midpoint rule on one subinterval. The weight $\tfrac12(h - \abs{x})^2$ is at least 0, and
 
-$$\begin{aligned} \frac12\int_{-h}^{h} \big(h - \abs{x}\big)^2\,dx &= \int_0^h (h - x)^2\,dx \\ &= \frac{h^3}{3} = \frac{w^3}{24}. \end{aligned}$$
+$$\begin{aligned} &\frac12\int_{-h}^{h} \big(h - \abs{x}\big)^2\,dx \\ &\quad= \int_0^h (h - x)^2\,dx \\ &\quad= \frac{h^3}{3} = \frac{w^3}{24}. \end{aligned}$$
 
 So, if $\abs{f''} \le K$, the comparison theorem bounds the error of one subinterval by $\tfrac{Kw^3}{24}$, and adding up $n$ subintervals of width $\tfrac{b - a}{n}$ gives $\abs{E_M} \le \tfrac{K(b - a)^3}{24n^2}$. If $f'' \ge 0$, each error is at least 0, so $E_M \ge 0$, that is, $M_n \le \int_a^b f(x)\,dx$.
 
