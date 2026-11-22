@@ -789,6 +789,8 @@ limit_is(f811, x, 2, oo, '+'); limit_is(f811, x, 2, -oo, '-'); limit_is(f811, x,
 steps(diff(f811, x), (2*x*(x**2 - 4) - x**2*2*x)/(x**2 - 4)**2, -8*x/(x**2 - 4)**2)
 steps(diff(-8*x*(x**2 - 4)**(-2), x), -8*(x**2 - 4)**(-2) + 32*x**2*(x**2 - 4)**(-3), (-8*(x**2 - 4) + 32*x**2)/(x**2 - 4)**3, 8*(3*x**2 + 4)/(x**2 - 4)**3)
 same(diff(f811, x, 2), 8*(3*x**2 + 4)/(x**2 - 4)**3)
+same(solve_univariate_inequality(-8*x > 0, x, relational=False), Interval.open(-oo, 0))       # f' > 0 exactly for x < 0 (x != -2)
+same(solve_univariate_inequality(x**2 - 4 < 0, x, relational=False), Interval.open(-2, 2)); same(minimum(3*x**2 + 4, x, S.Reals), 4)
 same(f811.subs(x, 1), -Rational(1, 3)); same(f811.subs(x, -1), -Rational(1, 3)); same(f811.subs(x, 3), Rational(9, 5))
 ```
 :::
@@ -813,6 +815,7 @@ steps(diff(f812, x), exp(-x) - x*exp(-x), (1 - x)*exp(-x))
 same(maximum(f812, x, S.Reals), exp(-1)); rounds(exp(-1), '0.368')
 steps(diff(f812, x, 2), -exp(-x) - (1 - x)*exp(-x), (x - 2)*exp(-x))
 same(solve_univariate_inequality((x - 2)*exp(-x) < 0, x, relational=False), Interval.open(-oo, 2))
+same(solve_univariate_inequality((x - 2)*exp(-x) > 0, x, relational=False), Interval.open(2, oo))
 rounds(2*exp(-2), '0.271')
 ```
 :::

@@ -746,11 +746,11 @@ Programs compute square roots constantly, in graphics, physics simulations and m
 
 **A good start.** A floating-point number is stored as $a = m \times 2^e$, with $1 \le m < 2$ and a whole-number exponent $e$. Moving one factor 2 into $m$ if $e$ is odd makes $e$ even and $1 \le m < 4$, and then $\sqrt a = \sqrt m \times 2^{e/2}$. So only square roots of numbers between 1 and 4 are ever needed, and a small table, or a simple formula, can give a starting value with a small relative error, say at most 1%.
 
-**Few steps.** Write $x_n = \sqrt a\,(1 + \varepsilon_n)$, so that $\varepsilon_n$ (Greek "epsilon") is the relative error of $x_n$. Dividing the identity of Theorem 7.2 by $\sqrt a$ gives
+**Few steps.** Write $x_n = \sqrt a\,(1 + \varepsilon_n)$, so that $\varepsilon_n = e_n/\sqrt a$ ($\varepsilon$ is the Greek "epsilon") is positive when $x_n$ is too big, and $\abs{\varepsilon_n}$ is the relative error of $x_n$. Substituting this into the identity of Theorem 7.2 and dividing by $\sqrt a$ gives
 
 $$\varepsilon_{n+1} = \frac{\varepsilon_n^2}{2(1 + \varepsilon_n)}.$$
 
-From $\abs{\varepsilon_0} \le 0.01$: $\varepsilon_1 \le 0.0001/(2 \times 0.99) \approx 5.1 \times 10^{-5}$, and from then on $\varepsilon_n \ge 0$, so $\varepsilon_{n+1} \le \varepsilon_n^2/2$, which gives $\varepsilon_2 \le 1.3 \times 10^{-9}$ and $\varepsilon_3 \le 8.1 \times 10^{-19}$. That is far below the precision of double-precision numbers, a relative error of about $1.1 \times 10^{-16}$: three steps are enough.
+From $\abs{\varepsilon_0} \le 0.01$: $\varepsilon_1 \le 0.0001/(2 \times 0.99) \approx 5.1 \times 10^{-5}$, and from then on $\varepsilon_n \ge 0$, so $\varepsilon_{n+1} \le \varepsilon_n^2/2$, which gives $\varepsilon_2 \le 1.3 \times 10^{-9}$ and $\varepsilon_3 \le 8.2 \times 10^{-19}$. That is far below the precision of double-precision numbers, a relative error of about $1.1 \times 10^{-16}$: three steps are enough.
 
 ```check
 ep = symbols('epsilon')

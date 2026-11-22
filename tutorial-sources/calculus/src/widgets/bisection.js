@@ -210,7 +210,7 @@ CalcWidgets.register('bisection', function (root, api) {
         // beside the y-axis where P.axes writes the y tick labels (on a phone, a0 is close to it).
         var room = P.Y(0) + 44 < P.H
         var lo = P.X(v[0]), hi = P.X(v[1]), ya = P.X(Math.min(Math.max(0, v[0]), v[1])) - 5
-        var z0 = ya < lo + 20 ? Math.max(lo + 2, ya) : ya - 32, z1 = z0 + 32
+        var z0 = ya < lo + 20 ? Math.max(lo + 2, ya) : ya - 32, z1 = ya < lo + 20 ? z0 + 32 : ya + 9   // tick labels and the axis line
         ;[[r.a, r.fa, 'a'], [r.b, r.fb, 'b']].forEach(function (q) {
           var px = P.X(q[0]), dx = 0
           if (px + 9 > z0 && px - 9 < z1) dx = z1 + 18 < hi ? z1 + 9 - px : z0 - 9 - px
