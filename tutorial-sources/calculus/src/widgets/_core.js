@@ -67,7 +67,10 @@
   function tokenize(src, names) {
     var s = String(src)
       .replace(/[−–]/g, '-').replace(/[·×∙]/g, '*').replace(/÷/g, '/').replace(/π/g, 'pi')
-      .replace(/²/g, '^2').replace(/³/g, '^3').replace(/√/g, 'sqrt').replace(/\*\*/g, '^')
+      .replace(/²/g, '^2').replace(/³/g, '^3').replace(/\*\*/g, '^')
+      // √x, √2, √(x+1): the square root of what follows
+      .replace(/√\s*(\d+\.?\d*|[A-Za-z_]\w*|\([^()]*\))/g, function (m, a) { return 'sqrt(' + (a[0] === '(' ? a.slice(1, -1) : a) + ')' })
+      .replace(/√/g, 'sqrt')
     var toks = [], i = 0, m
     while (i < s.length) {
       var rest = s.slice(i)
