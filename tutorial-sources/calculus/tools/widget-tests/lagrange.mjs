@@ -74,7 +74,9 @@ export async function run(t) {
     ends.push(q.inside && Math.abs(q.ratio / want - 1) < 0.01)
   }
   await t.shot('line')
-  t.check(ends.every(Boolean), 'x² + 2y² at both ends of the line: both arrowheads well inside the plot, lengths in the ratio |∇f| : |∇g|')
+  r = await readout(t)
+  t.check(ends.every(Boolean) && r.includes('= 90°') && r.includes('Not parallel'),
+    'x² + 2y² at both ends of the line: arrowheads well inside the plot, lengths as |∇f| : |∇g|; at (2, −1) the angle is exactly 90°')
   await t.select('select >> nth=0', 'sum')
   r = await readout(t)
   t.check((await selects(t)).join() === 'sum,circle' && r.includes('now the circle') && r.includes('nothing to optimise') && (await t.text('.lg-key')).includes('x² + y² = 1'),

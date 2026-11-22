@@ -171,7 +171,8 @@ CalcWidgets.register('lagrange', function (root, api) {
     lines.push([sText(state.s) + t(': the point (x, y)', '：点 (x, y)') + exactVec([r.x, r.y]) + '(' + fmt(r.x) + ', ' + fmt(r.y) + ')'])
     lines.push(['f(x, y) = ' + o.label + num(r.f)])
     lines.push(['∇f' + exactVec(r.gf) + vec(r.gf) + ',  ∇g' + exactVec(r.gg) + vec(r.gg)])
-    var ang = r.angle < 1e-9 ? ' = 0°' : Math.abs(r.angle - 180) < 1e-9 ? ' = 180°' : ' ≈ ' + r.angle.toFixed(1) + '°'
+    var a1 = Math.round(r.angle * 10) / 10                                  // " = " when the angle is exact to 0.1°
+    var ang = Math.abs(a1 - r.angle) < 1e-9 ? ' = ' + a1 + '°' : ' ≈ ' + r.angle.toFixed(1) + '°'
     lines.push([t('angle between ∇f and ∇g', '∇f 与 ∇g 的夹角') + ang])
     if (r.parallel) {
       var lam = (r.same ? 1 : -1) * r.nf / r.ng
