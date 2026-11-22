@@ -46,9 +46,9 @@ Calculus as a general method arrived in the seventeenth century, from two people
 
 ### Where calculus is used {#uses}
 
-In science, velocity is the rate of change of position and acceleration that of velocity, so the laws of motion, like those of cooling and radioactive decay, are statements about rates: differential equations (Module 13). In engineering, electric current is the rate of change of charge, and beams, control systems and signal filters are described with derivatives and integrals. In computing, machine learning trains a model by **gradient descent**, repeatedly adjusting its parameters in the direction that reduces its error fastest, a direction computed from derivatives (Modules 8 and 17); backpropagation, which computes those derivatives in neural networks, is the chain rule of Module 5.
+In science, velocity is the rate of change of position and acceleration that of velocity, so the laws of motion, like those of cooling and radioactive decay, are statements about rates: differential equations (Module 13). In engineering, electric current is the rate of change of charge, and beams, control systems and signal filters are described with derivatives and integrals. In computing, machine learning trains a model by **gradient descent**, repeatedly adjusting its parameters in the direction that reduces its error fastest, a direction computed from derivatives (Modules 8 and 17); backpropagation, which computes those derivatives in neural networks, is the chain rule (Modules 5 and 17).
 
-All these quantities are functions of something else, so this module starts with functions (Sections 1.3 to 1.5) and ends with the first step towards the derivative (Section 1.6).
+All these quantities are functions of something else, so this module studies functions (Sections 1.3 to 1.5) and then takes the first step towards the derivative (Section 1.6).
 
 ## How this series works {#how-it-works}
 
@@ -115,7 +115,7 @@ Each time $t$ gives exactly one distance $s(t)$. That is what makes $s$ a functi
 A **function** $f$ is a rule that assigns to each number $x$ in a set $D$ exactly one number $f(x)$. The set $D$ is the **domain** of $f$. The number $f(x)$, read "f of x", is the **value** of $f$ at $x$. The set of all values $f(x)$, as $x$ runs through the domain, is the **range** of $f$.
 :::
 
-The input $x$ is the **independent variable** and the output $y = f(x)$ the **dependent variable**. In the first four parts of this series, inputs and outputs are real numbers; the set of all real numbers is written $\R$. To say that $x$ belongs to a set $D$, write $x \in D$, read "x is in D".
+The input $x$ is the **independent variable** and the output $y = f(x)$ the **dependent variable**. In Parts I to IV of this series, inputs and outputs are real numbers, apart from a look at complex numbers in Module 15; the set of all real numbers is written $\R$. To say that $x$ belongs to a set $D$, write $x \in D$, read "x is in D".
 
 "Exactly one" is the heart of the definition. The rule "the number whose square is $x$" is not a function: for $x = 9$ it gives two numbers, 3 and $-3$. A function may, however, give the same output for different inputs: $x^2$ gives 4 for both $x = 2$ and $x = -2$.
 
@@ -188,16 +188,17 @@ Find the domain and the range of $f(x) = \sqrt{4 - x^2}$.
 
 **Domain.** The square root needs $4 - x^2 \ge 0$, that is, $x^2 \le 4$, which holds exactly when $-2 \le x \le 2$. The domain is $[-2, 2]$.
 
-**Range.** For $x$ in $[-2, 2]$, $x^2$ lies between 0 and 4, so $4 - x^2$ lies between 0 and 4, and its square root lies between $\sqrt0 = 0$ and $\sqrt4 = 2$. So every value is in $[0, 2]$. Conversely, every $y$ in $[0, 2]$ is a value: $x = \sqrt{4 - y^2}$ lies in $[0, 2]$, and, since $y \ge 0$,
+**Range.** For $x$ in $[-2, 2]$, $x^2$ lies between 0 and 4, so $4 - x^2$ lies between 0 and 4, and its square root lies between $\sqrt0 = 0$ and $\sqrt4 = 2$. So every value is in $[0, 2]$. Conversely, every $y$ in $[0, 2]$ is a value. To find an input that gives it, solve $y = \sqrt{4 - x^2}$ for $x$: squaring gives $y^2 = 4 - x^2$, so try $x = \sqrt{4 - y^2}$. This $x$ lies in $[0, 2]$, and, since $y \ge 0$,
 
 $$f(x) = \sqrt{4 - (4 - y^2)} = \sqrt{y^2} = y.$$
 
-The range is $[0, 2]$. Squaring $y = \sqrt{4 - x^2}$ gives $x^2 + y^2 = 4$ with $y \ge 0$, so the graph is the upper half of the circle of radius 2 centred at the origin. Figure 1.2 shows it with its domain and range.
+The range is $[0, 2]$. Squaring $y = \sqrt{4 - x^2}$ gives $x^2 + y^2 = 4$ with $y \ge 0$. By Pythagoras' theorem, $x^2 + y^2$ is the square of the distance from $(x, y)$ to the origin, so the points with $x^2 + y^2 = 4$ form the circle of radius 2 centred at the origin, and the graph is its upper half. Figure 1.2 shows it with its domain and range.
 
 ```check
 same(solve_univariate_inequality(x**2 <= 4, x, relational=False), Interval(-2, 2))
 same(continuous_domain(sqrt(4 - x**2), x, R), Interval(-2, 2))
 same(function_range(sqrt(4 - x**2), x, Interval(-2, 2)), Interval(0, 2))
+same_set(solve(Eq(y**2, 4 - x**2), x), [sqrt(4 - y**2), -sqrt(4 - y**2)])   # y^2 = 4 - x^2 solved for x
 same(function_range(sqrt(4 - y**2), y, Interval(0, 2)), Interval(0, 2))   # x = sqrt(4 - y^2) is in [0, 2]
 yn = symbols('y', nonnegative=True)
 steps(sqrt(4 - (4 - yn**2)), sqrt(yn**2), yn)
@@ -239,7 +240,8 @@ It is the same as $\max(0, x)$, the larger of 0 and $x$.
 same(Abs(5), 5); same(Abs(-3), 3); same(-(-3), 3)
 xr = symbols('x', real=True)
 relu = Piecewise((0, xr < 0), (xr, True))
-same([relu.subs(xr, v) for v in (-2, 0, 3)], [Max(0, v) for v in (-2, 0, 3)])
+xneg, xnn = symbols('x', negative=True), symbols('x', nonnegative=True)
+same(relu.subs(xr, xneg), Max(0, xneg)); same(relu.subs(xr, xnn), Max(0, xnn))   # ReLU = max(0, x) on both pieces
 ```
 
 ::: example A piecewise function
@@ -268,7 +270,7 @@ same((x**2).subs(x, 1), 1)      # where the first piece heads: the hollow dot (1
 ::: deeper What a function is, precisely
 Definition 1.1 speaks of a "rule", but only the pairing of inputs with outputs matters. So mathematicians define a function to be its graph: a set $f$ of ordered pairs $(x, y)$ in which each $x$ of the domain appears exactly once, with $f(x) = y$ meaning that $(x, y)$ belongs to $f$. Then $(x + 1)^2$ and $x^2 + 2x + 1$ define the same function. One also writes $f\colon D \to \R$, read "f maps D to R".
 
-A function in a program can print, read the clock or change other variables, so equal inputs may give different outputs. Programmers call a function **pure** if its output depends only on its input and it does nothing else; mathematical functions are pure.
+A function in a program can read the clock, or a variable that other code changes, so equal inputs may give different outputs; it can also do things besides computing its output, such as printing. Programmers call a function **pure** if its output depends only on its input and it does nothing else; mathematical functions are pure.
 
 ```check
 same(expand((x + 1)**2), x**2 + 2*x + 1)
@@ -614,7 +616,7 @@ same(cos(-theta), cos(theta)); same(sin(-theta), -sin(theta))
 same(function_range(sin(x), x, R), Interval(-1, 1)); same(function_range(cos(x), x, R), Interval(-1, 1))
 ```
 
-The exact values at the standard angles come from two triangles of school geometry, half a square and half an equilateral triangle:
+The exact values at the standard angles come from two triangles of school geometry, each with hypotenuse 1. Cutting a square along a diagonal gives a right triangle with two angles of $\pi/4$; its two shorter sides are equal, say $s$, and Pythagoras' theorem gives $2s^2 = 1$, so $s = 1/\sqrt2 = \sqrt2/2$. Cutting an equilateral triangle with sides 1 in half gives a right triangle with angles $\pi/6$ and $\pi/3$; its shortest side, opposite $\pi/6$, is $\tfrac12$, and Pythagoras' theorem gives the third side, $\sqrt{1 - \tfrac14} = \sqrt3/2$. Opposite over hypotenuse and adjacent over hypotenuse then give the middle three rows of the table; the first and last rows are the points $(1, 0)$ and $(0, 1)$ of the unit circle:
 
 | $\theta$ | $\sin\theta$ | $\cos\theta$ | $\tan\theta$ |
 |---|---|---|---|
@@ -625,6 +627,9 @@ The exact values at the standard angles come from two triangles of school geomet
 | $\pi/2$ | $1$ | $0$ | undefined |
 
 ```check
+sp_ = symbols('s', positive=True)
+same(solve(Eq(2*sp_**2, 1), sp_), [sqrt(2)/2]); same(1/sqrt(2), sqrt(2)/2)
+same(sqrt(1 - Rational(1, 4)), sqrt(3)/2); same(pi/4 + pi/4 + pi/2, pi); same(pi/6 + pi/3 + pi/2, pi)
 table = {0: (0, 1, 0), pi/6: (Rational(1, 2), sqrt(3)/2, 1/sqrt(3)), pi/4: (sqrt(2)/2, sqrt(2)/2, 1), pi/3: (sqrt(3)/2, Rational(1, 2), sqrt(3))}
 for th_, (sv, cv, tv) in table.items():
     same(sin(th_), sv); same(cos(th_), cv); same(tan(th_), tv)
@@ -707,7 +712,7 @@ Each simple change to a formula moves the graph in a simple way. For a constant 
 Changes outside $f$ act the way they look. Changes inside $f$ act the opposite way, because the new function reaches each value of $f$ at a different $x$: $f(x - c)$ moves the graph right, and $f(2x)$ reaches the value that $f$ has at 6 already at $x = 3$, so everything happens twice as early and the graph is squashed towards the $y$-axis.
 
 ::: widget name=function-explorer
-Choose a function, then move one slider at a time: the sliders give $y = a\,f\big(b(x - c)\big) + d$, and the dashed curve is the original $y = f(x)$. Predict each move before you make it. With $f(x) = x^2$, set $c = 1$, then $d = 2$, and follow the bottom of the U; set $a = -1$ to flip the graph. Choose $\sin x$ and set $b = 2$: two waves now fit where there was one. Then build the function of Example 1.9.
+Choose a function, then move one slider at a time: the sliders give $y = a\,f\big(b(x - c)\big) + d$, and the dashed curve is the original $y = f(x)$. Predict each move before you make it. With $f(x) = x^2$, set $c = 1$, then $d = 2$, and follow the bottom of the U; set $a = -1$ to flip the graph. Press Reset, choose $\sin x$ and set $b = 2$: two waves now fit where there was one. Then build the function of Example 1.9.
 :::
 
 ::: example Building a graph from $y = x^2$
@@ -719,13 +724,14 @@ Build $g$ in three steps, following the bottom point $(0, 0)$ of the parabola:
 2. $-(x + 2)^2$: reflect in the $x$-axis. The parabola now opens downwards, and $(-2, 0)$ stays where it is.
 3. $-(x + 2)^2 + 4$: shift up by 4. The point moves to $(-2, 4)$.
 
-So the graph is an upside-down parabola with its highest point at $(-2, 4)$. For the zeros, $-(x + 2)^2 + 4 = 0$ means $(x + 2)^2 = 4$, so $x + 2 = 2$ or $x + 2 = -2$, that is, $x = 0$ or $x = -4$. Since $(x + 2)^2 \ge 0$, every value of $g$ is at most 4; and every number $y \le 4$ is a value, taken at $x = -2 + \sqrt{4 - y}$. So the range is $(-\infty, 4]$. In the explorer: $f(x) = x^2$, $a = -1$, $c = -2$, $d = 4$.
+So the graph is an upside-down parabola with its highest point at $(-2, 4)$. For the zeros, $-(x + 2)^2 + 4 = 0$ means $(x + 2)^2 = 4$, so $x + 2 = 2$ or $x + 2 = -2$, that is, $x = 0$ or $x = -4$. Since $(x + 2)^2 \ge 0$, every value of $g$ is at most 4. Conversely, every number $y \le 4$ is a value: $g(x) = y$ means $(x + 2)^2 = 4 - y$, which holds at $x = -2 + \sqrt{4 - y}$. So the range is $(-\infty, 4]$. In the explorer: $f(x) = x^2$, $a = -1$, $c = -2$, $d = 4$.
 
 ```check
 gq = -(x + 2)**2 + 4
 same(gq, -fsq.subs(x, x + 2) + 4); same(gq.subs(x, -2), 4)
 same(expand(gq), -x**2 - 4*x)
 same_set(solve(Eq((x + 2)**2, 4), x), [0, -4]); same_set(solve(gq, x), [0, -4])
+same(expand(gq - y), expand((4 - y) - (x + 2)**2))       # g(x) = y means (x + 2)^2 = 4 - y
 same(simplify(gq.subs(x, -2 + sqrt(4 - y))), y)
 same(function_range(gq, x, R), Interval(-oo, 4))
 ```

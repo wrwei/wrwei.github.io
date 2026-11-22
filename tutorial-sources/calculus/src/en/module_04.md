@@ -28,6 +28,7 @@ The quotient equals $9.8a + 4.9h$ for every $h \ne 0$, and a limit as $h \to 0$ 
 ```check
 s49 = Rational(49, 10)*t**2
 dq1 = (s49.subs(t, a + h) - s49.subs(t, a))/h
+same(cancel(dq1.subs(a, 1)), Rational(98, 10) + Rational(49, 10)*h)   # the quotient at t = 1 (Example 1.12)
 same(cancel(dq1), Rational(98, 10)*a + Rational(49, 10)*h)
 limit_is(dq1, h, 0, Rational(98, 10)*a)
 same((Rational(98, 10)*a + Rational(49, 10)*h).subs(h, 0), Rational(98, 10)*a)
@@ -47,20 +48,22 @@ Velocity has a sign: a positive velocity means that the object is moving in the 
 ::: example A braking car
 Suppose a driver brakes steadily, and $t$ seconds after braking begins the car has travelled $s(t) = 20t - 2t^2$ metres. (The numbers are made up.) Find the velocity at time $a$, what the speedometer shows at $t = 0$ and at $t = 2$, and when and where the car stops.
 
-Substitute $a + h$ for $t$ and expand:
+Substitute $a + h$ for $t$, keeping the brackets, and expand, with $(a + h)^2 = a^2 + 2ah + h^2$:
 
-$$\begin{aligned} s(a + h) &= 20(a + h) - 2(a + h)^2 \\ &= 20a + 20h \\ &\quad - 2a^2 - 4ah - 2h^2. \end{aligned}$$
+$$\begin{aligned} &s(a + h) \\ &\quad= 20(a + h) - 2(a + h)^2 \\ &\quad= 20a + 20h - 2(a^2 + 2ah + h^2) \\ &\quad= 20a + 20h - 2a^2 - 4ah - 2h^2. \end{aligned}$$
 
-Subtract $s(a) = 20a - 2a^2$: $s(a + h) - s(a) = 20h - 4ah - 2h^2$. Divide by $h \ne 0$ and let $h \to 0$:
+Subtract $s(a) = 20a - 2a^2$: the terms $20a$ and $-2a^2$ cancel, and $s(a + h) - s(a) = 20h - 4ah - 2h^2$. Every remaining term contains $h$, so divide by $h$ (allowed, since $h \ne 0$), then let $h \to 0$:
 
-$$\begin{aligned} v(a) &= \lim_{h\to0}\,(20 - 4a - 2h) \\ &= 20 - 4a \text{ m/s}. \end{aligned}$$
+$$\begin{aligned} v(a) &= \lim_{h\to0}\frac{20h - 4ah - 2h^2}{h} \\ &= \lim_{h\to0}\,(20 - 4a - 2h) \\ &= 20 - 4a \text{ m/s}. \end{aligned}$$
 
 At $t = 0$ the speedometer shows 20 m/s, which is 72 km/h (multiply m/s by 3.6 to get km/h); at $t = 2$ it shows $20 - 8 = 12$ m/s. The velocity falls by 4 m/s every second and reaches 0 when $20 - 4a = 0$, at $t = 5$ s. By then the car has travelled $s(5) = 100 - 50 = 50$ m. The formula describes the car only for $0 \le t \le 5$: after $t = 5$ it would have the car reversing, which brakes do not do.
 
 ```check
 sc = 20*t - 2*t**2
-steps(sc.subs(t, a + h), 20*(a + h) - 2*(a + h)**2, 20*a + 20*h - 2*a**2 - 4*a*h - 2*h**2)
+same(expand((a + h)**2), a**2 + 2*a*h + h**2)
+steps(sc.subs(t, a + h), 20*(a + h) - 2*(a + h)**2, 20*a + 20*h - 2*(a**2 + 2*a*h + h**2), 20*a + 20*h - 2*a**2 - 4*a*h - 2*h**2)
 same(sc.subs(t, a + h) - sc.subs(t, a), 20*h - 4*a*h - 2*h**2)
+steps(Limit((20*h - 4*a*h - 2*h**2)/h, h, 0, '+-'), Limit(20 - 4*a - 2*h, h, 0, '+-'), 20 - 4*a)
 same((sc.subs(t, a + h) - sc.subs(t, a))/h, 20 - 4*a - 2*h)
 limit_is((sc.subs(t, a + h) - sc.subs(t, a))/h, h, 0, 20 - 4*a)
 same((20 - 4*a).subs(a, 0), 20); same(20*Rational(36, 10), 72); same((20 - 4*a).subs(a, 2), 12)
