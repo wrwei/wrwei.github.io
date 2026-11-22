@@ -121,7 +121,10 @@ def fig_09_4(L):
     # An odd function: each region has a mirror image of the opposite sign.
     a = axs[1]
     o = lambda x: x**3 - 3 * x
-    math_axes(a, (-2.45, 2.45), (-2.6, 2.6), xticks=[-2, 2], yticks=[-2, 2], ylabel='')
+    # The curve crosses the axis at -sqrt(3), right next to the place of the tick label -2 below the axis; that
+    # label goes above the axis instead, where the graph is not, mirroring the label 2 below it on the right.
+    math_axes(a, (-2.45, 2.45), (-2.6, 2.6), xticks=[(-2, ''), (2, '2')], yticks=[-2, 2], ylabel='')
+    label(a, -2, 0.2, '−2', color=C['slate'], size=10, ha='center', va='bottom', halo=True)
     xs = np.linspace(-2, 2, 800)
     a.fill_between(xs, 0, o(xs), where=o(xs) >= 0, color=C['blue'], alpha=0.25, lw=0, zorder=2)
     a.fill_between(xs, 0, o(xs), where=o(xs) <= 0, color=C['orange'], alpha=0.30, lw=0, zorder=2)
@@ -133,7 +136,7 @@ def fig_09_4(L):
     # An even function: the two halves have equal areas.
     a = axs[2]
     e = lambda x: 2.4 - 0.6 * x**2
-    math_axes(a, (-2.45, 2.45), (-0.6, 3.0), xticks=[-1.5, 1.5], yticks=[1, 2], ylabel='')
+    math_axes(a, (-2.45, 2.45), (-0.6, 3.0), xticks=[(-1.5, r'$-a$'), (1.5, r'$a$')], yticks=[1, 2], ylabel='')
     shade(a, e, -1.5, 0, color=C['blue'], alpha=0.25)
     shade(a, e, 0, 1.5, color=C['green'], alpha=0.25)
     plot_fn(a, e, -2.0, 2.0)

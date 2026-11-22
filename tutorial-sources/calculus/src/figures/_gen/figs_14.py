@@ -31,7 +31,7 @@ def fig_14_1(L):
     label(ax, 12.0, 0.62, r'$1 - \varepsilon = 0.75$', color=C['orange'], size=11)
     label(ax, 0.35, 1.07, r'limit $L = 1$', color=C['slate'], size=11)
     label(ax, 1.4, 0.13, r'$a_1 = 0$', color=C['navy'], size=11)
-    label(ax, 2.3, 1.56, r'$a_2 = 1.5$', color=C['navy'], size=11)
+    label(ax, 2.0, 1.64, r'$a_2 = 1.5$', color=C['navy'], size=11, ha='center')
     return fig
 
 

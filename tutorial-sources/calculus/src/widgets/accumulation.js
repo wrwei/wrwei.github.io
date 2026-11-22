@@ -15,6 +15,7 @@ CalcWidgets.register('accumulation', function (root, api) {
   ]
   var BIG = 1e8          // a value of f beyond this counts as "too large": A is not computed through it
   var GRID = 200         // segments of the graph of A
+  var LIMIT = 20000      // evaluations of f allowed for one piece of an integral (see integral below)
   var state = { f: null, view: PRESETS[0].view.slice(), a: PRESETS[0].a, x: PRESETS[0].x, curve: null, fy: [-1, 1], Ay: [-1, 1] }
 
   function two(v) { return String(Math.round(v * 100) / 100).replace('-', '−') }
@@ -31,19 +32,38 @@ CalcWidgets.register('accumulation', function (root, api) {
   // A numerical result: rounding noise below 1e-7 is shown as 0.
   function approx(v, sig) { return Math.abs(v) < 1e-7 ? '0' : num.fmt(v, sig || 4) }
 
-  // The integral of f from p to q (either order), or NaN when f is undefined or beyond BIG on the way.
-  function integral(p, q) {
-    if (p === q) return 0
-    var bad = false
+  // The integral of f from p to q (either order): { r: value } or { r: NaN, why: reason }.
+  // The interval is cut into pieces no wider than a grid step, so that a lucky first estimate cannot
+  // hide an oscillation or a spike, and each piece is integrated adaptively. It fails ('value') where
+  // f is undefined or beyond BIG at a point it samples, and ('settle') where a piece does not settle
+  // within LIMIT evaluations: near a point where f is unbounded, as 1/x is near 0, the adaptive steps
+  // pile up without end, and the integral does not exist; a function that oscillates too fast does the
+  // same. Results are kept until f changes: one redraw asks for the same integrals several times.
+  var cache = {}, cached = 0
+  function integralInfo(p, q) {
+    if (p === q) return { r: 0 }
+    var key = p + ' ' + q
+    if (cache[key]) return cache[key]
+    var why = '', evals = 0
     var g = function (s) {
       var y
+      evals++
       try { y = state.f(s) } catch (e) { y = NaN }
-      if (!isFinite(y) || Math.abs(y) > BIG) { bad = true; return 0 }
+      if (!isFinite(y) || Math.abs(y) > BIG) { why = why || 'value'; return 0 }
       return y
     }
-    var r = num.integrate(g, p, q, 1e-11)
-    return bad || !isFinite(r) ? NaN : r
+    var n = Math.max(1, Math.ceil(Math.abs(q - p) / ((state.view[1] - state.view[0]) / GRID) - 1e-9)), total = 0
+    for (var k = 0; k < n && !why; k++) {
+      evals = 0
+      total += num.integrate(g, p + (q - p) * k / n, p + (q - p) * (k + 1) / n, 1e-11, LIMIT)
+      if (evals > LIMIT && !why) why = 'settle'
+    }
+    var res = why || !isFinite(total) ? { r: NaN, why: why || 'value' } : { r: total }
+    if (++cached > 5000) { cache = {}; cached = 0 }
+    cache[key] = res
+    return res
   }
+  function integral(p, q) { return integralInfo(p, q).r }
 
   // The graph of A: from a outwards in both directions, segment by segment; past a point where f is
   // undefined (or too large) A is not defined.
@@ -96,7 +116,9 @@ CalcWidgets.register('accumulation', function (root, api) {
 
   // The slope of A at x, measured from A: the left and right difference quotients of A at two steps.
   // For a continuous f they agree (both are averages of f over shrinking intervals); where f jumps they
-  // differ by the size of the jump, however small the step.
+  // differ by the size of the jump, however small the step. The slope shown combines the two steps,
+  // (10 × finer − coarser)/9: that removes the part of the error proportional to the step (at a corner
+  // of f, such as 0 for |x|, the average of the two quotients is off by half the step) and shrinks the rest.
   function slope(x) {
     var s = 1e-4 * (1 + Math.abs(x))
     function lr(d) { return [integral(x - d, x) / d, integral(x, x + d) / d] }
@@ -104,7 +126,7 @@ CalcWidgets.register('accumulation', function (root, api) {
     if (!p.concat(q).every(isFinite)) return { kind: 'side' }
     var gap1 = Math.abs(p[1] - p[0]), gap2 = Math.abs(q[1] - q[0])
     if (gap1 > 1e-3 * (1 + Math.abs(p[0]) + Math.abs(p[1])) && gap2 > 0.5 * gap1) return { kind: 'corner', L: q[0], R: q[1] }
-    return { kind: 'ok', d: (p[0] + p[1]) / 2 }
+    return { kind: 'ok', d: (10 * (q[0] + q[1]) / 2 - (p[0] + p[1]) / 2) / 9 }
   }
 
   // ------------------------------------------------------------ controls
@@ -230,6 +252,7 @@ CalcWidgets.register('accumulation', function (root, api) {
     if (!r.ok) { field.error(r.error); return false }
     field.error('')
     state.f = function (s) { return r.f(s) }
+    cache = {}; cached = 0
     return true
   }
   function newCurve() {
@@ -249,9 +272,11 @@ CalcWidgets.register('accumulation', function (root, api) {
   function describe() {
     var a = state.a, x = state.x
     var lines = ['a = ' + two(a) + ', x = ' + two(x)]
-    var Ax = integral(a, x)
+    var info = integralInfo(a, x), Ax = info.r
     if (!isFinite(Ax)) {
-      lines.push(t('A(x) is not defined: f is undefined, or larger than 10⁸, somewhere between a and x.',
+      if (info.why === 'settle') lines.push(t('A(x) cannot be computed: somewhere between a and x, f is unbounded (then A(x) is not defined) or oscillates too fast for the numerical method.',
+        '无法计算 A(x)：在 a 与 x 之间某处，f 无界（此时 A(x) 没有定义），或者振荡太快，数值方法无法处理。'))
+      else lines.push(t('A(x) is not defined: f is undefined, or larger than 10⁸, somewhere between a and x.',
         'A(x) 没有定义：在 a 与 x 之间，f 在某处无定义或大于 10⁸。'))
       return lines.join('\n')
     }

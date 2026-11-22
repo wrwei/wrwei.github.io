@@ -1,7 +1,7 @@
 ---
 title: Sequences and series
 part: 4
-lead: Learn when an infinite list of numbers settles down to a limit, and what it means to add up infinitely many numbers. You will sum geometric and telescoping series, see why the harmonic series diverges although its terms shrink to 0, decide convergence with a toolkit of tests, and estimate sums with a guaranteed error.
+lead: Learn when an infinite list of numbers settles down to a limit, and what it means to add up infinitely many numbers. You will sum geometric and telescoping series, see why the harmonic series diverges although its terms shrink to 0, decide convergence with a toolkit of tests, and estimate sums with a guaranteed bound on the error.
 minutes: 270
 needs: Modules 1 to 13, especially limits (Modules 2 and 3), L'Hôpital's rule (Module 7) and improper integrals (Module 12)
 goals:
@@ -100,7 +100,7 @@ limit_is((3*n + 1)/(n + 2), n, oo, 3)
 ```
 :::
 
-A sequence diverges when its terms never settle. The terms of $(-1)^n$ alternate between $-1$ and $1$ for ever; the argument of [Example 2.14](module_02_EN.html#no-limit-proof), with the triangle inequality, shows that no number $L$ is their limit (Exercise 14.1 has a similar sequence). The terms of $n^2$ grow without bound: $n^2 \to \infty$. A sequence that diverges to infinity has no limit in the sense of Definition 14.2; writing $a_n \to \infty$ says how it diverges. A convergent sequence has only one limit, by the argument at the end of [Section 2.7](module_02_EN.html#no-limit-proof). And the first terms never matter: changing, adding or removing finitely many terms changes neither whether a sequence converges nor its limit.
+A sequence diverges when its terms never settle. The terms of $(-1)^n$ alternate between $-1$ and $1$ for ever; the argument of [Example 2.14](module_02_EN.html#no-limit-proof), with the triangle inequality, shows that no number $L$ is their limit (Exercise 14.1 has a similar sequence). The terms of $n^2$ grow without bound: $n^2 \to \infty$. A sequence that diverges to infinity has no limit in the sense of Definition 14.2; writing $a_n \to \infty$ says how it diverges. A convergent sequence has only one limit, by the argument that follows Example 2.14 in [Section 2.7](module_02_EN.html#no-limit-proof). And the first terms never matter: changing, adding or removing finitely many terms changes neither whether a sequence converges nor its limit.
 
 ```check
 same([(-1)**j for j in range(1, 7)], [-1, 1, -1, 1, -1, 1]); limit_is(n**2, n, oo, oo)
@@ -138,7 +138,7 @@ limit_is(sqrt(4 + 1/n), n, oo, 2); limit_is(1/n, n, oo, 0)
 If $b_n \le a_n \le c_n$ for every $n$ from some index on, and $b_n \to L$ and $c_n \to L$, then $a_n \to L$. In particular, if $\abs{a_n} \to 0$, then $a_n \to 0$.
 :::
 
-The second sentence follows from the first, since $-\abs{a_n} \le a_n \le \abs{a_n}$ and $-\abs{a_n} \to 0$ by the constant multiple law. The proof of the first is that of [Theorem 2.4](module_02_EN.html#squeeze), with $N$ in place of $\delta$.
+The second sentence follows from the first, since $-\abs{a_n} \le a_n \le \abs{a_n}$ and $-\abs{a_n} \to 0$ by the constant multiple law. The proof of the first is that of [Theorem 2.4](module_02_EN.html#squeeze), in the Going deeper box of Section 2.7, with $N$ in place of $\delta$.
 
 The most important sequences of this module are the powers $r^n$ of a fixed number $r$.
 
@@ -221,7 +221,7 @@ If $\displaystyle\lim_{x\to\infty} f(x) = L$ and $a_n = f(n)$ for every whole nu
 :::
 
 ::: proof
-Let $\varepsilon > 0$. Since $f(x) \to L$ as $x \to \infty$, there is a number $N$ such that $\abs{f(x) - L} < \varepsilon$ for every real number $x > N$: that is what "for every large enough $x$" in Definition 3.7 means. In particular this holds for every whole number $n > N$, so $\abs{a_n - L} < \varepsilon$ for those $n$. The proof for $\pm\infty$ is the same, with a bound $M$ in place of the band.
+Let $\varepsilon > 0$. Since $f(x) \to L$ as $x \to \infty$, there is a number $N$ such that $\abs{f(x) - L} < \varepsilon$ for every real number $x > N$: that is the precise form of Definition 3.7, given in the Going deeper box at the end of Section 3.7. In particular this holds for every whole number $n > N$, so $\abs{a_n - L} < \varepsilon$ for those $n$. The proof for $\pm\infty$ is the same, with a bound $M$ in place of the band.
 :::
 
 You cannot differentiate $a_n$ with respect to $n$, because a sequence is defined only at whole numbers. Apply L'Hôpital's rule to the function $f(x)$, then Theorem 14.4.
@@ -271,7 +271,7 @@ holds(all(sqrt(2) - floor(sqrt(2)*10**j)/Integer(10)**j < Rational(1, 10**j) for
 A sequence $(a_n)$ is **increasing** if $a_n \le a_{n+1}$ for every $n$, and **decreasing** if $a_n \ge a_{n+1}$ for every $n$; it is **monotone** if it is one or the other. It is **bounded above** if there is a number $M$, an **upper bound**, with $a_n \le M$ for every $n$; **bounded below** if there is a number $m$, a **lower bound**, with $a_n \ge m$ for every $n$; and **bounded** if it is both.
 :::
 
-Some books call these sequences "non-decreasing" and "non-increasing", and keep "increasing" for sequences with $a_n < a_{n+1}$; this module says **strictly increasing** for those.
+An increasing sequence may repeat a term; one with $a_n < a_{n+1}$ for every $n$ is **strictly increasing**, and strictly decreasing is defined in the same way. Some books call the sequences of the definition "non-decreasing" and "non-increasing" instead. Note the difference from Modules 4 and 8, where an increasing function is one that rises strictly: for sequences, this module allows equal neighbours.
 
 ### The Monotone Convergence Theorem {#mct}
 
@@ -279,17 +279,20 @@ Some books call these sequences "non-decreasing" and "non-increasing", and keep 
 An increasing sequence that is bounded above converges, and its limit is at least every term and at most every upper bound. A decreasing sequence that is bounded below converges, and its limit is at most every term and at least every lower bound.
 :::
 
-This theorem is not proved from anything earlier in the course. It is a form of the **completeness** of the real numbers, the property that the number line has no gaps, which the proof of the Intermediate Value Theorem needed in [Module 3](module_03_EN.html#ivt). Courses in real analysis either construct the real numbers and prove completeness, or take it as an axiom, a basic property from which the rest is proved; this course takes the Monotone Convergence Theorem as its starting point. The decimal approximations of $\sqrt2$ show why it is a property of the real numbers and not of numbers in general. Every term is a fraction, and the sequence is increasing and bounded above, yet no fraction is its limit, because $\sqrt2$ is irrational. Among the fractions alone, the sequence closes in on a gap, and has no limit.
+This theorem is not proved from anything earlier in the course. It is a form of the **completeness** of the real numbers, the property that the number line has no gaps. Courses in real analysis either construct the real numbers and prove completeness, or take it as an axiom, a basic property from which the rest is proved. This course takes it as an axiom, and the Monotone Convergence Theorem is the form in which the course states it. The decimal approximations of $\sqrt2$ show why it is a property of the real numbers and not of numbers in general. Every term is a fraction, and the sequence is increasing and bounded above, yet no fraction is its limit, because $\sqrt2$ is irrational. Among the fractions alone, the sequence closes in on a gap, and has no limit.
 
-The second half of each statement can be proved. Limits keep non-strict inequalities: if $a_n \le M$ for every $n$ and $a_n \to L$, then $L \le M$. Indeed, if $L$ were greater than $M$, the challenge $\varepsilon = L - M$ would give terms with $a_n > L - \varepsilon = M$. Applied to an upper bound $M$, this says that the limit is at most $M$. Applied to the terms $a_m$, $a_{m+1}, \dots$, which are all at least $a_m$ when the sequence increases, it says that the limit is at least $a_m$.
+The second half of each statement can be proved. Limits keep non-strict inequalities: if $a_n \le M$ for every $n$ and $a_n \to L$, then $L \le M$. Indeed, if $L$ were greater than $M$, the challenge $\varepsilon = L - M$ would give terms with $a_n > L - \varepsilon = M$. In the same way, if $a_n \ge c$ for every $n$ from some index on, then $L \ge c$. Applied to an upper bound $M$, the first statement says that the limit is at most $M$. When the sequence increases, the terms $a_m, a_{m+1}, \dots$ are all at least $a_m$, so the second statement, with $c = a_m$, says that the limit is at least $a_m$.
 
 ```check
 LL_, MM_ = symbols('L M', real=True)
 same(LL_ - (LL_ - MM_), MM_)           # the challenge eps = L - M leaves terms above L - eps = M
+same(LL_ + (MM_ - LL_), MM_)           # and if L < c = M, the challenge eps = c - L leaves terms below L + eps = c
 ```
 
+Module 3's proof of the Intermediate Value Theorem ([Section 3.3](module_03_EN.html#ivt)) used completeness in another form: if each of the intervals $[a_0, b_0], [a_1, b_1], [a_2, b_2], \dots$ lies inside the one before, then some number $c$ lies in all of them. The Monotone Convergence Theorem proves it. The left ends increase, $a_0 \le a_1 \le a_2 \le \cdots$, and every right end $b_m$ is an upper bound for them: $a_n \le b_n \le b_m$ when $n \ge m$, and $a_n \le a_m \le b_m$ when $n < m$. So the $a_n$ converge to a number $c$ that is at least every $a_n$ and at most every $b_m$, and $c$ lies in every interval, as Module 3 needed.
+
 ::: keyidea
-The Monotone Convergence Theorem proves that a limit exists without saying what it is. That is its role. Module 3 used it to prove the Intermediate Value Theorem, and Module 6 to show that the slope of $2^x$ at 0 exists ([Section 6.1](module_06_EN.html#base-e)). Above all, the partial sums of a series with positive terms increase, so such a series converges exactly when its partial sums are bounded: every convergence test for positive terms in Sections 14.5 and 14.6 rests on this.
+The Monotone Convergence Theorem proves that a limit exists without saying what it is. That is its role. Module 3 used it to prove the Intermediate Value Theorem. Modules 6 and 12 used the same property for functions, to sketch why the slope of $2^x$ at 0 exists ([Section 6.1](module_06_EN.html#base-e)) and to compare improper integrals ([Section 12.8](module_12_EN.html#comparison)). Above all, the partial sums of a series with positive terms increase, so such a series converges exactly when its partial sums are bounded: every convergence test for positive terms in Sections 14.5 and 14.6 rests on this.
 :::
 
 ::: deeper Completeness and least upper bounds
@@ -313,7 +316,7 @@ To find $L$, take limits on both sides of the recursion. The left side, $x_{n+1}
 
 $$\begin{aligned} L &= \frac12\Big(L + \frac2L\Big), \quad\text{so} \\ 2L &= L + \frac2L, \quad L = \frac2L, \quad L^2 = 2. \end{aligned}$$
 
-Since $L \ge \sqrt2 > 0$, $L = \sqrt2$. Module 7 proved more, with its formula for the error: how fast the iterates approach $\sqrt2$. This argument needs no formula for the error, and the same three steps work for many recursions that have none.
+Since $L \ge \sqrt2 > 0$, $L = \sqrt2$. Module 7 proved more: its formula $x_{n+1} - \sqrt2 = \dfrac{(x_n - \sqrt2)^2}{2x_n}$ shows how fast the iterates approach $\sqrt2$. This argument needs no such formula, and the same three steps work for many recursions that have none.
 
 ```check
 itn = [Integer(1)]
@@ -325,10 +328,12 @@ holds(all(itn[j + 1] <= itn[j] for j in range(1, 8)))   # decreasing from x_1 on
 Lp = symbols('L', positive=True)
 same(solve(Eq(Lp, (Lp + 2/Lp)/2), Lp), [sqrt(2)])
 steps(2*Lp - (Lp + 2/Lp), Lp - 2/Lp); same(solve(Eq(Lp, 2/Lp), Lp), [sqrt(2)])
+xpos = symbols('x', positive=True)
+same((xpos + 2/xpos)/2 - sqrt(2), (xpos - sqrt(2))**2/(2*xpos))   # Module 7's formula, with a = 2
 ```
 :::
 
-To show that every term of a recursive sequence has some property, use **mathematical induction**: show that the first term has it, and that whenever a term $a_n$ has it, so does the next term $a_{n+1}$. Then $a_1$ has the property, so $a_2$ has it, so $a_3$ has it, and so on for every $n$. Module 3 proved $(1 + q)^n \ge 1 + nq$ in this way.
+To show that every term of a recursive sequence has some property, use mathematical induction ([Section 9.2](module_09_EN.html#power-sums)): show that the first term has it (the base case), and that whenever a term $a_n$ has it, so does the next term $a_{n+1}$ (the inductive step). Then $a_1$ has the property, so $a_2$ has it, so $a_3$ has it, and so on for every $n$. Module 3 proved $(1 + q)^n \ge 1 + nq$ in this way.
 
 ::: example A recursive sequence
 Let $a_1 = 1$ and $a_{n+1} = \sqrt{2 + a_n}$ for $n \ge 1$. Show that the sequence converges, and find its limit.
@@ -791,11 +796,12 @@ Given any number $M$, choose $k$ with $1 + k/2 > M$. For every $N \ge 2^k$, $S_N
 :::
 
 ```check
-for j in range(2, 14):
+for j in range(2, 11):
     blk = sum(Rational(1, i) for i in range(2**(j - 1) + 1, 2**j + 1))
     holds(blk >= Rational(1, 2)); holds(all(Rational(1, i) >= Rational(1, 2**j) for i in range(2**(j - 1) + 1, 2**j + 1)))
+    same(2**j - 2**(j - 1), 2**(j - 1))                     # the block ending at 2^j has 2^(j-1) terms
 holds(Rational(1, 3) + Rational(1, 4) >= Rational(1, 2)); same(4*Rational(1, 8), Rational(1, 2))
-for kk in range(1, 15):
+for kk in range(1, 11):
     holds(harmonic(2**kk) >= 1 + Rational(kk, 2))
 ```
 
@@ -815,7 +821,7 @@ The harmonic series holds up a famous stack of blocks. Stack $n$ identical block
 
 $$\frac12 + \frac14 + \cdots + \frac{1}{2n} = \frac12\Big(1 + \frac12 + \cdots + \frac1n\Big)$$
 
-beyond the edge of the table. Because the harmonic series diverges, the overhang can be as large as you like. Four blocks already put the top one wholly beyond the edge, since $\tfrac12\big(1 + \tfrac12 + \tfrac13 + \tfrac14\big) = \tfrac{25}{24} > 1$; an overhang of 10 lengths needs 272,400,600 blocks.
+beyond the edge of the table. Because the harmonic series diverges, the overhang can be as large as you like. Four blocks already put the top one wholly beyond the edge, since $\tfrac12\big(1 + \tfrac12 + \tfrac13 + \tfrac14\big) = \tfrac{25}{24} > 1$; stacked this way, an overhang of 10 lengths needs 272,400,600 blocks.
 
 ```check
 same(sum(Rational(1, 2*j) for j in range(1, 5)), Rational(25, 24)); holds(Rational(25, 24) > 1)
@@ -867,10 +873,10 @@ $$f(n + 1) \le \int_n^{n+1} f(x)\,dx \le f(n).$$
 
 Adding the right-hand inequalities for $n = 1, \dots, N$ gives $\int_1^{N+1} f(x)\,dx \le a_1 + \cdots + a_N = S_N$. Adding the left-hand ones for $n = 1, \dots, N - 1$ gives $a_2 + \cdots + a_N \le \int_1^N f(x)\,dx$, which is the right-hand inequality of the theorem.
 
-The terms are positive, so $(S_N)$ increases. If $\int_1^{\infty} f(x)\,dx$ converges, to $I$ say, then $\int_1^N f(x)\,dx \le I$, because $f$ is positive; so $S_N \le f(1) + I$ for every $N$, and the series converges by the Monotone Convergence Theorem. If the integral diverges, then $\int_1^t f(x)\,dx$, which increases with $t$, grows without bound, so $S_N \ge \int_1^{N+1} f(x)\,dx \to \infty$ and the series diverges.
+The terms are positive, so $(S_N)$ increases. If $\int_1^{\infty} f(x)\,dx$ converges, to $I$ say, then $\int_1^N f(x)\,dx \le I$, because $f$ is positive; so $S_N \le f(1) + I$ for every $N$, and the series converges by the Monotone Convergence Theorem. If the integral diverges, then $\int_1^t f(x)\,dx$, which increases with $t$, is not bounded above (an increasing function that is bounded above has a limit, [Section 12.8](module_12_EN.html#comparison)), so it grows without bound; then $S_N \ge \int_1^{N+1} f(x)\,dx \to \infty$ and the series diverges.
 :::
 
-Each hypothesis is needed. Continuity makes the integrals exist, and positivity makes the partial sums increase. Decreasing is what puts the rectangles on the right sides of the curve, and without it the test can give the wrong answer. For $f(x) = \sin^2(\pi x) + 1/x^2$, which is continuous and positive but not decreasing, $f(n) = 1/n^2$ for every whole number $n$, so the series converges; but each interval $[n, n + 1]$ contributes more than $\tfrac12$ to the integral, which diverges.
+Each hypothesis has a job. Continuity makes the integrals exist (Module 9), and positivity makes the partial sums increase. Decreasing is what puts the rectangles on the right sides of the curve, and without it the test can give the wrong answer. For $f(x) = \sin^2(\pi x) + 1/x^2$, which is continuous and positive but not decreasing, $f(n) = 1/n^2$ for every whole number $n$, so the series converges; but each interval $[n, n + 1]$ contributes more than $\tfrac12$ to the integral, which diverges.
 
 ```check
 ni = symbols('n', integer=True)
@@ -886,7 +892,7 @@ The **$p$-series** $\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^p}$ converges if 
 :::
 
 ::: proof
-If $p \le 0$, then $1/n^p = n^{-p} \ge 1$ for every $n \ge 1$, so the terms do not tend to 0, and the series diverges by the divergence test. If $p > 0$, the function $f(x) = 1/x^p$ is continuous, positive and decreasing on $[1, \infty)$. Module 12 showed that the $p$-integral $\int_1^{\infty} dx/x^p$ converges exactly when $p > 1$: for $p \ne 1$,
+If $p \le 0$, then $1/n^p = n^{-p} \ge 1$ for every $n \ge 1$, so the terms do not tend to 0, and the series diverges by the divergence test. If $p > 0$, the function $f(x) = 1/x^p$ is continuous, positive and decreasing on $[1, \infty)$. [Theorem 12.2](module_12_EN.html#p-integrals) showed that the $p$-integral $\int_1^{\infty} dx/x^p$ converges exactly when $p > 1$: for $p \ne 1$,
 
 $$\int_1^t \frac{dx}{x^p} = \frac{t^{1-p} - 1}{1 - p},$$
 
@@ -905,7 +911,7 @@ The $p$-series are the yardsticks of the next section. For $p = 2$ the sum is kn
 
 $$\sum_{n=1}^{\infty}\frac{1}{n^2} = \frac{\pi^2}{6} \approx 1.644934,$$
 
-but the proof needs methods beyond this course. There are such formulas for every even $p$, for instance $\sum 1/n^4 = \pi^4/90$, but for $p = 3$ no formula is known; the next subsection shows how to estimate the sum.
+but its proof is beyond the scope of this module. There are such formulas for every even $p$, for instance $\sum 1/n^4 = \pi^4/90$, but for $p = 3$ no formula is known; the next subsection shows how to estimate the sum.
 
 ```check
 same(summation(1/n**2, (n, 1, oo)), pi**2/6); rounds(pi**2/6, '1.644934'); same(summation(1/n**4, (n, 1, oo)), pi**4/90)
@@ -949,7 +955,7 @@ The same rectangles do more than decide. They bound the error of a partial sum. 
 
 $$R_N = S - S_N = a_{N+1} + a_{N+2} + \cdots,$$
 
-the sum of the terms left out.
+the sum of the terms left out. It is the error of the approximation $S \approx S_N$: the exact value minus the approximation, as everywhere in this course.
 
 ::: theorem Remainder estimate for the integral test
 Under the hypotheses of the integral test, if $\sum a_n$ converges, then
@@ -966,15 +972,15 @@ Use the inequalities $f(n + 1) \le \int_n^{n+1} f(x)\,dx \le f(n)$ of the last p
 :::
 
 ::: example Estimating $\sum 1/n^2$
-Estimate $\sum_{n=1}^{\infty} 1/n^2$ from its first 10 terms, with a guaranteed error.
+Estimate $\sum_{n=1}^{\infty} 1/n^2$ from its first 10 terms, with a guaranteed bound on the error.
 
 The partial sum is $S_{10} = 1 + \tfrac14 + \cdots + \tfrac{1}{100} \approx 1.549768$. With $f(x) = 1/x^2$, $\int_N^{\infty} dx/x^2 = 1/N$, so the theorem gives
 
 $$\begin{aligned} \frac{1}{11} &\le R_{10} \le \frac{1}{10}, \quad\text{so} \\ 1.640677 &\le S \le 1.649768. \end{aligned}$$
 
-The partial sum alone is off by almost 0.1, but the interval pins $S$ down to within 0.01. Its midpoint, $S \approx 1.645222$, has an error of at most half the width of the interval, about 0.0045; the true error is $0.000288$, since $S = \pi^2/6 \approx 1.644934$.
+The partial sum alone is off by almost 0.1, but the interval pins $S$ down to within 0.01. Its midpoint, $S \approx 1.645222$, has an error of size at most half the width of the interval, about 0.0045. In fact $S = \pi^2/6 \approx 1.644934$, so the true error of the midpoint, $\pi^2/6$ minus the midpoint, is about $-0.000288$: the midpoint is slightly too large.
 
-The difference is dramatic for high accuracy. For an error of at most $10^{-6}$, the partial sum alone needs about a million terms, because $R_N \ge 1/(N + 1)$. The midpoint estimate has an error of at most half the width of the interval, $\tfrac12\big(\tfrac1N - \tfrac{1}{N + 1}\big) = \dfrac{1}{2N(N + 1)}$, which is at most $10^{-6}$ once $N \ge 707$.
+The difference is dramatic for high accuracy. For an error of size at most $10^{-6}$, the partial sum alone needs about a million terms, because its error $R_N$ is at least $1/(N + 1)$. The midpoint estimate has an error of size at most half the width of the interval, $\tfrac12\big(\tfrac1N - \tfrac{1}{N + 1}\big) = \dfrac{1}{2N(N + 1)}$, which is at most $10^{-6}$ once $N \ge 707$.
 
 ```check
 S10 = harmonic(10, 2); same(S10, sum(Rational(1, j**2) for j in range(1, 11))); rounds(S10, '1.549768')
@@ -983,7 +989,7 @@ same(integrate(1/x**2, (x, Np, oo)), 1/Np)
 rounds(S10 + Rational(1, 11), '1.640677'); rounds(S10 + Rational(1, 10), '1.649768')
 holds(S10 + Rational(1, 11) <= pi**2/6); holds(pi**2/6 <= S10 + Rational(1, 10)); holds(Rational(1, 10) - Rational(1, 11) < Rational(1, 100))
 mid = S10 + (Rational(1, 11) + Rational(1, 10))/2; rounds(mid, '1.645222'); rounds((Rational(1, 10) - Rational(1, 11))/2, '0.0045')
-rounds(mid - pi**2/6, '0.000288'); rounds(pi**2/6, '1.644934')
+rounds(pi**2/6 - mid, '-0.000288'); rounds(pi**2/6, '1.644934'); holds(mid > pi**2/6)
 steps((1/Np - 1/(Np + 1))/2, 1/(2*Np*(Np + 1)))
 holds(Rational(1, 2*707*708) <= Rational(1, 10**6)); holds(Rational(1, 2*706*707) > Rational(1, 10**6))
 holds(Rational(1, 10**6 + 1) < Rational(1, 10**6)); holds(Rational(1, 999998 + 1) > Rational(1, 10**6))   # R_N >= 1/(N+1) > 1e-6 for N < 999999
@@ -1176,13 +1182,13 @@ N | S_N | \abs{\ln 2 - S_N} | \dfrac{1}{N + 1}
 6 | 0.616667 | 0.0764805 | 0.142857
 ```
 
-The error is always smaller than the first term left out, $\tfrac{1}{N + 1}$ (in fact about half of it). The next theorem proves this for every series of this kind.
+The error $\ln 2 - S_N$ changes sign with every step, and its size is always smaller than the size of the first term left out, $\tfrac{1}{N + 1}$ (in fact about half of it). The next theorem proves this for every series of this kind.
 
 ```check
 altS = lambda Nn: sum(Rational((-1)**(j - 1), j) for j in range(1, Nn + 1))
 for Nn in range(1, 40):
     same(altS(Nn), harmonic(Nn) - harmonic(floor(Rational(Nn, 2))))
-    holds(Abs(log(2) - altS(Nn)) < Rational(1, Nn + 1))
+    holds(Abs(log(2) - altS(Nn)) < Rational(1, Nn + 1)); holds((log(2) - altS(Nn))*(log(2) - altS(Nn + 1)) < 0)
 same([altS(1), altS(2)], [1, Rational(1, 2)]); rounds(altS(3), '0.833'); rounds(altS(4), '0.583'); rounds(log(2), '0.693147')
 holds(all(Rational(4, 10) < Abs(log(2) - altS(Nn))*(Nn + 1) < Rational(65, 100) for Nn in range(1, 200)))   # about half the bound
 ```
@@ -1200,7 +1206,7 @@ converges. Its sum $S$ lies between any two consecutive partial sums, so
 
 $$\abs{S - S_N} \le b_{N+1}:$$
 
-the error of $S_N$ is at most the first term left out, and $S - S_N$ lies between 0 and that term, $(-1)^N b_{N+1}$. The same holds with every sign reversed, or with the series starting at another index.
+the error $S - S_N$ of the partial sum $S_N$ is no larger in size than the first term left out, and it lies between 0 and that term, $(-1)^N b_{N+1}$. The same holds with every sign reversed, or with the series starting at another index. If the $b_n$ decrease only from some index on, the series still converges (Theorem 14.6), and the error bound holds for the partial sums from that index on.
 :::
 
 ::: proof
@@ -1222,22 +1228,22 @@ same(Sp(4) - Sp(2), bsym[2] - bsym[3]); same(Sp(5) - Sp(3), -(bsym[3] - bsym[4])
 same(Sp(6), bsym[0] - (bsym[1] - bsym[2]) - (bsym[3] - bsym[4]) - bsym[5]); same(Sp(5) - Sp(4), bsym[4])
 ```
 
-The alternating harmonic series satisfies the hypotheses, since $b_n = 1/n$ is positive, decreasing and tends to 0: it converges. Its sum is $\ln 2$, a fact stated here and proved in Module 15 with the power series of $\ln(1 + x)$ (Exercise 14.11 gives another proof). The error bound shows how slowly it converges: to be sure of an error of at most 0.001 from the bound $\tfrac{1}{N + 1}$, you need $N = 999$ terms. It converges, but not because its terms are small: their sizes $1/n$ add up to infinity. The cancellation between positive and negative terms does the work. Section 14.8 names this kind of convergence.
+The alternating harmonic series satisfies the hypotheses, since $b_n = 1/n$ is positive, decreasing and tends to 0: it converges. Its sum is $\ln 2$, a fact stated here and proved in Module 15 with the power series of $\ln(1 + x)$ (Exercise 14.11 gives another proof). The error bound shows how slowly it converges: to be sure of an error of size at most 0.001 from the bound $\tfrac{1}{N + 1}$, you need $N = 999$ terms. It converges, but not because its terms are small: their sizes $1/n$ add up to infinity. The cancellation between positive and negative terms does the work. Section 14.8 names this kind of convergence.
 
 ```check
 same(summation((-1)**(n - 1)/n, (n, 1, oo)), log(2)); holds(Rational(1, 999 + 1) <= Rational(1, 1000)); holds(Rational(1, 998 + 1) > Rational(1, 1000))
 ```
 
 ::: example An alternating series estimate
-Estimate the sum of $\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^n}{n!} = 1 - 1 + \frac{1}{2!} - \frac{1}{3!} + \cdots$ with an error of at most 0.001.
+Estimate the sum of $\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^n}{n!} = 1 - 1 + \frac{1}{2!} - \frac{1}{3!} + \cdots$ with an error of size at most 0.001.
 
 Here $b_n = 1/n!$ for $n \ge 0$. These numbers are positive; they decrease, since $b_{n+1} = \dfrac{b_n}{n + 1} \le b_n$; and they tend to 0, since $n! \ge n$, so that $0 < 1/n! \le 1/n$ for $n \ge 1$. The test applies, starting at $n = 0$.
 
-The first term left out must be at most 0.001. Since $\tfrac{1}{6!} = \tfrac{1}{720} \approx 0.00139$ is too big and $\tfrac{1}{7!} = \tfrac{1}{5040} \approx 0.000198$ is small enough, add the terms up to $n = 6$:
+The first term left out must be at most 0.001 in size. Since $\tfrac{1}{6!} = \tfrac{1}{720} \approx 0.00139$ is too big and $\tfrac{1}{7!} = \tfrac{1}{5040} \approx 0.000198$ is small enough, add the terms up to $n = 6$:
 
 $$\begin{aligned} S_7 &= 1 - 1 + \frac12 - \frac16 + \frac{1}{24} \\ &\qquad - \frac{1}{120} + \frac{1}{720} \\ &= \frac{53}{144} \approx 0.368056. \end{aligned}$$
 
-The error is at most $\tfrac{1}{5040} \approx 0.000198$, and $S - S_7$ lies between 0 and the first term left out, $-\tfrac{1}{5040}$, so the sum lies a little below $S_7$:
+The error $S - S_7$ is at most $\tfrac{1}{5040} \approx 0.000198$ in size, and it lies between 0 and the first term left out, $-\tfrac{1}{5040}$, so the sum lies a little below $S_7$:
 
 $$0.367857 \le S \le 0.368056.$$
 
@@ -1440,7 +1446,7 @@ Suppose that $\displaystyle\lim_{n\to\infty}\abs{a_n}^{1/n} = \rho$, a number or
 :::
 
 ::: proof
-If $\rho < 1$, choose $r$ with $\rho < r < 1$. From some index on, $\abs{a_n}^{1/n} < r$, that is, $\abs{a_n} < r^n$, and $\sum r^n$ converges: compare. If $\rho > 1$, then from some index on $\abs{a_n}^{1/n} > 1$, so $\abs{a_n} > 1$, and the terms do not tend to 0. For $\rho = 1$: both $\sum 1/n$ and $\sum 1/n^2$ have $\rho = 1$, since $n^{1/n} \to 1$ (Example 14.3), so that $(1/n)^{1/n} = 1/n^{1/n} \to 1$ and $(1/n^2)^{1/n} = 1/\big(n^{1/n}\big)^2 \to 1$.
+If $\rho < 1$, choose $r$ with $\rho < r < 1$. From some index on, $\abs{a_n}^{1/n} < r$, that is, $\abs{a_n} < r^n$, and $\sum r^n$ converges: compare. If $\rho > 1$ or $\rho = \infty$, then from some index on $\abs{a_n}^{1/n} > 1$, so $\abs{a_n} > 1$, and the terms do not tend to 0. For $\rho = 1$: both $\sum 1/n$ and $\sum 1/n^2$ have $\rho = 1$, since $n^{1/n} \to 1$ (Example 14.3), so that $(1/n)^{1/n} = 1/n^{1/n} \to 1$ and $(1/n^2)^{1/n} = 1/\big(n^{1/n}\big)^2 \to 1$.
 :::
 
 For example, for $\displaystyle\sum_{n=1}^{\infty}\Big(\frac{n}{2n + 1}\Big)^n$, $\abs{a_n}^{1/n} = \dfrac{n}{2n + 1} = \dfrac{1}{2 + 1/n} \to \dfrac12 < 1$: the series converges.
@@ -1458,11 +1464,11 @@ No single test decides every series, and a test whose hypotheses fail tells you 
 2. **Is it a series you know?** A geometric series $\sum ar^n$ converges exactly when $\abs{r} < 1$, and a $p$-series $\sum 1/n^p$ exactly when $p > 1$. Is it telescoping?
 3. **Positive terms built from powers of $n$**, such as rational functions and roots: compare, usually by limit comparison with the $p$-series given by the leading terms.
 4. **Factorials, or exponentials such as $2^n$**: the ratio test. **A whole expression raised to the power $n$**: the root test.
-5. **Terms $f(n)$ with an $f$ you can integrate**, such as $\dfrac{1}{n\ln n}$: the integral test, after checking that $f$ is positive and decreasing.
+5. **Terms $f(n)$ with an $f$ you can integrate**, such as $\dfrac{1}{n\ln n}$: the integral test, after checking that $f$ is continuous, positive and decreasing.
 6. **Signs that alternate**: first test $\sum \abs{a_n}$ with steps 2 to 5. If it converges, the series converges absolutely; if not, try the alternating series test, which may show conditional convergence.
 7. **Other mixed signs**: test $\sum \abs{a_n}$.
 
-The hypotheses need to hold only from some index on, since the first terms never decide convergence (Theorem 14.6).
+The hypotheses need to hold only from some index on, since the first terms never decide convergence (Theorem 14.6). The error bounds of Sections 14.5 and 14.7 then hold for the partial sums from that index on.
 
 ::: example Choosing a test
 Decide whether each series converges, and say which test shows it.
@@ -1505,7 +1511,7 @@ same(integrate(1/sqrt(u), (u, log(2), log(tq))), 2*sqrt(log(tq)) - 2*sqrt(log(2)
 ```
 :::
 
-Deciding whether a series converges is one question; finding its sum is another, and usually harder. Most convergent series, such as $\sum 1/n^3$, have no known formula for their sum. Then estimate the sum with a guaranteed error: the integral test for positive decreasing terms (Section 14.5), the alternating series bound (Section 14.7), or a comparison of the remainder with a geometric series (Exercise 14.10 shows how). Module 15 turns to series whose terms contain a variable $x$, the power series, which represent functions such as $e^x$ and $\sin x$, and proves the sums $\ln 2$ and $e$ that this module has quoted.
+Deciding whether a series converges is one question; finding its sum is another, and usually harder. Most convergent series, such as $\sum 1/n^3$, have no known formula for their sum. Then estimate the sum with a guaranteed bound on the error: the integral test for positive decreasing terms (Section 14.5), the alternating series bound (Section 14.7), or a comparison of the remainder with a geometric series (Exercise 14.10 shows how). Module 15 turns to series whose terms contain a variable $x$, the power series, which represent functions such as $e^x$ and $\sin x$, and proves the sums $\ln 2$ and $e$ that this module has quoted.
 
 ## What you learned {#summary}
 
@@ -1649,7 +1655,7 @@ limit_is(1 - 1/sqrt(n + 1), n, oo, 1)
 
 :::: exercise An ε–N proof {#ex-14-5} ★★
 - (a) Prove from Definition 14.2 that $\displaystyle\lim_{n\to\infty}\frac{2n - 1}{n + 4} = 2$.
-- (b) Find the smallest whole number $N$ such that every term after the $N$th is within 0.001 of 2.
+- (b) Find the smallest whole number $N$ that answers the challenge $\varepsilon = 0.001$: every term after the $N$th is less than 0.001 from 2.
 
 ::: solution
 **(a)** *Scratch work.* $\abs{\dfrac{2n - 1}{n + 4} - 2} = \abs{\dfrac{2n - 1 - 2(n + 4)}{n + 4}} = \dfrac{9}{n + 4}$, since the numerator is $-9$ and $n + 4 > 0$. This is less than $\varepsilon$ when $n + 4 > 9/\varepsilon$, so $N = 9/\varepsilon$ will do.
@@ -1764,21 +1770,21 @@ holds(Sum((n + 4)/(n**3 + 2*n), (n, 1, oo)).is_convergent()); holds(not Sum((sqr
 Let $S = \displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n-1}}{n\,2^n} = \frac12 - \frac18 + \frac{1}{24} - \cdots$
 
 - (a) Show that the series converges.
-- (b) How many terms guarantee an error of less than 0.001? Compute that partial sum, and give an interval that contains $S$.
+- (b) How many terms guarantee an error of size less than 0.001? Compute that partial sum, and give an interval that contains $S$.
 - (c) Module 15 shows that $S = \ln\tfrac32$. Is it in your interval?
 
 ::: solution
 **(a)** $b_n = \dfrac{1}{n\,2^n}$ is positive; it decreases, because $n\,2^n$ increases with $n$; and it tends to 0. By the alternating series test the series converges. (It even converges absolutely, since $b_n \le 1/2^n$.)
 
-**(b)** The first term left out must be less than 0.001, that is, $(N + 1)2^{N+1} > 1000$. For $N + 1 = 7$, $7 \cdot 128 = 896$ is too small; for $N + 1 = 8$, $8 \cdot 256 = 2048$ is enough. So 7 terms:
+**(b)** The first term left out must be less than 0.001 in size, that is, $(N + 1)2^{N+1} > 1000$. For $N + 1 = 7$, $7 \cdot 128 = 896$ is too small; for $N + 1 = 8$, $8 \cdot 256 = 2048$ is enough. So 7 terms:
 
 $$\begin{aligned} S_7 &= \frac12 - \frac18 + \frac{1}{24} - \frac{1}{64} \\ &\qquad + \frac{1}{160} - \frac{1}{384} + \frac{1}{896} \\ &= \frac{909}{2240} \approx 0.405804. \end{aligned}$$
 
-The error is at most $b_8 = \tfrac{1}{2048} \approx 0.000488$, and $S - S_7$ lies between 0 and the first term left out, $-\tfrac{1}{2048}$. So
+The error $S - S_7$ is at most $b_8 = \tfrac{1}{2048} \approx 0.000488$ in size, and it lies between 0 and the first term left out, $-\tfrac{1}{2048}$. So
 
 $$0.405315 \le S \le 0.405804.$$
 
-**(c)** $\ln 1.5 \approx 0.405465$ lies in the interval; the error of $S_7$ is about 0.000338, less than the bound.
+**(c)** $\ln 1.5 \approx 0.405465$ lies in the interval. The error of $S_7$ is $\ln 1.5 - S_7 \approx -0.000338$: negative, like the first term left out, and smaller in size than the bound.
 
 ```check
 holds(all((j + 1)*2**(j + 1) > j*2**j for j in range(1, 60))); limit_is(1/(n*2**n), n, oo, 0)
@@ -1786,7 +1792,8 @@ same(7*2**7, 896); same(8*2**8, 2048)
 S7c = sum(Rational((-1)**(j - 1), j*2**j) for j in range(1, 8)); same(S7c, Rational(909, 2240)); rounds(S7c, '0.405804')
 rounds(Rational(1, 2048), '0.000488'); rounds(S7c - Rational(1, 2048), '0.405315')
 same(summation((-1)**(n - 1)/(n*2**n), (n, 1, oo)), log(Rational(3, 2))); rounds(log(Rational(3, 2)), '0.405465')
-holds(S7c - Rational(1, 2048) <= log(Rational(3, 2))); holds(log(Rational(3, 2)) <= S7c); rounds(S7c - log(Rational(3, 2)), '0.000338')
+holds(S7c - Rational(1, 2048) <= log(Rational(3, 2))); holds(log(Rational(3, 2)) <= S7c); rounds(log(Rational(3, 2)) - S7c, '-0.000338')
+holds(Abs(log(Rational(3, 2)) - S7c) < Rational(1, 2048))
 ```
 :::
 ::::
@@ -1922,12 +1929,12 @@ for p_, q_ in ((3, -5), (-2, -7), (Rational(1, 2), 4), (0, 3)):
 - [ ] gives $\rho = \tfrac12$, so the series converges
 > $\dfrac{a_{n+1}}{a_n} = \dfrac{n^2}{(n + 1)^2} \to 1$. With $\rho = 1$ the ratio test says nothing: the harmonic series also has $\rho = 1$ and diverges. The convergence comes from the $p$-series test (or the integral test).
 
-? The partial sum $S_9 = 1 - \tfrac12 + \tfrac13 - \cdots + \tfrac19$ of the alternating harmonic series approximates its sum $\ln 2$ with an error of at most
+? The partial sum $S_9 = 1 - \tfrac12 + \tfrac13 - \cdots + \tfrac19$ of the alternating harmonic series approximates its sum $\ln 2$ with an error whose size is at most
 - [ ] $\dfrac19$
 - [ ] $\dfrac{1}{100}$
 - [x] $\dfrac{1}{10}$
 - [ ] $\dfrac{1}{81}$
-> By the alternating series test, $\abs{S - S_N} \le b_{N+1}$, the first term left out: $\tfrac{1}{10}$. $\tfrac19$ is the last term included. The true error, about 0.052, is indeed below $\tfrac{1}{10}$, and $S_9$ lies above $\ln 2$ because the first term left out, $-\tfrac{1}{10}$, is negative.
+> By the alternating series test, $\abs{S - S_N} \le b_{N+1}$, the size of the first term left out: $\tfrac{1}{10}$. $\tfrac19$ is the last term included. The true error, $\ln 2 - S_9 \approx -0.052$, is indeed smaller than $\tfrac{1}{10}$ in size. It is negative, and $S_9$ lies above $\ln 2$, because the first term left out, $-\tfrac{1}{10}$, is negative.
 
 ? The series $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^n}{\sqrt n}$
 - [ ] converges absolutely
@@ -1950,7 +1957,7 @@ same(summation(Rational(2, 3)**n, (n, 1, oo)), 2); same(1/(1 - Rational(2, 3)), 
 holds(not Sum(1/n, (n, 1, oo)).is_convergent()); holds(Sum(1/n**2, (n, 1, oo)).is_convergent())
 holds(Sum(n**Rational(-11, 10), (n, 1, oo)).is_convergent()); holds(not Sum(n**Rational(-9, 10), (n, 1, oo)).is_convergent())
 limit_is((1/(n + 1)**2)/(1/n**2), n, oo, 1)
-S9q = altS(9); holds(Abs(S9q - log(2)) <= Rational(1, 10)); rounds(S9q - log(2), '0.052'); holds(S9q > log(2))
+S9q = altS(9); holds(Abs(S9q - log(2)) <= Rational(1, 10)); rounds(log(2) - S9q, '-0.052'); holds(S9q > log(2))
 holds(Sum((-1)**n/sqrt(n), (n, 1, oo)).is_convergent()); holds(not Sum(1/sqrt(n), (n, 1, oo)).is_convergent())
 q8 = [Integer(0)]
 for _ in range(10):

@@ -3,8 +3,8 @@
  * adds up, and compare the result with the integral itself, computed accurately by adaptive Simpson
  * quadrature (api.num.integrate). The error is the integral minus the approximation, as in the modules.
  * A table keeps the error at the last few values of n, with the ratio of
- * successive errors when n has doubled: about 2 for the left and right sums, 4 for the midpoint and
- * trapezoid rules and 16 for Simpson's rule, for a smooth f. */
+ * successive errors when n has doubled: about 2 for the left and right sums (4 when f(a) = f(b)), 4 for the
+ * midpoint and trapezoid rules and 16 for Simpson's rule, for a smooth f. */
 CalcWidgets.register('riemann-sums', function (root, api) {
   var t = api.t, h = api.h
   var NMAX = 200, ROWS = 6
@@ -337,8 +337,18 @@ CalcWidgets.register('riemann-sums', function (root, api) {
     msg.textContent = c.msg || ''
     note.textContent = S.note
     renderTable()
-    factorNote.textContent = t('Ratio: the previous error divided by this one, shown when n has doubled. For a smooth f, doubling n divides the error of ' + S.rule.of + ' by about ' + S.rule.factor + '.',
-      '比值：上一个误差除以这一个，在 n 加倍时显示。对光滑的 f，n 加倍时' + S.rule.name + '的误差约缩小为原来的 1/' + S.rule.factor + '。')
+    // When f(a) = f(b), the left and right sums are equal (they differ by Δx·(f(b) − f(a))), and both equal the
+    // trapezoidal rule: for a smooth f their error falls like 1/n², not 1/n (sin x on [0, π], for example).
+    var endsEqual = false
+    if (c.scan && (S.rule.value === 'left' || S.rule.value === 'right')) {
+      var fe = fcur(), ya = safe(fe, S.a), yb = safe(fe, S.b)
+      endsEqual = Math.abs(ya - yb) <= 1e-12 * Math.max(c.scan.top, 1e-300)
+    }
+    factorNote.textContent = endsEqual
+      ? t('Ratio: the previous error divided by this one, shown when n has doubled. Here f(a) = f(b), so the left and right sums are equal, and for a smooth f doubling n divides their error by about 4, not 2.',
+        '比值：上一个误差除以这一个，在 n 加倍时显示。这里 f(a) = f(b)，所以左和与右和相等；对光滑的 f，n 加倍时它们的误差约缩小为原来的 1/4，而不是 1/2。')
+      : t('Ratio: the previous error divided by this one, shown when n has doubled. For a smooth f, doubling n divides the error of ' + S.rule.of + ' by about ' + S.rule.factor + '.',
+        '比值：上一个误差除以这一个，在 n 加倍时显示。对光滑的 f，n 加倍时' + S.rule.name + '的误差约缩小为原来的 1/' + S.rule.factor + '。')
     P.redraw()
   }
 

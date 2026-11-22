@@ -502,11 +502,14 @@ The proof checks the formula; it does not show how anyone could find it. Here is
 
 $$\int \sec x\,dx = \int \frac{\sec^2 x + \sec x\tan x}{\sec x + \tan x}\,dx,$$
 
-and the numerator is the derivative of the denominator, so the substitution $w = \sec x + \tan x$ gives $\int \dfrac{dw}{w} = \ln\abs{w} + C$. Tricks like this one come from experience, which is one reason to check every antiderivative by differentiating it.
+and the numerator is the derivative of the denominator, so the substitution $w = \sec x + \tan x$ gives $\int \dfrac{dw}{w} = \ln\abs{w} + C$. Tricks like this one come from experience, which is one reason to check every antiderivative by differentiating it. The same trick with $\csc x - \cot x$, whose derivative is $\csc^2 x - \csc x\cot x$, gives $\int \csc x\,dx = \ln\abs{\csc x - \cot x} + C$ on every interval on which $\sin x \ne 0$.
 
 ```check
 same(sec(x)*(sec(x) + tan(x))/(sec(x) + tan(x)), (sec(x)**2 + sec(x)*tan(x))/(sec(x) + tan(x)))
 same(diff(sec(x) + tan(x), x), sec(x)**2 + sec(x)*tan(x))
+same(diff(csc(x) - cot(x), x), csc(x)**2 - csc(x)*cot(x)); same(csc(x)*(csc(x) - cot(x)), csc(x)**2 - csc(x)*cot(x))
+same(csc(x) - cot(x), (1 - cos(x))/sin(x)); same((1 - cos(x)**2).subs(cos(x), 1), 0)    # csc - cot = 0 would need cos x = 1, so sin x = 0
+antideriv(log(csc(x) - cot(x)), csc(x), x); antideriv(log(-(csc(x) - cot(x))), csc(x), x)   # where csc - cot > 0, and where it is < 0
 ```
 
 ::: example The secant cubed
@@ -530,7 +533,7 @@ antideriv(sec(x)*tan(x)/2 + log(sec(x) + tan(x))/2, sec(x)**3, x); antideriv(sec
 
 ## Trigonometric substitution {#trig-substitution}
 
-The area of a disc of radius $r$ is $\pi r^2$, and Module 9 used that formula to evaluate integrals such as $\int_0^3 \sqrt{9 - x^2}\,dx$ ([Section 9.6](module_09_EN.html#geometry)). Now integration can prove the formula. The upper half of the circle $x^2 + y^2 = r^2$ is the graph of $y = \sqrt{r^2 - x^2}$, but no substitution $u = g(x)$ of Module 10 helps with this integrand: there is no factor $g'(x)$ to go with $dx$. Instead, go the other way, and replace $x$ by a function of a new variable. Since $1 - \sin^2\theta = \cos^2\theta$, the substitution $x = r\sin\theta$ turns $\sqrt{r^2 - x^2}$ into $\sqrt{r^2\cos^2\theta}$, a square root that goes away.
+The area of a disc of radius $r$ is $\pi r^2$, and Module 9 used that formula to evaluate integrals such as $\int_0^3 \sqrt{9 - x^2}\,dx$ ([Exercise 9.4](module_09_EN.html#ex-9-4)). Now integration can find such areas itself. The upper half of the circle $x^2 + y^2 = r^2$ is the graph of $y = \sqrt{r^2 - x^2}$, but no substitution $u = g(x)$ of Module 10 helps with this integrand: there is no factor $g'(x)$ to go with $dx$. Instead, go the other way, and replace $x$ by a function of a new variable. Since $1 - \sin^2\theta = \cos^2\theta$, the substitution $x = r\sin\theta$ turns $\sqrt{r^2 - x^2}$ into $\sqrt{r^2\cos^2\theta}$, a square root that goes away.
 
 The substitution rule of Module 10 justifies this, read from right to left.
 
@@ -563,6 +566,8 @@ Three substitutions cover the three square roots of the form $\sqrt{\pm x^2 \pm 
 
 The ranges of $\theta$ do two jobs. On them $\cos\theta \ge 0$, $\sec\theta > 0$ and $\tan\theta \ge 0$ respectively, so the square roots are $\sqrt{a^2 - x^2} = a\cos\theta$, $\sqrt{a^2 + x^2} = a\sec\theta$ and $\sqrt{x^2 - a^2} = a\tan\theta$, with no absolute value signs. And on them each substitution is one-to-one, so $\theta$ can be recovered from $x$: $\theta = \arcsin\dfrac{x}{a}$, $\theta = \arctan\dfrac{x}{a}$ and, for $x \ge a$, $\theta = \arccos\dfrac{a}{x}$ (since $\sec\theta = x/a$ means $\cos\theta = a/x$).
 
+The secant row covers only $x \ge a$. For $x \le -a$, take $\tfrac{\pi}{2} < \theta \le \pi$ instead, where $\sec\theta \le -1$. There $\tan\theta \le 0$, so $\sqrt{x^2 - a^2} = \abs{a\tan\theta} = -a\tan\theta$, and the minus sign must be carried through the calculation. In both cases $\theta = \arccos\dfrac{a}{x}$, which is $\arcsec\dfrac{x}{a}$ in the convention of [Module 6](module_06_EN.html#inverse-trig). Often it is simpler to put $x = -t$ first, so that $t \ge a$.
+
 ```check
 ap = symbols('a', positive=True)
 same(ap**2 - (ap*sin(theta))**2, (ap*cos(theta))**2); same(ap**2 + (ap*tan(theta))**2, (ap*sec(theta))**2); same((ap*sec(theta))**2 - ap**2, (ap*tan(theta))**2)
@@ -572,16 +577,20 @@ for th_ in (Rational(-3, 2), -1, 0, 1, Rational(3, 2)):
     holds(sec(th_) > 0); near(sqrt(4 + (2*tan(th_))**2), 2*sec(th_), 1e-20); same(atan(2*tan(th_)/2), th_)
 for th_ in (0, Rational(1, 2), 1, Rational(3, 2)):
     holds(tan(th_) >= 0); same(sqrt((2*sec(th_))**2 - 4), 2*tan(th_)); same(acos(2/(2*sec(th_))), th_)
+for th_ in (Rational(17, 10), 2, Rational(5, 2), 3, pi):          # pi/2 < theta <= pi: x = 2 sec(theta) <= -2
+    holds(sec(th_) <= -1); holds(tan(th_) <= 0); near(sqrt((2*sec(th_))**2 - 4), -2*tan(th_), 1e-25); near(acos(2/(2*sec(th_))), th_, 1e-25)
+near(asec(-3), acos(-Rational(1, 3)), 1e-25); near(asec(3), acos(Rational(1, 3)), 1e-25)   # arcsec(x/a) = arccos(a/x), as in Module 6
+holds(pi/2 < acos(-Rational(1, 3)) < pi)                                # x <= -a gives theta in (pi/2, pi]
 ```
 
 ::: example The area of a circle and of an ellipse
 Find the area enclosed by the circle $x^2 + y^2 = r^2$, and by the ellipse $\dfrac{x^2}{a^2} + \dfrac{y^2}{b^2} = 1$, where $r$, $a$ and $b$ are positive.
 
-**The circle.** The disc lies between the lower half $y = -\sqrt{r^2 - x^2}$ and the upper half $y = \sqrt{r^2 - x^2}$, for $-r \le x \le r$, so its area is $\int_{-r}^{r} 2\sqrt{r^2 - x^2}\,dx$. Substitute $x = r\sin\theta$ with $-\tfrac{\pi}{2} \le \theta \le \tfrac{\pi}{2}$. Then $dx = r\cos\theta\,d\theta$, and $\sqrt{r^2 - r^2\sin^2\theta} = \sqrt{r^2\cos^2\theta} = r\cos\theta$, because $\cos\theta \ge 0$ on this range. The limits $x = -r$ and $x = r$ correspond to $\theta = -\tfrac{\pi}{2}$ and $\theta = \tfrac{\pi}{2}$. By Theorem 11.5(a) and Example 11.9(a),
+**The circle.** The upper half of the disc is the region under the graph of $y = \sqrt{r^2 - x^2}$, for $-r \le x \le r$, and the lower half is its mirror image in the $x$-axis. So the area of the disc is $\int_{-r}^{r} 2\sqrt{r^2 - x^2}\,dx$. Substitute $x = r\sin\theta$ with $-\tfrac{\pi}{2} \le \theta \le \tfrac{\pi}{2}$. Then $dx = r\cos\theta\,d\theta$, and $\sqrt{r^2 - r^2\sin^2\theta} = \sqrt{r^2\cos^2\theta} = r\cos\theta$, because $\cos\theta \ge 0$ on this range. The limits $x = -r$ and $x = r$ correspond to $\theta = -\tfrac{\pi}{2}$ and $\theta = \tfrac{\pi}{2}$. By Theorem 11.5(a) and Example 11.9(a),
 
 $$\begin{aligned} &\int_{-r}^{r} 2\sqrt{r^2 - x^2}\,dx \\ &\quad= \int_{-\pi/2}^{\pi/2} 2r\cos\theta\cdot r\cos\theta\,d\theta \\ &\quad= 2r^2\int_{-\pi/2}^{\pi/2} \cos^2\theta\,d\theta \\ &\quad= 2r^2\Big[\frac{\theta}{2} + \frac{\sin 2\theta}{4}\Big]_{-\pi/2}^{\pi/2} \\ &\quad= 2r^2\cdot\frac{\pi}{2} = \pi r^2. \end{aligned}$$
 
-**The ellipse.** Solving its equation for $y$, the ellipse is the region between $y = -\tfrac{b}{a}\sqrt{a^2 - x^2}$ and $y = \tfrac{b}{a}\sqrt{a^2 - x^2}$, for $-a \le x \le a$. Its area is $\tfrac{b}{a}$ times that of the disc of radius $a$:
+**The ellipse.** Solving its equation for $y$ gives $y = \pm\tfrac{b}{a}\sqrt{a^2 - x^2}$, for $-a \le x \le a$. In the same way, the upper half of the region inside the ellipse lies under the graph of $y = \tfrac{b}{a}\sqrt{a^2 - x^2}$, and the lower half is its mirror image. So the area is $\tfrac{b}{a}$ times that of the disc of radius $a$:
 
 $$\frac{b}{a}\int_{-a}^{a} 2\sqrt{a^2 - x^2}\,dx = \frac{b}{a}\cdot\pi a^2 = \pi ab.$$
 
@@ -599,7 +608,12 @@ steps(bp/ap*Integral(2*sqrt(ap**2 - x**2), (x, -ap, ap)), bp/ap*pi*ap**2, pi*ap*
 same((pi*ap*bp).subs({ap: rp, bp: rp}), pi*rp**2)
 near(N(Integral(2*sqrt(4 - x**2), (x, -2, 2)), 30), N(4*pi, 30), 1e-20)                  # independent numerical value, r = 2
 near(N(Rational(3, 2)*Integral(2*sqrt(4 - x**2), (x, -2, 2)), 30), N(pi*2*3, 30), 1e-20)   # a = 2, b = 3
+same_set(solve(Eq(x**2 + y**2, rp**2), y), [sqrt(rp**2 - x**2), -sqrt(rp**2 - x**2)])   # the two halves, mirror images in the x-axis
 ```
+:::
+
+::: note
+Example 11.12 does not prove from nothing that a disc has area $\pi r^2$. It uses the derivatives of the sine and cosine (Module 5). They rest on the limit $\sin\theta/\theta \to 1$, and [Module 2](module_02_EN.html#trig-limits) proved that limit with the area $\pi$ of the disc of radius 1, taken from geometry. What the example proves is that this one fact gives the area of every disc and of every ellipse.
 :::
 
 ### Back to x with a triangle {#triangle}
@@ -698,7 +712,7 @@ Adding fractions is school algebra:
 
 $$\begin{aligned} \frac{2}{x - 2} + \frac{3}{x + 1} &= \frac{2(x + 1) + 3(x - 2)}{(x - 2)(x + 1)} \\ &= \frac{5x - 4}{x^2 - x - 2}. \end{aligned}$$
 
-The left side is easy to integrate, to $2\ln\abs{x - 2} + 3\ln\abs{x + 1} + C$. So the right side is easy to integrate too, once you can run the addition backwards. Writing a rational function as a sum of simpler fractions of this kind is called decomposing it into **partial fractions**, and it works for every rational function.
+The left side is easy to integrate, to $2\ln\abs{x - 2} + 3\ln\abs{x + 1} + C$. So the right side is easy to integrate too, once you can run the addition backwards. Writing a rational function as a sum of simpler fractions of this kind is called decomposing it into **partial fractions**. Every rational function can be decomposed, with a polynomial added in front when it is improper (below).
 
 ```check
 steps(2/(x - 2) + 3/(x + 1), (2*(x + 1) + 3*(x - 2))/((x - 2)*(x + 1)), (5*x - 4)/(x**2 - x - 2))
@@ -834,7 +848,7 @@ antideriv(x**2/2 + x + log(x - 1) + 2*log(x + 2), Pd/Qd, x); antideriv(x**2/2 + 
 Two things can complicate a denominator. A factor may be repeated, as in $(x - 1)^2(x + 1)$. And a quadratic factor such as $x^2 + 1$ may have no real zeros, so that it does not split into real linear factors. A quadratic $x^2 + px + q$ with $p^2 < 4q$ (a negative discriminant) is called **irreducible**. A theorem of algebra, which this series uses without proof, says that every polynomial with real coefficients is a product of a constant, linear factors and irreducible quadratic factors. (It follows from the fundamental theorem of algebra.) So the next theorem covers every proper rational function, at least in principle: finding the factors of $Q$ can be the hard part.
 
 ::: theorem Partial fraction decomposition
-Let $\dfrac{P(x)}{Q(x)}$ be a proper rational function, and let $Q$ be factored into powers of different linear factors $x - r$ and of different irreducible quadratic factors $x^2 + px + q$. Then $\dfrac{P(x)}{Q(x)}$ is a sum of the following terms, with unique constants:
+Let $\dfrac{P(x)}{Q(x)}$ be a proper rational function, and let $Q$ be factored as a constant times powers of different linear factors $x - r$ and of different irreducible quadratic factors $x^2 + px + q$. Then $\dfrac{P(x)}{Q(x)}$ is a sum of the following terms, with unique constants:
 
 - for each factor $(x - r)^k$ of $Q$, the $k$ terms $\dfrac{A_1}{x - r} + \dfrac{A_2}{(x - r)^2} + \dots + \dfrac{A_k}{(x - r)^k}$;
 - for each factor $\big(x^2 + px + q\big)^m$ of $Q$, the $m$ terms $\dfrac{B_1x + C_1}{x^2 + px + q} + \dots + \dfrac{B_mx + C_m}{\big(x^2 + px + q\big)^m}$.
@@ -1071,12 +1085,12 @@ rounds(log(2), '0.693147180559945')
 ```
 
 ::: pitfall
-Three things to remember about a computer's antiderivative. **(1)** It leaves out "$+\,C$" and usually the absolute value bars, and it may use complex logarithms. **(2)** A different-looking answer may well be right: differentiate it, or compare it with yours at a few points, where the difference must be the same constant. **(3)** An unevaluated `Integral(...)` means that SymPy found no antiderivative, not that none exists; and a correct answer can be so long that a numerical value (Section 11.7) is more useful.
+Three things to remember about a computer's antiderivative. **(1)** It leaves out "$+\,C$" and usually the absolute value bars, and it may use complex logarithms. **(2)** A different-looking answer may well be right: differentiate it, or compare it with yours at a few points of one interval, where the difference must be the same constant. **(3)** An unevaluated `Integral(...)` means that SymPy found no antiderivative, not that none exists; and a correct answer can be so long that a numerical value (Section 11.7) is more useful.
 :::
 
 ### Functions with no elementary antiderivative {#nonelementary}
 
-The integral of the last Compute it box is not unusual. Most of the functions in this module's examples were chosen because their antiderivatives can be written down; most functions that turn up in practice cannot be integrated that way.
+The integral of the last Compute it box is not unusual. Most of the functions in this module's examples were chosen because their antiderivatives can be written down; many functions that turn up in practice cannot be integrated that way.
 
 ::: definition Elementary function
 An **elementary function** is a function that can be built from constants and $x$ with finitely many additions, subtractions, multiplications, divisions, powers, roots, exponentials, logarithms, trigonometric and inverse trigonometric functions, and compositions of these.
@@ -1086,9 +1100,9 @@ Every function of Module 1's catalogue is elementary, and so are combinations su
 
 $$e^{-x^2}, \quad \frac{\sin x}{x}, \quad \frac{1}{\ln x}, \quad \frac{e^x}{x}, \quad \sin\big(x^2\big)$$
 
-has an elementary antiderivative. The proofs are beyond this series. The consequence is not: no cleverness with the methods of this module will find such an antiderivative, because none exists.
+has an elementary antiderivative; nor has $e^{x^2}$, which Example 11.2 met. This series proves neither Liouville's theorem nor these consequences of it: the proofs need algebra beyond the series. What they mean is not beyond it: no cleverness with the methods of this module will find such an antiderivative, because none exists.
 
-These functions do have antiderivatives, all the same. Each is continuous on an interval, so by Part 1 of the Fundamental Theorem its area function is an antiderivative ([Section 10.4](module_10_EN.html#ftc1)). The most useful of them have names, and their values are computed numerically, in the same way as calculators compute $\sin x$ and $\ln x$.
+These functions do have antiderivatives, all the same. Each is continuous on every interval inside its domain, so by Part 1 of the Fundamental Theorem ([Section 10.4](module_10_EN.html#ftc1)) an area function $\int_a^x f(t)\,dt$, with $a$ in such an interval, is an antiderivative there. The most useful of them have names, and their values are computed numerically, in the same way as calculators compute $\sin x$ and $\ln x$.
 
 ::: definition Three functions defined by integrals
 - The **error function** is $\operatorname{erf} x = \dfrac{2}{\sqrt\pi}\displaystyle\int_0^x e^{-t^2}\,dt$, for every real $x$ (Module 10).
@@ -1111,7 +1125,7 @@ x | \operatorname{erf} x | \operatorname{Si} x
 3 | 0.999978 | 1.84865
 ```
 
-The error function is the workhorse of probability, where $e^{-x^2}$ is the shape of the normal distribution (Module 12). The sine integral turns up in signal processing and optics. The logarithmic integral counts primes: the number of prime numbers up to $x$ is close to $\operatorname{Li} x$ when $x$ is large, in the sense that their ratio tends to 1 as $x \to \infty$. That is the prime number theorem, and the Compute it box below tests it at a million.
+The error function is the workhorse of probability, where $e^{-x^2}$ is the shape of the normal distribution (Module 12). The sine integral turns up in signal processing and optics. The logarithmic integral counts primes: the number of prime numbers up to $x$ is close to $\operatorname{Li} x$ when $x$ is large, in the sense that their ratio tends to 1 as $x \to \infty$. That is the prime number theorem, and the Compute it box below compares the two at a million.
 
 ```check
 xq = symbols('x', positive=True)
@@ -1121,6 +1135,7 @@ same(diff(Integral(1/log(t), (t, 2, xq)), xq), 1/log(xq)); same(diff(Li(x), x), 
 near(Integral(1/log(t), (t, 2, 10)).evalf(30), Li(10).evalf(30), 1e-20)
 near(Integral(sin(t)/t, (t, 0, 2)).evalf(30), Si(2).evalf(30), 1e-20)
 same(sinh(x), (exp(x) - exp(-x))/2)
+same(integrate(exp(x**2), x), sqrt(pi)*erfi(x)/2)                      # e^{x^2}: SymPy too answers with a named non-elementary function
 ```
 
 ::: figure id=fig-11-3
@@ -1182,7 +1197,7 @@ rounds(sqrt(pi)*erf(1)/2, '0.746824'); antideriv(-exp(-x**2)/2, x*exp(-x**2), x)
 
 ## Numerical integration {#numerical}
 
-Two kinds of integral call for numbers rather than formulas: integrals of functions with no elementary antiderivative, such as $\int_0^1 e^{-x^2}\,dx$, and integrals of functions known only through measurements, such as a speed or a power read every few seconds. A **numerical integration rule** computes an integral from values of the integrand. Module 9 met the **midpoint rule**
+Two kinds of integral call for numbers rather than formulas: integrals of functions with no elementary antiderivative, such as $\int_0^1 e^{-x^2}\,dx$, and integrals of functions known only through measurements, such as a speed or a power read every few seconds. A **numerical integration rule** computes an integral from values of the integrand. The midpoint sum of Module 9 is one, the **midpoint rule**
 
 $$M_n = \Delta x\,\big[f(\bar x_1) + f(\bar x_2) + \dots + f(\bar x_n)\big],$$
 
@@ -1221,7 +1236,7 @@ Here $\Delta x = 0.25$, and $\dfrac1x$ takes the values $1$, $\tfrac45$, $\tfrac
 
 $$\begin{aligned} T_4 &= \frac{0.25}{2}\Big[1 + 2\cdot\frac45 + 2\cdot\frac23 \\ &\qquad + 2\cdot\frac47 + \frac12\Big] \\ &= \frac{1171}{1680} \approx 0.69702, \end{aligned}$$
 
-which is the average of $L_4 = \tfrac{319}{420}$ and $R_4 = \tfrac{533}{840}$ from Example 9.4. That example also found $M_4 \approx 0.69122$. With $\ln 2 \approx 0.693147$,
+which is the average of $L_4 = \tfrac{319}{420}$ and $R_4 = \tfrac{533}{840}$ from Example 9.4. That example also found $M_4 \approx 0.6912$, or $0.69122$ to five decimal places. With $\ln 2 \approx 0.693147$,
 
 $$\begin{aligned} E_T &= \ln 2 - T_4 \approx -0.00388, \\ E_M &= \ln 2 - M_4 \approx 0.00193. \end{aligned}$$
 
@@ -1232,7 +1247,8 @@ fr_ = lambda X: 1/sympify(X)
 same([fr_(v_) for v_ in (1, Rational(5, 4), Rational(3, 2), Rational(7, 4), 2)], [1, Rational(4, 5), Rational(2, 3), Rational(4, 7), Rational(1, 2)])
 T4 = Rational(1, 8)*(1 + 2*Rational(4, 5) + 2*Rational(2, 3) + 2*Rational(4, 7) + Rational(1, 2))
 same(T4, Rational(1171, 1680)); rounds(T4, '0.69702'); same((Rational(319, 420) + Rational(533, 840))/2, T4)
-M4 = Rational(1, 4)*sum(fr_(1 + (k_ + Rational(1, 2))/4) for k_ in range(4)); rounds(M4, '0.69122'); rounds(log(2), '0.693147')
+M4 = Rational(1, 4)*sum(fr_(1 + (k_ + Rational(1, 2))/4) for k_ in range(4)); rounds(M4, '0.69122'); rounds(M4, '0.6912'); rounds(log(2), '0.693147')
+same(M4, Rational(1, 4)*(Rational(8, 9) + Rational(8, 11) + Rational(8, 13) + Rational(8, 15)))     # Example 9.4's midpoint values
 rounds(log(2) - T4, '-0.00388'); rounds(log(2) - M4, '0.00193'); holds(log(2) - T4 < 0); holds(log(2) - M4 > 0)
 ```
 :::
@@ -1254,10 +1270,19 @@ n | E_T | E_M
 
 Two patterns stand out. Each time $n$ doubles, both errors are divided by about 4, as Module 9 found for midpoint sums. And at every $n$, $E_T \approx -2E_M$.
 
-The signs come from the shape of the graph. The second derivative of $\tfrac1x$ is $\tfrac{2}{x^3} > 0$, so the graph is concave up on $[1, 2]$ ([Section 8.4](module_08_EN.html#concavity)): it bends away below each chord, and each trapezoid covers more than the region under the graph. So $T_n$ overestimates (Figure 11.4, left). For the midpoint rule, draw the tangent line at the midpoint of a subinterval. It passes through the middle of the top of the midpoint rectangle and cuts off two triangles of equal area, one above the top on one side and one below it on the other. So the rectangle has the same area as the trapezoid under the tangent line (Figure 11.4, right). A concave-up graph lies above its tangent lines ([Theorem 8.11](module_08_EN.html#concavity)), so that trapezoid lies below the graph, and $M_n$ underestimates. For a graph that is concave down, both conclusions turn round, as Module 9 saw in [Exercise 9.2](module_09_EN.html#ex-9-2), where $M_4$ overestimated $\int_0^2 (4 - x^2)\,dx$.
+```check
+ET_ = lambda N_: log(2) - (1 + 2*sum(1/(1 + Rational(i_, N_)) for i_ in range(1, N_)) + Rational(1, 2))/(2*N_)
+EM_ = lambda N_: log(2) - sum(1/(1 + (i_ - Rational(1, 2))/N_) for i_ in range(1, N_ + 1))/N_
+for N_ in (4, 8, 16):
+    holds(3.9 < N(ET_(N_)/ET_(2*N_), 20) < 4.1); holds(3.9 < N(EM_(N_)/EM_(2*N_), 20) < 4.1)
+for N_ in (4, 8, 16, 32):
+    holds(-2.02 < N(ET_(N_)/EM_(N_), 20) < -1.98)
+```
+
+The signs come from the shape of the graph. The second derivative of $\tfrac1x$ is $\tfrac{2}{x^3}$, positive for every $x > 0$, so the graph is concave up on $(0, \infty)$, an open interval that contains $[1, 2]$ ([Section 8.4](module_08_EN.html#concavity)). It sags below each chord, and each trapezoid covers more than the region under the graph. So $T_n$ overestimates (Figure 11.4, left). For the midpoint rule, draw the tangent line at the midpoint of a subinterval. It passes through the middle of the top of the midpoint rectangle and cuts off two triangles of equal area, one above the top on one side and one below it on the other. So the rectangle has the same area as the trapezoid under the tangent line (Figure 11.4, right). A concave-up graph lies above its tangent lines ([Theorem 8.11](module_08_EN.html#concavity)), so that trapezoid lies below the graph, and $M_n$ underestimates. For a graph that is concave down, both conclusions turn round, as Module 9 saw in [Exercise 9.2](module_09_EN.html#ex-9-2), where $M_4$ overestimated $\int_0^2 (4 - x^2)\,dx$.
 
 ```check
-same(diff(1/x, x, 2), 2/x**3)
+same(diff(1/x, x, 2), 2/x**3); holds(2/xp**3 > 0)                     # f'' > 0 on the open interval (0, oo)
 same(diff(4 - x**2, x, 2), -2); same(Rational(43, 8) - integrate(4 - x**2, (x, 0, 2)), Rational(1, 24))   # Exercise 9.2: M_4 = 43/8 overestimates
 mq, hq = symbols('m h', positive=True); fM = Function('f')
 same(integrate(fM(mq) + Subs(Derivative(fM(x), x), x, mq)*(x - mq), (x, mq - hq, mq + hq)), 2*hq*fM(mq))   # the tangent trapezoid has the rectangle's area
@@ -1284,7 +1309,7 @@ $$\begin{aligned} \abs{E_T} &\le \frac{K(b - a)^3}{12n^2} \quad\text{and} \\ \ab
 If $f''(x) \ge 0$ for every $x$ in $[a, b]$, then $M_n \le \int_a^b f(x)\,dx \le T_n$; if $f''(x) \le 0$ for every $x$ in $[a, b]$, then $T_n \le \int_a^b f(x)\,dx \le M_n$.
 :::
 
-Such a $K$ exists: $\abs{f''}$ is continuous on the closed interval $[a, b]$, so it has a largest value there, by the Extreme Value Theorem ([Module 3](module_03_EN.html#evt)). The bounds shrink like $\tfrac{1}{n^2}$, which is why doubling $n$ divides the errors by about 4, and the bound for $M_n$ is half the bound for $T_n$. The Going deeper box proves the trapezoidal half of the theorem; Exercise 11.12 proves the midpoint half in the same way.
+Such a $K$ exists: $\abs{f''}$ is continuous on the closed interval $[a, b]$, so it has a largest value there, by the Extreme Value Theorem ([Module 3](module_03_EN.html#evt)). The bounds shrink like $\tfrac{1}{n^2}$, and the bound for $M_n$ is half the bound for $T_n$. A bound only limits the size of an error, but the errors themselves usually follow the same pattern: the Going deeper box shows why doubling $n$ divides them by about 4, and why $E_T \approx -2E_M$. It also proves the trapezoidal half of the theorem; Exercise 11.12 proves the midpoint half in the same way.
 
 ```check
 Kq, nq = symbols('K n', positive=True); aq, bq_ = symbols('a b', real=True)
@@ -1310,7 +1335,7 @@ $$\begin{aligned} \abs{E_T} &\le n\cdot\frac{K}{12}\Big(\frac{b - a}{n}\Big)^3 \
 
 $$\begin{aligned} E_T &\approx -\frac{\Delta x^2}{12}\sum_{i=1}^{n} f''(x_{i-1})\,\Delta x \\ &\approx -\frac{\Delta x^2}{12}\int_a^b f''(x)\,dx \\ &= -\frac{\Delta x^2}{12}\big(f'(b) - f'(a)\big), \end{aligned}$$
 
-because the sum is a Riemann sum of $f''$. In the same way (Exercise 11.12), $E_M \approx \tfrac{\Delta x^2}{24}\big(f'(b) - f'(a)\big)$. Halving $\Delta x$ divides both by 4, and $E_T \approx -2E_M$. For $\ln 2$ with $n = 4$, $f'(x) = -\tfrac{1}{x^2}$ gives $f'(2) - f'(1) = \tfrac34$, and the two formulas predict $E_T \approx -0.00391$ and $E_M \approx 0.00195$, close to the true $-0.00388$ and $0.00193$ of Example 11.19.
+because the sum is a Riemann sum of $f''$. In the same way, the formula of Exercise 11.12(b) gives $E_M \approx \tfrac{\Delta x^2}{24}\big(f'(b) - f'(a)\big)$. Halving $\Delta x$ divides both by 4, and $E_T \approx -2E_M$. For $\ln 2$ with $n = 4$, $f'(x) = -\tfrac{1}{x^2}$ gives $f'(2) - f'(1) = \tfrac34$, and the two formulas predict $E_T \approx -0.00391$ and $E_M \approx 0.00195$, close to the true $-0.00388$ and $0.00193$ of Example 11.19.
 :::
 
 ```check
@@ -1442,7 +1467,7 @@ Let $f^{(4)}$ be continuous on $[a, b]$, and let $K$ be a number with $\abs{f^{(
 $$\abs{E_S} \le \frac{K(b - a)^5}{180n^4}.$$
 :::
 
-The proof uses the idea of the Going deeper box with a longer calculation, and this series omits it. The bound agrees with Theorem 11.9: for a cubic, $f^{(4)} = 0$, so $K = 0$ and the error is 0. It shrinks like $\tfrac{1}{n^4}$, so doubling $n$ divides it by about $2^4 = 16$. For $\ln 2$, $f^{(4)}(x) = \tfrac{24}{x^5} \le 24$ on $[1, 2]$, and $\tfrac{24}{180n^4} \le 10^{-6}$ needs $n^4 \ge 133{,}334$, that is, $n \ge 19.11$. With $n$ even, $n = 20$ suffices: twenty subintervals, where the trapezoidal rule needed 409.
+The proof uses the idea of the Going deeper box with a longer calculation, and this series omits it. The bound agrees with Theorem 11.9: for a cubic, $f^{(4)} = 0$, so $K = 0$ and the error is 0. It shrinks like $\tfrac{1}{n^4}$: doubling $n$ divides it by $2^4 = 16$, and for a smooth $f$ the error itself usually falls by about the same factor, as the Compute it box below shows. For $\ln 2$, $f^{(4)}(x) = \tfrac{24}{x^5} \le 24$ on $[1, 2]$, and $\tfrac{24}{180n^4} \le 10^{-6}$ needs $n^4 \ge 133{,}334$, that is, $n \ge 19.11$. With $n$ even, $n = 20$ suffices: twenty subintervals, where the trapezoidal rule needed 409.
 
 ```check
 same(diff(1/x, x, 4), 24/x**5); same(maximum(24/x**5, x, Interval(1, 2)), 24); same(diff(24/x**5, x), -120/x**6); same((24/x**5).subs(x, 1), 24)
@@ -1498,7 +1523,7 @@ T [4.01, 4.0, 4.0, 4.0]
 S [15.72, 15.95, 15.99, 16.0]
 ```
 
-The midpoint and trapezoidal errors fall by a factor of 4 at each doubling, and Simpson's by a factor close to 16, as Theorems 11.8 and 11.10 predict. With 16 subintervals Simpson's rule is already within $2 \times 10^{-7}$ of the integral, closer than the trapezoidal rule with 64. The midpoint rule overestimates here, because the graph of $e^{-x^2}$ is concave down on most of $[0, 1]$ (more precisely, because $f'(1) - f'(0) = -\tfrac{2}{e}$ is negative, in the estimate of the Going deeper box); and $E_T \approx -2E_M$ once more.
+The midpoint and trapezoidal errors fall by a factor of 4 at each doubling, and Simpson's by a factor close to 16, as their bounds in Theorems 11.8 and 11.10 do. With 16 subintervals Simpson's rule is already within $2 \times 10^{-7}$ of the integral, closer than the trapezoidal rule with 64. The midpoint rule overestimates here, because the graph of $e^{-x^2}$ is concave down on $\big(-\tfrac{1}{\sqrt2}, \tfrac{1}{\sqrt2}\big)$, an interval that covers most of $[0, 1]$ (more precisely, because $f'(1) - f'(0) = -\tfrac{2}{e}$ is negative, in the estimate of the Going deeper box); and $E_T \approx -2E_M$ once more.
 :::
 
 ```check
@@ -1519,6 +1544,8 @@ holds(abs(eS[2]) < 2e-7); holds(abs(eS[2]) < abs(eT[4])); holds(all(e_ < 0 for e
 for k_ in range(5):
     holds(-2.1 < eT[k_]/eM[k_] < -1.9)
 holds((diff(exp(-x**2), x, 2)).subs(x, Rational(7, 10)) < 0); same(solve(diff(exp(-x**2), x, 2), x), [-sqrt(2)/2, sqrt(2)/2])
+same(diff(exp(-x**2), x, 2), (4*x**2 - 2)*exp(-x**2)); same(solve_univariate_inequality(4*x**2 - 2 < 0, x, relational=False), Interval.open(-1/sqrt(2), 1/sqrt(2)))
+holds(1/sqrt(2) > Rational(7, 10))                                     # concave down on more than 70% of [0, 1]
 same(diff(exp(-x**2), x).subs(x, 1) - diff(exp(-x**2), x).subs(x, 0), -2/E); holds(-2/E < 0)
 ```
 
@@ -1527,13 +1554,19 @@ Simpson's rule. Left: with $n = 4$, two parabolas (purple, dashed), each through
 :::
 
 ::: widget name=riemann-sums
-Choose $e^x$ on $[0, 1]$, the trapezoid rule and $n = 4$: the shaded trapezoids hug the curve, and $T_4 \approx 1.72722$ is a little more than the integral $e - 1 \approx 1.71828$. Press **Double n** three times. The table keeps the error at each $n$ and the ratio of each error to the next: close to 4 every time. Switch to the midpoint rule and do the same: the errors are about half as large, with the opposite sign, and the ratios are again close to 4. Then choose Simpson's rule: the purple curves are the parabolas, and the ratios are close to 16. Two experiments to finish. Choose **type your own**, keep $x^3 - x$ on $[0, 2]$ and choose Simpson's rule: the error is 0, to within rounding error, for every even $n$ (Theorem 11.9). And choose $\sqrt x$ on $[0, 1]$ with Simpson's rule: the ratios are only about 2.8, because the derivatives of $\sqrt x$ are unbounded near 0, and Theorem 11.10 does not apply.
+Choose $e^x$ on $[0, 1]$, the trapezoid rule and $n = 4$: the shaded trapezoids hug the curve, and $T_4 \approx 1.72722$ is a little more than the integral $e - 1 \approx 1.71828$. Press **Double n** three times. The table keeps the error at each $n$ and the ratio of each error to the next: close to 4 every time. Switch to the midpoint rule, move $n$ back to 4 and do the same: at each $n$ the error is about half the trapezoidal one, with the opposite sign, and the ratios are again close to 4. Then do the same with Simpson's rule: the purple curves are the parabolas, and the ratios are close to 16. Two experiments to finish. Choose **type your own**, keep $x^3 - x$ on $[0, 2]$ and choose Simpson's rule: the error is 0, to within rounding error, for every even $n$ (Theorem 11.9). And choose $\sqrt x$ on $[0, 1]$ with Simpson's rule: the ratios are only about 2.8, because the derivatives of $\sqrt x$ are unbounded near 0, and Theorem 11.10 does not apply.
 :::
 
 ```check
 Tw = Rational(1, 8)*(exp(0) + 2*(exp(Rational(1, 4)) + exp(Rational(1, 2)) + exp(Rational(3, 4))) + E)
 rounds(Tw, '1.72722'); rounds(E - 1, '1.71828'); holds(Tw > E - 1)
 Mw = Rational(1, 4)*sum(exp((k_ + Rational(1, 2))/4) for k_ in range(4)); holds(-0.55 < (E - 1 - Mw)/(E - 1 - Tw) < -0.45)
+eWT = [N(E - 1 - Tq_(exp, 0, 1, n_), 30) for n_ in (4, 8, 16, 32)]; eWM = [N(E - 1 - Mq_(exp, 0, 1, n_), 30) for n_ in (4, 8, 16, 32)]
+eWS = [N(E - 1 - Sq_(exp, 0, 1, n_), 30) for n_ in (4, 8, 16, 32)]
+for k_ in range(3):                                                    # e^x on [0, 1]: the ratios the widget shows
+    holds(3.9 < eWT[k_]/eWT[k_ + 1] < 4.1); holds(3.9 < eWM[k_]/eWM[k_ + 1] < 4.1); holds(15.5 < eWS[k_]/eWS[k_ + 1] < 16.5)
+for k_ in range(4):
+    holds(-0.55 < eWM[k_]/eWT[k_] < -0.45)                             # at each n, about half the trapezoidal error, opposite sign
 same(Sq_(lambda X: sympify(X)**3 - sympify(X), 0, 2, 4), integrate(x**3 - x, (x, 0, 2)))
 eR = [N(Rational(2, 3) - Sq_(lambda X: sqrt(sympify(X)), 0, 1, n_), 30) for n_ in (4, 8, 16, 32)]
 for k_ in range(3):
@@ -1544,7 +1577,7 @@ for k_ in range(3):
 
 - **A smooth function given by a formula.** Simpson's rule, or a library routine. Doubling $n$ is a practical check: for Simpson's rule the error of $S_{2n}$ is about $\tfrac{1}{15}(S_{2n} - S_n)$, since $S_{2n} - S_n = E_S(n) - E_S(2n) \approx 16E_S(2n) - E_S(2n)$. Library routines go further: they use **adaptive** rules, which keep halving the subintervals only where the integrand changes fast. The widget computes its accurate value of the integral that way, with Simpson's rule.
 - **Measurements.** Readings at equally spaced times suit the trapezoidal rule, or Simpson's rule when the number of intervals is even; the midpoint rule needs values at the midpoints, which you usually do not have. Readings at unequal spacing are added up as trapezoids, one interval at a time.
-- **A kink or an infinite slope.** The error bounds need a bounded $f''$ or $f^{(4)}$. For $\sqrt x$ on $[0, 1]$, $\big(\sqrt x\big)'' = -\tfrac14x^{-3/2}$ is unbounded near 0, and doubling $n$ divides the errors by only about 2.8. Split the interval at a kink, or remove the trouble with a substitution: $x = t^2$ turns $\int_0^1 \sqrt x\,dx$ into $\int_0^1 2t^2\,dt$, which Simpson's rule integrates exactly.
+- **A kink or an infinite slope.** The error bounds need a bounded $f''$ or $f^{(4)}$. For $\sqrt x$ on $[0, 1]$, $\big(\sqrt x\big)'' = -\tfrac14x^{-3/2}$ is unbounded near 0, and doubling $n$ divides the error of Simpson's rule by only about 2.8, not 16. Split the interval at a kink, or remove the trouble with a substitution: $x = t^2$ turns $\int_0^1 \sqrt x\,dx$ into $\int_0^1 2t^2\,dt$, which Simpson's rule integrates exactly.
 - **Very many subintervals.** Every value of $f$ carries a rounding error of about $10^{-16}$ of its size (Module 2), and adding up millions of them can add those errors up. A good rule with a moderate $n$ is both faster and more accurate.
 
 ```check
@@ -1563,10 +1596,10 @@ Three slips with Simpson's rule. **(1)** It needs an even number of subintervals
 
 - **Integration by parts** reverses the product rule: $\int u\,dv = uv - \int v\,du$, and $\int_a^b f g'\,dx = \big[fg\big]_a^b - \int_a^b f'g\,dx$ for definite integrals. Choose $u$ to get simpler when differentiated (LIATE is a rough guide) and $dv$ to be integrable. Repeat it, organise the rounds in a table, solve for an integral that comes back ($\int e^x\sin x\,dx$), or derive a reduction formula ($\int \sin^n x\,dx$).
 - **Trigonometric integrals**: for $\sin^m x\cos^n x$, save one factor of an odd power and substitute, or use the half-angle identities $\sin^2 x = \tfrac12(1 - \cos 2x)$ and $\cos^2 x = \tfrac12(1 + \cos 2x)$; for $\tan^m x\sec^n x$, save $\sec^2 x$ or $\sec x\tan x$. $\int \sec x\,dx = \ln\abs{\sec x + \tan x} + C$.
-- **Trigonometric substitution**: $x = a\sin\theta$, $a\tan\theta$ or $a\sec\theta$ removes $\sqrt{a^2 - x^2}$, $\sqrt{a^2 + x^2}$ or $\sqrt{x^2 - a^2}$; the ranges of $\theta$ make the square roots positive, and a right triangle takes the answer back to $x$. It proves that a circle encloses $\pi r^2$ and an ellipse $\pi ab$.
+- **Trigonometric substitution**: $x = a\sin\theta$, $a\tan\theta$ or $a\sec\theta$ removes $\sqrt{a^2 - x^2}$, $\sqrt{a^2 + x^2}$ or $\sqrt{x^2 - a^2}$; on the ranges of $\theta$ in the table the square roots need no absolute value signs (the secant row is for $x \ge a$), and a right triangle takes the answer back to $x$. It gives the areas $\pi r^2$ of a disc and $\pi ab$ of an ellipse.
 - **Partial fractions**: divide first if the rational function is improper; then write it as a sum of terms $\dfrac{A}{(x - r)^j}$ and $\dfrac{Bx + C}{(x^2 + px + q)^j}$. The cover-up method finds the coefficients of distinct linear factors, because multiplying by $x - r$ and letting $x \to r$ isolates them.
 - **Strategy**: simplify, substitute, classify (parts, trigonometric, substitution, partial fractions, roots), try again. Check every antiderivative by differentiating it.
-- **By computer**: SymPy's antiderivatives may differ from yours by a constant, drop absolute values or use complex logarithms; differentiate to check. **Elementary** functions need not have elementary antiderivatives: by Liouville's theorem $e^{-x^2}$, $\tfrac{\sin x}{x}$ and $\tfrac{1}{\ln x}$ have none, and their antiderivatives are named by integrals: $\operatorname{erf}$, $\operatorname{Si}$, $\operatorname{Li}$.
+- **By computer**: SymPy's antiderivatives may differ from yours by a constant, drop absolute values or use complex logarithms; differentiate to check. **Elementary** functions need not have elementary antiderivatives: by Liouville's theorem (quoted here, not proved) $e^{-x^2}$, $\tfrac{\sin x}{x}$ and $\tfrac{1}{\ln x}$ have none, and their antiderivatives are named by integrals: $\operatorname{erf}$, $\operatorname{Si}$, $\operatorname{Li}$.
 - **Numerical integration**: the midpoint rule $M_n$, the trapezoidal rule $T_n = \tfrac12(L_n + R_n)$ and Simpson's rule $S_n$ ($n$ even, weights $1, 4, 2, \dots, 4, 1$). With $\abs{f''} \le K$, $\abs{E_T} \le \tfrac{K(b - a)^3}{12n^2}$ and $\abs{E_M} \le \tfrac{K(b - a)^3}{24n^2}$; with $\abs{f^{(4)}} \le K$, $\abs{E_S} \le \tfrac{K(b - a)^5}{180n^4}$. Doubling $n$ divides the errors by about 4, 4 and 16; Simpson's rule is exact for cubics; concavity gives the signs of $E_T$ and $E_M$.
 
 ## Exercises {#exercises}
@@ -1587,7 +1620,7 @@ $$\begin{aligned} &\int x\sin 2x\,dx \\ &\quad= -\tfrac12x\cos 2x \\ &\qquad + \
 
 $$\begin{aligned} &\int x^2\ln x\,dx \\ &\quad= \frac{x^3}{3}\ln x - \int \frac{x^3}{3}\cdot\frac{1}{x}\,dx \\ &\quad= \frac{x^3}{3}\ln x - \frac{x^3}{9} + C. \end{aligned}$$
 
-The other choice, $u = x^2$ and $dv = \ln x\,dx$, needs $v = x\ln x - x$ (Example 11.1(b)) and leads to a harder integral.
+The other choice, $u = x^2$ and $dv = \ln x\,dx$, needs $v = x\ln x - x$ (Example 11.1(b)), and the new integral, $\int 2x(x\ln x - x)\,dx = 2\int x^2\ln x\,dx - 2\int x^2\,dx$, contains the original one again. Solving for it, as in Example 11.6, gives the same answer, with more work.
 
 **(c)** Example 11.1(a) gives the antiderivative $-xe^{-x} - e^{-x} = -(x + 1)e^{-x}$, so
 
@@ -1599,6 +1632,9 @@ steps(Integral(x*sin(2*x), x), -x*cos(2*x)/2 + Integral(cos(2*x), x)/2, -x*cos(2
 antideriv(-x*cos(2*x)/2 + sin(2*x)/4, x*sin(2*x), x)
 steps(Integral(xp**2*log(xp), xp), xp**3/3*log(xp) - Integral(xp**3/3*(1/xp), xp), xp**3/3*log(xp) - xp**3/9)
 antideriv(xp**3*log(xp)/3 - xp**3/9, xp**2*log(xp), xp)
+antideriv(xp*log(xp) - xp, log(xp), xp); same(expand(2*xp*(xp*log(xp) - xp)), 2*xp**2*log(xp) - 2*xp**2)   # the other choice
+steps(Integral(xp**2*log(xp), xp), xp**2*(xp*log(xp) - xp) - Integral(2*xp*(xp*log(xp) - xp), xp))
+Ib = symbols('I_b'); same(solve(Eq(Ib, xp**2*(xp*log(xp) - xp) - 2*Ib + 2*xp**3/3), Ib), [xp**3*log(xp)/3 - xp**3/9])   # solving for it
 same(-x*exp(-x) - exp(-x), -(x + 1)*exp(-x))
 steps(Integral(x*exp(-x), (x, 0, 1)), -(1 + 1)*exp(-1) + (0 + 1)*exp(0), 1 - 2/E); rounds(1 - 2/E, '0.2642')
 ```
@@ -1722,7 +1758,7 @@ $$\begin{aligned} &\int x^3e^{-x}\,dx \\ &\quad= -x^3e^{-x} - 3x^2e^{-x} \\ &\qq
 
 **(b)** Call it $I$. With $u = \cos x$ and $dv = e^{2x}\,dx$, so $v = \tfrac12e^{2x}$:
 
-$$I = \tfrac12e^{2x}\cos x + \tfrac12\int e^{2x}\sin x\,dx.$$
+$$\begin{aligned} I &= \tfrac12e^{2x}\cos x \\ &\quad + \tfrac12\int e^{2x}\sin x\,dx. \end{aligned}$$
 
 Again, keeping the roles, with $u = \sin x$: $\int e^{2x}\sin x\,dx = \tfrac12e^{2x}\sin x - \tfrac12I$. So
 
@@ -1753,7 +1789,7 @@ antideriv(xp*log(xp)**2 - 2*xp*log(xp) + 2*xp, log(xp)**2, xp)
 :::: exercise Trigonometric substitutions {#ex-11-6} ★★
 - (a) Find $\displaystyle\int \frac{x^2}{\sqrt{9 - x^2}}\,dx$, for $-3 < x < 3$.
 - (b) Find $\displaystyle\int \frac{dx}{\big(x^2 + 9\big)^{3/2}}$.
-- (c) Evaluate $\displaystyle\int_0^1 \sqrt{1 + x^2}\,dx$, exactly and to four decimal places. (Module 12 shows that it is the length of the parabola $y = \tfrac12x^2$ from $x = 0$ to $x = 1$.)
+- (c) Evaluate $\displaystyle\int_0^1 \sqrt{1 + x^2}\,dx$, exactly and to four decimal places. (By the arc length formula of Module 12, it is the length of the parabola $y = \tfrac12x^2$ from $x = 0$ to $x = 1$.)
 
 ::: solution
 **(a)** $x = 3\sin\theta$ with $-\tfrac{\pi}{2} < \theta < \tfrac{\pi}{2}$, so $dx = 3\cos\theta\,d\theta$ and $\sqrt{9 - x^2} = 3\cos\theta$:
@@ -1839,6 +1875,7 @@ Choose a method for each integral, and evaluate it.
 - (b) $\displaystyle\int x^2\cos x\,dx$
 - (c) $\displaystyle\int \frac{dx}{x^2 + 2x + 2}$
 - (d) $\displaystyle\int \frac{x}{\sqrt{1 - x^4}}\,dx$, for $-1 < x < 1$
+- (e) SymPy answers $\int x^2e^{x^2}\,dx$ with $\tfrac12xe^{x^2} - \tfrac{\sqrt\pi}{4}\operatorname{erfi} x$, where $\operatorname{erfi}$ is a function defined by an integral, like $\operatorname{erf}$, with derivative $\tfrac{2}{\sqrt\pi}e^{x^2}$. Check the answer by differentiating it. Then integrate by parts with $u = x$ to explain why no elementary formula would do.
 
 ::: solution
 **(a)** A function of $x^2$ times $x$, half the derivative of $x^2$: substitute $u = x^2$, $du = 2x\,dx$, to get $\tfrac12\int \cos u\,du = \tfrac12\sin\big(x^2\big) + C$. Parts would only make it worse.
@@ -1855,12 +1892,23 @@ $$\begin{aligned} &\int \frac{dx}{x^2 + 2x + 2} \\ &\quad= \int \frac{du}{u^2 + 
 
 $$\begin{aligned} &\int \frac{x}{\sqrt{1 - x^4}}\,dx \\ &\quad= \frac12\int \frac{du}{\sqrt{1 - u^2}} \\ &\quad= \frac12\arcsin\big(x^2\big) + C. \end{aligned}$$
 
+**(e)** By the product and chain rules, $\dfrac{d}{dx}\big(\tfrac12xe^{x^2}\big) = \tfrac12e^{x^2} + x^2e^{x^2}$, and $\dfrac{d}{dx}\big(\tfrac{\sqrt\pi}{4}\operatorname{erfi} x\big) = \tfrac{\sqrt\pi}{4}\cdot\tfrac{2}{\sqrt\pi}e^{x^2} = \tfrac12e^{x^2}$. The difference is $x^2e^{x^2}$, so SymPy's answer is right. By parts, with $u = x$ and $dv = xe^{x^2}\,dx$, so that $du = dx$ and $v = \tfrac12e^{x^2}$:
+
+$$\begin{aligned} &\int x^2e^{x^2}\,dx \\ &\quad= \tfrac12xe^{x^2} - \tfrac12\int e^{x^2}\,dx. \end{aligned}$$
+
+If $x^2e^{x^2}$ had an elementary antiderivative $F$, then $xe^{x^2} - 2F$ would be an elementary antiderivative of $e^{x^2}$: its derivative is $e^{x^2} + 2x^2e^{x^2} - 2x^2e^{x^2} = e^{x^2}$. Section 11.6 says that there is none. So the answer needs a function such as $\operatorname{erfi}$, as SymPy's does. The odd powers are different: $\int xe^{x^2}\,dx = \tfrac12e^{x^2} + C$, and Example 11.2 found $\int x^3e^{x^2}\,dx$.
+
 ```check
 antideriv(sin(u)/2, cos(u)/2, u); antideriv(sin(x**2)/2, x*cos(x**2), x)
 same([diff(x**2, x, k_) for k_ in range(3)], [x**2, 2*x, 2]); same([diff(F_, x) for F_ in (sin(x), -cos(x), -sin(x))], [cos(x), sin(x), -cos(x)])
 same(x**2*sin(x) - 2*x*(-cos(x)) + 2*(-sin(x)), x**2*sin(x) + 2*x*cos(x) - 2*sin(x)); antideriv(x**2*sin(x) + 2*x*cos(x) - 2*sin(x), x**2*cos(x), x)
 same(2**2 - 4*2, -4); same(expand((x + 1)**2 + 1), x**2 + 2*x + 2); antideriv(atan(x + 1), 1/(x**2 + 2*x + 2), x)
 same(diff(x**2, x), 2*x); antideriv(asin(u)/2, 1/(2*sqrt(1 - u**2)), u); antideriv(asin(x**2)/2, x/sqrt(1 - x**4), x)
+same(integrate(x**2*exp(x**2), x), x*exp(x**2)/2 - sqrt(pi)*erfi(x)/4); same(diff(erfi(x), x), 2*exp(x**2)/sqrt(pi))   # SymPy's answer, erfi'
+same(diff(x*exp(x**2)/2, x), exp(x**2)/2 + x**2*exp(x**2)); same(diff(sqrt(pi)*erfi(x)/4, x), exp(x**2)/2)
+antideriv(x*exp(x**2)/2 - sqrt(pi)*erfi(x)/4, x**2*exp(x**2), x)
+antideriv(exp(x**2)/2, x*exp(x**2), x); steps(Integral(x**2*exp(x**2), x), x*exp(x**2)/2 - Integral(exp(x**2), x)/2)
+Fe = Function('F'); same(diff(x*exp(x**2) - 2*Fe(x), x).subs(Derivative(Fe(x), x), x**2*exp(x**2)), exp(x**2))   # x e^{x^2} - 2F, when F' = x^2 e^{x^2}
 ```
 :::
 ::::
@@ -1877,7 +1925,7 @@ Let $f(x) = e^{-x^2}$.
 
 **(b)** Trapezoidal rule, with $K = 2$ and $b - a = 1$: $\dfrac{2}{12n^2} \le 10^{-6}$ needs $n^2 \ge 166{,}667$, so $n = 409$ suffices, as in Example 11.20. Simpson's rule, with $K = 20$: $\dfrac{20}{180n^4} \le 10^{-6}$ needs $n^4 \ge 111{,}112$, that is, $n \ge 18.26$; with $n$ even, $n = 20$ suffices.
 
-**(c)** The box shows $\abs{E_T} \approx 1.5 \times 10^{-5}$ at $n = 64$, still too big; since the errors fall like $\tfrac{1}{n^2}$, the trapezoidal rule reaches $10^{-6}$ near $n = 250$, before the guaranteed 409. Simpson's rule already has $\abs{E_S} \approx 1.25 \times 10^{-7}$ at $n = 16$ and about $2 \times 10^{-6}$ at $n = 8$, so $n = 16$ is enough, a little before the guaranteed 20. The bounds are guarantees, and cautious ones: $\abs{f^{(4)}}$ is in fact at most 12 on $[0, 1]$, which would give $n = 18$.
+**(c)** The box shows $\abs{E_T} \approx 1.5 \times 10^{-5}$ at $n = 64$, still too big; since the errors fall like $\tfrac{1}{n^2}$, the trapezoidal rule reaches $10^{-6}$ near $n = 250$, before the guaranteed 409. Simpson's rule has $\abs{E_S} \approx 2 \times 10^{-6}$ at $n = 8$, still too big, and $1.25 \times 10^{-7}$ at $n = 16$. Since its errors fall like $\tfrac{1}{n^4}$, $n = 10$ should give about $2 \times 10^{-6}\cdot 0.8^4 \approx 8 \times 10^{-7}$, and the box's `simpson` function confirms it: $\abs{E_S} \approx 8.2 \times 10^{-7}$ at $n = 10$. That is half the guaranteed 20. The bounds are guarantees, and cautious ones: $\abs{f^{(4)}}$ is in fact at most 12 on $[0, 1]$, which would give $n = 18$.
 
 ```check
 fe_ = exp(-x**2)
@@ -1892,6 +1940,8 @@ holds(Rational(20, 180*20**4) <= Rational(1, 10**6)); holds(Rational(20, 180*18*
 rounds(abs(eT[4]), '1.5e-5'); rounds(abs(eS[2]), '1.25e-7'); rounds(abs(eS[1]), '2e-6')
 nT = sqrt(abs(eT[0])*16/Rational(1, 10**6)); holds(240 < nT < 260)
 holds(abs(eS[2]) < 1e-6); holds(abs(eS[1]) > 1e-6)
+rounds(abs(eS[1])*Rational(8, 10)**4, '8e-7')                       # the estimate for n = 10 from n = 8
+eS10 = N(Jg - Sq_(fg_, 0, 1, 10), 30); rounds(abs(eS10), '8.2e-7'); holds(abs(eS10) < 1e-6)
 fe4 = (16*x**4 - 48*x**2 + 12)*exp(-x**2); same(maximum(fe4, x, Interval(0, 1)), 12); holds(minimum(fe4, x, Interval(0, 1)) > -12)
 same(diff(fe4, x), -8*x*(4*x**4 - 20*x**2 + 15)*exp(-x**2)); holds(all(-12 < fe4.subs(x, Rational(k_, 100)) <= 12 for k_ in range(101)))
 holds(Rational(12, 180*18**4) <= Rational(1, 10**6)); holds(Rational(12, 180*16**4) > Rational(1, 10**6))
@@ -1947,13 +1997,13 @@ same((nI + 1)*(nI/(nI + 1))*I1_*I2_, nI*I1_*I2_)
 
 $$\frac{24\cdot 2^5}{180\cdot 2^4} = \frac{768}{2880} = \frac{4}{15}.$$
 
-The error equals the bound.
+The size of the error, $\abs{E_S} = \tfrac{4}{15}$, equals the bound.
 
 **(c)** With $n = 4$, $\Delta x = \tfrac12$ and the points $-1, -\tfrac12, 0, \tfrac12, 1$:
 
 $$\begin{aligned} S_4 &= \frac{1}{6}\Big[1 + 4\cdot\frac{1}{16} + 0 \\ &\qquad + 4\cdot\frac{1}{16} + 1\Big] \\ &= \frac16\cdot\frac52 = \frac{5}{12}, \end{aligned}$$
 
-so $E_S = \tfrac25 - \tfrac{5}{12} = -\tfrac{1}{60}$, exactly 16 times smaller than with $n = 2$. The bound is $\dfrac{24\cdot 2^5}{180\cdot 4^4} = \dfrac{1}{60}$: equal to the error again. So the constant 180 in Theorem 11.10 cannot be replaced by a larger number: for $x^4$ the bound is attained. (The same happens for $x^2$ with the bounds of Theorem 11.8.)
+so $E_S = \tfrac25 - \tfrac{5}{12} = -\tfrac{1}{60}$, exactly 16 times smaller than with $n = 2$. The bound is $\dfrac{24\cdot 2^5}{180\cdot 4^4} = \dfrac{1}{60}$: equal to $\abs{E_S}$ again. So the constant 180 in Theorem 11.10 cannot be replaced by a larger number: for $x^4$ the bound is attained. (The same happens for $x^2$ with the bounds of Theorem 11.8.)
 
 ```check
 same(Sq_(lambda X: sympify(X)**3, -1, 1, 2), 0); same(integrate(x**3, (x, -1, 1)), 0)
@@ -2069,12 +2119,12 @@ same(nq*(Kq/24)*((bq_ - aq)/nq)**3, Kq*(bq_ - aq)**3/(24*nq**2))
 - [ ] $0.002$
 > $\dfrac{K(b - a)^3}{12n^2} = \dfrac{3\cdot 2^3}{12\cdot 10^2} = \dfrac{24}{1200} = 0.02$. 0.01 is the bound for the midpoint rule, which has 24 in place of 12. 0.2 divides by $n$ instead of $n^2$, and 0.002 by $n^3$.
 
-? For a function with a continuous fourth derivative, doubling $n$ in Simpson's rule divides the error by about
+? For a smooth function such as $e^x$ on $[0, 1]$, doubling $n$ in Simpson's rule divides the error by about
 - [ ] 2
 - [ ] 4
 - [ ] 8
 - [x] 16
-> The bound $\dfrac{K(b - a)^5}{180n^4}$ is divided by $2^4 = 16$ when $n$ doubles, and the actual errors follow it, as the Compute it box and the widget show. 4 is the factor for the midpoint and trapezoidal rules, whose bounds shrink like $\tfrac{1}{n^2}$; 2 is the factor for left and right sums.
+> The bound $\dfrac{K(b - a)^5}{180n^4}$ is divided by $2^4 = 16$ when $n$ doubles, and for a smooth function such as $e^x$ the errors themselves fall by about the same factor, as the widget and the Compute it box show. 4 is the factor for the midpoint and trapezoidal rules, whose bounds shrink like $\tfrac{1}{n^2}$; 2 is the factor for left and right sums.
 ```
 
 ```check
@@ -2090,5 +2140,5 @@ same(asinh(xr2/2).rewrite(log), log(xr2 + sqrt(xr2**2 + 4)) - log(2)); same(diff
 same(integrate(exp(-x**2), x), sqrt(pi)*erf(x)/2); antideriv(-exp(-x**2)/2, x*exp(-x**2), x)
 antideriv(-(x**2 + 2*x + 2)*exp(-x), x**2*exp(-x), x); antideriv(-exp(-2*x)/2, exp(-2*x), x)
 same(Rational(3*2**3, 12*10**2), Rational(2, 100)); same(Rational(3*2**3, 24*10**2), Rational(1, 100)); same(Rational(3*2**3, 12*10), Rational(2, 10)); same(Rational(3*2**3, 12*10**3), Rational(2, 1000))
-same(Rational(1, 2**4), Rational(1, 16))
+same(Rational(1, 2**4), Rational(1, 16)); holds(all(15.5 < eWS[k_]/eWS[k_ + 1] < 16.5 for k_ in range(3)))   # e^x on [0, 1]
 ```

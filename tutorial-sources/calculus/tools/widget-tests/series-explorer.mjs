@@ -19,9 +19,12 @@ export async function run(t) {
   await t.select('select', 'harm')
   await t.set('input[type=range] >> nth=2', 200)
   t.check((await sn()) === 'S₂₀₀ ≈ 5.878031' && (await dots()) === 200, 'harmonic: S₂₀₀ ≈ 5.878031, 200 dots')
-  t.check((await verdict()).startsWith('Diverges') && (await sum()).startsWith('No sum')
-    && (await err()).includes('5.303304') && (await err()).includes('6.298318')
-    && (await t.count('.se-plot:not(.se-terms) line[stroke-dasharray="7 5"]')) === 0, 'harmonic: diverges, ln 201 ≤ S₂₀₀ ≤ 1 + ln 200, no sum line')
+  const v200 = await verdict(), s200 = await sum(), e200 = await err()
+  const dashed200 = await t.count('.se-plot:not(.se-terms) line[stroke-dasharray="7 5"]')
+  await t.set('input[type=range] >> nth=2', 1)                 // N = 1: the upper bound 1 + ln 1 is exactly 1
+  t.check(v200.startsWith('Diverges') && s200.startsWith('No sum') && e200.includes('5.303304') && e200.includes('6.298318')
+    && dashed200 === 0 && (await err()) === 'ln(N + 1) ≈ 0.693147 ≤ S₁ ≤ 1 + ln N = 1 (integral test)',
+    'harmonic: diverges, ln 201 ≤ S₂₀₀ ≤ 1 + ln 200, no sum line; at N = 1 the bound 1 + ln 1 = 1 is exact')
   // p-series: p = 2 has the sum π²/6; p = 3 gets the integral-test interval; p = 0.5 diverges; the r slider hides.
   await t.select('select', 'p')
   await t.set('input[type=range] >> nth=2', 100)
@@ -40,7 +43,14 @@ export async function run(t) {
     'alternating harmonic: S₂₀ ≈ 0.6687714, error bound 1/21, conditional')
   await t.select('select', 'fact')
   await t.set('input[type=range] >> nth=2', 10)
-  t.check((await sn()) === 'S₁₀ ≈ 2.718282' && (await sum()).startsWith('Sum: e ≈ 2.718282') && (await verdict()).includes('ratio test'), '1/n! from n = 0: S₁₀ ≈ 2.718282, sum e, ratio test')
+  t.check((await sn()) === 'S₁₀ ≈ 2.718282' && (await sum()).startsWith('Sum: e ≈ 2.718282') && (await verdict()).includes('ratio test')
+    && (await err()) === 'Sum − S₁₀ ≈ 3.029 × 10⁻⁷', '1/n! from n = 0: S₁₀ ≈ 2.718282, sum e, e − S₁₀ = 1/10! + 1/11! + ⋯ ≈ 3.029 × 10⁻⁷, ratio test')
+  // e − S_N far below the rounding error of e in floating point: summed from the tail 1/N! + 1/(N + 1)! + ⋯
+  await t.set('input[type=range] >> nth=2', 20)
+  const e20 = await err()
+  await t.set('input[type=range] >> nth=2', 200)
+  t.check(e20 === 'Sum − S₂₀ ≈ 4.315 × 10⁻¹⁹' && (await err()) === 'Sum − S₂₀₀ ≈ 1.274 × 10⁻³⁷⁵',
+    '1/n!: e − S₂₀ ≈ 4.315 × 10⁻¹⁹ and e − S₂₀₀ ≈ 1.274 × 10⁻³⁷⁵, positive and right where floating point gives −4.4 × 10⁻¹⁶')
   await t.select('select', 'osc')
   await t.set('input[type=range] >> nth=2', 7)
   t.check((await sn()) === 'S₇ = 1' && (await verdict()).includes('divergence test'), 'Σ(−1)ⁿ: S₇ = 1, diverges by the divergence test')

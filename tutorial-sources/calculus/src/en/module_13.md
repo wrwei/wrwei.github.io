@@ -96,21 +96,21 @@ same((2*t).subs(t, 2), 4); same((2*t**2).subs(t, 2), 8)
 
 ### When there is exactly one solution {#existence}
 
-Example 13.1 found exactly one solution with $y(0) = 1$. For first-order equations written as $y' = F(t, y)$ that is the usual situation, and a theorem says when it is guaranteed. It needs one new piece of notation: $F_y$ denotes the derivative of $F(t, y)$ with respect to $y$, with $t$ held fixed as if it were a constant. For $F(t, y) = t - y^2$, $F_y = -2y$. (This is a **partial derivative**, the subject of Module 17.)
+In Example 13.1 exactly one function of the family has $y(0) = 1$. For first-order equations written as $y' = F(t, y)$, exactly one solution through a given point is the usual situation, and a theorem says when it is guaranteed. It needs one new piece of notation: $F_y$, read "F sub y", denotes the derivative of $F(t, y)$ with respect to $y$, with $t$ held fixed as if it were a constant. For $F(t, y) = t - y^2$, $F_y = -2y$. (This is a **partial derivative**, the subject of Module 17.)
 
 ```check
 same(diff(t - y**2, y), -2*y)
 ```
 
 ::: theorem Existence and uniqueness
-Suppose that $F$ and $F_y$ are continuous on an open rectangle $a < t < b$, $c < y < d$ that contains the point $(t_0, y_0)$. Then the initial value problem
+Suppose that $F$ and $F_y$ are continuous on an open rectangle $R$, the set of points $(t, y)$ with $a < t < b$ and $c < y < d$, that contains the point $(t_0, y_0)$. The ends $a$, $b$, $c$ and $d$ may be infinite, so $R$ may be the whole plane. Then the initial value problem
 
 $$y' = F(t, y), \qquad y(t_0) = y_0$$
 
-has a solution on some open interval containing $t_0$, and two solutions of the problem agree on any open interval containing $t_0$ on which both are defined.
+has a solution on some open interval containing $t_0$, and only one: two solutions of the problem whose graphs lie in $R$ agree on every open interval containing $t_0$ on which both are defined.
 :::
 
-The proof, by a sequence of better and better approximations, belongs to a course on differential equations; this series uses the theorem without proof. Two examples show what it promises and what it does not.
+The proof, by a sequence of better and better approximations, belongs to a course on differential equations; this series uses the theorem without proof. Outside $R$ it promises nothing, which is why the graphs must stay in $R$. Two examples show what it promises and what it does not.
 
 - **The interval can be short.** $F(t, y) = y^2$ and $F_y = 2y$ are continuous everywhere, yet the solution of $y' = y^2$, $y(0) = 1$, is $y = \dfrac{1}{1 - t}$ (check: $y' = \dfrac{1}{(1 - t)^2} = y^2$), which exists only for $t < 1$: it **blows up**, growing without bound as $t$ approaches 1. Nothing in the equation warns you.
 - **Without the hypothesis on $F_y$, uniqueness can fail.** The problem $y' = 3y^{2/3}$, $y(0) = 0$, has two solutions, $y = 0$ and $y = t^3$: for $y = t^3$, $y' = 3t^2$ and $3y^{2/3} = 3(t^3)^{2/3} = 3t^2$ (with $y^{2/3}$ the square of the real cube root). Here $F_y = 2y^{-1/3}$ is not defined at $y = 0$.
@@ -129,15 +129,15 @@ Uniqueness has a picture. Where $F$ and $F_y$ are continuous, the graphs of two 
 
 Most differential equations in science come from one principle: a quantity changes at the rate at which it is created or flows in, minus the rate at which it is destroyed or flows out. Writing that sentence in symbols is **modelling**, and the equation is a **model**: a simplified description, good when its assumptions hold. Four models recur in this module. Their numbers are hypothetical, chosen so that the arithmetic stays clean.
 
-**Growth and decay.** A population with plenty of food and space has births and deaths in proportion to its size, so it grows at a rate proportional to its size: $y' = ky$ with $k > 0$. In a radioactive sample, each atom has the same chance of decaying in each second, so the number decaying per second is proportional to the number left: $y' = ky$ with $k < 0$ (Module 6).
+**Growth and decay.** A population with plenty of food and space has births and deaths in proportion to its size, so it changes at a rate proportional to its size: $y' = ky$, where $k$, the birth rate minus the death rate per individual, is positive when births outnumber deaths. The constant $k$ is measured per unit of time: with $t$ in years, $k = 0.02$ per year means that the population grows at 2% of its current size per year. In a radioactive sample, each atom has the same chance of decaying in each second, so the number decaying per second is proportional to the number left: $y' = ky$ with $k < 0$, now per second (Module 6).
 
 **Newton's law of cooling.** A hot drink cools quickly when it is much hotter than the room, and slowly as it approaches room temperature. Newton's law of cooling makes the rate proportional to the difference: if $T(t)$ is the temperature of an object in surroundings at a constant temperature $T_s$, then
 
 $$\frac{dT}{dt} = -k(T - T_s),$$
 
-with a constant $k > 0$ that depends on the object. The sign is right: when $T > T_s$ the right side is negative and $T$ falls; when $T < T_s$, $T$ rises. Like every model, this one is an approximation; it ignores, for example, that the outside of a cup cools faster than the inside.
+with a constant $k > 0$ that depends on the object and its surroundings, measured per unit of time (per minute, say). The sign is right: when $T > T_s$ the right side is negative and $T$ falls; when $T < T_s$, $T$ rises. Like every model, this one is an approximation; it ignores, for example, that the outside of a cup cools faster than the inside.
 
-**A falling body with air resistance.** Take downwards as positive. A body of mass $m$ falling at speed $v$ feels its weight $mg$ pulling down and air resistance pushing up. For small, slow bodies the resistance is roughly proportional to the speed, $cv$ with a constant $c > 0$, and Newton's second law (mass times acceleration equals the total force) gives
+**A falling body with air resistance.** Take downwards as positive. A body of mass $m$ falling at speed $v$ feels its weight $mg$ pulling down and air resistance pushing up. For small, slow bodies the resistance is roughly proportional to the speed, $cv$ with a constant $c > 0$ in kilograms per second (so that $cv$ is a force in newtons), and Newton's second law (mass times acceleration equals the total force) gives
 
 $$m\frac{dv}{dt} = mg - cv.$$
 
@@ -181,7 +181,7 @@ The **direction field**, or slope field, of $y' = F(t, y)$ is the picture with a
 :::
 
 ::: figure id=fig-13-1
-Two direction fields, with solutions drawn through them. Left: $y' = t - y$. Every solution approaches the line $y = t - 1$ (orange), which is itself a solution; the blue curve is the solution through $(0, 1)$ from Example 13.1. Right: $y' = (y - 1)(y - 3)$. The slope depends only on $y$; the constant solutions $y = 1$ (stable, green) and $y = 3$ (unstable, red) separate the solutions that approach 1 from those that grow without bound.
+Two direction fields, with solutions drawn through them. Left: $y' = t - y$. Every solution approaches the line $y = t - 1$ (orange), which is itself a solution; the blue curve is the solution through $(0, 1)$ from Example 13.1. Right: $y' = (y - 1)(y - 3)$. The slope depends only on $y$. The constant solutions are $y = 1$ (stable, green) and $y = 3$ (unstable, red): the solutions that start below 3 approach 1, and those that start above 3 grow without bound.
 :::
 
 On the left of Figure 13.1 the segments are horizontal along the line $t - y = 0$, that is, $y = t$; more generally the slope is the same number $m$ all along the line $t - y = m$. Curves along which the slope is constant are **isoclines**, and they make direction fields easy to sketch by hand: draw an isocline, and put segments of its slope along it. The isocline for $m = 1$, the line $y = t - 1$, is special: its own slope is 1, the slope that the field asks for along it, so it is a solution, the one with $C = 0$ in Example 13.1. The picture shows every other solution approaching it as $t$ grows, which agrees with the formula $y = t - 1 + Ce^{-t}$: the term $Ce^{-t}$ dies away.
@@ -280,7 +280,7 @@ Here $F(t, y) = t - y$, and four steps of 0.5 lead from $t = 0$ to $t = 2$. Each
 | 3 | 1.5 | 0.75 | 0.75 | 1.125 |
 | 4 | 2 | 1.125 | | |
 
-So $y(2) \approx y_4 = 1.125$. The exact value is $y(2) = 2 - 1 + 2e^{-2} = 1 + 2e^{-2} \approx 1.2707$, so the error is about 0.146. Every approximation is too low, because the solution is concave up ($y'' = 2e^{-t} > 0$; Module 8): a step along a tangent line ends below the curve. (Exercise 13.10 shows that this happens at every step.)
+So $y(2) \approx y_4 = 1.125$. The exact value is $y(2) = 2 - 1 + 2e^{-2} = 1 + 2e^{-2} \approx 1.2707$, so the error, the exact value minus the approximation, is about 0.146. Every approximation is too low. The reason is that the solution is concave up ($y'' = 2e^{-t} > 0$; Module 8), and a step along a tangent line of a curve that is concave up ends below the curve. Exercise 13.10 proves that the approximations stay below the solution at every step.
 
 ```check
 F136 = lambda T, Y: T - Y
@@ -292,6 +292,8 @@ same([F136(T, Y) for T, Y in zip(ts6[:4], ys6[:4])], [-1, 0, Rational(1, 2), Rat
 ex2 = y131.subs(t, 2)
 same(ex2, 1 + 2*exp(-2)); rounds(ex2, '1.2707'); rounds(ex2 - Rational(9, 8), '0.146')
 same(diff(y131, t, 2), 2*exp(-t))
+for T_, Y_ in zip(ts6[1:], ys6[1:]):
+    holds(y131.subs(t, T_) > Y_)                    # every approximation is below the solution
 ```
 :::
 
@@ -335,7 +337,7 @@ for hv_ in (Rational(1, 2), Rational(1, 4), Rational(1, 8), Rational(1, 16)):
 holds(Abs((E - Rational(1001, 1000)**1000)/Rational(1, 1000) - E/2) < Rational(2, 1000))
 ```
 
-Why proportional to $h$? Each step follows a tangent line, and [Section 7.2](module_07_EN.html#how-good) showed that over a step of length $h$ the tangent line misses the curve by about $\tfrac{h^2}{2}y''$. So each step makes a new error of order $h^2$. Reaching a fixed time $T$ takes $(T - t_0)/h$ steps, and $(T - t_0)/h$ errors of size about $\text{constant} \times h^2$ add up to about a constant times $h$. Errors made early on are also carried along by the later steps, which can magnify or shrink them; that changes the constant but not the power of $h$. For $y' = y$ on $[0, 1]$, the step at time $t$ makes an error of about $\tfrac{h^2}{2}e^t$, which the equation magnifies by the factor $e^{1-t}$ by the time $t = 1$ (solutions of $y' = y$ spread apart like $e^t$). So each step contributes about $\tfrac{h^2}{2}e$, and the $1/h$ steps add up to $\tfrac{e}{2}h$: the constant in the table.
+Why proportional to $h$? Each step follows a tangent line, and [Section 7.2](module_07_EN.html#how-good) stated (Module 15 proves it) that over a step of length $h$ the tangent line misses the curve by about $\tfrac{h^2}{2}y''$. So each step makes a new error of order $h^2$. Reaching a fixed time $T$ takes $(T - t_0)/h$ steps, and $(T - t_0)/h$ errors of size about $\text{constant} \times h^2$ add up to about a constant times $h$. Errors made early on are also carried along by the later steps, which can magnify or shrink them; that changes the constant but not the power of $h$. For $y' = y$ on $[0, 1]$, the step at time $t$ makes an error of about $\tfrac{h^2}{2}e^t$, which the equation magnifies by the factor $e^{1-t}$ by the time $t = 1$ (solutions of $y' = y$ spread apart like $e^t$). So each step contributes about $\tfrac{h^2}{2}e$, and the $1/h$ steps add up to $\tfrac{e}{2}h$: the constant in the table.
 
 ```check
 same(diff(exp(t), t, 2)*h**2/2*exp(1 - t), h**2/2*E); same(h**2/2*E*(1/h), E*h/2)
@@ -384,7 +386,7 @@ Euler's method uses one slope per step, the slope at the start. Better methods s
 
 $$\begin{aligned} k_1 &= F(t_n, y_n), \\ k_2 &= F\big(t_n + \tfrac{h}{2},\ y_n + \tfrac{h}{2}k_1\big), \\ k_3 &= F\big(t_n + \tfrac{h}{2},\ y_n + \tfrac{h}{2}k_2\big), \\ k_4 &= F(t_n + h,\ y_n + h\,k_3), \\ y_{n+1} &= y_n + \tfrac{h}{6}\big(k_1 + 2k_2 + 2k_3 + k_4\big). \end{aligned}$$
 
-$k_1$ is Euler's slope at the start of the step; $k_2$ and $k_3$ are slopes at the middle of the step, at points reached with $k_1$ and then with $k_2$; $k_4$ is a slope at the end. When $F$ depends on $t$ only, so that the equation is $y' = F(t)$ and the answer is an integral, $k_2 = k_3$ and the step is Simpson's rule (Module 11) for $\int F(t)\,dt$ over the step. RK4's error at a fixed time is $O(h^4)$: halving $h$ divides it by about 16. Methods of this family, with a step size that the program adjusts as it goes, are what numerical software uses; for example, the `solve_ivp` function of the SciPy library uses one unless told otherwise.
+$k_1$ is Euler's slope at the start of the step; $k_2$ and $k_3$ are slopes at the middle of the step, at points reached with $k_1$ and then with $k_2$; $k_4$ is a slope at the end. When $F$ depends on $t$ only, so that the equation is $y' = F(t)$ and the answer is an integral, $k_2 = k_3$ and the step is Simpson's rule (Module 11) for $\int F(t)\,dt$ over the step. When $F$ is smooth, RK4's error at a fixed time is $O(h^4)$: halving $h$ divides it by about 16. Methods of this family, with a step size that the program adjusts as it goes, are standard in numerical software. The `solve_ivp` function of SciPy, a Python library that this series does not install, uses one unless told otherwise: RK45, a Runge–Kutta method of order 5(4). Each of its steps makes two estimates, of orders 5 and 4, and their difference serves to adapt the step size to an error tolerance.
 
 ```check
 Ft = Function('F')
@@ -534,10 +536,18 @@ To solve $y' = g(t)h(y)$:
 4. Look for constant solutions $y = y^*$ with $h(y^*) = 0$: they are solutions, and step 1 lost them.
 :::
 
+When $g$ is continuous and $h$ has a continuous derivative, these steps find every solution. Theorem 13.1 applies, since $F = g(t)h(y)$ and $F_y = g(t)h'(y)$ are continuous: a solution that took a value $y^*$ with $h(y^*) = 0$ at one time would be the constant solution $y^*$. So every other solution keeps $h(y) \ne 0$, and dividing by $h(y)$ is allowed for it. Without the condition on $h'$ this can fail: $y = t^3$ solves $y' = 3y^{2/3}$ (Section 13.1) and passes through 0, a zero of $h(y) = 3y^{2/3}$.
+
+```check
+gfn, hfn = Function('g'), Function('h')
+same(diff(gfn(t)*hfn(y), y), gfn(t)*Derivative(hfn(y), y))      # F_y = g(t) h'(y)
+same(3*Integer(0)**Rational(2, 3), 0); same((t**3).subs(t, 0), 0)  # h(0) = 0, and t^3 passes through 0
+```
+
 ::: example A solution that blows up
 Solve $y' = 2ty^2$ with (a) $y(0) = 1$, (b) $y(0) = -1$, (c) $y(0) = 0$.
 
-Here $g(t) = 2t$ and $h(y) = y^2$. Where $y \ne 0$, separate and integrate:
+Here $g(t) = 2t$ and $h(y) = y^2$, which has a continuous derivative, so, by the paragraph above, the only solution that is ever 0 is the constant solution $y = 0$. The solutions of (a) and (b) are never 0, so you may divide by $y^2$. Separate and integrate:
 
 $$\begin{aligned} \int \frac{dy}{y^2} &= \int 2t\,dt, \\ -\frac1y &= t^2 + C, \\ y &= -\frac{1}{t^2 + C}. \end{aligned}$$
 
@@ -574,7 +584,7 @@ Two slips with separable equations. First, the constant: from $\ln\abs{y} = kt +
 
 ### Growth and decay {#growth-decay}
 
-Module 6 checked that $Ce^{kt}$ solves $y' = ky$, and promised that there are no other solutions. Separation finds the solutions that are never 0: $\displaystyle\int\frac{dy}{y} = \int k\,dt$ gives $\ln\abs{y} = kt + C$, so $\abs{y} = e^Ce^{kt}$ and $y = Ae^{kt}$ with $A = \pm e^C$, a constant that is not 0; the lost solution $y = 0$ is the case $A = 0$. But could a solution be 0 at some times and not at others, so that Theorem 13.3 does not apply to it on a whole interval? The next theorem rules that out, with an argument that never divides by $y$.
+Module 6 checked that $Ce^{kt}$ solves $y' = ky$, and promised that there are no other solutions. Separation finds the solutions that are never 0: $\displaystyle\int\frac{dy}{y} = \int k\,dt$ gives $\ln\abs{y} = kt + C$, so $\abs{y} = e^Ce^{kt}$ and $y = Ae^{kt}$ with $A = \pm e^C$, a constant that is not 0; the lost solution $y = 0$ is the case $A = 0$. But could a solution be 0 at some times and not at others, so that Theorem 13.3 does not apply to it on a whole interval? Theorem 13.1 rules that out, as it does for every separable equation with a continuous $h'$. The next theorem proves it directly, with an argument that never divides by $y$ and does not need Theorem 13.1, which this series does not prove.
 
 ::: theorem Exponential growth and decay
 Let $k$ be a constant and $I$ an open interval containing $t_0$. A differentiable function $y$ satisfies $y' = ky$ on $I$ exactly when
@@ -648,7 +658,7 @@ Exponential growth cannot last. A population that grows at the continuous rate $
 
 $$y' = r\,y\Big(1 - \frac{y}{K}\Big),$$
 
-with constants $r > 0$ and $K > 0$. This is the **logistic equation**.
+with constants $r > 0$, measured per unit of time like $k$, and $K > 0$, in the units of $y$ (a number of animals, say). This is the **logistic equation**.
 
 ```check
 rounds(exp(10)/1000, '22'); same(Rational(5, 100)*200, 10)
@@ -690,6 +700,8 @@ ylog = Kp/(1 + (Kp - y0p)/y0p*exp(-rp*t))
 same(simplify(Kp*c*exp(rp*t)/(c*exp(rp*t) + 1) - ylog.subs(y0p, Kp*c/(1 + c))), 0)
 same(diff(ylog, t), rp*ylog*(1 - ylog/Kp)); same(ylog.subs(t, 0), y0p)
 holds(checkodesol(Eq(yf(t).diff(t), rp*yf(t)*(1 - yf(t)/Kp)), Eq(yf(t), ylog))[0])
+den_ = 1 + (Kp - y0p)/y0p*exp(-rp*t)                       # the denominator: K/y0 > 0 at t = 0, and for y0 > K
+same(den_.subs(t, 0), Kp/y0p); same(diff(den_, t), rp*(y0p - Kp)/y0p*exp(-rp*t))   # it increases, so it stays positive for t >= 0
 ```
 
 **The fastest growth.** The rate $y' = ry(1 - y/K)$ is a downward parabola in $y$, largest at $y = K/2$, where it is $rK/4$. By the chain rule $y'' = f'(y)\,y' = r\big(1 - \tfrac{2y}{K}\big)y'$, which changes sign as $y$ passes $K/2$: a logistic curve that starts below $K/2$ has its inflection point at half the carrying capacity, at the time $t^*$ with $y(t^*) = K/2$, that is, $\dfrac{K - y_0}{y_0}e^{-rt^*} = 1$, or
@@ -724,7 +736,7 @@ same(diff(yfish, t).subs(t, 2*log(9)), 1250); same(Rational(1, 2)*10000/4, 1250)
 Logistic growth $y' = 0.5y(1 - y/10{,}000)$, with $y$ in thousands. From $y(0) = 1000$ (dark blue, Example 13.9) the population follows an S-curve, with its inflection point at $y = K/2$ after $2\ln 9 \approx 4.39$ years. From 100 the S-curve comes later; from 6000, above $K/2$, the curve has no inflection; from 15,000, above $K$, the population falls towards $K$.
 :::
 
-In machine learning, the logistic curve with $r = 1$, $K = 1$ and $y(0) = \tfrac12$, the function $\sigma(t) = \dfrac{1}{1 + e^{-t}}$, is called the **sigmoid**. Because it solves $y' = y(1 - y)$, its derivative is $\sigma' = \sigma(1 - \sigma)$: once a program has computed $\sigma(t)$, the derivative costs one subtraction and one multiplication.
+In machine learning, the logistic curve with $r = 1$, $K = 1$ and $y(0) = \tfrac12$, the function $\sigma(t) = \dfrac{1}{1 + e^{-t}}$ (read "sigma of t"), is called the **sigmoid**. Because it solves $y' = y(1 - y)$, its derivative is $\sigma' = \sigma(1 - \sigma)$: once a program has computed $\sigma(t)$, the derivative costs one subtraction and one multiplication.
 
 ```check
 sig = 1/(1 + exp(-t))
@@ -846,7 +858,7 @@ $$Rq' + \frac{q}{C} = E.$$
 
 Suppose $R = 10{,}000$ ohms, $C = 100$ microfarads $= 10^{-4}$ farads, $E = 5$ volts, and the capacitor starts uncharged. Find $q(t)$ and the voltage across the capacitor.
 
-Divide by $R$: $q' + \dfrac{q}{RC} = \dfrac{E}{R}$. Here $RC = 10^4 \cdot 10^{-4} = 1$ second and $E/R = 5 \times 10^{-4}$, so $q' + q = 5 \times 10^{-4}$, with $\mu = e^t$. Then $(e^tq)' = 5 \times 10^{-4}e^t$, and $e^tq = 5 \times 10^{-4}e^t + A$, where the constant is called $A$ because $C$ is taken. So $q = 5 \times 10^{-4} + Ae^{-t}$, and $q(0) = 0$ gives $A = -5 \times 10^{-4}$:
+Divide by $R$: $q' + \dfrac{q}{RC} = \dfrac{E}{R}$. Here $RC = 10^4 \cdot 10^{-4} = 1$ second and $E/R = 5 \times 10^{-4}$ amperes, so, with $t$ in seconds, $q' + q = 5 \times 10^{-4}$, and $\mu = e^t$. Then $(e^tq)' = 5 \times 10^{-4}e^t$, and $e^tq = 5 \times 10^{-4}e^t + A$, where the constant is called $A$ because $C$ is taken. So $q = 5 \times 10^{-4} + Ae^{-t}$, and $q(0) = 0$ gives $A = -5 \times 10^{-4}$:
 
 $$\begin{aligned} q(t) &= 5 \times 10^{-4}\big(1 - e^{-t}\big) \text{ coulombs}, \\ \frac{q}{C} &= 5\big(1 - e^{-t}\big) \text{ volts}. \end{aligned}$$
 
@@ -876,13 +888,14 @@ Two slips with integrating factors. Compute $\mu$ from the standard form: for $2
 ```check
 y2p = Function('w')
 same(solve(Eq(2*Derivative(y2p(t), t) + 4*y2p(t), 6), Derivative(y2p(t), t)), [3 - 2*y2p(t)])
+same(exp(integrate(2, t)), exp(2*t)); same(diff(exp(2*t)*y2p(t), t), exp(2*t)*(Derivative(y2p(t), t) + 2*y2p(t)))   # mu = e^(2t)
 same(diff(t - 1 + c, t) - (t - (t - 1 + c)), c)
 ```
 :::
 
 ## Second-order linear equations {#second-order}
 
-Pull a mass on a spring and let go: it moves back and forth, less and less, and comes to rest. Think of a mass $m$ on a smooth horizontal table, attached to a spring, and let $x(t)$ be its distance from the rest position, positive when the spring is stretched. Two forces act on it. The spring pulls back with a force $-kx$ proportional to the displacement (**Hooke's law**; the constant $k > 0$ is the spring's stiffness). A damper, such as a car's shock absorber, resists the motion with a force $-cx'$ proportional to the velocity, with a **damping constant** $c \ge 0$. Mass times acceleration is the total force, so $mx'' = -kx - cx'$, that is,
+Pull a mass on a spring and let go: it moves back and forth, less and less, and comes to rest. Think of a mass of $m$ kilograms on a smooth horizontal table, attached to a spring, and let $x(t)$ be its displacement in metres from the rest position after $t$ seconds, positive when the spring is stretched and negative when it is compressed. Two forces act on it. The spring pulls back with a force $-kx$ proportional to the displacement (**Hooke's law**; the constant $k > 0$, in newtons per metre, is the spring's stiffness). A damper, such as a car's shock absorber, resists the motion with a force $-cx'$ proportional to the velocity, with a **damping constant** $c \ge 0$ in newton-seconds per metre. Mass times acceleration is the total force, so $mx'' = -kx - cx'$, that is,
 
 $$mx'' + cx' + kx = 0.$$
 
@@ -890,11 +903,16 @@ The same equation, with charge in place of displacement, describes an electric c
 
 **No damping.** With $c = 0$ the equation says $x'' = -\tfrac{k}{m}x$: the second derivative is a negative multiple of the function. Example 13.2 suggests what to try: with $\omega = \sqrt{k/m}$ (read "omega"), $(\cos\omega t)'' = -\omega^2\cos\omega t$ and $(\sin\omega t)'' = -\omega^2\sin\omega t$, so $x = C_1\cos\omega t + C_2\sin\omega t$ is a solution. The mass oscillates for ever with period $2\pi/\omega = 2\pi\sqrt{m/k}$: **simple harmonic motion**. A stiffer spring or a lighter mass oscillates faster.
 
+A pendulum of length $\ell$ obeys $\theta'' = -\tfrac{g}{\ell}\sin\theta$, where $\theta$ is its angle from the vertical. For small swings, replacing $\sin\theta$ by $\theta$ (Section 7.2) gives $\theta'' = -\tfrac{g}{\ell}\theta$, the same equation with $\omega = \sqrt{g/\ell}$: the pendulum swings with period $2\pi\sqrt{\ell/g}$, whatever the size of its swings, as long as they stay small.
+
 ```check
 mp_, kp_ = symbols('m k', positive=True)
 w_ = sqrt(kp_/mp_)
 xsh = C1*cos(w_*t) + C2*sin(w_*t)
 same(mp_*diff(xsh, t, 2) + kp_*xsh, 0); same(2*pi/w_, 2*pi*sqrt(mp_/kp_))
+gl_, ell_ = symbols('g ell', positive=True)
+thp = C1*cos(sqrt(gl_/ell_)*t) + C2*sin(sqrt(gl_/ell_)*t)
+same(diff(thp, t, 2), -gl_/ell_*thp); same(2*pi/sqrt(gl_/ell_), 2*pi*sqrt(ell_/gl_))   # the small-angle pendulum
 ```
 
 **The general equation.** The spring equation is an instance of
@@ -914,10 +932,10 @@ $$\begin{aligned} &aY'' + bY' + cY \\ &\quad= C_1\big(ay_1'' + by_1' + cy_1\big)
 :::
 
 ::: theorem Existence and uniqueness for $ay'' + by' + cy = 0$
-Let $a \ne 0$, $b$ and $c$ be constants. For all numbers $t_0$, $y_0$ and $v_0$, the equation $ay'' + by' + cy = 0$ has exactly one solution with $y(t_0) = y_0$ and $y'(t_0) = v_0$, and it is defined for every $t$.
+Let $a \ne 0$, $b$ and $c$ be constants. For all numbers $t_0$, $y_0$ and $v_0$, the equation $ay'' + by' + cy = 0$ has a solution with $y(t_0) = y_0$ and $y'(t_0) = v_0$ that is defined for every $t$, and only one: any solution with these two values on an open interval containing $t_0$ agrees with it there.
 :::
 
-As with Theorem 13.1, this series uses the theorem without proof. It says that a solution is decided by two numbers, the starting position and the starting velocity, which is why two constants appear.
+As with Theorem 13.1, this series uses the theorem without proof, although the formulas of Theorem 13.8 below prove the existence half. It says that a solution is decided by two numbers, the starting position and the starting velocity, which is why two constants appear.
 
 ```check
 y1f, y2f = Function('y1'), Function('y2')
@@ -966,7 +984,7 @@ $$P = \frac{b^2}{4a} - \frac{4ac - b^2}{4a} - \frac{b^2}{2a} + c = 0.$$
 
 The same calculation works for $e^{\alpha t}\sin\beta t$.
 
-**Every solution has this form.** Let $y$ be any solution, say on an interval that contains 0 (on another interval, use one of its points in place of 0; the algebra is the same, with extra exponential factors). In each case, choose the constants so that the formula has the same value and the same derivative as $y$ at $t = 0$. In case 1 that means $C_1 + C_2 = y(0)$ and $r_1C_1 + r_2C_2 = y'(0)$, which can be solved because $r_1 \ne r_2$; in case 2, $C_1 = y(0)$ and $rC_1 + C_2 = y'(0)$; in case 3, $C_1 = y(0)$ and $\alpha C_1 + \beta C_2 = y'(0)$, which can be solved because $\beta \ne 0$. Then $y$ and the formula solve the same initial value problem, so they are the same function, by Theorem 13.7.
+**Every solution has this form.** Let $y$ be any solution, say on an interval that contains 0 (on another interval, use one of its points in place of 0; the algebra is the same, with extra exponential factors). In each case, choose the constants so that the formula has the same value and the same derivative as $y$ at $t = 0$. In case 1 that means $C_1 + C_2 = y(0)$ and $r_1C_1 + r_2C_2 = y'(0)$, which can be solved because $r_1 \ne r_2$; in case 2, $C_1 = y(0)$ and $rC_1 + C_2 = y'(0)$; in case 3, $C_1 = y(0)$ and $\alpha C_1 + \beta C_2 = y'(0)$, which can be solved because $\beta \ne 0$. Then $y$ and the formula solve the same initial value problem, so $y$ agrees with the formula on its interval, by Theorem 13.7.
 :::
 
 ```check
@@ -1119,7 +1137,7 @@ Eq(x(t), (C1*sin(2*t) + C2*cos(2*t))*exp(-t))
 Eq(x(t), (sin(2*t)/2 + cos(2*t))*exp(-t))
 ```
 
-The logistic solution is the formula of Section 13.6 with $K = 1$, $r = 1$ and $y_0 = \tfrac{1}{10}$, so that $\frac{K - y_0}{y_0} = 9$. In the general solution of the spring equation SymPy attaches `C1` to the sine and `C2` to the cosine, the other way round from Theorem 13.8; that changes nothing, since both constants are arbitrary. The last line is the answer of Example 13.13. The most common mistake is to make the unknown a symbol:
+The logistic solution is the formula of Section 13.6 with $K = 1$, $r = 1$ and $y_0 = \tfrac{1}{10}$, so that $(K - y_0)/y_0 = 9$. In the general solution of the spring equation SymPy attaches `C1` to the sine and `C2` to the cosine, the other way round from Theorem 13.8; that changes nothing, since both constants are arbitrary. The last line is the answer of Example 13.13. The most common mistake is to make the unknown a symbol:
 
 ```python fails
 z = sp.symbols('z')                    # a symbol, not a function
@@ -1141,7 +1159,17 @@ xq = Function('x')
 same(dsolve(xq(t).diff(t, 2) + 2*xq(t).diff(t) + 5*xq(t), ics={xq(0): 1, xq(t).diff(t).subs(t, 0): 0}).rhs, x1313)
 ```
 
-Not every equation has a formula. For $y' = t - y^2$, one of the equations in the widget, no formula built from the functions of this course solves it (its solutions need special functions, the Airy functions), and `dsolve` does not produce one. Numerical methods do not care. Run RK4 with a step $h$ and again with $h/2$: the digits that do not change are the ones you can trust.
+Not every equation has a formula. For $y' = t - y^2$, one of the equations in the widget, no formula built from the functions of this course solves it (its solutions need special functions, the Airy functions), and `dsolve` does not produce one: SymPy 1.14 stops with an error message. Numerical methods do not care. Run RK4 with a step $h$ and again with $h/2$: the digits that do not change are usually the ones you can trust.
+
+```check
+try:
+    dsolve(Eq(yf(t).diff(t), t - yf(t)**2)); _gave = True
+except Exception:
+    _gave = False
+holds(not _gave)                                            # dsolve gives no formula (SymPy 1.14 raises an error)
+_u = Symbol('A')*airyai(t) + Symbol('B')*airybi(t)
+same(diff(diff(_u, t)/_u, t), t - (diff(_u, t)/_u)**2)      # y = u'/u, u made of Airy functions, solves y' = t - y^2
+```
 
 ::: compute Numerical solutions
 The solution of $y' = t - y^2$, $y(0) = 0$, at $t = 2$, with the `rk4` function of Section 13.4 and three step sizes:
@@ -1205,7 +1233,7 @@ holds(abs(u_[0] - float(N(x1313.subs(t, 3), 20))) < 1e-9)
 - If $F$ and $F_y$ are continuous, $y' = F(t, y)$, $y(t_0) = y_0$ has exactly one solution near $t_0$ (Theorem 13.1), although it may blow up after a finite time; without the condition on $F_y$, uniqueness can fail.
 - Models come from "rate of change = rate in − rate out": growth and decay $y' = ky$, cooling $T' = -k(T - T_s)$, a falling body $mv' = mg - cv$, and mixing tanks.
 - A direction field shows the solutions before you solve anything. For $y' = f(y)$, the equilibria are the zeros of $f$; an equilibrium is stable if $f'(y^*) < 0$ and unstable if $f'(y^*) > 0$, and the signs of $f$ on the phase line tell where every solution goes.
-- Euler's method, $y_{n+1} = y_n + h\,F(t_n, y_n)$, follows tangent lines. Its error at a fixed time is $O(h)$, so halving $h$ halves it; RK4's is $O(h^4)$. Too large a step can make Euler's method swing out of control.
+- Euler's method, $y_{n+1} = y_n + h\,F(t_n, y_n)$, follows tangent lines. Its error at a fixed time is $O(h)$, so halving $h$ roughly halves it; for a smooth $F$, RK4's is $O(h^4)$. Too large a step can make Euler's method swing out of control.
 - Separable equations $y' = g(t)h(y)$: $\int\frac{dy}{h(y)} = \int g(t)\,dt$, justified by the chain rule; constant solutions with $h(y^*) = 0$ get lost and must be added back. The solutions of $y' = ky$ are exactly $y(t_0)e^{k(t - t_0)}$, and those of $y' = -k(y - A)$ are $A + \big(y(0) - A\big)e^{-kt}$: cooling, falling bodies, tanks and RC circuits.
 - The logistic equation $y' = ry(1 - y/K)$ has the S-shaped solution $y = K\big/\big(1 + \frac{K - y_0}{y_0}e^{-rt}\big)$, with carrying capacity $K$ and the fastest growth at $y = K/2$.
 - Linear equations $y' + p(t)y = q(t)$: multiply by $\mu = e^{\int p\,dt}$, so that the left side is $(\mu y)'$, and integrate; the solution exists wherever $p$ and $q$ are continuous.
@@ -1343,7 +1371,7 @@ holds(checkodesol(Eq(yf(t).diff(t), t/yf(t)), Eq(yf(t), y4b))[0])
 A thermometer reading 5 °C is brought into a room at 22 °C. After 1 minute it reads 12 °C. Assuming Newton's law of cooling, when will it read 21 °C?
 
 ::: solution
-Newton's law covers warming too: when $T < T_s$, $T' = -k(T - T_s) > 0$. By Section 13.5, $T(t) = 22 + (5 - 22)e^{-kt} = 22 - 17e^{-kt}$, with $t$ in minutes. At $t = 1$:
+Newton's law covers warming too: when $T < T_s$, $T' = -k(T - T_s) > 0$. By Section 13.5, $T(t) = 22 + (5 - 22)e^{-kt} = 22 - 17e^{-kt}$, with $t$ in minutes and $k$ per minute. At $t = 1$:
 
 $$\begin{aligned} 12 &= 22 - 17e^{-k}, \\ e^{-k} &= \frac{10}{17}, \\ k &= \ln 1.7 \approx 0.531. \end{aligned}$$
 
@@ -1487,18 +1515,20 @@ Run Euler's method with step $h$, where $0 < h < 1$, on $y' = t - y$, $y(0) = 1$
 
 - (a) Prove by induction that $y_n = t_n - 1 + 2(1 - h)^n$ for $n = 0, 1, 2, \dots$
 - (b) Deduce that with $n$ steps to $t = 2$ (so $h = 2/n$), Euler's approximation to $y(2)$ is $1 + 2\big(1 - \tfrac2n\big)^n$, and prove that it tends to the exact value $1 + 2e^{-2}$ as $n \to \infty$.
-- (c) Check the formula against Example 13.6 and Figure 13.2, and show that for $n > 2$ the approximation is always below the exact value.
+- (c) Check the formula against Example 13.6 and Figure 13.2, and show that every approximation $y_n$ with $n \ge 1$ lies below the exact value $y(t_n)$.
 
 ::: solution
 **(a)** For $n = 0$: $t_0 - 1 + 2(1 - h)^0 = 0 - 1 + 2 = 1 = y_0$. Now suppose that $y_n = t_n - 1 + 2(1 - h)^n$ for some $n$. Then
 
 $$\begin{aligned} y_{n+1} &= y_n + h(t_n - y_n) \\ &= (1 - h)y_n + ht_n \\ &= (1 - h)(t_n - 1) + ht_n \\ &\qquad + 2(1 - h)^{n+1} \\ &= t_n - 1 + h + 2(1 - h)^{n+1} \\ &= t_{n+1} - 1 + 2(1 - h)^{n+1}, \end{aligned}$$
 
-where the fourth step expands $(1 - h)(t_n - 1) + ht_n = t_n - 1 - ht_n + h + ht_n = t_n - 1 + h$, and the last uses $t_{n+1} = t_n + h$. So the formula holds for $n + 1$, and by induction for every $n$.
+where the third step substitutes the formula for $y_n$ and multiplies out, the fourth expands $(1 - h)(t_n - 1) + ht_n = t_n - 1 - ht_n + h + ht_n = t_n - 1 + h$, and the last uses $t_{n+1} = t_n + h$. So the formula holds for $n + 1$, and by induction for every $n$.
 
 **(b)** With $h = 2/n$, $t_n = 2$, so $y_n = 2 - 1 + 2\big(1 - \tfrac2n\big)^n = 1 + 2\big(1 - \tfrac2n\big)^n$. Module 6 proved that $\big(1 + \tfrac{x}{n}\big)^n \to e^x$ for every $x$; with $x = -2$, $\big(1 - \tfrac2n\big)^n \to e^{-2}$, so $y_n \to 1 + 2e^{-2} = y(2)$. (Or directly: $\ln\big(1 - \tfrac2n\big)^n = n\ln\big(1 - \tfrac2n\big) \to -2$, a limit of the form $\infty \cdot 0$ that [L'Hôpital's rule](module_07_EN.html#products-differences) settles.) Euler's method converges to the solution as the step shrinks.
 
-**(c)** $n = 4$ ($h = 0.5$): $1 + 2\big(\tfrac12\big)^4 = 1.125$, as in Example 13.6. $n = 8$ ($h = 0.25$): $1 + 2\big(\tfrac34\big)^8 = 1 + \tfrac{6561}{32768} \approx 1.2002$, as in Figure 13.2. For the comparison, $1 + x \le e^x$ for every $x$ (the graph of $e^x$ lies above its tangent line at 0), so $0 < 1 - \tfrac2n \le e^{-2/n}$ for $n > 2$; raising both sides to the power $n$ gives $\big(1 - \tfrac2n\big)^n \le e^{-2}$, and the inequality is strict, because $1 + x = e^x$ only at $x = 0$. So Euler's approximation is below $1 + 2e^{-2}$, for the reason that Example 13.6 gave: the solution is concave up.
+**(c)** $n = 4$ ($h = 0.5$): $1 + 2\big(\tfrac12\big)^4 = 1.125$, as in Example 13.6. $n = 8$ ($h = 0.25$): $1 + 2\big(\tfrac34\big)^8 = 1 + \tfrac{6561}{32768} \approx 1.2002$, as in Figure 13.2.
+
+For the comparison, the exact solution of Example 13.1 gives $y(t_n) = t_n - 1 + 2e^{-nh} = t_n - 1 + 2\big(e^{-h}\big)^n$. So $y_n < y(t_n)$ exactly when $(1 - h)^n < \big(e^{-h}\big)^n$. Now $1 + x \le e^x$ for every $x$, with equality only at $x = 0$: the graph of $e^x$ is concave up, so it lies above its tangent line $y = 1 + x$ at 0, touching it only there. With $x = -h$, and $0 < h < 1$, this gives $0 < 1 - h < e^{-h}$. Raising both sides to the power $n \ge 1$ keeps the inequality, because both sides are positive. So every approximation is below the exact value, for the reason that Example 13.6 gave: a curve that is concave up lies above its tangent lines. In particular, Euler's approximation $1 + 2\big(1 - \tfrac2n\big)^n$ to $y(2)$ is below $1 + 2e^{-2}$ for every $n \ge 3$.
 
 ```check
 hs, ns = symbols('h n', positive=True)
@@ -1509,6 +1539,11 @@ same(expand((1 - hs)*(t - 1)), t - 1 - hs*t + hs)
 same(yn_(ns).subs(hs, 2/ns), 1 + 2*(1 - 2/ns)**ns)
 limit_is((1 - 2/n)**n, n, oo, exp(-2), '+'); limit_is(n*log(1 - 2/n), n, oo, -2, '+')
 same((1 + 2*(1 - 2/n)**n).subs(n, 4), Rational(9, 8)); same((1 + 2*(1 - 2/n)**n).subs(n, 8), 1 + Rational(6561, 32768)); rounds(1 + Rational(6561, 32768), '1.2002')
+same(y131.subs(t, ns*hs), ns*hs - 1 + 2*exp(-hs)**ns)                    # y(t_n) = t_n - 1 + 2(e^(-h))^n
+for hv_ in (Rational(1, 100), Rational(1, 4), Rational(1, 2), Rational(9, 10)):
+    holds(0 < 1 - hv_ < exp(-hv_))
+    for N_ in (1, 2, 5, 20):
+        holds(yn_(N_).subs(hs, hv_) < y131.subs(t, N_*hv_))                  # y_n < y(t_n) at every step
 for N_ in (3, 4, 10, 100):
     holds((1 - Rational(2, N_))**N_ < exp(-2))
 ```

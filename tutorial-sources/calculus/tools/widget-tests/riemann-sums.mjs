@@ -26,7 +26,8 @@ export async function run(t) {
   await t.select('select >> nth=1', 'left')
   await t.click('Double n')
   row = await lastRow(t)
-  t.check(row[0] === '16' && row[2] === '1.96', `left rule, n = 8 to 16: the error ratio is 92/47 ≈ 1.96, about 2 (row ${row.join(' | ')})`)
+  t.check(row[0] === '16' && row[2] === '1.96' && (await t.text('.rs-factor')).includes('the left sum by about 2'),
+    `left rule, n = 8 to 16: the error ratio is 92/47 ≈ 1.96, about 2, as the note says (row ${row.join(' | ')})`)
 
   // Simpson's rule needs an even n: 5 becomes 6, drawn as 3 parabolic strips.
   await t.select('select >> nth=1', 'simp')
@@ -42,6 +43,14 @@ export async function run(t) {
   row = await lastRow(t)
   t.check(row[0] === '24' && num(row[2]) > 15 && num(row[2]) < 17 && (await typed(t, '.rs-b input')) === 'pi',
     `sin x on [0, π], Simpson, n = 12 to 24: the error ratio is about 16 (row ${row.join(' | ')})`)
+
+  // sin 0 = sin π: the left sum equals the right sum, and its error falls by about 4 per doubling, not 2.
+  await t.select('select >> nth=1', 'left')
+  await t.click('Double n')
+  row = await lastRow(t)
+  t.check(row[0] === '48' && num(row[2]) > 3.9 && num(row[2]) < 4.1 && (await t.text('.rs-factor')).includes('f(a) = f(b)'),
+    `sin x on [0, π], left rule, n = 24 to 48: the error ratio is about 4, and the note says why (row ${row.join(' | ')})`)
+  await t.set('input[type=range]', 24)
 
   // A net area of 0: the trapezoid sums and the integral of sin x over [0, 2π] show as ≈ 0, not as rounding noise.
   await t.select('select >> nth=1', 'trap')

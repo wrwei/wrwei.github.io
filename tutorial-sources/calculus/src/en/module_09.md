@@ -5,7 +5,7 @@ lead: Find areas and distances by adding up thin rectangles, and make the idea e
 minutes: 270
 needs: Modules 1 to 8, in particular limits (Module 2), continuity and the Extreme Value Theorem (Module 3) and velocity (Module 4)
 goals:
-  - Write sums in sigma notation, and prove and use the formulas for the sums of the first n whole numbers, squares and cubes
+  - Write sums in sigma notation, and prove and use the formulas for $1 + 2 + \dots + n$ and for the sums of the squares and of the cubes of $1, 2, \dots, n$
   - Compute left, right and midpoint Riemann sums, and estimate a distance from speed readings
   - Define the definite integral, and find integrals exactly as limits of Riemann sums
   - Interpret an integral as a signed area, and evaluate integrals with geometry and symmetry
@@ -21,7 +21,7 @@ Module 1 posed two problems ([Section 1.1](module_01_EN.html#two-problems)). The
 
 You know the area of a rectangle (width times height) and of a triangle (half the base times the height), and every polygon can be cut into triangles. A region with a curved side is different: no cutting turns it into triangles. Take the simplest example, the region under the parabola $y = x^2$ from $x = 0$ to $x = 1$, enclosed by the curve, the $x$-axis and the line $x = 1$. Call its area $A$.
 
-You cannot compute $A$ yet, but you can trap it. The idea is old: Archimedes, in the 3rd century BC, found areas with his method of exhaustion, filling a region more and more completely with simpler shapes, an ancestor of the sums in this module. Cut $[0, 1]$ into four strips of width $\tfrac14$. The curve rises across each strip, so a rectangle as tall as the curve at the strip's left end fits under the curve, and a rectangle as tall as the curve at its right end covers the strip's part of the region (Figure 9.1, left).
+You cannot compute $A$ yet, but you can trap it. The idea is old: Archimedes, in the 3rd century BC, found areas with the method of exhaustion, filling a region more and more completely with simpler shapes, an ancestor of the sums in this module. Cut $[0, 1]$ into four strips of width $\tfrac14$. The curve rises across each strip, so a rectangle as tall as the curve at the strip's left end fits under the curve, and a rectangle as tall as the curve at its right end covers the strip's part of the region (Figure 9.1, left).
 
 ::: example Trapping an area between two sums
 Find a lower and an upper estimate of the area $A$ under $y = x^2$ from 0 to 1, with four strips.
@@ -67,7 +67,7 @@ When the speed changes, the area under the speed graph is still the distance. Th
 
 $$\frac12 \cdot t \cdot 9.8t = 4.9t^2.$$
 
-That is exactly the distance $s(t) = 4.9t^2$ that the ball has fallen ([Section 1.3](module_01_EN.html#functions)). Section 9.8 explains why this is no coincidence.
+That is exactly the distance $s(t) = 4.9t^2$ that the ball has fallen ([Section 1.3](module_01_EN.html#functions)). This is no coincidence: Section 9.4 explains why, and Module 10 proves it.
 
 ```check
 same(Rational(1, 2)*t*Rational(98, 10)*t, Rational(49, 10)*t**2)
@@ -90,7 +90,7 @@ Suppose a passenger reads a car's speedometer every 2 seconds as the car speeds 
 
 Estimate the distance the car covers in these 10 seconds.
 
-The car speeds up throughout, so during each 2-second interval its speed lies between the reading at the start of the interval and the reading at the end. At speeds between $m$ and $M$ for $\Delta t$ seconds, a car covers between $m\,\Delta t$ and $M\,\Delta t$ metres. (Module 8's Mean Value Theorem makes this precise: the distance covered from $t_1$ to $t_2$ is $v(c)(t_2 - t_1)$ for some time $c$ in between.) Adding up over the five intervals, the distance is at least
+The car speeds up throughout, so during each 2-second interval its speed lies between the reading at the start of the interval and the reading at the end. At speeds between $m$ and $M$ for $\Delta t$ seconds, a car covers between $m\,\Delta t$ and $M\,\Delta t$ metres. (The [Mean Value Theorem](module_08_EN.html#mvt) of Module 8 makes this precise: the distance covered from $t_1$ to $t_2$ is $v(c)(t_2 - t_1)$ for some time $c$ in between.) Adding up over the five intervals, the distance is at least
 
 $$\begin{aligned} &2(0 + 6 + 11 + 15 + 18) \\ &\quad= 2 \times 50 = 100 \text{ m} \end{aligned}$$
 
@@ -154,7 +154,7 @@ same(sum(2*V92[j] for j in range(0, 5)), 100); same(sum(2*V92[j] for j in range(
 ```
 
 ::: theorem Rules for sums
-For numbers $a_i$ and $b_i$, a constant $c$ and whole numbers $m \le n$,
+For numbers $a_i$ and $b_i$, a constant $c$ and whole numbers $m \le n$ (with $n \ge 1$ in the third rule),
 
 $$\begin{aligned} \sum_{i=m}^{n} c\,a_i &= c\sum_{i=m}^{n} a_i, \\[5pt] \sum_{i=m}^{n} \big(a_i + b_i\big) &= \sum_{i=m}^{n} a_i + \sum_{i=m}^{n} b_i, \\[5pt] \sum_{i=1}^{n} c &= nc. \end{aligned}$$
 
@@ -184,17 +184,17 @@ same(summation(i*i, (i, 1, 2)), 5); same(summation(i, (i, 1, 2))**2, 9); same(su
 
 ### Sums of powers {#power-sums}
 
-The Riemann sums of $x$, $x^2$ and $x^3$ in Section 9.3 lead to sums of the first $n$ whole numbers, squares and cubes. Each has a closed form.
+The Riemann sums of $x$, $x^2$ and $x^3$ (Sections 9.3 and 9.4, and Exercise 9.5) lead to the sum of the whole numbers from 1 to $n$, and to the sums of their squares and of their cubes. Each has a closed form.
 
 ::: theorem Sums of powers
-For every whole number $n \ge 1$, the sums of the first $n$ whole numbers, of their squares and of their cubes are
+For every whole number $n \ge 1$, the sums of the whole numbers from 1 to $n$, of their squares and of their cubes are
 
 $$\begin{aligned} \sum_{i=1}^{n} i &= \frac{n(n + 1)}{2}, \\[5pt] \sum_{i=1}^{n} i^2 &= \frac{n(n + 1)(2n + 1)}{6}, \\[5pt] \sum_{i=1}^{n} i^3 &= \left(\frac{n(n + 1)}{2}\right)^2. \end{aligned}$$
 :::
 
 The three proofs below use three different ideas, each worth knowing.
 
-::: proof of the sum of the first $n$ whole numbers
+::: proof of the sum of the whole numbers from 1 to $n$
 This is the pairing argument usually named after Gauss. Write the sum $S = 1 + 2 + \dots + n$ forwards and backwards, and add the two lines column by column:
 
 $$\begin{aligned} S &= 1 + 2 + \dots + n, \\ S &= n + (n - 1) + \dots + 1, \\ 2S &= (n + 1) + \dots + (n + 1). \end{aligned}$$
@@ -222,7 +222,7 @@ $$\begin{aligned} 3S &= (n + 1)\Big[(n + 1)^2 - 1 - \frac{3n}{2}\Big] \\ &= (n +
 Dividing by 3 gives the second formula.
 :::
 
-The third proof uses **mathematical induction**, a way to prove a statement $P(n)$ for every whole number $n \ge 1$ in two steps:
+The third proof uses **mathematical induction**, the method that [Exercise 5.10](module_05_EN.html#ex-5-10) used to prove the power rule. It proves a statement $P(n)$ for every whole number $n \ge 1$ in two steps:
 
 - the **base case**: $P(1)$ is true;
 - the **inductive step**: for every $k \ge 1$, if $P(k)$ is true, then $P(k + 1)$ is true.
@@ -249,7 +249,7 @@ same(S3.subs(n, 1), 1)
 steps(k**2*(k + 1)**2/4 + (k + 1)**3, (k + 1)**2*(k**2 + 4*k + 4)/4, (k + 1)**2*(k + 2)**2/4, S3.subs(n, k + 1))
 ```
 
-The third formula says that $1^3 + 2^3 + \dots + n^3 = (1 + 2 + \dots + n)^2$: the sum of the first $n$ cubes is the square of the sum of the first $n$ whole numbers.
+The third formula says that $1^3 + 2^3 + \dots + n^3 = (1 + 2 + \dots + n)^2$: the sum of the cubes is the square of the sum.
 
 ::: example Sums by formula
 Find:
@@ -336,7 +336,7 @@ $$\begin{aligned} L_n &= \sum_{i=1}^{n} f(x_{i-1})\,\Delta x, \\[5pt] R_n &= \su
 They are examples of **Riemann sums**, named after Riemann, who defined the integral of Section 9.4 in 1854 (it was published in 1868).
 :::
 
-Where $f$ is positive, each term is the area of a rectangle of width $\Delta x$; where $f$ is negative, the term is negative, and Section 9.4 explains what such terms count. In Example 9.1 the two totals were $L_4 = 0.21875$ and $R_4 = 0.46875$ for $f(x) = x^2$ on $[0, 1]$. For an increasing function, $L_n$ is always a lower estimate of the area and $R_n$ an upper one; for a decreasing function it is the other way round.
+Where $f$ is positive, each term is the area of a rectangle of width $\Delta x$; where $f$ is negative, the term is negative, and Section 9.4 explains what such terms count. In Example 9.1 the two totals were $L_4 = 0.21875$ and $R_4 = 0.46875$ for $f(x) = x^2$ on $[0, 1]$. For a positive increasing function, $L_n$ is always a lower estimate of the area and $R_n$ an upper one; for a positive decreasing function it is the other way round.
 
 ```check
 x9 = symbols('x9')
@@ -363,7 +363,7 @@ The midpoints are $\tfrac98$, $\tfrac{11}{8}$, $\tfrac{13}{8}$ and $\tfrac{15}{8
 
 $$\begin{aligned} M_4 &= \frac14\Big(\frac89 + \frac{8}{11} + \frac{8}{13} + \frac{8}{15}\Big) \\ &\approx 0.6912. \end{aligned}$$
 
-Since $1/x$ decreases on $[1, 2]$, on each subinterval its value at the left end is its largest and its value at the right end its smallest. So the left rectangles cover the region and the right rectangles fit inside it (Figure 9.2): the area $A$ lies between $R_4 \approx 0.6345$ and $L_4 \approx 0.7595$. The midpoint sum lies between the two: each midpoint rectangle is too tall over one half of its subinterval and too short over the other, and the two errors nearly cancel. Module 10 shows that $A = \ln 2 \approx 0.693147$, so $M_4$ is already within 0.002 of it.
+Since $1/x$ decreases on $[1, 2]$, on each subinterval its value at the left end is its largest and its value at the right end its smallest. So the left rectangles cover the region and the right rectangles fit inside it (Figure 9.2): the area $A$ lies between $R_4 \approx 0.6345$ and $L_4 \approx 0.7595$. The midpoint sum lies between the two, since each midpoint height lies between the heights at the ends of its subinterval. It is also much closer to $A$: each midpoint rectangle falls short of the graph over the left half of its subinterval and sticks out above it over the right half, and the two errors nearly cancel. Module 10 shows that $A = \ln 2 \approx 0.693147$, so $M_4$ is already within 0.002 of it.
 
 ```check
 fx94 = 1/x9
@@ -374,13 +374,15 @@ steps(R94, Rational(1, 4)*(Rational(4, 5) + Rational(2, 3) + Rational(4, 7) + Ra
 same([fx94.subs(x9, v_) for v_ in (Rational(9, 8), Rational(11, 8), Rational(13, 8), Rational(15, 8))], [Rational(8, 9), Rational(8, 11), Rational(8, 13), Rational(8, 15)])
 same(M94, Rational(1, 4)*(Rational(8, 9) + Rational(8, 11) + Rational(8, 13) + Rational(8, 15))); rounds(M94, '0.6912')
 holds(R94 < M94); holds(M94 < L94)
+for j in range(4):                                  # each midpoint height lies between the heights at the two ends
+    holds(fx94.subs(x9, 1 + Rational(j + 1, 4)) < fx94.subs(x9, 1 + Rational(2*j + 1, 8))); holds(fx94.subs(x9, 1 + Rational(2*j + 1, 8)) < fx94.subs(x9, 1 + Rational(j, 4)))
 same(integrate(1/x, (x, 1, 2)), log(2)); rounds(log(2), '0.693147'); holds(Abs(M94 - log(2)) < Rational(2, 1000))
 holds(R94 < log(2)); holds(log(2) < L94)
 ```
 :::
 
 ::: figure id=fig-09-2
-Left, right and midpoint sums for $f(x) = 1/x$ on $[1, 2]$ with $n = 4$ (Example 9.4); the dots mark the points where the heights are taken. Since $1/x$ decreases, the left rectangles stick out above the graph and the right ones stay below it; the midpoint rectangles stick out over the left half of each subinterval and fall short over the right half.
+Left, right and midpoint sums for $f(x) = 1/x$ on $[1, 2]$ with $n = 4$ (Example 9.4); the dots mark the points where the heights are taken. Since $1/x$ decreases, the left rectangles stick out above the graph and the right ones stay below it; the midpoint rectangles fall short of the graph over the left half of each subinterval and stick out above it over the right half.
 :::
 
 How do the sums approach the area as $n$ grows? Here are the three sums for $f(x) = x^2$ on $[0, 1]$:
@@ -423,6 +425,10 @@ for N_ in (10, 20, 40):
     same((MM(N_) - Rational(1, 3))/(MM(2*N_) - Rational(1, 3)), 4)
 for N_ in (4, 10, 100):
     same(Rational(1, 3) - RR(N_), -Rational(1, 2*N_) - Rational(1, 6*N_**2)); same(Rational(1, 3) - MM(N_), Rational(1, 12*N_**2))
+    same(Rational(1, 3) - LL(N_), Rational(1, 2*N_) - Rational(1, 6*N_**2))   # the same size as the error of R_n, opposite sign
+eR_ = lambda N_: -Rational(1, 2*N_) - Rational(1, 6*N_**2); eM_ = lambda N_: Rational(1, 12*N_**2)
+for N_ in (10, 100):                                # 1000 times as many rectangles: errors / 1000 and / 1000000
+    holds(1000 < eR_(N_)/eR_(1000*N_) < 1040); same(eM_(N_)/eM_(1000*N_), 10**6)
 holds(LL(10) < LL(100)); holds(LL(100) < Rational(1, 3)); holds(Rational(1, 3) < RR(100)); holds(RR(100) < RR(10))
 ```
 
@@ -471,8 +477,16 @@ The errors are positive: the midpoint sums of $1/x$ are a little too small. Each
 :::
 
 ::: widget name=riemann-sums
-Start with $f(x) = x^2$ on $[0, 1]$, the left rule and $n = 4$: you see the rectangles of Example 9.1 and $L_4 = 0.21875$. Switch to the right rule and to the midpoint rule, and compare with the first table above. Press **Double n** a few times and watch the table of errors: for the left and right rules each doubling roughly halves the error, for the midpoint rule it divides the error by about 4. Then choose $1/x$, for Example 9.4, and $\sin x$ on $[0, \pi]$, where the area is 2 (Module 10 proves it). Type `pi` and `2pi` as the ends of the interval for $\sin x$, and the rectangles hang below the axis: Section 9.4 explains what they count. The trapezoid and Simpson rules belong to Module 11.
+Start with $f(x) = x^2$ on $[0, 1]$, the left rule and $n = 4$: you see the rectangles of Example 9.1 and $L_4 = 0.21875$. Switch to the right rule and to the midpoint rule, and compare with the first table above. Press **Double n** a few times and watch the table of errors: for the left and right rules each doubling roughly halves the error, for the midpoint rule it divides the error by about 4. Then choose $1/x$, for Example 9.4, and $\sin x$ on $[0, \pi]$, where the area is 2 (Module 10 proves it). There the left and right sums are equal, because $\sin 0 = \sin \pi$, and each doubling divides their error by about 4: Module 11 shows why. Type `pi` and `2pi` as the ends of the interval for $\sin x$, and the rectangles hang below the axis: Section 9.4 explains what they count. The trapezoid and Simpson rules belong to Module 11.
 :::
+
+```check
+for N_ in (4, 8):                                   # the caption: for sin x on [0, pi] the left and right sums are equal
+    same(Lsum(sin(x9), 0, pi, N_), Rsum(sin(x9), 0, pi, N_))
+eS_ = [N(2 - Lsum(sin(x9), 0, pi, N_), 30) for N_ in (4, 8, 16)]
+holds(3.9 < eS_[0]/eS_[1] < 4.1); holds(3.9 < eS_[1]/eS_[2] < 4.1)      # each doubling divides the error by about 4
+holds(1.9 < (Rational(1, 3) - LL(4))/(Rational(1, 3) - LL(8)) < 2.1)   # x^2: the left error roughly halves
+```
 
 ::: pitfall
 Three slips with Riemann sums. First, $\Delta x$ is $\tfrac{b - a}{n}$, not $\tfrac1n$: on $[1, 3]$ with $n = 4$, $\Delta x = 0.5$. Second, $n$ subintervals have $n + 1$ cut points $x_0, \dots, x_n$; the left sum uses the first $n$ of them and the right sum the last $n$, so each sum has $n$ terms, not $n + 1$. Third, the midpoints are the middles of the subintervals, not of $[a, b]$: $M_4$ on $[1, 2]$ takes its heights at $\tfrac98$, $\tfrac{11}{8}$, $\tfrac{13}{8}$ and $\tfrac{15}{8}$.
@@ -516,9 +530,9 @@ for N_ in (1, 4, 10, 100):
 ```
 :::
 
-The midpoint sum yields to the same method. Expand $\big(i - \tfrac12\big)^2 = i^2 - i + \tfrac14$ and use all three rules for sums:
+The midpoint sum yields to the same method. The midpoints are $m_i = \big(i - \tfrac12\big)\tfrac1n$, so $f(m_i)\,\Delta x = \tfrac{1}{n^3}\big(i - \tfrac12\big)^2$. Expand $\big(i - \tfrac12\big)^2 = i^2 - i + \tfrac14$, use all three rules for sums and the first two formulas of Theorem 9.2, then expand the bracket and collect terms:
 
-$$\begin{aligned} M_n &= \frac{1}{n^3}\sum_{i=1}^{n}\Big(i^2 - i + \frac14\Big) \\[5pt] &= \frac{1}{n^3}\Big(\frac{n(n + 1)(2n + 1)}{6} \\[5pt] &\qquad - \frac{n(n + 1)}{2} + \frac{n}{4}\Big) \\[5pt] &= \frac13 - \frac{1}{12n^2}. \end{aligned}$$
+$$\begin{aligned} M_n &= \frac{1}{n^3}\sum_{i=1}^{n}\Big(i^2 - i + \frac14\Big) \\[5pt] &= \frac{1}{n^3}\Big(\frac{n(n + 1)(2n + 1)}{6} \\[5pt] &\qquad - \frac{n(n + 1)}{2} + \frac{n}{4}\Big) \\[5pt] &= \frac{1}{n^3}\Big(\frac{n^3}{3} - \frac{n}{12}\Big) \\[5pt] &= \frac13 - \frac{1}{12n^2}. \end{aligned}$$
 
 That is why the midpoint errors in the table are divided by exactly 4 when $n$ doubles.
 
@@ -529,7 +543,10 @@ $$\begin{aligned} R_n &= \sum_{i=1}^{n}\frac{i^2b^2}{n^2}\cdot\frac{b}{n} = \fra
 which approaches $\tfrac{b^3}{3}$, while $L_n = R_n - \tfrac{b^3}{n}$ approaches the same number. The area under $y = x^2$ from 0 to $b$ is $\tfrac{b^3}{3}$: $\tfrac83$ for $b = 2$ and $9$ for $b = 3$.
 
 ```check
-steps(Sum(((i - Rational(1, 2))/n)**2/n, (i, 1, n)), Sum(i**2 - i + Rational(1, 4), (i, 1, n))/n**3, (n*(n + 1)*(2*n + 1)/6 - n*(n + 1)/2 + n/4)/n**3, Rational(1, 3) - 1/(12*n**2))
+same(((i - 1)/n + i/n)/2, (i - Rational(1, 2))/n); same(((i - Rational(1, 2))/n)**2*(1/n), (i - Rational(1, 2))**2/n**3)   # m_i and f(m_i) dx
+steps(Sum(((i - Rational(1, 2))/n)**2/n, (i, 1, n)), Sum(i**2 - i + Rational(1, 4), (i, 1, n))/n**3, (n*(n + 1)*(2*n + 1)/6 - n*(n + 1)/2 + n/4)/n**3,
+      (n**3/3 - n/12)/n**3, Rational(1, 3) - 1/(12*n**2))
+same(expand(n*(n + 1)*(2*n + 1)/6 - n*(n + 1)/2 + n/4), n**3/3 - n/12)
 same(expand((i - Rational(1, 2))**2), i**2 - i + Rational(1, 4))
 bp = symbols('b', positive=True)
 steps(Sum((i*bp/n)**2*bp/n, (i, 1, n)), bp**3/n**3*Sum(i**2, (i, 1, n)), bp**3*(n + 1)*(2*n + 1)/(6*n**2))
@@ -543,7 +560,7 @@ same((bp**3/3).subs(bp, 2), Rational(8, 3)); same((bp**3/3).subs(bp, 3), 9)
 Left, right and midpoint sums take their heights in three particular ways, over subintervals of equal width. Nothing forces these choices. Any point of a subinterval gives a reasonable height, and the subintervals may have different widths: narrow where the graph changes fast, for example. The definite integral is defined so that these choices do not matter.
 
 ::: definition Partitions and Riemann sums
-A **partition** $P$ of $[a, b]$ is a list of points $a = x_0 < x_1 < \dots < x_n = b$. It cuts $[a, b]$ into $n$ subintervals $[x_{i-1}, x_i]$ of widths $\Delta x_i = x_i - x_{i-1}$; the largest width is the **norm** of $P$, written $\norm{P}$. Choose a **sample point** $x_i^*$, read "x i star", in each subinterval $[x_{i-1}, x_i]$. The **Riemann sum** of $f$ for $P$ and these sample points is
+Let $a < b$. A **partition** $P$ of $[a, b]$ is a list of points $a = x_0 < x_1 < \dots < x_n = b$. It cuts $[a, b]$ into $n$ subintervals $[x_{i-1}, x_i]$ of widths $\Delta x_i = x_i - x_{i-1}$; the largest width is the **norm** of $P$, written $\norm{P}$. Choose a **sample point** $x_i^*$, read "x i star", in each subinterval $[x_{i-1}, x_i]$. The **Riemann sum** of $f$ for $P$ and these sample points is
 
 $$\sum_{i=1}^{n} f(x_i^*)\,\Delta x_i.$$
 :::
@@ -560,13 +577,13 @@ for every partition $P$ of $[a, b]$ with $\norm{P} < \delta$ and every choice of
 $$\int_a^b f(x)\,dx = \lim_{\norm{P}\to0}\sum_{i=1}^{n} f(x_i^*)\,\Delta x_i.$$
 :::
 
-The condition is the ε–δ definition of a limit from Module 2, with the partition in place of $x$: however small a tolerance $\varepsilon$ you set, every Riemann sum is within $\varepsilon$ of $I$ once the partition is fine enough, wherever the sample points are. There can be only one such number $I$: two different numbers cannot both be within $\varepsilon$ of the same Riemann sums when $\varepsilon$ is less than half the distance between them.
+The condition has the shape of the ε–δ definition of a limit in Module 2, with the Riemann sums in the role of the values $f(x)$, and the norm $\norm{P}$ in the role of the distance between $x$ and the point it approaches: however small a tolerance $\varepsilon$ you set, every Riemann sum is within $\varepsilon$ of $I$ once the partition is fine enough, wherever the sample points are. It asks more than a limit of a function of one variable, because a Riemann sum is not determined by $\norm{P}$: many partitions have the same norm, and each allows many choices of sample points, and every one of these sums must be close to $I$. The symbol $\lim_{\norm{P}\to0}$, read "the limit as the norm of $P$ approaches 0", is shorthand for exactly this condition. There can be only one such number $I$: two different numbers cannot both be within $\varepsilon$ of the same Riemann sums when $\varepsilon$ is less than half the distance between them.
 
 **Reading the notation.** $\int_a^b f(x)\,dx$ reads "the integral from $a$ to $b$ of $f$ of $x$, $dx$". The sign $\int$, Leibniz's notation (Module 1), is an elongated S, a reminder that an integral is a limit of sums. The function $f(x)$ is the **integrand**, and $a$ and $b$ are the **lower and upper limits of integration** (ends of the interval again, not limits in the sense of Module 2). The $dx$ recalls the widths $\Delta x_i$, so that $f(x)\,dx$ echoes $f(x_i^*)\,\Delta x_i$, and it names the variable. The integral is a number, not a function of $x$: like the index of a sum, $x$ is a dummy variable, and
 
 $$\int_a^b f(x)\,dx = \int_a^b f(t)\,dt = \int_a^b f(u)\,du.$$
 
-When $f(x) \ge 0$ on $[a, b]$, the integral is the area under the graph of $f$ from $a$ to $b$. In fact the integral is now the definition of that area, and it agrees with the area of every rectangle, triangle or other region whose area you already knew.
+When $f$ is integrable and $f(x) \ge 0$ on $[a, b]$, the integral is the area under the graph of $f$ from $a$ to $b$. In fact the integral is now the definition of that area, and it gives the areas you already knew, as you will see below.
 
 Which functions are integrable? Almost every function that you will meet.
 
@@ -574,7 +591,7 @@ Which functions are integrable? Almost every function that you will meet.
 If $f$ is continuous on $[a, b]$, then $f$ is integrable on $[a, b]$. More generally, $f$ is integrable on $[a, b]$ if it is bounded there (there is a number $K$ with $\abs{f(x)} \le K$ for every $x$ in $[a, b]$) and has only finitely many discontinuities in $[a, b]$, such as jumps.
 :::
 
-The proof, like that of the Extreme Value Theorem, needs the completeness of the real numbers, and belongs to a course in real analysis; this series uses the theorem without proof. It covers polynomials, $\sin x$, $\cos x$ and $e^x$ on every interval, $1/x$ on every interval that does not contain 0, and piecewise functions with finitely many jumps. Once you know that $f$ is integrable, you may compute its integral with whichever Riemann sums are convenient:
+The proof, like that of the Extreme Value Theorem, needs the completeness of the real numbers, and belongs to a course in real analysis; this series uses the theorem without proof. It covers polynomials, $\sin x$, $\cos x$ and $e^x$ on every interval $[a, b]$, $1/x$ on every interval $[a, b]$ that does not contain 0, and piecewise functions with finitely many jumps. Once you know that $f$ is integrable, you may compute its integral with whichever Riemann sums are convenient:
 
 ::: theorem Integrals from equal subintervals
 If $f$ is integrable on $[a, b]$, then
@@ -592,10 +609,18 @@ So the area of Example 9.5 is an integral: $x^2$ is continuous, so it is integra
 
 $$\int_0^1 x^2\,dx = \frac13, \qquad \int_0^b x^2\,dx = \frac{b^3}{3} \quad (b > 0).$$
 
+The integral also gives the areas you already knew. The function $x$ is continuous, and its right sums on $[0, b]$ are
+
+$$\sum_{i=1}^{n} \frac{ib}{n}\cdot\frac{b}{n} = \frac{b^2}{n^2}\cdot\frac{n(n + 1)}{2} = \frac{b^2}{2}\Big(1 + \frac1n\Big),$$
+
+which approach $\tfrac{b^2}{2}$: the integral of $x$ from 0 to $b$ is the area of the triangle under its graph, with base $b$ and height $b$. Every Riemann sum of a constant function $c \ge 0$ is $c(b - a)$, because the widths add up to $b - a$: the area of a rectangle. And Module 11 shows that the integral gives the area $\pi r^2$ of a disc.
+
 The hypothesis "$f$ is integrable" in Theorem 9.4 cannot be dropped: the Going deeper box below shows a function whose right sums have a limit although it is not integrable.
 
 ```check
 same(integrate(x**2, (x, 0, 1)), Rational(1, 3)); same(integrate(x**2, (x, 0, bp)), bp**3/3)
+steps(Sum(i*bp/n*bp/n, (i, 1, n)), bp**2/n**2*(n*(n + 1)/2), bp**2/2*(1 + 1/n))
+same(limit(bp**2/2*(1 + 1/n), n, oo), bp**2/2); same(integrate(x, (x, 0, bp)), Rational(1, 2)*bp*bp)
 ```
 
 ::: example An integral as a limit of sums
@@ -607,7 +632,7 @@ $$f(x_i) = \Big(1 + \frac{2i}{n}\Big)^2 = 1 + \frac{4i}{n} + \frac{4i^2}{n^2}.$$
 
 By the rules for sums, with the factors that do not depend on $i$ taken outside each sum,
 
-$$\begin{aligned} R_n &= \sum_{i=1}^{n}\Big(1 + \frac{4i}{n} + \frac{4i^2}{n^2}\Big)\frac2n \\[5pt] &= \frac2n\sum_{i=1}^{n} 1 + \frac{8}{n^2}\sum_{i=1}^{n} i \\[5pt] &\qquad + \frac{8}{n^3}\sum_{i=1}^{n} i^2 \\[5pt] &= 2 + \frac{8}{n^2}\cdot\frac{n(n + 1)}{2} \\[5pt] &\qquad + \frac{8}{n^3}\cdot\frac{n(n + 1)(2n + 1)}{6} \\[5pt] &= 2 + \frac{4(n + 1)}{n} + \frac{4(n + 1)(2n + 1)}{3n^2}. \end{aligned}$$
+$$\begin{aligned} R_n &= \sum_{i=1}^{n}\Big(1 + \frac{4i}{n} + \frac{4i^2}{n^2}\Big)\frac2n \\[5pt] &= \frac2n\sum_{i=1}^{n} 1 + \frac{8}{n^2}\sum_{i=1}^{n} i \\[5pt] &\qquad + \frac{8}{n^3}\sum_{i=1}^{n} i^2 \\[5pt] &= 2 + \frac{8}{n^2}\cdot\frac{n(n + 1)}{2} \\[5pt] &\qquad + \frac{8}{n^3}\cdot\frac{n(n + 1)(2n + 1)}{6} \\[5pt] &= 2 + \frac{4(n + 1)}{n} \\[5pt] &\qquad + \frac{4(n + 1)(2n + 1)}{3n^2}. \end{aligned}$$
 
 As $n \to \infty$, $\tfrac{n + 1}{n} = 1 + \tfrac1n$ approaches 1 and $\tfrac{(n + 1)(2n + 1)}{n^2} = 2 + \tfrac3n + \tfrac{1}{n^2}$ approaches 2, so
 
@@ -678,7 +703,7 @@ Where $f$ is negative, the terms $f(x_i^*)\,\Delta x_i$ of a Riemann sum are neg
 
 $$\begin{aligned} \int_a^b f(x)\,dx &= (\text{area above the axis}) \\[5pt] &\quad - (\text{area below the axis}). \end{aligned}$$
 
-This is the **net area**, or **signed area**, between the graph of $f$ and the $x$-axis. In Figure 9.3 (right) the two parts cancel exactly.
+This is the **net area**, or **signed area**, between the graph of $f$ and the $x$-axis. The **total area** between the graph and the axis counts every part as positive: it is the area above the axis plus the area below it. Since the graph of $\abs{f}$ turns the parts below the axis over, the total area is $\int_a^b \abs{f(x)}\,dx$. In Figure 9.3 (right) the two parts cancel exactly: the net area is 0, but the total area is not.
 
 ::: figure id=fig-09-3
 Left: a Riemann sum for a partition $x_0 < x_1 < \dots < x_5$ with unequal widths $\Delta x_i$ and a sample point $x_i^*$ (dot) anywhere in each subinterval. Right: the signed area of Example 9.7. The graph of $x^2 - 2x$ encloses an area of $\tfrac43$ below the axis, on $[0, 2]$, and an area of $\tfrac43$ above it, on $[2, 3]$, so the integral from 0 to 3 is 0.
@@ -718,7 +743,7 @@ same(integrate(2 - t, (t, 0, 2)), 2); same(integrate(2 - t, (t, 2, 4)), -2)
 ```
 
 ::: pitfall
-$\int_a^b f(x)\,dx$ is the area between the graph and the axis only when $f \ge 0$ on $[a, b]$. Otherwise it is a net area, which can be 0, or negative, even when the region is large. To find the total area, split $[a, b]$ where $f$ changes sign and add up the sizes of the pieces: for $x^2 - 2x$ on $[0, 3]$ the total area is $\tfrac43 + \tfrac43 = \tfrac83$, not 0.
+$\int_a^b f(x)\,dx$ is the area between the graph and the axis when $f \ge 0$ on $[a, b]$. Where $f$ is negative, the integral subtracts area: it is a net area, which can be 0, or negative, even when the region is large. To find the total area, split $[a, b]$ where $f$ changes sign and add up the sizes of the pieces: for $x^2 - 2x$ on $[0, 3]$ the total area is $\tfrac43 + \tfrac43 = \tfrac83$, not 0.
 :::
 
 ## Properties of the integral {#properties}
@@ -728,7 +753,9 @@ Riemann sums obey the rules for sums of Section 9.2. Letting the partitions shri
 ::: definition Reversed and equal limits
 For $a < b$ and $f$ integrable on $[a, b]$,
 
-$$\begin{aligned} \int_b^a f(x)\,dx &= -\int_a^b f(x)\,dx, \\[5pt] \int_a^a f(x)\,dx &= 0. \end{aligned}$$
+$$\int_b^a f(x)\,dx = -\int_a^b f(x)\,dx.$$
+
+For every number $c$ at which $f$ is defined, $\displaystyle\int_c^c f(x)\,dx = 0$.
 :::
 
 Going from $b$ back to $a$, the widths $\Delta x = \tfrac{a - b}{n}$ are negative, so every Riemann sum changes sign: that makes the first convention the natural one. The second says that a single point has no area.
@@ -750,13 +777,13 @@ These are the arguments that proved the limit laws in Module 2. Additivity over 
 ::: theorem Additivity over intervals
 Let $f$ be continuous, or bounded with finitely many discontinuities, on an interval that contains $a$, $b$ and $c$. Then
 
-$$\int_a^b f(x)\,dx + \int_b^c f(x)\,dx = \int_a^c f(x)\,dx.$$
+$$\begin{aligned} &\int_a^b f(x)\,dx + \int_b^c f(x)\,dx \\[5pt] &\quad= \int_a^c f(x)\,dx. \end{aligned}$$
 :::
 
 ::: proof
 By Theorem 9.3, $f$ is integrable on every closed interval with ends among $a$, $b$ and $c$. Suppose first that $a < b < c$, and let $\varepsilon > 0$. Definition 9.4 gives a $\delta$ for each of the intervals $[a, b]$, $[b, c]$ and $[a, c]$; let $\delta$ be the smallest of the three. Then, for partitions of norm less than $\delta$, the Riemann sums for each of the three intervals are within $\varepsilon$ of its integral. Take a partition of $[a, b]$ and one of $[b, c]$, both of norm less than $\delta$, with any sample points, and let $S_1$ and $S_2$ be their Riemann sums. Together the two partitions form a partition of $[a, c]$, also of norm less than $\delta$, and its Riemann sum is $S_1 + S_2$. So
 
-$$\begin{aligned} &\Big|\int_a^c f - \int_a^b f - \int_b^c f\Big| \\[5pt] &\quad\le \Big|\int_a^c f - (S_1 + S_2)\Big| + \Big|S_1 - \int_a^b f\Big| \\[5pt] &\qquad + \Big|S_2 - \int_b^c f\Big| < 3\varepsilon. \end{aligned}$$
+$$\begin{aligned} &\Big|\int_a^c f - \int_a^b f - \int_b^c f\Big| \\[5pt] &\quad\le \Big|\int_a^c f - (S_1 + S_2)\Big| \\[5pt] &\qquad + \Big|S_1 - \int_a^b f\Big| + \Big|S_2 - \int_b^c f\Big| \\[5pt] &\quad< 3\varepsilon. \end{aligned}$$
 
 The left side is a fixed number, less than $3\varepsilon$ for every $\varepsilon > 0$, so it is 0. Every other order of $a$, $b$ and $c$ follows from this case with Definition 9.5. For instance, if $a < c < b$, the case already proved gives $\int_a^c f + \int_c^b f = \int_a^b f$, so $\int_a^c f = \int_a^b f - \int_c^b f = \int_a^b f + \int_b^c f$. If two of the three numbers are equal, the formula follows at once from Definition 9.5.
 :::
@@ -785,6 +812,7 @@ steps(Integral(x**2 - 2*x, (x, 0, 2)), Integral(x**2, (x, 0, 2)) - 2*Integral(x,
 same(Rational(1, 2)*2*2, 2); same(integrate(x, (x, 0, 2)), 2)
 same(0 - (-Rational(4, 3)), Rational(4, 3)); same(integrate(x**2 - 2*x, (x, 2, 3)), Rational(4, 3))
 same(Rational(4, 3) + Rational(4, 3), Rational(8, 3)); same(integrate(-(x**2 - 2*x), (x, 0, 2)) + integrate(x**2 - 2*x, (x, 2, 3)), Rational(8, 3))
+near(Integral(Abs(x**2 - 2*x), (x, 0, 3)).evalf(30), Rational(8, 3), 1e-20)          # the total area is the integral of |f|
 ```
 :::
 
@@ -794,7 +822,7 @@ Let $f$ and $g$ be integrable on $[a, b]$, where $a < b$.
 - (a) If $f(x) \ge 0$ for every $x$ in $[a, b]$, then $\displaystyle\int_a^b f(x)\,dx \ge 0$.
 - (b) If $f(x) \le g(x)$ for every $x$ in $[a, b]$, then $\displaystyle\int_a^b f(x)\,dx \le \int_a^b g(x)\,dx$.
 - (c) If $m \le f(x) \le M$ for every $x$ in $[a, b]$, then
-  $$m(b - a) \le \int_a^b f(x)\,dx \le M(b - a).$$
+  $$\begin{aligned} m(b - a) &\le \int_a^b f(x)\,dx \\[5pt] &\le M(b - a). \end{aligned}$$
 :::
 
 ::: proof
@@ -805,12 +833,12 @@ Let $f$ and $g$ be integrable on $[a, b]$, where $a < b$.
 **(c)** Apply (b) to the constant function $m$ and $f$, and to $f$ and the constant function $M$, and use $\int_a^b m\,dx = m(b - a)$ (Theorem 9.5).
 :::
 
-With $m$ and $M$ the smallest and largest values of $f$, part (c) says that the area under the graph lies between the areas of two rectangles on $[a, b]$, one as high as the lowest point of the graph and one as high as the highest.
+When $f \ge 0$ is continuous, take for $m$ and $M$ its smallest and largest values on $[a, b]$, which exist by the Extreme Value Theorem (Module 3). Then part (c) says that the area under the graph lies between the areas of two rectangles on $[a, b]$, one as high as the lowest point of the graph and one as high as the highest.
 
 ::: example Bounding an integral with no formula
 Show that $\displaystyle\int_0^1 e^{-x^2}\,dx$ lies between 0.36 and 1, and then that it lies between 0.57 and 0.89.
 
-The integrand is continuous, so the integral exists (Theorem 9.3). The shortcut of Module 10 cannot evaluate it, as Module 11 explains, but the comparison theorem bounds it. On $[0, 1]$, $x^2$ increases from 0 to 1, so $-x^2$ decreases from 0 to $-1$, and $e^{-x^2}$ decreases from $e^0 = 1$ to $e^{-1}$. So $e^{-1} \le e^{-x^2} \le 1$ on $[0, 1]$, and Theorem 9.7(c), with $b - a = 1$, gives
+The integrand is continuous, so the integral exists (Theorem 9.3). The shortcut of Module 10 cannot evaluate it, because no formula built from the familiar functions has the derivative $e^{-x^2}$ (Module 11), but the comparison theorem bounds it. On $[0, 1]$, $x^2$ increases from 0 to 1, so $-x^2$ decreases from 0 to $-1$, and $e^{-x^2}$ decreases from $e^0 = 1$ to $e^{-1}$. So $e^{-1} \le e^{-x^2} \le 1$ on $[0, 1]$, and Theorem 9.7(c), with $b - a = 1$, gives
 
 $$e^{-1} \le \int_0^1 e^{-x^2}\,dx \le 1.$$
 
@@ -820,7 +848,7 @@ To do better, split $[0, 1]$ at $\tfrac12$ (additivity) and bound each half. On 
 
 $$\frac{e^{-1/4} + e^{-1}}{2} \le \int_0^1 e^{-x^2}\,dx \le \frac{1 + e^{-1/4}}{2},$$
 
-where the bounds are about $0.5733$ and $0.8894$: the integral lies between 0.57 and 0.89. These two bounds are $R_2$ and $L_2$: for a decreasing function, the right sums are lower bounds and the left sums upper bounds, and more subintervals give closer bounds.
+where the bounds are about $0.5733$ and $0.8894$: the integral lies between 0.57 and 0.89. These two bounds are $R_2$ and $L_2$. The same argument works for any continuous decreasing $f$ and any $n$: on each subinterval, $f$ lies between its values at the right end and at the left end, so Theorem 9.7(c) bounds the integral over each subinterval, and adding the $n$ results (additivity) gives $R_n \le \int_a^b f(x)\,dx \le L_n$. For a continuous increasing $f$, $L_n \le \int_a^b f(x)\,dx \le R_n$. The gap between the bounds, $\abs{L_n - R_n} = \Delta x\,\abs{f(a) - f(b)}$, shrinks as $n$ grows.
 
 (All these bounds are in fact strict, because the integrand equals each bound only at single points; Exercise 9.12 shows how to prove such strict inequalities.)
 
@@ -832,6 +860,9 @@ rounds(exp(-1), '0.3679'); holds(exp(-1) > Rational(36, 100))
 lo99 = (exp(-Rational(1, 4)) + exp(-1))/2; hi99 = (1 + exp(-Rational(1, 4)))/2
 rounds(lo99, '0.5733'); rounds(hi99, '0.8894'); holds(lo99 > Rational(57, 100)); holds(hi99 < Rational(89, 100))
 same(lo99, Rsum(g99, 0, 1, 2)); same(hi99, Lsum(g99, 0, 1, 2))
+for N_ in (2, 5):                                   # the gap L_n - R_n = dx (f(a) - f(b)), and R_n < integral < L_n
+    same(Lsum(g99, 0, 1, N_) - Rsum(g99, 0, 1, N_), Rational(1, N_)*(g99.subs(x9, 0) - g99.subs(x9, 1)))
+    holds(Rsum(g99, 0, 1, N_) < Integral(exp(-x**2), (x, 0, 1)).evalf(30)); holds(Integral(exp(-x**2), (x, 0, 1)).evalf(30) < Lsum(g99, 0, 1, N_))
 I99 = Integral(exp(-x**2), (x, 0, 1)).evalf(30); holds(lo99 < I99); holds(I99 < hi99)
 ```
 :::
@@ -981,7 +1012,9 @@ As $n$ grows, these sample averages approach $\tfrac{1}{b - a}\int_a^b f(x)\,dx$
 ::: definition Average value
 The **average value** of a function $f$ integrable on $[a, b]$, where $a < b$, is
 
-$$f_{\text{avg}} = \frac{1}{b - a}\int_a^b f(x)\,dx.$$
+$$f_{\text{avg}} = \frac{1}{b - a}\int_a^b f(x)\,dx,$$
+
+read "f average".
 :::
 
 Rearranged, $f_{\text{avg}}(b - a) = \int_a^b f(x)\,dx$: when $f \ge 0$, the rectangle of height $f_{\text{avg}}$ on $[a, b]$ has the same area as the region under the graph (Figure 9.5). For example, the average value of $x^2$ on $[0, 1]$ is $\tfrac13$, and on $[0, 2]$ it is $\tfrac12 \cdot \tfrac83 = \tfrac43$.
@@ -1064,7 +1097,7 @@ Here are the exact integrals of this module, from 0 to $b$, for $b > 0$:
 | $f(x)$ | $\displaystyle\int_0^b f(x)\,dx$ | Found in |
 |---|---|---|
 | $x$ | $\dfrac{b^2}{2}$ | a triangle |
-| $x^2$ | $\dfrac{b^3}{3}$ | Example 9.5 |
+| $x^2$ | $\dfrac{b^3}{3}$ | Section 9.3 |
 | $x^3$ | $\dfrac{b^4}{4}$ | Exercise 9.5 |
 | $9.8x$ | $4.9b^2$ | a triangle, Section 9.1 |
 
@@ -1087,16 +1120,16 @@ rounds(log(2), '0.693147'); same(integrate(1/x, (x, 1, 2)), log(2))
 same(integrate(sin(x), (x, 0, pi)), 2); same(Rational(1, 3) - 0, integrate(x**2, (x, 0, 1)))
 ```
 
-Riemann sums remain essential all the same. They define the integral; they turn real problems (areas, distances, energy, averages, and in Module 12 volumes, work and probabilities) into integrals; and where no formula for $F$ exists, as for $e^{-x^2}$, they compute integrals numerically (Module 11).
+Riemann sums remain essential all the same. They define the integral; they turn real problems (areas, distances, energy, averages, and in Module 12 volumes, work and probabilities) into integrals; and where $F$ has no formula built from the familiar functions, as for $e^{-x^2}$, they compute integrals numerically (Module 11).
 
 ## What you learned {#summary}
 
 - The area under a curve and the distance travelled at a changing speed are the same problem: cut the interval into short pieces, approximate each piece by a rectangle, add up, and let the pieces shrink.
 - Sigma notation writes $a_m + \dots + a_n$ as $\sum_{i=m}^{n} a_i$; sums split over $+$ and $-$, and constants come out. $\sum i = \tfrac{n(n+1)}{2}$, $\sum i^2 = \tfrac{n(n+1)(2n+1)}{6}$ and $\sum i^3 = \big(\tfrac{n(n+1)}{2}\big)^2$, proved by pairing, by a telescoping sum and by induction.
-- The left, right and midpoint sums $L_n$, $R_n$ and $M_n$ take heights at the left ends, right ends or midpoints of $n$ equal subintervals of width $\Delta x = \tfrac{b - a}{n}$. For an increasing $f$, $L_n \le \int_a^b f \le R_n$; for a decreasing $f$, the other way round. For $x^2$ on $[0, 1]$, the errors of $L_n$ and $R_n$ shrink like $\tfrac1n$ and that of $M_n$ like $\tfrac{1}{n^2}$.
+- The left, right and midpoint sums $L_n$, $R_n$ and $M_n$ take heights at the left ends, right ends or midpoints of $n$ equal subintervals of width $\Delta x = \tfrac{b - a}{n}$. For a continuous increasing $f$, $L_n \le \int_a^b f \le R_n$; for a continuous decreasing $f$, the other way round. For $x^2$ on $[0, 1]$, the errors of $L_n$ and $R_n$ shrink like $\tfrac1n$ and that of $M_n$ like $\tfrac{1}{n^2}$.
 - The definite integral $\int_a^b f(x)\,dx$ is the limit of Riemann sums $\sum f(x_i^*)\,\Delta x_i$ as the norm of the partition shrinks to 0, for every choice of sample points. Continuous functions, and bounded functions with finitely many discontinuities, are integrable, and then $\int_a^b f = \lim L_n = \lim R_n = \lim M_n$. Exact limits gave $\int_0^b x^2\,dx = \tfrac{b^3}{3}$.
-- The integral is a signed area: area above the axis counts as positive, area below as negative. The integral of a velocity is a displacement; the distance travelled is the integral of the speed $\abs{v}$.
-- The integral is linear, additive over intervals ($\int_a^b f + \int_b^c f = \int_a^c f$, with $\int_b^a f = -\int_a^b f$), and respects inequalities: $m(b - a) \le \int_a^b f \le M(b - a)$ when $m \le f \le M$ on $[a, b]$.
+- The integral is a signed area: area above the axis counts as positive, area below as negative. The total area is $\int_a^b \abs{f}$. The integral of a velocity is a displacement; the distance travelled is the integral of the speed $\abs{v}$.
+- The integral is linear, additive over intervals ($\int_a^b f + \int_b^c f = \int_a^c f$, with $\int_b^a f = -\int_a^b f$), and respects inequalities: $m(b - a) \le \int_a^b f \le M(b - a)$ when $m \le f \le M$ on $[a, b]$, $a < b$.
 - Areas of triangles, trapezoids and discs give integrals directly; over $[-a, a]$, odd functions integrate to 0 and even functions to twice their integral over $[0, a]$.
 - The average value of $f$ on $[a, b]$ is $\tfrac{1}{b - a}\int_a^b f(x)\,dx$, and a continuous function takes its average value somewhere in $[a, b]$ (the Mean Value Theorem for integrals).
 - Differentiating $\int_0^b x^2\,dx = \tfrac{b^3}{3}$ with respect to $b$ gives back $b^2$: a first sight of the Fundamental Theorem of Calculus, Module 10.
@@ -1291,7 +1324,7 @@ The particle of [Example 4.10](module_04_EN.html#motion) has position $s(t) = t^
 ::: solution
 **(a)** By linearity, with $\int_0^b 9\,dt = 9b$,
 
-$$\begin{aligned} \int_0^b v(t)\,dt &= 3\int_0^b t^2\,dt \\[5pt] &\quad - 12\int_0^b t\,dt + \int_0^b 9\,dt \\[5pt] &= 3\cdot\frac{b^3}{3} - 12\cdot\frac{b^2}{2} + 9b \\[5pt] &= b^3 - 6b^2 + 9b. \end{aligned}$$
+$$\begin{aligned} &\int_0^b v(t)\,dt \\[5pt] &\quad= 3\int_0^b t^2\,dt - 12\int_0^b t\,dt \\[5pt] &\qquad + \int_0^b 9\,dt \\[5pt] &\quad= 3\cdot\frac{b^3}{3} - 12\cdot\frac{b^2}{2} + 9b \\[5pt] &\quad= b^3 - 6b^2 + 9b. \end{aligned}$$
 
 That is $s(b)$, and $s(0) = 0$: the integral of the velocity from 0 to $b$ is the displacement $s(b) - s(0)$, as Section 9.4 said.
 
@@ -1386,7 +1419,7 @@ holds(P9[3] == max(P9))
 
 *Inductive step.* Suppose the formula holds for some $k \ge 1$. Adding the next term and taking out the common factor $k + 1$,
 
-$$\begin{aligned} &\sum_{i=1}^{k+1} i^2 \\[5pt] &\quad= \frac{k(k + 1)(2k + 1)}{6} + (k + 1)^2 \\[5pt] &\quad= \frac{(k + 1)\big[k(2k + 1) + 6(k + 1)\big]}{6} \\[5pt] &\quad= \frac{(k + 1)\big(2k^2 + 7k + 6\big)}{6} \\[5pt] &\quad= \frac{(k + 1)(k + 2)(2k + 3)}{6}. \end{aligned}$$
+$$\begin{aligned} &\sum_{i=1}^{k+1} i^2 \\[5pt] &= \frac{k(k + 1)(2k + 1)}{6} + (k + 1)^2 \\[5pt] &= \frac{k + 1}{6}\big[k(2k + 1) + 6(k + 1)\big] \\[5pt] &= \frac{k + 1}{6}\big(2k^2 + 7k + 6\big) \\[5pt] &= \frac{(k + 1)(k + 2)(2k + 3)}{6}. \end{aligned}$$
 
 This is the formula with $n = k + 1$, since $2(k + 1) + 1 = 2k + 3$. By induction it holds for every $n \ge 1$.
 
@@ -1402,11 +1435,12 @@ So $3\sum_{i=1}^{n} i(i + 1) = n(n + 1)(n + 2)$, which is the formula.
 
 **(c)** Since $i^2 = i(i + 1) - i$, the rules for sums make the sum of the squares equal to the sum in (b) minus $\sum_{i=1}^{n} i$. So, by (b) and Theorem 9.2,
 
-$$\begin{aligned} \sum_{i=1}^{n} i^2 &= \frac{n(n + 1)(n + 2)}{3} - \frac{n(n + 1)}{2} \\[5pt] &= \frac{n(n + 1)\big[2(n + 2) - 3\big]}{6} \\[5pt] &= \frac{n(n + 1)(2n + 1)}{6}. \end{aligned}$$
+$$\begin{aligned} &\sum_{i=1}^{n} i^2 \\[5pt] &\quad= \frac{n(n + 1)(n + 2)}{3} \\[5pt] &\qquad - \frac{n(n + 1)}{2} \\[5pt] &\quad= \frac{n(n + 1)\big[2(n + 2) - 3\big]}{6} \\[5pt] &\quad= \frac{n(n + 1)(2n + 1)}{6}. \end{aligned}$$
 
 ```check
 same(S2.subs(n, 1), 1)
-steps(k*(k + 1)*(2*k + 1)/6 + (k + 1)**2, (k + 1)*(k*(2*k + 1) + 6*(k + 1))/6, (k + 1)*(2*k**2 + 7*k + 6)/6, (k + 1)*(k + 2)*(2*k + 3)/6, S2.subs(n, k + 1))
+steps(k*(k + 1)*(2*k + 1)/6 + (k + 1)**2, (k + 1)/6*(k*(2*k + 1) + 6*(k + 1)), (k + 1)/6*(2*k**2 + 7*k + 6), (k + 1)*(k + 2)*(2*k + 3)/6, S2.subs(n, k + 1))
+same(expand(k*(2*k + 1) + 6*(k + 1)), 2*k**2 + 7*k + 6); same(factor(2*k**2 + 7*k + 6), (k + 2)*(2*k + 3))
 steps(i*(i + 1)*(i + 2) - (i - 1)*i*(i + 1), i*(i + 1)*((i + 2) - (i - 1)), 3*i*(i + 1))
 same(summation(i*(i + 1)*(i + 2) - (i - 1)*i*(i + 1), (i, 1, n)), n*(n + 1)*(n + 2))
 same(summation(i*(i + 1), (i, 1, n)), n*(n + 1)*(n + 2)/3)
@@ -1429,13 +1463,13 @@ steps(n*(n + 1)*(n + 2)/3 - n*(n + 1)/2, n*(n + 1)*(2*(n + 2) - 3)/6, S2)
 
 **(b)** Here $\Delta x = \tfrac1n$, and the left ends are $x_i = \tfrac{i}{n}$ for $i = 0, \dots, n - 1$, so
 
-$$L_n = \sum_{i=0}^{n-1} e^{i/n}\cdot\frac1n = \frac1n\sum_{i=0}^{n-1}\big(e^{1/n}\big)^i.$$
+$$\begin{aligned} L_n &= \sum_{i=0}^{n-1} e^{i/n}\cdot\frac1n \\[5pt] &= \frac1n\sum_{i=0}^{n-1}\big(e^{1/n}\big)^i. \end{aligned}$$
 
 This is the sum of (a) with $r = e^{1/n}$, which is not 1 because $\tfrac1n \ne 0$, and $r^n = e$. So $L_n = \tfrac1n \cdot \tfrac{e - 1}{e^{1/n} - 1}$, which is the formula.
 
 **(c)** Put $h = \tfrac1n$. Then
 
-$$\frac{1/n}{e^{1/n} - 1} = \frac{h}{e^h - 1} = \frac{1}{(e^h - 1)/h}.$$
+$$\begin{aligned} \frac{1/n}{e^{1/n} - 1} &= \frac{h}{e^h - 1} \\[5pt] &= \frac{1}{(e^h - 1)/h}. \end{aligned}$$
 
 As $n \to \infty$, $h \to 0^+$, and $\tfrac{e^h - 1}{h} = \tfrac{e^{0+h} - e^0}{h}$ is the difference quotient of $e^x$ at 0. Its limit is the derivative of $e^x$ at 0, which is $e^0 = 1$ (Module 6). So $L_n \to (e - 1) \cdot \tfrac11 = e - 1$. Since $e^x$ is continuous, it is integrable, and by Theorem 9.4
 
@@ -1504,7 +1538,7 @@ same(limit(2/n, n, oo), 0)
 - [ ] $9$
 > $\Delta x = 1$, and the right ends are 1, 2 and 3, so $R_3 = 1 + 2 + 3 = 6$. 4.5 is the exact integral, the area of a triangle with base 3 and height 3: $R_3$ overestimates it because $x$ increases. 3 is the left sum $0 + 1 + 2$. 9 is the area of one rectangle of height $f(3)$ over the whole interval.
 
-? If $f$ is decreasing on $[a, b]$, then for every $n$
+? If $f$ is continuous and decreasing on $[a, b]$, then for every $n$
 - [ ] $L_n \le \int_a^b f(x)\,dx \le R_n$
 - [ ] $L_n = R_n$
 - [ ] $M_n \le L_n \le R_n$

@@ -49,7 +49,7 @@ def fig_11_1(L):
     vs = np.linspace(0, 1, 400)
     a2.fill_betweenx(vs, 0, np.exp(vs), color=C['orange'], alpha=0.25, lw=0, zorder=2)
     a2.plot([0, E, E], [1, 1, 0], color=C['slate'], lw=1.2, ls=(0, (4, 3)), zorder=3)
-    plot_fn(a2, np.log, 0.75, 3.4, color=C['navy'], lw=2.2)
+    plot_fn(a2, np.log, 1.0, 3.4, color=C['navy'], lw=2.2)  # from u = 1: below the axis it would cross the tick label 1
     label(a2, 2.2, 0.28, r'$1$', color=C['blue'], size=13, ha='center')
     label(a2, 0.85, 0.55, r'$e - 1$', color=C['orange'], size=13, ha='center')
     label(a2, 2.95, 0.72, r'$v = \ln u$', color=C['navy'], size=12, ha='left')

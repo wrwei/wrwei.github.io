@@ -24,7 +24,9 @@ def fig_10_1(L):
     fig, ax = figure(7.6, 4.0)
     F = lambda x, c: x**3 / 3 - x + c
     f = lambda x: x**2 - 1
-    math_axes(ax, (-2.7, 2.7), (-3.7, 3.9), xticks=[-2, -1, 1, 2], yticks=[-3, -2, -1, 1, 2, 3])
+    # The tick at y = 1 has no label: the dot at (0, 1) would cover it, and the dot is labelled.
+    math_axes(ax, (-2.7, 2.7), (-3.7, 3.9), xticks=[-2, -1, 1, 2],
+              yticks=[(-3, '−3'), (-2, '−2'), (-1, '−1'), (1, ''), (2, '2'), (3, '3')])
     x0 = 1.5
     # The grey curves go below the axis layer, so that the tick labels (with their white halo) stay readable.
     for c in (-2, -1, 0, 2):
@@ -34,13 +36,14 @@ def fig_10_1(L):
         tangent(ax, lambda x, c=c: F(x, c), x0, (x0 - 0.42, x0 + 0.42), df=f, color=C['orange'], lw=2.0)
         dot(ax, x0, F(x0, c), color=C['orange'], size=5)
     dot(ax, 0, 1, color=C['navy'])
-    label(ax, 0.13, 1.42, r'$(0, 1)$', ha='left', size=11)
+    label(ax, 0.13, 1.2, r'$(0, 1)$', ha='left', size=11)
     label(ax, -2.62, 3.35, r'$y = x^3/3 - x + 1$', color=C['blue'], size=12)
     label(ax, 1.95, -2.75, 'slope 1.25 at $x = 1.5$', color=C['orange'], size=11, ha='left')
     return fig
 
 
-# The function of Example 10.5 and its area function from 0, both built from straight pieces.
+# The function of Example 10.4 and its area function from 0: f is built from straight pieces, A from
+# pieces of lines and parabolas.
 def f_pw(t):
     if t <= 2:
         return 2.0
@@ -127,11 +130,11 @@ def fig_10_4(L):
         signed_shade(ax, g, 0, 4)
         plot_fn(ax, g, 0, 4, color=C['navy'], lw=2.2)
         title(ax, ttl, size=11.5, pad=10)
-    label(a1, 0.37, 2.0, '4', color=C['blue'], size=13, ha='center')
+    label(a1, 0.37, 2.0, r'$4$', color=C['blue'], size=13, ha='center')
     label(a1, 2.0, -2.15, r'$-4$', color=C['orange'], size=13, ha='center')
-    label(a1, 3.63, 2.0, '4', color=C['blue'], size=13, ha='center')
+    label(a1, 3.63, 2.0, r'$4$', color=C['blue'], size=13, ha='center')
     for xp in (0.37, 2.0, 3.63):
-        label(a2, xp, 1.1, '4', color=C['blue'], size=13, ha='center')
+        label(a2, xp, 1.1, r'$4$', color=C['blue'], size=13, ha='center')
     fig.tight_layout(w_pad=2.0)
     return fig
 

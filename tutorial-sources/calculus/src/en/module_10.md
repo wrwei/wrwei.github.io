@@ -1,7 +1,7 @@
 ---
 title: The Fundamental Theorem of Calculus
 part: 3
-lead: Connect the two halves of calculus. You will find functions from their derivatives, watch the area under a graph grow as its right end moves, prove that it grows at a rate equal to the height of the graph, and then evaluate integrals with antiderivatives instead of limits of sums. You will also reverse the chain rule with substitution, and integrate with SymPy.
+lead: Connect the two halves of calculus. You will find functions from their derivatives, watch the area under a graph grow as its right end moves, prove that it grows at a rate equal to the height of the graph, evaluate integrals with antiderivatives instead of limits of sums, reverse the chain rule with substitution, and integrate with SymPy.
 minutes: 255
 needs: Modules 1 to 9, especially the chain rule (Module 5), the Mean Value Theorem and its consequences (Module 8) and the definite integral (Module 9)
 goals:
@@ -53,10 +53,10 @@ where $C$ is a constant.
 :::
 
 ::: proof
-For every constant $C$, $(F + C)' = F' + 0 = f$ on $I$, so $F + C$ is an antiderivative. Conversely, let $G$ be any antiderivative of $f$ on $I$. Then $G'(x) = f(x) = F'(x)$ for every $x$ in $I$. Module 8 used the Mean Value Theorem to prove that two functions with the same derivative at every point of an interval differ by a constant on that interval. So $G(x) - F(x) = C$ for some constant $C$ and every $x$ in $I$, that is, $G = F + C$.
+For every constant $C$, $(F + C)' = F' + 0 = f$ on $I$, so $F + C$ is an antiderivative. Conversely, let $G$ be any antiderivative of $f$ on $I$, and let $H = G - F$, so that $H'(x) = f(x) - f(x) = 0$ for every $x$ in $I$. Module 8 proved that such a function is constant on an open interval ([Theorem 8.5](module_08_EN.html#consequences)), and the same argument works on any interval. Take two numbers $x_1 < x_2$ in $I$. $H$ has a derivative at every point of $[x_1, x_2]$ (a one-sided one at an endpoint of $I$), so it is continuous on $[x_1, x_2]$ by [Theorem 4.1](module_04_EN.html#continuity), whose proof works from one side too. By the Mean Value Theorem, $H(x_2) - H(x_1) = H'(c)(x_2 - x_1) = 0$ for some $c$ between $x_1$ and $x_2$. So $H$ takes the same value $C$ at every point of $I$: $G = F + C$.
 :::
 
-The function $F(x) + C$, with $C$ standing for any constant, is the **general antiderivative** of $f$ on $I$, and $C$ is the **constant of integration**. The interval matters, because Module 8's theorem rests on the Mean Value Theorem, which needs an interval. The function $1/x$ is defined on $(-\infty, 0) \cup (0, \infty)$, which is not an interval. Module 6 showed that $\dfrac{d}{dx}\ln\abs{x} = \dfrac1x$ for every $x \ne 0$, so on each half the antiderivatives are $\ln\abs{x} + C$. But the function equal to $\ln\abs{x}$ for $x > 0$ and to $\ln\abs{x} + 5$ for $x < 0$ is also an antiderivative of $1/x$, at every $x \ne 0$, and it is not $\ln\abs{x} + C$ for any single constant $C$: the constant may differ from one interval to the other.
+The function $F(x) + C$, with $C$ standing for any constant, is the **general antiderivative** of $f$ on $I$, and $C$ is the **constant of integration**. The interval matters: the proof applies the Mean Value Theorem on $[x_1, x_2]$, so all of $[x_1, x_2]$ must lie in $I$. The function $1/x$ is defined on $(-\infty, 0) \cup (0, \infty)$, which is not an interval. Module 6 showed that $\dfrac{d}{dx}\ln\abs{x} = \dfrac1x$ for every $x \ne 0$, so on each half the antiderivatives are $\ln\abs{x} + C$. But the function equal to $\ln\abs{x}$ for $x > 0$ and to $\ln\abs{x} + 5$ for $x < 0$ also has derivative $1/x$ at every $x \ne 0$, and it is not $\ln\abs{x} + C$ for any single constant $C$: the constant may differ from one interval to the other. And since $1/x$ is not defined at 0, no antiderivative of it reaches across 0; Section 10.5 shows what that means for integrals.
 
 ```check
 antideriv(log(x), 1/x, x); antideriv(log(-x), 1/x, x); antideriv(log(-x) + 5, 1/x, x)
@@ -88,7 +88,7 @@ Each rule of differentiation, read backwards, gives an antiderivative. In the ta
 | $\sinh x$ | $\cosh x$ | |
 | $\cosh x$ | $\sinh x$ | |
 
-The first row, the **power rule for antiderivatives**, holds on $(0, \infty)$ for every real $n \ne -1$, and for negative $x$ as well when $n$ is an integer. In words: raise the power by 1 and divide by the new power. For $n = -1$ it would divide by 0; the second row takes its place. The rows with $k$ follow from the chain rule (Module 5): $\dfrac{d}{dx}\dfrac{e^{kx}}{k} = \dfrac{k e^{kx}}{k} = e^{kx}$. The derivatives behind the other rows are those of Modules 4 to 6.
+The first row, the **power rule for antiderivatives**, holds on $(0, \infty)$ for every real $n \ne -1$. When $n$ is an integer it holds for negative $x$ as well, and for $n = 0, 1, 2, \dots$ on all of $\R$. In words: raise the power by 1 and divide by the new power. For $n = -1$ it would divide by 0; the second row takes its place. The rows with $k$ follow from the chain rule (Module 5): $\dfrac{d}{dx}\dfrac{e^{kx}}{k} = \dfrac{k e^{kx}}{k} = e^{kx}$. The derivatives behind the other rows are those of Modules 4 to 6.
 
 ```check
 for N_ in (-4, -2, 0, 1, 2, 5):
@@ -113,7 +113,7 @@ Find the general antiderivative of each function.
 - (a) $f(x) = 6x^2 - 4x + 5$
 - (b) $g(x) = 3\sqrt{x} - \dfrac{2}{x^2}$, for $x > 0$
 - (c) $h(t) = 4e^{2t} - 3\cos t$
-- (d) $k(x) = \dfrac{(x + 1)^2}{x}$, for $x \ne 0$
+- (d) $q(x) = \dfrac{(x + 1)^2}{x}$, for $x \ne 0$
 
 **(a)** Term by term, raising each power by 1 and dividing by the new power: $6 \cdot \dfrac{x^3}{3} - 4 \cdot \dfrac{x^2}{2} + 5x$, so the general antiderivative is $2x^3 - 2x^2 + 5x + C$.
 
@@ -128,7 +128,7 @@ so the general antiderivative is $2x^{3/2} + \dfrac2x + C$ on $(0, \infty)$.
 Check every answer by differentiating it. For (b): $\dfrac{d}{dx}\Big(2x^{3/2} + 2x^{-1}\Big) = 3x^{1/2} - 2x^{-2}$, which is $g(x)$.
 
 ```check
-antideriv(2*x**3 - 2*x**2 + 5*x, 6*x**2 - 4*x + 5, x)
+same(6*x**3/3 - 4*x**2/2 + 5*x, 2*x**3 - 2*x**2 + 5*x); antideriv(2*x**3 - 2*x**2 + 5*x, 6*x**2 - 4*x + 5, x)
 same(3*sqrt(xp) - 2/xp**2, 3*xp**Rational(1, 2) - 2*xp**(-2))
 same(3*xp**Rational(3, 2)/Rational(3, 2) - 2*xp**(-1)/(-1), 2*xp**Rational(3, 2) + 2/xp)
 antideriv(2*xp**Rational(3, 2) + 2/xp, 3*sqrt(xp) - 2/xp**2, xp)
@@ -147,7 +147,7 @@ Differentiating is easier than undoing a derivative, so always check an antideri
 Three slips. **(1)** The power rule backwards raises the power and divides: an antiderivative of $x^3$ is $\tfrac14 x^4$, not $3x^2$ (that is the derivative) and not $x^4$ (whose derivative is $4x^3$). **(2)** There is no product rule for antiderivatives: an antiderivative of $x\cos x$ is not $\tfrac12 x^2\sin x$, whose derivative is $x\sin x + \tfrac12 x^2\cos x$. Module 11 integrates such products; Section 10.7 handles products in which one factor is the derivative of something inside the other. **(3)** "$+\,C$" is part of the answer when you are asked for all antiderivatives, and on a domain made of several intervals, such as $x \ne 0$, the constant may differ on each.
 
 ```check
-antideriv(x**4/4, x**3, x); same(diff(3*x**2, x), 6*x); same(diff(x**4, x), 4*x**3)
+antideriv(x**4/4, x**3, x); same(diff(x**3, x), 3*x**2); same(diff(x**4, x), 4*x**3)
 same(diff(x**2*sin(x)/2, x), x*sin(x) + x**2*cos(x)/2); holds(Ne((x*sin(x) + x**2*cos(x)/2).subs(x, 1), cos(1)))
 ```
 :::
@@ -227,22 +227,22 @@ same(solve(Eq((-cos(t) + c).subs(t, 0), 0), c), [1]); antideriv(1 - cos(t), sin(
 
 ## The area function {#area-function}
 
-Module 9 defined the definite integral $\int_a^b f(x)\,dx$ as the limit of Riemann sums $\sum f(x_i^*)\,\Delta x$ as the number of subintervals grows; when $f$ is continuous on $[a, b]$, the limit exists, and $f$ is integrable. Where $f$ is positive, the integral is the area between its graph and the $x$-axis; where $f$ is negative, that area counts as negative, so the integral is a signed area. This module uses these properties from Module 9:
+Module 9 defined the definite integral $\int_a^b f(x)\,dx$ as the limit of the Riemann sums $\sum f(x_i^*)\,\Delta x_i$ as the norm of the partition, the width of its widest subinterval, shrinks to 0; when $f$ is continuous on $[a, b]$, the limit exists, and $f$ is integrable. Where $f$ is positive, the integral is the area between its graph and the $x$-axis; where $f$ is negative, that area counts as negative, so the integral is a signed area. This module uses these properties from Module 9:
 
 - $\displaystyle\int_a^a f(x)\,dx = 0$ and $\displaystyle\int_b^a f(x)\,dx = -\int_a^b f(x)\,dx$;
-- **splitting**: $\displaystyle\int_a^c f(x)\,dx = \int_a^b f(x)\,dx + \int_b^c f(x)\,dx$, for $a$, $b$ and $c$ in any order, when $f$ is integrable on an interval containing all three;
+- **splitting**: $\displaystyle\int_a^c f(x)\,dx = \int_a^b f(x)\,dx + \int_b^c f(x)\,dx$, for $a$, $b$ and $c$ in any order, when $f$ is integrable on a closed interval that contains all three;
 - **linearity**: $\displaystyle\int_a^b \big(c f(x) + g(x)\big)\,dx = c\int_a^b f(x)\,dx + \int_a^b g(x)\,dx$;
-- **bounds**: if $m \le f(x) \le M$ for $a \le x \le b$, then $m(b - a) \le \displaystyle\int_a^b f(x)\,dx \le M(b - a)$;
-- **the Mean Value Theorem for integrals**: if $f$ is continuous on $[a, b]$, there is a number $c$ in $[a, b]$ with $\displaystyle\int_a^b f(x)\,dx = f(c)\,(b - a)$.
+- **bounds**: if $a < b$ and $m \le f(x) \le M$ for $a \le x \le b$, then $m(b - a) \le \displaystyle\int_a^b f(x)\,dx \le M(b - a)$;
+- **the Mean Value Theorem for integrals**: if $f$ is continuous on $[a, b]$, where $a < b$, there is a number $c$ in $[a, b]$ with $\displaystyle\int_a^b f(x)\,dx = f(c)\,(b - a)$.
 
 Now keep the left end fixed and let the right end move.
 
 ::: definition The area function
-Let $f$ be integrable on an interval $I$, and let $a$ be a point of $I$. The **area function** of $f$ from $a$ is
+Let $I$ be an interval, let $f$ be integrable on every closed interval inside $I$ (as it is when $f$ is continuous on $I$), and let $a$ be a point of $I$. The **area function** of $f$ from $a$ is
 $$A(x) = \int_a^x f(t)\,dt, \qquad x \text{ in } I.$$
 :::
 
-Read it as "A of x is the integral from a to x of f of t, d t". It is also called the **accumulation function**: as $x$ moves right, $A(x)$ accumulates the signed area under $f$. For $x < a$ the integral runs backwards, $A(x) = -\int_x^a f(t)\,dt$. The letter $t$ is a **dummy variable**: $\int_a^x f(t)\,dt$ and $\int_a^x f(s)\,ds$ are the same number, as a sum $\sum_{i=1}^n i^2$ does not depend on the name $i$. Writing $\int_a^x f(x)\,dx$ would make $x$ mean two things at once, the right end and the variable that runs from $a$ to it, so the variable gets another name.
+Read it as "A of x is the integral from a to x of f of t, d t". It is also called the **accumulation function**: as $x$ moves right, $A(x)$ accumulates the signed area under $f$. For $x < a$ the integral runs backwards, $A(x) = -\int_x^a f(t)\,dt$. As in Module 9, the letter $t$ is a dummy variable: $\int_a^x f(t)\,dt$ and $\int_a^x f(s)\,ds$ are the same number, as a sum $\sum_{i=1}^n i^2$ does not depend on the name $i$. Writing $\int_a^x f(x)\,dx$ would make $x$ mean two things at once, the right end and the variable that runs from $a$ to it, so the variable gets another name.
 
 ::: figure id=fig-10-2
 The function $f$ of Example 10.4, made of straight pieces (top), and its area function $A(x) = \int_0^x f(t)\,dt$ (bottom). The area from 0 to 5 is shaded, blue where $f > 0$ (it counts as positive) and orange where $f < 0$ (negative), so $A(5) = 5 - 2.5 = 2.5$. $A$ rises while $f$ is positive and falls while $f$ is negative; it is largest at $x = 3$, where $f$ changes sign. The dashed line, the tangent to the graph of $A$ at $x = 5$, has slope $f(5) = -1$.
@@ -322,13 +322,13 @@ $$A(x + h) - A(x) = \int_x^{x + h} f(t)\,dt.$$
 The strip is nearly a rectangle of width $h$ and height $f(x)$, so $A(x + h) - A(x) \approx f(x)\,h$, and the difference quotient of $A$ is close to $f(x)$. The thinner the strip, the better the approximation: in the limit, $A'(x) = f(x)$. The Mean Value Theorem for integrals turns this "$\approx$" into an exact statement.
 
 ::: figure id=fig-10-3
-The idea of the proof of Part 1. The area function $A(x)$ is the light region from $a$ to $x$. Moving the right end from $x$ to $x + h$ adds the dark strip, of area $A(x + h) - A(x)$. The Mean Value Theorem for integrals gives a point $c$ between $x$ and $x + h$ such that the rectangle of height $f(c)$ (dashed) has exactly the strip's area. As $h \to 0$, $c$ is squeezed towards $x$, and $f(c)$ approaches $f(x)$.
+The idea of the proof of Part 1. The value $A(x)$ of the area function is the area of the light region from $a$ to $x$. Moving the right end from $x$ to $x + h$ adds the dark strip, of area $A(x + h) - A(x)$. The Mean Value Theorem for integrals gives a point $c$ between $x$ and $x + h$ such that the rectangle of height $f(c)$ (dashed) has exactly the strip's area. As $h \to 0$, $c$ is squeezed towards $x$, and $f(c)$ approaches $f(x)$.
 :::
 
 ::: theorem The Fundamental Theorem of Calculus, Part 1
 Let $f$ be continuous on $[a, b]$, and let
 $$A(x) = \int_a^x f(t)\,dt, \qquad a \le x \le b.$$
-Then $A$ is continuous on $[a, b]$ and differentiable on $(a, b)$, and $A'(x) = f(x)$ for every $x$ in $(a, b)$. In Leibniz's notation,
+Then $A$ is continuous on $[a, b]$ and differentiable on $(a, b)$, with $A'(x) = f(x)$ for every $x$ in $(a, b)$, and at the endpoints its one-sided derivatives are $A'_+(a) = f(a)$ and $A'_-(b) = f(b)$. So $A$ is an antiderivative of $f$ on $[a, b]$. In Leibniz's notation,
 $$\frac{d}{dx}\int_a^x f(t)\,dt = f(x).$$
 :::
 
@@ -343,7 +343,7 @@ where $c_h$ lies between $x$ and $x + h$.
 
 *Continuity.* $f$ is continuous on the closed interval $[a, b]$, so by the Extreme Value Theorem (Module 3) $\abs{f}$ has a largest value $M$ there. Then $\abs{A(x + h) - A(x)} = \abs{f(c_h)}\,\abs{h} \le M\abs{h}$, which tends to 0 as $h \to 0$. So $A$ is continuous at $x$ (from one side when $x$ is $a$ or $b$).
 
-*Derivative.* Now let $x$ be in $(a, b)$, so that $h$ may have either sign. Since $c_h$ lies between $x$ and $x + h$, $\abs{c_h - x} \le \abs{h}$. Let $\varepsilon > 0$. Because $f$ is continuous at $x$, there is a $\delta > 0$ such that $\abs{f(c) - f(x)} < \varepsilon$ whenever $c$ is in $[a, b]$ and $\abs{c - x} < \delta$. For $0 < \abs{h} < \delta$, then, $\abs{c_h - x} < \delta$, so
+*Derivative.* Now let $x$ be in $(a, b)$, so that $h$ may have either sign. Since $c_h$ lies between $x$ and $x + h$, $\abs{c_h - x} \le \abs{h}$. Let $\varepsilon > 0$. Because $f$ is continuous at $x$, there is a $\delta > 0$ such that $\abs{f(c) - f(x)} < \varepsilon$ whenever $c$ is in $[a, b]$ and $\abs{c - x} < \delta$. For $0 < \abs{h} < \delta$ (with $x + h$ in $[a, b]$, as throughout), then, $\abs{c_h - x} < \delta$, so
 $$\begin{aligned} \left\lvert \frac{A(x + h) - A(x)}{h} - f(x)\right\rvert &= \abs{f(c_h) - f(x)} \\ &< \varepsilon. \end{aligned}$$
 By the definition of a limit, the difference quotient of $A$ tends to $f(x)$ as $h \to 0$: $A'(x) = f(x)$. At $x = a$ and $x = b$, where $h$ can have only one sign, the same argument shows that the one-sided derivatives of $A$ are $f(a)$ and $f(b)$.
 :::
@@ -373,7 +373,7 @@ Part 1 on $[p, q]$ differentiates the first term, and the second is a constant. 
 Part 1 says that differentiation undoes integration: integrate $f$ from a fixed point to $x$, differentiate with respect to $x$, and you get $f$ back. In particular, **every continuous function on an interval has an antiderivative** there: $\int_a^x f(t)\,dt$ is one.
 :::
 
-That includes functions whose antiderivatives no formula from the catalogue of Module 1 can express. The function $e^{-x^2}$ is continuous, so $\int_0^x e^{-t^2}\,dt$ is an antiderivative of it, a perfectly good function with no simpler formula; it returns in Section 10.8 under a name of its own.
+That includes functions for which no formula built from the functions of Module 1's catalogue gives an antiderivative. The function $e^{-x^2}$ is continuous, so $\int_0^x e^{-t^2}\,dt$ is an antiderivative of it, a perfectly good function with no simpler formula; it returns in Section 10.8 under a name of its own.
 
 ### Integrals with variable limits {#variable-limits}
 
@@ -404,7 +404,7 @@ Find:
 - (b) $\dfrac{d}{dx}\displaystyle\int_0^{x^2} e^{-t^2}\,dt$
 - (c) $\dfrac{d}{dx}\displaystyle\int_x^{2x} \frac{1}{t}\,dt$, for $x > 0$
 
-**(a)** $f(t) = \sqrt{1 + t^3}$ is continuous on the open interval $(-1, \infty)$, which contains 1, so Part 1 applies: the derivative is $\sqrt{1 + x^3}$. No antiderivative of $\sqrt{1 + t^3}$ is needed, which is fortunate: none can be written with the functions of Module 1's catalogue.
+**(a)** $f(t) = \sqrt{1 + t^3}$ is continuous on the open interval $(-1, \infty)$, which contains 1, so Part 1 applies: the derivative is $\sqrt{1 + x^3}$. No antiderivative of $\sqrt{1 + t^3}$ is needed, which is fortunate: no formula built from the functions of Module 1's catalogue gives one.
 
 **(b)** The upper limit is $u(x) = x^2$, with $u'(x) = 2x$. Put $u(x)$ into the integrand and multiply by $u'(x)$:
 $$\frac{d}{dx}\int_0^{x^2} e^{-t^2}\,dt = e^{-(x^2)^2}\cdot 2x = 2x\,e^{-x^4}.$$
@@ -442,7 +442,7 @@ $$\int_a^b f(x)\,dx = F(b) - F(a).$$
 The difference $F(b) - F(a)$ is written $\big[F(x)\big]_a^b$, read "F of x evaluated from a to b". Some books write $F(x)\big|_a^b$.
 
 ::: proof
-Let $A(x) = \int_a^x f(t)\,dt$ for $a \le x \le b$. By Part 1, $A$ is continuous on $[a, b]$ and $A'(x) = f(x) = F'(x)$ for every $x$ in $(a, b)$. Two functions with the same derivative on an interval differ by a constant (Module 8), so $F(x) - A(x) = C$ for some constant $C$ and every $x$ in $(a, b)$. Both $F$ and $A$ are continuous at $a$ and at $b$, so letting $x \to a^+$ and $x \to b^-$ shows that $F(a) - A(a) = C$ and $F(b) - A(b) = C$ too. Therefore
+Let $A(x) = \int_a^x f(t)\,dt$ for $a \le x \le b$. By Part 1, $A$ is continuous on $[a, b]$ and $A'(x) = f(x) = F'(x)$ for every $x$ in $(a, b)$. Two functions with the same derivative on an open interval differ by a constant ([Theorem 8.6](module_08_EN.html#consequences)), so $F(x) - A(x) = C$ for some constant $C$ and every $x$ in $(a, b)$. Both $F$ and $A$ are continuous at $a$ and at $b$, so letting $x \to a^+$ and $x \to b^-$ shows that $F(a) - A(a) = C$ and $F(b) - A(b) = C$ too. Therefore
 $$\begin{aligned} F(b) - F(a) &= \big(A(b) + C\big) - \big(A(a) + C\big) \\ &= A(b) - A(a) \\ &= \int_a^b f(t)\,dt - 0, \end{aligned}$$
 since $A(a) = \int_a^a f(t)\,dt = 0$. The name of the variable of integration does not matter, so this is $\int_a^b f(x)\,dx$.
 :::
@@ -480,11 +480,13 @@ same(integrate(1/t, (t, xp, 2*xp)), integrate(1/x, (x, 1, 2)))
 :::
 
 ::: pitfall
-**(1)** Part 2 needs $f$ continuous on the whole interval $[a, b]$, with an antiderivative valid on all of it. The "calculation" $\displaystyle\int_{-1}^1 \frac{dx}{x^2} = \Big[-\frac1x\Big]_{-1}^1 = -1 - 1 = -2$ is wrong: a positive function cannot have a negative integral. The function $1/x^2$ is not continuous at 0, not even bounded near it, and $-1/x$ is not an antiderivative on any interval containing 0; Module 12 shows that this area is in fact infinite. **(2)** Subtract the whole of $F(a)$, inside brackets: $\big[x^2 - 3x\big]_1^2 = (4 - 6) - (1 - 3) = 0$, not $(4 - 6) - 1 - 3 = -6$.
+**(1)** Part 2 needs $f$ continuous on the whole interval $[a, b]$, with an antiderivative valid on all of it. The "calculation" $\displaystyle\int_{-1}^1 \frac{dx}{x^2} = \Big[-\frac1x\Big]_{-1}^1 = -1 - 1 = -2$ is wrong: a positive function cannot have a negative integral. The function $1/x^2$ is not continuous at 0, not even bounded near it, and $-1/x$ is not an antiderivative on any interval containing 0; Module 12 shows that this area is in fact infinite. **(2)** The same goes for $1/x$. Its antiderivative $\ln\abs{x}$ is valid on $(0, \infty)$ and on $(-\infty, 0)$, so $\int_1^2 \frac{dx}{x} = \ln 2$ and $\int_{-2}^{-1} \frac{dx}{x} = \ln 1 - \ln 2 = -\ln 2$; but $\big[\ln\abs{x}\big]_{-1}^{2} = \ln 2$ is not the value of $\int_{-1}^{2} \frac{dx}{x}$. That integral does not exist: $1/x$ is unbounded near 0. **(3)** Subtract the whole of $F(a)$, inside brackets: $\big[x^2 - 3x\big]_1^2 = (4 - 6) - (1 - 3) = 0$, not $(4 - 6) - 1 - 3 = -6$.
 
 ```check
 same((-1/x).subs(x, 1) - (-1/x).subs(x, -1), -2); xnz = symbols('x', real=True, nonzero=True); holds(1/xnz**2 > 0)
 same(integrate(1/x**2, (x, -1, 1)), oo)
+same(integrate(1/x, (x, 1, 2)), log(2)); steps(Integral(1/x, (x, -2, -1)), log(Abs(-1)) - log(Abs(-2)), log(1) - log(2), -log(2))
+same(log(Abs(2)) - log(Abs(-1)), log(2)); holds(integrate(1/x, (x, -1, 2)) is S.NaN); same(integrate(1/x, (x, 0, 2)), oo)
 same((4 - 6) - (1 - 3), 0); same((x**2 - 3*x).subs(x, 2) - (x**2 - 3*x).subs(x, 1), 0); same((4 - 6) - 1 - 3, -6)
 ```
 :::
@@ -497,7 +499,6 @@ Compare Example 10.6 with the methods of Module 9. There, an integral such as $\
 n = 10, 100, 1000
 $M_n$ = Sum(sin((i - 1/2)*pi/n)*pi/n, (i, 1, n))
 digits = 9
-layout = columns
 ---
 n | M_n
 10 | 2.00824841
@@ -739,7 +740,7 @@ antideriv(Rational(2, 5)*(x - 1)**Rational(5, 2) + Rational(2, 3)*(x - 1)**Ratio
 :::
 
 ::: pitfall
-Three slips with substitution. **(1)** Forgetting $du$: replacing $\cos(x^2)\cdot 2x\,dx$ by "$\cos u\,dx$" leaves a $dx$ in an integral in $u$, which is meaningless; the $2x\,dx$ becomes $du$. **(2)** Treating a leftover variable as a constant. With $u = x^2$, $\int \cos(x^2)\,dx$ has no factor $x$ to go with $dx$, and dividing by $2x$ inside the integral, as if it were a constant, gives the wrong answer $\dfrac{\sin(x^2)}{2x}$. Constant factors can be moved through an integral sign; variables cannot. (In fact no formula from Module 1's catalogue has derivative $\cos(x^2)$.) **(3)** Leaving the answer in $u$, or forgetting to check it.
+Three slips with substitution. **(1)** Forgetting $du$: replacing $\cos(x^2)\cdot 2x\,dx$ by "$\cos u\,dx$" leaves a $dx$ in an integral in $u$, which is meaningless; the $2x\,dx$ becomes $du$. **(2)** Treating a leftover variable as a constant. With $u = x^2$, $\int \cos(x^2)\,dx$ has no factor $x$ to go with $dx$, and dividing by $2x$ inside the integral, as if it were a constant, gives the wrong answer $\dfrac{\sin(x^2)}{2x}$. Constant factors can be moved through an integral sign; variables cannot. (In fact no formula built from the functions of Module 1's catalogue has derivative $\cos(x^2)$.) **(3)** Leaving the answer in $u$, or forgetting to check it.
 
 ```check
 holds(Ne(cos(1) - sin(1)/2, cos(1)))          # so the derivative of sin(x^2)/(2x) is not cos(x^2)
@@ -801,7 +802,7 @@ same(Rational(1, 2)*integrate(u**2, (u, 0, 2)), Rational(4, 3)); same((u**3/6).s
 
 ### Odd and even functions {#symmetry}
 
-Module 9 used symmetry to find integrals over intervals $[-a, a]$: for an even function the area to the left of the $y$-axis is the mirror image of the area to its right, and for an odd function the two cancel. Substitution proves it.
+Module 9 used symmetry to find integrals over intervals $[-a, a]$: for an even function the area to the left of the $y$-axis is the mirror image of the area to its right, and for an odd function the two cancel. It proved this with Riemann sums ([Section 9.6](module_09_EN.html#symmetry)); for continuous functions, substitution gives a two-line proof.
 
 ::: theorem Integrals of even and odd functions
 Let $f$ be continuous on $[-a, a]$, where $a > 0$.
@@ -1009,7 +1010,7 @@ print(np.sum(np.exp(-mids**2))/n)
 0.7468241634690489
 ```
 
-The sine integral $\operatorname{Si} x = \int_0^x \frac{\sin t}{t}\,dt$ is another such function:
+The sine integral $\operatorname{Si} x = \int_0^x \frac{\sin t}{t}\,dt$ is another such function; at $t = 0$ its integrand is given the value 1, its limit there ([Module 2](module_02_EN.html#trig-limits)), so that it is continuous:
 
 ```python
 print(sp.integrate(sp.sin(x)/x, x))
@@ -1025,7 +1026,7 @@ same(integrate(exp(-x**2), x), sqrt(pi)*erf(x)/2); same(diff(erf(x), x), 2*exp(-
 same(diff(Integral(exp(-t**2), (t, 0, x))*2/sqrt(pi), x), 2*exp(-x**2)/sqrt(pi)); antideriv(sqrt(pi)*erf(x)/2, exp(-x**2), x)
 rounds(sqrt(pi)*erf(1)/2, '0.746824'); rounds(sqrt(pi)*erf(1)/2, '0.746824132812427')
 holds(Abs(Float('0.7468241634690489') - sqrt(pi)*erf(1)/2) < 4e-8); same(floor(Float('0.7468241634690489')*10**7), floor(sqrt(pi)*erf(1)/2*10**7))
-same(integrate(sin(x)/x, x), Si(x)); same(diff(Si(x), x), sin(x)/x)
+same(integrate(sin(x)/x, x), Si(x)); same(diff(Si(x), x), sin(x)/x); limit_is(sin(t)/t, t, 0, 1)
 ```
 
 No formula built from the functions of Module 1's catalogue has derivative $e^{-x^2}$ or $\frac{\sin x}{x}$; this is a theorem, beyond this series, and Module 11 returns to such functions. The error function is central in probability and statistics, where $e^{-x^2}$ is the shape of the normal distribution (Module 12). When SymPy answers with `erf`, `Si` or another special function, it has not failed: by Part 1, the integral is a perfectly good function, and SymPy has named it.
@@ -1034,10 +1035,10 @@ No formula built from the functions of Module 1's catalogue has derivative $e^{-
 
 - An **antiderivative** of $f$ on an interval is a function $F$ with $F' = f$. On an interval, all antiderivatives are $F + C$ (Theorem 10.1, from Module 8's theorem that equal derivatives mean a constant difference); on a domain made of several intervals, the constant may differ on each.
 - A table of basic antiderivatives follows from the rules of differentiation read backwards: $\dfrac{x^{n+1}}{n + 1}$ for $x^n$ ($n \ne -1$), $\ln\abs{x}$ for $\dfrac1x$, $-\cos x$ for $\sin x$, $\arctan x$ for $\dfrac{1}{1 + x^2}$, and so on. Check every antiderivative by differentiating it.
-- An **initial value problem** $F' = f$, $F(x_0) = y_0$ has exactly one solution on an interval; from a constant acceleration and two initial conditions come $v(t) = v_0 + at$ and $s(t) = s_0 + v_0t + \tfrac12at^2$, the falling ball's $s = 4.9t^2$ among them.
+- An **initial value problem** $F' = f$, $F(x_0) = y_0$ has exactly one solution on an interval where $f$ is continuous; from a constant acceleration and two initial conditions come $v(t) = v_0 + at$ and $s(t) = s_0 + v_0t + \tfrac12at^2$, the falling ball's $s = 4.9t^2$ among them.
 - The **area function** $A(x) = \int_a^x f(t)\,dt$ accumulates signed area: it increases where $f > 0$ and decreases where $f < 0$.
-- **Fundamental Theorem, Part 1:** if $f$ is continuous, $\dfrac{d}{dx}\displaystyle\int_a^x f(t)\,dt = f(x)$. So every continuous function has an antiderivative, and with the chain rule, $\dfrac{d}{dx}\displaystyle\int_a^{u(x)} f(t)\,dt = f\big(u(x)\big)u'(x)$.
-- **Fundamental Theorem, Part 2:** if $f$ is continuous on $[a, b]$ and $F' = f$, then $\int_a^b f(x)\,dx = F(b) - F(a) = \big[F(x)\big]_a^b$. Limits of Riemann sums become two-line computations; the speedometer and the odometer undo each other.
+- **Fundamental Theorem, Part 1:** if $f$ is continuous on an interval that contains $a$, then $\dfrac{d}{dx}\displaystyle\int_a^x f(t)\,dt = f(x)$ there (a one-sided derivative at an endpoint). So every continuous function on an interval has an antiderivative, and with the chain rule, $\dfrac{d}{dx}\displaystyle\int_a^{u(x)} f(t)\,dt = f\big(u(x)\big)u'(x)$.
+- **Fundamental Theorem, Part 2:** if $f$ is continuous on $[a, b]$ and $F$ is an antiderivative of $f$ there, then $\int_a^b f(x)\,dx = F(b) - F(a) = \big[F(x)\big]_a^b$. Limits of Riemann sums become two-line computations; the speedometer and the odometer undo each other.
 - The **indefinite integral** $\int f(x)\,dx = F(x) + C$ is the general antiderivative. The **net change theorem**, $\int_a^b F'(x)\,dx = F(b) - F(a)$: the integral of a rate is the net change. Displacement is $\int v\,dt$; distance travelled is $\int \abs{v}\,dt$.
 - **Substitution** reverses the chain rule: $\int f\big(g(x)\big)g'(x)\,dx = \int f(u)\,du$ with $u = g(x)$, $du = g'(x)\,dx$; in a definite integral, change the limits to $g(a)$ and $g(b)$. Over $[-a, a]$, even functions give twice the integral over $[0, a]$ and odd functions give 0.
 - SymPy: `sp.integrate(f, x)` (no $+\,C$), `sp.integrate(f, (x, a, b))`, `sp.Integral(...)` and `.doit()`. Its answers may differ from yours by a constant, write $\ln x$ for $\ln\abs{x}$, or use special functions such as $\operatorname{erf}$, defined as area functions.
@@ -1050,7 +1051,7 @@ Find the general antiderivative of each function, and check your answer by diffe
 - (a) $f(x) = 8x^3 - 6x^2 + 1$
 - (b) $g(x) = \dfrac{1}{x^3} - \dfrac{4}{\sqrt x}$, for $x > 0$
 - (c) $h(t) = 3e^{-t} + 2\sin 3t$
-- (d) $k(x) = \dfrac{(1 + x)^2}{\sqrt x}$, for $x > 0$
+- (d) $q(x) = \dfrac{(1 + x)^2}{\sqrt x}$, for $x > 0$
 
 ::: solution
 **(a)** Term by term: $8\cdot\dfrac{x^4}{4} - 6\cdot\dfrac{x^3}{3} + x = 2x^4 - 2x^3 + x$, so the answer is $2x^4 - 2x^3 + x + C$. Check: $8x^3 - 6x^2 + 1$.
@@ -1461,6 +1462,7 @@ same(diff(Integral(fF(t), (t, 2, x)), x), fF(x))
 same(diff(Integral(cos(t), (t, 0, x**3)), x), 3*x**2*cos(x**3)); same(integrate(cos(t), (t, 0, x**3)), sin(x**3))
 same(integrate(3*x**2, (x, 1, 3)), 26); same(6*3 - 6*1, 12)
 same(integrate(t - 2, (t, 0, 4)), 0); same(integrate(Abs(tr - 2), (tr, 0, 4)), 4); same(integrate(t, (t, 0, 4)), 8)
+same(integrate(2 - t, (t, 0, 2)) + integrate(t - 2, (t, 2, 4)), 4); same(Rational(1, 2)*2*2, 2)          # the two triangles
 steps(Integral(x*(x**2 + 1)**3, (x, 0, 1)), Rational(1, 2)*Integral(u**3, (u, 1, 2)), Rational(15, 8))
 same(sin(x)**2/2 - (-cos(x)**2/2), Rational(1, 2))
 same(integrate(x**3 + 3*x**2, (x, -1, 1)), 2); same(integrate(x**3, (x, -1, 1)), 0); same(2*integrate(3*x**2, (x, 0, 1)), 2)

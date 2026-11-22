@@ -3,7 +3,8 @@
  * verdict (converges or diverges, and which theorem shows it) comes from the theory of Module 14, never from the
  * numbers. Where the terms are rational (every series here except p-series with p not a whole number), S_N is
  * computed exactly with BigInt fractions, so the readout says "=" only when the value shown is exact, and its
- * digits are correctly rounded. */
+ * digits are correctly rounded. The gap e − S_N of Σ 1/n! is summed from its tail with BigInt fractions too: in
+ * floating point it is lost to rounding error. */
 CalcWidgets.register('series-explorer', function (root, api) {
   var t = api.t, h = api.h
   var SUB = '₀₁₂₃₄₅₆₇₈₉'
@@ -222,9 +223,17 @@ CalcWidgets.register('series-explorer', function (root, api) {
       else if (state.key === 'geom' && exact) {     // 1/(1 − r) − S_N, exactly
         var gap = add([BigInt(100), BigInt(100 - rInt())], [-exact[0], exact[1]]), gt = ratText(gap[0], gap[1], 4)
         err = t('Sum − ', '和 − ') + label + (gt.exact ? ' = ' : ' ≈ ') + gt.text
+      } else if (state.key === 'fact') {
+        // e − S_N = 1/N! + 1/(N + 1)! + ⋯ (S_N ends at 1/(N − 1)!). In floating point, e − S_N is lost to rounding
+        // once N passes about 15, so add the first 40 terms of the tail exactly; the rest is below 10⁻⁴⁹ of it.
+        var fct = B1, tail = [B0, B1]
+        for (var i = 2; i <= N; i++) fct *= BigInt(i)
+        for (var j = N; j < N + 40; j++) { tail = add(tail, [B1, fct]); fct *= BigInt(j + 1) }
+        err = t('Sum − ', '和 − ') + label + ' ≈ ' + ratText(tail[0], tail[1], 4).text
       } else err = t('Sum − ', '和 − ') + label + ' ≈ ' + approx(data.th.sum - SN, 4)
     } else if (state.key === 'harm' || (state.key === 'p' && pInt() === 1)) {
-      err = 'ln(N + 1) ≈ ' + down(Math.log(N + 1)) + ' ≤ ' + label + ' ≤ 1 + ln N ≈ ' + up(1 + Math.log(N)) + t(' (integral test)', '（积分判别法）')
+      var hiText = N === 1 ? ' = 1' : ' ≈ ' + up(1 + Math.log(N))          // 1 + ln 1 = 1 exactly
+      err = 'ln(N + 1) ≈ ' + down(Math.log(N + 1)) + ' ≤ ' + label + ' ≤ 1 + ln N' + hiText + t(' (integral test)', '（积分判别法）')
     } else if (state.key === 'p' && state.p > 1) {
       var p = Math.round(state.p * 100) / 100
       var lo = SN + 1 / ((p - 1) * Math.pow(N + 1, p - 1)), hi = SN + 1 / ((p - 1) * Math.pow(N, p - 1))

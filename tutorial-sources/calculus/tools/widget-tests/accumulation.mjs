@@ -59,6 +59,20 @@ export async function run(t) {
   await t.set('input[type=range] >> nth=0', 1)
   await t.set('input[type=range] >> nth=1', -1)
   t.check((await t.text('.cw-readout')).includes('not defined'), '1/x from 1 to −1: A(x) is not defined')
+  // The same when 0 is not one of the points where f is sampled: the integral across 0 still does not
+  // exist, and the steps of the numerical integration pile up near 0 instead of settling.
+  await t.set('input[type=range] >> nth=1', -0.77)
+  r = await t.text('.cw-readout')
+  t.check(r.includes('cannot be computed') && r.includes('unbounded') && !r.includes('A(x) ≈') && (await t.count('.acc-tangent')) === 0,
+    '1/x from 1 to −0.77: no number is shown for A(x); f is unbounded between a and x')
+
+  // |x| is continuous with a corner at 0: A(x) has slope 0 = f(0) there, measured without a stray 10⁻⁵.
+  await t.type('input[type=text]', 'abs(x)')
+  await t.wait(400)
+  await t.set('input[type=range] >> nth=0', -2)
+  await t.set('input[type=range] >> nth=1', 0)
+  r = await t.text('.cw-readout')
+  t.check(r.includes('A(x) ≈ 2') && r.includes('slope of A at x ≈ 0 = f(x) = 0'), '|x| from −2 to 0: A = 2, and the slope of A at 0 is 0 = f(0)')
 
   // A mistyped formula gives a message, not an error.
   await t.type('input[type=text]', 'x^^2')
@@ -72,6 +86,15 @@ export async function run(t) {
   await t.clickAt('.acc-aplot svg', 0.75, 0.5)
   const x = Number(await t.page.evaluate(root => document.querySelectorAll(root + ' input[type=range]')[1].value, t.root))
   t.check(x > 2.2 && x < 2.8 && (await t.text('.cw-readout')).includes('slope of A at x'), 'clicking the graph of A moves x to about 2.5')
+
+  // A fast oscillation over a long interval: the integral of sin(100x) from 0 to 6.5 is (1 − cos 650)/100 ≈ 0.019524.
+  await t.select('select', 'sin')
+  await t.type('input[type=text]', 'sin(100x)')
+  await t.wait(400)
+  await t.set('input[type=range] >> nth=0', 0)
+  await t.set('input[type=range] >> nth=1', 6.5)
+  r = await t.text('.cw-readout')
+  t.check(r.includes('A(x) ≈ 0.019524'), 'sin(100x) from 0 to 6.5: A ≈ (1 − cos 650)/100 ≈ 0.019524')
 
   await t.select('select', 'sin')
   await t.shot()
