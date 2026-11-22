@@ -185,6 +185,11 @@ def compute_table(spec):
                 continue
             if y.is_real is None:
                 y = sp.re(y) if abs(sp.im(y)) < 1e-30 else y
+            if y != 0 and abs(y) < sp.Float('1e-30'):
+                # Numerical evaluation cannot tell an exact 0 (e.g. sqrt(25 - 5**2)) from a tiny number.
+                exact = e.subs(var, val)
+                if exact == 0 or exact.equals(0):
+                    y = sp.Integer(0)
             row.append(fmt_number(y, opts['digits'], opts['decimals'], opts['sci']))
         rows.append(row)
     return rows

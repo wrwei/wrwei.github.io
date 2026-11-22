@@ -13,7 +13,7 @@
  *                          vars: the variable names allowed, e.g. ['x'] or ['x', 'y'] (default ['x'])
  * api.plot(parent, opts)   an SVG coordinate plane that resizes with the page; see Plot below
  * api.num                  numerical methods: deriv, deriv2, integrate, riemann, simpson, bisect,
- *                          newton, euler, rk4, grad, fmt
+ *                          newton, euler, rk4, grad, fmt(x, sig, keepTiny)
  * api.slider(o) api.select(o) api.button(label, onclick, o) api.field(o) api.readout() api.row(...)
  *                          labelled controls, usable with the keyboard
  */
@@ -182,12 +182,14 @@
   }
 
   // ------------------------------------------------------------------ numbers
-  function fmt(x, sig) {
+  // fmt(x, sig, keepTiny): x to sig significant digits. Values below 1e-12 print as 0 (rounding noise
+  // in most readouts) unless keepTiny is true (residuals, errors: show 4 × 10⁻¹⁶ as it is).
+  function fmt(x, sig, keepTiny) {
     sig = sig || 5
     if (x === Infinity) return '∞'
     if (x === -Infinity) return '−∞'
     if (typeof x !== 'number' || isNaN(x)) return '—'
-    if (Math.abs(x) < 1e-12) return '0'
+    if (x === 0 || (!keepTiny && Math.abs(x) < 1e-12)) return '0'
     var s
     if (Math.abs(x) >= 1e6 || Math.abs(x) < 1e-4) {
       s = x.toExponential(sig - 1).replace(/\.?0+e/, 'e')
@@ -548,7 +550,7 @@
     '.cw-scroll{overflow-x:auto;max-width:100%}',
     '.cw-table{border-collapse:collapse;font-family:var(--font-mono);font-size:.8rem}',
     '.cw-table th,.cw-table td{border:1px solid var(--border);padding:.25rem .55rem;text-align:right}',
-    '.cw-table th{background:var(--bg);font-weight:600}',
+    '.cw-table th{background:var(--bg);color:var(--navy);font-weight:600}',
   ].join('\n'))
 
   var api = {
