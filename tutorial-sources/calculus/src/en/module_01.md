@@ -943,7 +943,7 @@ same([Rational(98, 10) + Rational(49, 10)*hh for hh in (2, 1, Rational(1, 2))], 
 
 ### Shrinking the interval {#shrinking}
 
-Now let $h$ shrink. The table shows the distance fallen and the average speed over intervals that start at $t = 1$ ($h > 0$) or end there ($h < 0$):
+Now let $h$ shrink. The table shows the change in distance, $s(1 + h) - s(1)$, and the average speed over intervals that start at $t = 1$ ($h > 0$) or end there ($h < 0$). For $h < 0$ the change is negative, because $s(1 + h)$ is the earlier position, and dividing it by the negative $h$ gives a positive speed:
 
 ```valuetable
 h = 1, 0.1, 0.01, 0.001, -0.001, -0.01, -0.1, -1
@@ -962,6 +962,12 @@ h | s(1+h) - s(1) | \dfrac{s(1+h) - s(1)}{h}
 ```
 
 As $h$ shrinks towards 0, from either side, the average speeds settle down to 9.8 m/s. The formula $9.8 + 4.9h$ of Example 1.12 shows why: the term $4.9h$ shrinks to nothing. It is natural to call 9.8 m/s the speed of the ball at the instant $t = 1$, its **instantaneous speed**. In Figure 1.5 it is the slope of the tangent line.
+
+```check
+q1 = (Rational(49, 10)*(1 + h)**2 - Rational(49, 10))/h
+limit_is(q1, h, 0, Rational(98, 10), '+'); limit_is(q1, h, 0, Rational(98, 10), '-')   # from either side
+same(diff(Rational(49, 10)*t**2, t).subs(t, 1), Rational(98, 10))                      # the tangent's slope in Figure 1.5
+```
 
 ::: keyidea
 The instantaneous rate of change is the number that the average rates of change approach as the interval shrinks. You cannot set $h = 0$ in the difference quotient, which would become $0/0$; instead you watch what happens as $h$ gets close to 0. Module 2 makes "approach" precise: it is the idea of a **limit**. Module 4 calls the result the **derivative**.

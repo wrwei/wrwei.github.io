@@ -115,18 +115,22 @@ They approach 3, from above when $h > 0$ and from below when $h < 0$. By direct 
 
 $$y = 1 + 3(x - 1), \quad\text{that is,}\quad y = 3x - 2.$$
 
-It meets the curve where $x^3 = 3x - 2$, that is, where $x^3 - 3x + 2 = 0$. Since $x = 1$ is a solution, $x - 1$ is a factor, and expanding confirms that
+It meets the curve where $x^3 = 3x - 2$, that is, where $x^3 - 3x + 2 = 0$. Since $x = 1$ is a solution, $x - 1$ is a factor ([Module 2](module_02_EN.html#factor)). To find the other factor, write $-3x + 2$ as $-x - (2x - 2)$ and group the terms:
 
-$$\begin{aligned} x^3 - 3x + 2 &= (x^2 - 2x + 1)(x + 2) \\ &= (x - 1)^2(x + 2). \end{aligned}$$
+$$\begin{aligned} x^3 - 3x + 2 &= (x^3 - x) - (2x - 2) \\ &= x(x - 1)(x + 1) - 2(x - 1) \\ &= (x - 1)(x^2 + x - 2) \\ &= (x - 1)^2(x + 2), \end{aligned}$$
 
-So the line meets the curve again at $x = -2$, at the point $(-2, -8)$. The repeated factor $(x - 1)^2$ is the algebraic mark of a tangent: the line meets the curve "twice" at $x = 1$.
+where the last step factors $x^2 + x - 2 = (x - 1)(x + 2)$. So the line meets the curve again at $x = -2$, at the point $(-2, -8)$. The repeated factor $(x - 1)^2$ is the algebraic mark of a tangent: the line meets the curve "twice" at $x = 1$.
 
 ```check
 steps(((1 + h)**3 - 1)/h, (3*h + 3*h**2 + h**3)/h, 3 + 3*h + h**2)
 same([(3 + 3*h + h**2).subs(h, v_) for v_ in (Rational(1, 10), Rational(-1, 10))], [Rational(331, 100), Rational(271, 100)])
+same(3 + 3*h + h**2 - 3, h*(3 + h))      # above 3 for h > 0, below 3 for -3 < h < 0
+holds(all(sign((h*(3 + h)).subs(h, v_)) == sign(v_) for v_ in (Rational(1, 10), Rational(1, 1000), -Rational(1, 1000), -Rational(1, 10))))
 limit_is(((1 + h)**3 - 1)/h, h, 0, 3)
 same(expand(1 + 3*(x - 1)), 3*x - 2)
-steps(x**3 - 3*x + 2, (x**2 - 2*x + 1)*(x + 2), (x - 1)**2*(x + 2))
+same(-3*x + 2, -x - (2*x - 2))
+steps(x**3 - 3*x + 2, (x**3 - x) - (2*x - 2), x*(x - 1)*(x + 1) - 2*(x - 1), (x - 1)*(x**2 + x - 2), (x - 1)**2*(x + 2))
+same(factor(x**2 + x - 2), (x - 1)*(x + 2)); same((x**3 - 3*x + 2).subs(x, 1), 0)
 same_set(solve(x**3 - (3*x - 2), x), [1, -2]); same((-2)**3, -8); same(3*(-2) - 2, -8)
 ```
 :::
