@@ -82,10 +82,15 @@ def fig_12_2(L):
     R0, r0 = np.sqrt(x0), x0**2
     kw = dict(linewidth=0, antialiased=True, shade=False)
     xs = np.linspace(0, 1, 30)
-    ts = np.linspace(0, 2 * PI, 40)
-    X, T = np.meshgrid(xs, ts)
-    ax.plot_surface(X, X**2 * np.cos(T), X**2 * np.sin(T), color=C['purplel'], alpha=0.55, zorder=1, **kw)
-    ax.plot_surface(X, np.sqrt(X) * np.cos(T), np.sqrt(X) * np.sin(T), color=C['sky'], alpha=0.16, zorder=2, **kw)
+    # Coarse meshes: the surfaces are flat translucent colour, so extra polygons add bytes, not detail. The
+    # outer radius sqrt(x) is s for x = s^2, so equal steps in s follow its steep start at x = 0.
+    ts = np.linspace(0, 2 * PI, 33)
+    X, T = np.meshgrid(np.linspace(0, 1, 9), ts)
+    inner = ax.plot_surface(X, X**2 * np.cos(T), X**2 * np.sin(T), color=C['purplel'], alpha=0.55, zorder=1, **kw)
+    Sq, T = np.meshgrid(np.linspace(0, 1, 11), ts)
+    outer = ax.plot_surface(Sq**2, Sq * np.cos(T), Sq * np.sin(T), color=C['sky'], alpha=0.16, zorder=2, **kw)
+    for surf in (inner, outer):
+        surf.set_clip_on(False)         # it lies inside the axes anyway; this drops a clip-path from every polygon
     # Mesh lines of the outer surface (circles and four meridians), and circles of the inner one.
     th = np.linspace(0, 2 * PI, 100)
     for xr in (0.25, 0.75, 1.0):
@@ -100,11 +105,11 @@ def fig_12_2(L):
     ax.add_collection3d(Poly3DCollection(verts, facecolor=C['blue'], alpha=0.45, edgecolor='none', zorder=4))
     ax.plot(xs, 0 * xs, np.sqrt(xs), color=C['blue'], lw=2.0, zorder=5)
     ax.plot(xs, 0 * xs, xs**2, color=C['purple'], lw=2.0, zorder=5)
-    # The washer: the slice of the solid at x0.
+    # The washer: the slice of the solid at x0, as one polygon (round the outer circle, in along a cut, back round
+    # the inner circle, out along the cut), so that no seams show between translucent pieces.
     tt = np.linspace(0, 2 * PI, 61)
-    quads = [[(x0, r0 * np.cos(a), r0 * np.sin(a)), (x0, R0 * np.cos(a), R0 * np.sin(a)),
-              (x0, R0 * np.cos(b), R0 * np.sin(b)), (x0, r0 * np.cos(b), r0 * np.sin(b))] for a, b in zip(tt[:-1], tt[1:])]
-    ax.add_collection3d(Poly3DCollection(quads, facecolor=C['orange'], alpha=0.75, edgecolor='none', zorder=6))
+    ring = [(x0, R0 * np.cos(a), R0 * np.sin(a)) for a in tt] + [(x0, r0 * np.cos(a), r0 * np.sin(a)) for a in tt[::-1]]
+    ax.add_collection3d(Poly3DCollection([ring], facecolor=C['orange'], alpha=0.75, edgecolor='none', zorder=6))
     for rad in (R0, r0):
         ax.plot(np.full_like(tt, x0), rad * np.cos(tt), rad * np.sin(tt), color=C['orange'], lw=1.5, zorder=7)
     ax.plot([-0.15, 1.3], [0, 0], [0, 0], color=C['navy'], lw=1.3, zorder=8)
@@ -136,8 +141,8 @@ def fig_12_2(L):
     a2.plot([0, r0 * np.cos(angr)], [0, r0 * np.sin(angr)], color=C['purple'], lw=1.6, zorder=4)
     label(a2, 0.47 * R0 * np.cos(ang) - 0.04, 0.47 * R0 * np.sin(ang) + 0.1, r'$R$', color=C['blue'], size=12, ha='right')
     label(a2, 0.5 * r0 * np.cos(angr) - 0.02, 0.5 * r0 * np.sin(angr) + 0.11, r'$r$', color=C['purple'], size=12, ha='center')
-    label(a2, 0, -0.93, r'$R = \sqrt{x}, \ r = x^2$', size=11, ha='center')
-    label(a2, 0, -1.17, r'area $\pi R^2 - \pi r^2$', size=11, ha='center')
+    label(a2, 0, -0.93, r'$R = \sqrt{x}, \ r = x^2$', size=11, ha='center', halo=False)     # on white: no halo needed
+    label(a2, 0, -1.17, r'area $\pi R^2 - \pi r^2$', size=11, ha='center', halo=False)
     a2.set_title('The washer at $x$', fontsize=11.5, color=C['navy'])
     return fig
 
