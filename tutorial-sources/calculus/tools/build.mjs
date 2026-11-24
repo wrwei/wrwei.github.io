@@ -114,8 +114,8 @@ function topbar(lang, list, current, other) {
 <header id="topbar">
   <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
   <a href="${pageFile('index', lang)}" class="crumb">${ui.crumb}</a><span class="sep">/</span><span class="crumb crumb-now">${now}</span>
-  ${dropdown(lang, list, current)}
-  ${BILINGUAL ? `<a href="${other}" class="lang-switch" hreflang="${UI[lang === 'en' ? 'zh' : 'en'].htmlLang}">${ui.switchTo}</a>` : ''}
+  ${dropdown(lang, list, current)}${BILINGUAL ? `
+  <a href="${other}" class="lang-switch" hreflang="${UI[lang === 'en' ? 'zh' : 'en'].htmlLang}">${ui.switchTo}</a>` : ''}
 </header>`
 }
 

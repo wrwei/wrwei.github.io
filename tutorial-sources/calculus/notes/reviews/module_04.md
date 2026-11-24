@@ -169,4 +169,3 @@ Outside Module 4 (not edited):
   true of the sizes. Optional.
 - No other module states a signed error of a difference quotient (checked Modules 5, 6, 8, 10, 13, 15
   and the formula sheet).
-

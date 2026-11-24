@@ -3,7 +3,18 @@
 The sources of the series published at `docs/tutorials/calculus/`. Everything on the published pages is
 generated from this folder; never edit the published HTML by hand.
 
-## Status and next steps (handover, 22 November 2026)
+## English release
+
+The release includes 20 modules, the formula sheet, the glossary, Common mistakes and the code ZIP.
+Edit the glossary's term and notation data in `notes/handover/glossary-draft/`, then regenerate
+`src/en/glossary.md` with `python3 -I notes/handover/glossary-draft/tools/gen.py`. Edit
+`src/en/mistakes.md` directly and check its examples with `$CALC_PYTHON -I tools/calc.py --page mistakes`.
+
+The build writes the published pages into `docs/tutorials/calculus/`. The Tutorials index links to
+`calculus/index.html`. Run the calculation and page checks, widget tests and a strict MkDocs build
+before deploying updates.
+
+## Original handover (22 November 2026)
 
 **Where things stand.** Work is on the branch `claude/sweet-johnson-24038f` (pushed). `main` holds the
 published Formal Methods series; the calculus series is **not published and not merged**: ask the

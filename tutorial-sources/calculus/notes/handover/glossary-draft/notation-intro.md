@@ -1,1 +1,1 @@
-The symbols of the series, part by part, in the order in which the modules introduce them, with the way the modules read them aloud. Letters such as $f$, $a$ and $x$ stand for any function, number or variable.
+Read the symbols aloud as shown in the tables. The groups follow the parts of the series. Letters such as $f$, $a$ and $x$ stand for the function, number or variable in the example you are reading.

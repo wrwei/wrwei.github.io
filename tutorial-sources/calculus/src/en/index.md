@@ -39,9 +39,10 @@ boxes show how to explore the maths with code, and the outputs come from running
 
 ## Reference and downloads {#reference}
 
-Use the [formula sheet](formulas_EN.html) to look up formulas, their conditions and the modules
-that explain them. The [Python code ZIP](calculus-code.zip) contains the modules' computing examples
-and separate scripts for exercises that use Python.
+Use the [formula sheet](formulas_EN.html) for formulas and their conditions, the
+[glossary](glossary_EN.html) for terms and notation, and [Common mistakes](mistakes_EN.html)
+for counterexamples and fixes. The [Python code ZIP](calculus-code.zip) contains the modules'
+computing examples and separate scripts for exercises that use Python.
 
 ## Going further {#further}
 
