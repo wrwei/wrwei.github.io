@@ -15,9 +15,9 @@ goals:
 
 ## Volumes and double integrals {#double-integrals}
 
-Module 9 found the area under a curve by cutting an interval into short pieces, standing a thin rectangle on each and adding up the rectangles; the limit of those sums is the definite integral. This module takes the same idea up one dimension. A function of two variables $f(x, y)$, the subject of Module 17, has a surface for its graph, $z = f(x, y)$. Over a region of the $xy$-plane, the solid between the region and the surface has a volume. Cut the region into small rectangles, stand a thin box on each, and add up the boxes: the limit of these sums is the **double integral**. It computes much more than volumes: masses, averages and probabilities too. A sum of the same kind is how a computer adds up anything recorded on a grid: the rainfall on each square of a weather map times the area of the square, added over a river's catchment, approximates the volume of water that fell on it.
+Module 9 found the area under a curve by cutting an interval into short pieces, standing a thin rectangle on each and adding up the rectangles; the limit of those sums is the definite integral. This module takes the same idea up one dimension. For a continuous, nonnegative function of two variables $f(x, y)$, picture its graph $z = f(x, y)$ as a surface, as in Module 17. Over a rectangle in the $xy$-plane, the solid between the rectangle and the surface has a volume. Cut the region into small rectangles, stand a thin box on each, and add up the boxes: the limit of these sums is the **double integral**. It computes much more than volumes: masses, averages and probabilities too. A sum of the same kind is how a computer adds up anything recorded on a grid: the rainfall on each square of a weather map times the area of the square, added over a river's catchment, approximates the volume of water that fell on it.
 
-Start with a rectangle in the $xy$-plane,
+Start with a rectangle in the $xy$-plane, with $a < b$ and $c < d$,
 
 $$R = [a, b] \times [c, d] = \{(x, y) : a \le x \le b,\ c \le y \le d\},$$
 
@@ -85,20 +85,27 @@ n | L_n | U_n | M_n
 32 | 20.828125 | 21.828125 | 21.3359375
 ```
 
-The lower sums rise and the upper sums fall, and the gap between them, $U_n - L_n = 32/n$, halves each time $n$ doubles. The midpoint sums close in on $\tfrac{64}{3} = 21.333\ldots$ much faster: the error of $M_n$ is exactly $\tfrac{8}{3n^2}$, divided by 4 each time $n$ doubles, as for the midpoint sums of Module 9.
+The lower sums rise and the upper sums fall, and the gap between them, $U_n - L_n = 32/n$, halves each time $n$ doubles. The midpoint sums close in on $\tfrac{64}{3} = 21.333\ldots$ much faster: the error, exact value minus approximation, is $\tfrac{64}{3} - M_n = -\tfrac{8}{3n^2}$. Its magnitude is divided by 4 each time $n$ doubles, as for the midpoint sums of Module 9.
 
 ```check
 Ln = lambda N_: Rational(4, N_**2)*sum(f191.subs({x: Rational(2*p, N_), y: Rational(2*q, N_)}) for p in range(1, N_ + 1) for q in range(1, N_ + 1))
 Un = lambda N_: Rational(4, N_**2)*sum(f191.subs({x: Rational(2*p, N_), y: Rational(2*q, N_)}) for p in range(N_) for q in range(N_))
 Mn = lambda N_: Rational(4, N_**2)*sum(f191.subs({x: Rational(2*p - 1, N_), y: Rational(2*q - 1, N_)}) for p in range(1, N_ + 1) for q in range(1, N_ + 1))
 for N_ in (2, 4, 8, 16, 32):
-    same(Un(N_) - Ln(N_), Rational(32, N_)); same(Mn(N_) - Rational(64, 3), Rational(8, 3*N_**2))
+    same(Un(N_) - Ln(N_), Rational(32, N_)); same(Rational(64, 3) - Mn(N_), -Rational(8, 3*N_**2))
     holds(Ln(N_) < Rational(64, 3)); holds(Rational(64, 3) < Un(N_))
 same(Ln(4), 17); same(Un(4), 25); same(Mn(4), Rational(43, 2)); same(Mn(32), Rational(2731, 128))
+ng = symbols('n_grid', integer=True, positive=True); ig, jg = symbols('i_grid j_grid', integer=True)
+Lgeneral = summation(8 - (2*ig/ng)**2 - (2*jg/ng)**2, (ig, 1, ng), (jg, 1, ng))*4/ng**2
+Ugeneral = summation(8 - (2*ig/ng)**2 - (2*jg/ng)**2, (ig, 0, ng - 1), (jg, 0, ng - 1))*4/ng**2
+Mgeneral = summation(8 - ((2*ig - 1)/ng)**2 - ((2*jg - 1)/ng)**2, (ig, 1, ng), (jg, 1, ng))*4/ng**2
+same(Ugeneral - Lgeneral, 32/ng); same(Rational(64, 3) - Mgeneral, -Rational(8, 3)/ng**2)
+holds(simplify(Lgeneral.subs(ng, ng + 1) - Lgeneral) > 0); holds(simplify(Ugeneral.subs(ng, ng + 1) - Ugeneral) < 0)
+same((Rational(64, 3) - Mgeneral.subs(ng, 2*ng))/(Rational(64, 3) - Mgeneral), Rational(1, 4))
 ```
 
 ::: definition Double integral over a rectangle
-Let $f$ be defined on the rectangle $R = [a, b] \times [c, d]$. Then $f$ is **integrable** on $R$ if there is a number $I$ that its double Riemann sums approach: for every $\varepsilon > 0$ there is a whole number $N$ such that
+Let $f$ be defined on the rectangle $R = [a, b] \times [c, d]$, with $a < b$ and $c < d$. Then $f$ is **integrable** on $R$ if there is a number $I$ that its double Riemann sums approach: for every $\varepsilon > 0$ there is a whole number $N$ such that
 
 $$\Big|\sum_{i=1}^{m}\sum_{j=1}^{n} f(x_{ij}^*, y_{ij}^*)\,\Delta A - I\Big| < \varepsilon$$
 
@@ -174,7 +181,7 @@ If $f$ is continuous on the rectangle $R = [a, b] \times [c, d]$, then
 
 $$\begin{aligned} \iint_R f(x, y)\,dA &= \int_a^b\int_c^d f(x, y)\,dy\,dx \\ &= \int_c^d\int_a^b f(x, y)\,dx\,dy. \end{aligned}$$
 
-More generally, the same holds if $f$ is bounded on $R$, continuous except on finitely many curves of the kind in Theorem 19.1, and the iterated integrals exist.
+More generally, if $f$ is bounded on $R$ and continuous except on finitely many curves of the kind in Theorem 19.1, then either iterated integral equals $\iint_R f\,dA$ whenever its inner integrals exist for every value of the outer variable; their outer integral then exists too. If both orders meet this condition, both give the double integral.
 :::
 
 For $f \ge 0$ the theorem says that slicing gives the volume that the boxes define. Its power is in computing: a double integral becomes two single integrals, each done with the methods of Modules 10 and 11, in whichever order is easier. The Going deeper box below proves it for continuous $f$.
@@ -197,11 +204,11 @@ The hypothesis cannot be dropped. On $R = [0, 1] \times [0, 1]$, let
 
 $$f(x, y) = \frac{x^2 - y^2}{\big(x^2 + y^2\big)^2}$$
 
-for $(x, y) \ne (0, 0)$, and $f(0, 0) = 0$. For $x > 0$ the quotient rule shows that $\dfrac{\partial}{\partial y}\Big(\dfrac{y}{x^2 + y^2}\Big) = f(x, y)$, so the inner integral is $\int_0^1 f(x, y)\,dy = \dfrac{1}{x^2 + 1}$, and
+for $(x, y) \ne (0, 0)$, and $f(0, 0) = 0$. For $x > 0$ the quotient rule shows that $\dfrac{\partial}{\partial y}\Big(\dfrac{y}{x^2 + y^2}\Big) = f(x, y)$, so the inner integral is $\int_0^1 f(x, y)\,dy = \dfrac{1}{x^2 + 1}$. At $x = 0$, however, $f(0, y) = -1/y^2$ for $y > 0$, and that inner integral diverges. We therefore take the outer integral as an improper limit:
 
-$$\int_0^1\int_0^1 f(x, y)\,dy\,dx = \int_0^1 \frac{dx}{1 + x^2} = \frac{\pi}{4}.$$
+$$\begin{aligned} &\lim_{\varepsilon\to0^+}\int_\varepsilon^1\int_0^1 f(x, y)\,dy\,dx \\ &\quad= \lim_{\varepsilon\to0^+}\int_\varepsilon^1 \frac{dx}{1 + x^2} = \frac{\pi}{4}. \end{aligned}$$
 
-But swapping $x$ and $y$ changes the sign of $f$, so the other order gives $-\tfrac{\pi}{4}$. The two iterated integrals disagree because $f$ is not bounded on $R$: along the $x$-axis, $f(x, 0) = 1/x^2$, which grows without bound as $x \to 0$. Fubini's theorem does not apply, and $f$ has no double integral over $R$.
+But swapping $x$ and $y$ changes the sign of $f$, so $\lim_{\varepsilon\to0^+}\int_\varepsilon^1\int_0^1 f(x, y)\,dx\,dy = -\tfrac{\pi}{4}$. These two improper iterated limits disagree. The function is not bounded on $R$: along the $x$-axis, $f(x, 0) = 1/x^2$, which grows without bound as $x \to 0$. Fubini's theorem does not apply, and $f$ has no double Riemann integral over $R$ as defined in Section 19.1.
 
 ```check
 xq, yq = symbols('x y', positive=True)
@@ -209,6 +216,12 @@ fF = (xq**2 - yq**2)/(xq**2 + yq**2)**2
 same(diff(yq/(xq**2 + yq**2), yq), fF); same(integrate(fF, (yq, 0, 1)), 1/(xq**2 + 1)); same(integrate(1/(1 + x**2), (x, 0, 1)), pi/4)
 same(fF.subs({xq: yq, yq: xq}, simultaneous=True), -fF); same(integrate(fF, (xq, 0, 1)), -1/(yq**2 + 1))
 same(fF.subs(yq, 0), 1/xq**2); limit_is(1/x**2, x, 0, oo, '+')
+eq = symbols('epsilon_cutoff', positive=True)
+same(fF.subs(xq, 0), -1/yq**2)
+limit_is(integrate(-1/yq**2, (yq, eq, 1)), eq, 0, -oo, '+')
+limit_is(integrate(1/xq**2, (xq, eq, 1)), eq, 0, oo, '+')
+limit_is(integrate(1/(1 + xq**2), (xq, eq, 1)), eq, 0, pi/4, '+')
+limit_is(integrate(-1/(1 + yq**2), (yq, eq, 1)), eq, 0, -pi/4, '+')
 ```
 
 ::: example Choosing the order
@@ -234,7 +247,7 @@ limit_is((1 - cos(pi*y))/y, y, 0, 0, '+'); same(((1 - cos(pi*y))/y).subs(y, 1), 
 ```
 :::
 
-When the integrand is a product $g(x)h(y)$ and the region is a rectangle, the inner integral of $\int_a^b\int_c^d g(x)h(y)\,dy\,dx$ is $g(x)\int_c^d h(y)\,dy$, a constant times $g(x)$, and the iterated integral splits into a product:
+When $g$ is continuous on $[a, b]$ and $h$ is continuous on $[c, d]$, their product $g(x)h(y)$ is continuous on the rectangle $R$. The inner integral of $\int_a^b\int_c^d g(x)h(y)\,dy\,dx$ is $g(x)\int_c^d h(y)\,dy$, a constant times $g(x)$, and Fubini's theorem splits the double integral into a product:
 
 $$\iint_R g(x)h(y)\,dA = \int_a^b g(x)\,dx\int_c^d h(y)\,dy.$$
 
@@ -249,7 +262,7 @@ same(integrate(sin(x)*cos(y), (y, 0, pi/2), (x, 0, pi/2)), 1); same(integrate(si
 The average value of a function of one variable is its integral divided by the length of the interval ([Section 9.7](module_09_EN.html#average)). In two variables, divide by the area.
 
 ::: definition Average value
-The **average value** of a function $f$ integrable on the rectangle $R$ is
+The **average value** of a function $f$ integrable on a rectangle $R$ of positive area is
 
 $$f_{\text{avg}} = \frac{1}{A(R)}\iint_R f(x, y)\,dA,$$
 
@@ -303,7 +316,12 @@ for n in [2, 10, 100, 1000]:
 1000 21.333336
 ```
 
-The sums approach $\tfrac{64}{3} = 21.333\ldots$ with the error $\tfrac{8}{3n^2}$ found above, so each tenfold increase in $n$ divides the error by 100. The digits $\ldots0003$ at $n = 10$ are floating-point rounding: that sum is exactly 21.36.
+The sums approach $\tfrac{64}{3} = 21.333\ldots$ with the signed error $-\tfrac{8}{3n^2}$ found above, so each tenfold increase in $n$ divides its magnitude by 100. The digits $\ldots0003$ at $n = 10$ are floating-point rounding: that sum is exactly 21.36.
+
+```check
+same(Mn(10), Rational('21.36'))
+same((Rational(64, 3) - Mgeneral.subs(ng, 10*ng))/(Rational(64, 3) - Mgeneral), Rational(1, 100))
+```
 :::
 
 ::: pitfall
@@ -327,11 +345,11 @@ A region $D$ is of **type I** if it lies between the graphs of two continuous fu
 
 $$D = \{(x, y) : a \le x \le b,\ g_1(x) \le y \le g_2(x)\},$$
 
-with $g_1(x) \le g_2(x)$ for $a \le x \le b$. It is of **type II** if it lies between the graphs of two continuous functions of $y$:
+with $a < b$ and $g_1(x) \le g_2(x)$ for $a \le x \le b$. It is of **type II** if it lies between the graphs of two continuous functions of $y$:
 
 $$D = \{(x, y) : c \le y \le d,\ h_1(y) \le x \le h_2(y)\},$$
 
-with $h_1(y) \le h_2(y)$ for $c \le y \le d$.
+with $c < d$ and $h_1(y) \le h_2(y)$ for $c \le y \le d$.
 :::
 
 ::: figure id=fig-19-2
@@ -349,11 +367,11 @@ $$\iint_D f(x, y)\,dA = \int_c^d\int_{h_1(y)}^{h_2(y)} f(x, y)\,dx\,dy.$$
 :::
 
 ::: proof
-Take a type I region; the type II case is the same with $x$ and $y$ swapped. The continuous functions $g_1$ and $g_2$ are bounded on $[a, b]$ (the Extreme Value Theorem, Module 3), so there are numbers $c$ and $d$ with $c \le g_1(x)$ and $g_2(x) \le d$ for all $x$ in $[a, b]$. Let $F$ be $f$ extended by zero to $R = [a, b] \times [c, d]$. The function $f$ is bounded on the closed bounded region $D$ (by the Extreme Value Theorem for such regions, Module 18), so $F$ is bounded on $R$, and it is continuous except perhaps on the graphs of $g_1$ and $g_2$. By Theorem 19.1, $\iint_D f\,dA = \iint_R F\,dA$ exists. For each $x$, $F(x, y)$ equals $f(x, y)$ for $g_1(x) \le y \le g_2(x)$ and 0 for the other $y$ in $[c, d]$, so
+Take a type I region; the type II case is the same with $x$ and $y$ swapped. The continuous functions $g_1$ and $g_2$ are bounded on $[a, b]$ (the Extreme Value Theorem, Module 3), so there are numbers $c < d$ with $c \le g_1(x)$ and $g_2(x) \le d$ for all $x$ in $[a, b]$. Let $F$ be $f$ extended by zero to $R = [a, b] \times [c, d]$. The function $f$ is bounded on the closed bounded region $D$ (by the Extreme Value Theorem for such regions, Module 18), so $F$ is bounded on $R$, and it is continuous except perhaps on the graphs of $g_1$ and $g_2$. By Theorem 19.1, $\iint_D f\,dA = \iint_R F\,dA$ exists. For each $x$, $F(x, y)$ equals $f(x, y)$ for $g_1(x) \le y \le g_2(x)$ and 0 for the other $y$ in $[c, d]$, so
 
 $$\int_c^d F(x, y)\,dy = \int_{g_1(x)}^{g_2(x)} f(x, y)\,dy.$$
 
-Fubini's theorem in its general form now gives the formula, provided that this inner integral is an integrable function of $x$; that it is (it is even continuous) is another fact of real analysis taken on trust here.
+For each fixed $x$, the function $y \mapsto F(x, y)$ is bounded and continuous except possibly at the two ends $g_1(x)$ and $g_2(x)$, so its integral exists by Theorem 9.3. The general form of Fubini's theorem now gives the formula.
 :::
 
 To set up the limits, draw a picture.
@@ -365,7 +383,7 @@ To set up the limits, draw a picture.
 2. For the order $dy\,dx$, draw a vertical line through $D$ at a typical $x$. It enters $D$ on the lower curve $y = g_1(x)$ and leaves on the upper curve $y = g_2(x)$: these are the inner limits. The outer limits are the least and the greatest $x$ in $D$.
 3. For the order $dx\,dy$, draw a horizontal line at a typical $y$. It enters $D$ on the left curve and leaves on the right curve, both written as $x = \dots$: these are the inner limits. The outer limits are the least and the greatest $y$ in $D$.
 
-The outer limits are always constants. The inner limits may depend on the outer variable, never on the inner one.
+These instructions describe a region of the chosen type. If a slice has several separate segments, split the region into suitable pieces and add their integrals. Splitting can also simplify a bound given by different formulas on different intervals. The outer limits are constant with respect to the integration variables; they may depend on a fixed parameter. The inner limits may depend on the outer variable, never on the inner one.
 :::
 
 ::: example Both orders on a region between curves
@@ -385,6 +403,7 @@ The same answer, as Theorem 19.3 promises: $D$ is of both types.
 
 ```check
 same_set(solve(x**2 - x, x), [0, 1]); holds(Rational(1, 2) > Rational(1, 4))
+antideriv(x*y**2/2, x*y, y); antideriv(y*x**2/2, x*y, x)
 steps(Integral(x*y, (y, x**2, x), (x, 0, 1)), Integral((x**3 - x**5)/2, (x, 0, 1)), Rational(1, 2)*(Rational(1, 4) - Rational(1, 6)), Rational(1, 24))
 same(integrate(x*y, (y, x**2, x)), (x**3 - x**5)/2)
 steps(Integral(x*y, (x, y, sqrt(y)), (y, 0, 1)), Integral((y**2 - y**3)/2, (y, 0, 1)), Rational(1, 2)*(Rational(1, 3) - Rational(1, 4)), Rational(1, 24))
@@ -401,7 +420,9 @@ With $f = 1$ the double integral is the area of $D$. For a type I region,
 
 $$A(D) = \iint_D 1\,dA = \int_a^b\big(g_2(x) - g_1(x)\big)\,dx,$$
 
-the formula for the area between curves of [Section 12.2](module_12_EN.html#area), and the average value of $f$ over $D$ is $\tfrac{1}{A(D)}\iint_D f\,dA$. Two more properties follow from those of Section 19.1. If $D$ is made of two regions $D_1$ and $D_2$ that overlap at most along their boundaries, then $\iint_D f\,dA = \iint_{D_1} f\,dA + \iint_{D_2} f\,dA$ (the common boundary has no area). And if $f \ge 0$ and $D_1$ lies inside $D_2$, then $\iint_{D_1} f\,dA \le \iint_{D_2} f\,dA$, because $f$ extended by zero outside $D_1$ is at most $f$ extended by zero outside $D_2$.
+the formula for the area between curves of [Section 12.2](module_12_EN.html#area). When $A(D) > 0$ and $f$ is integrable on $D$, its average value is $\tfrac{1}{A(D)}\iint_D f\,dA$.
+
+Two more properties follow from those of Section 19.1, assuming the integrals involved exist. If $D$ is made of two regions $D_1$ and $D_2$ whose overlap has area 0, then $\iint_D f\,dA = \iint_{D_1} f\,dA + \iint_{D_2} f\,dA$. For example, their common boundary may consist of finitely many curves of the kind in Theorem 19.1, which have area 0. And if $f \ge 0$ and $D_1$ lies inside $D_2$, then $\iint_{D_1} f\,dA \le \iint_{D_2} f\,dA$, because $f$ extended by zero outside $D_1$ is at most $f$ extended by zero outside $D_2$.
 
 ::: example The volume of a tetrahedron
 For $a, b, c > 0$, the plane $\dfrac{x}{a} + \dfrac{y}{b} + \dfrac{z}{c} = 1$ meets the axes at $(a, 0, 0)$, $(0, b, 0)$ and $(0, 0, c)$. Find the volume of the tetrahedron bounded by this plane and the three coordinate planes.
@@ -418,6 +439,7 @@ The base triangle has area $\tfrac12 ab$ and the height is $c$, so $V = \tfrac13
 
 ```check
 ap, bp, cp, wp = symbols('a b c w', positive=True)
+antideriv(cp*(wp*y - y**2/(2*bp)), cp*(wp - y/bp), y)
 steps(Integral(cp*(wp - y/bp), (y, 0, bp*wp)), cp*(bp*wp**2 - bp*wp**2/2), bp*cp*wp**2/2)
 same((cp*(1 - x/ap - y/bp)).subs(x, ap*(1 - wp)), cp*(wp - y/bp))
 same(integrate((1 - x/ap)**2, (x, 0, ap)), ap*integrate(u**2, (u, 0, 1)))
@@ -428,7 +450,7 @@ same(Rational(1, 3)*Rational(1, 2)*ap*bp*cp, ap*bp*cp/6)
 :::
 
 ::: pitfall
-The inner limits describe one slice, not the corners of the region. For the triangle $0 \le y \le x \le 1$, writing $\int_0^1\int_0^1 f\,dy\,dx$ integrates over the whole square; a vertical slice at $x$ runs only from $y = 0$ to $y = x$. And an outer limit can never contain a variable: in $\int_0^x\int_0^1 \dots$ the $x$ has nothing to refer to.
+The inner limits describe one slice, not the corners of the region. For the triangle $0 \le y \le x \le 1$, writing $\int_0^1\int_0^1 f\,dy\,dx$ integrates over the whole square; a vertical slice at $x$ runs only from $y = 0$ to $y = x$. Keep fixed parameters distinct from integration variables. If the outer bound is a positive parameter $s$, write $\int_0^s\int_0^1 f(x, y)\,dy\,dx$: hold $s$ fixed while integrating in $x$ and $y$.
 :::
 
 ### Reversing the order {#reversing}
@@ -515,7 +537,9 @@ where $0 < \beta - \alpha \le 2\pi$ and $h_1$, $h_2$ are continuous on $[\alpha,
 $$\begin{aligned} &\iint_D f(x, y)\,dA \\ &\quad= \int_\alpha^\beta\int_{h_1(\theta)}^{h_2(\theta)} f(r\cos\theta, r\sin\theta)\,r\,dr\,d\theta. \end{aligned}$$
 :::
 
-In short, $dA = r\,dr\,d\theta$: replace $x$ and $y$ by $r\cos\theta$ and $r\sin\theta$, and $dA$ by $r\,dr\,d\theta$. For a polar rectangle, $h_1$ and $h_2$ are the constants $r_0$ and $r_1$. With $f = 1$ and $h_1 = 0$, the inner integral is $\int_0^{h_2(\theta)} r\,dr = \tfrac12 h_2(\theta)^2$, and the theorem gives the area $\int_\alpha^\beta \tfrac12 h_2(\theta)^2\,d\theta$: the formula for areas in polar coordinates of Module 16.
+The nonnegative radii and an angle range of at most one full turn ensure that points are covered once, apart from the origin and a possible shared boundary ray when $\beta - \alpha = 2\pi$. Those exceptional sets have area 0 and do not change the integral.
+
+Use $dA = r\,dr\,d\theta$: replace $x$ and $y$ by $r\cos\theta$ and $r\sin\theta$, and $dA$ by $r\,dr\,d\theta$. For a polar rectangle, $h_1$ and $h_2$ are the constants $r_0$ and $r_1$. With $f = 1$ and $h_1 = 0$, the inner integral is $\int_0^{h_2(\theta)} r\,dr = \tfrac12 h_2(\theta)^2$, and the theorem gives the area $\int_\alpha^\beta \tfrac12 h_2(\theta)^2\,d\theta$: the formula for areas in polar coordinates of Module 16.
 
 **The idea of the proof.** Take a polar rectangle, and cut $[r_0, r_1]$ and $[\alpha, \beta]$ into $m$ and $n$ equal parts. The circles and rays through the cut points divide the region into $mn$ small polar rectangles; the one between $r_{i-1}$ and $r_i$ and between $\theta_{j-1}$ and $\theta_j$ has area $\bar r_i\,\Delta r\,\Delta\theta$, where $\bar r_i$ is its average radius. With the sample point at radius $\bar r_i$ and some angle $\theta_j^*$, the sum
 
@@ -553,11 +577,15 @@ For the last integral, write $\cos^3\theta = (1 - \sin^2\theta)\cos\theta$ and s
 ```check
 same(expand((x - 1)**2 + y**2 - 1), x**2 + y**2 - 2*x)
 same(solve(r**2 - 2*r*cos(theta), r), [0, 2*cos(theta)])
+rn19 = symbols('r_nonnegative', nonnegative=True)
+same(sqrt((rn19*cos(theta))**2 + (rn19*sin(theta))**2), rn19)
+same(minimum(2*cos(theta), theta, Interval(-pi/2, pi/2)), 0)
 same(integrate(r*r, (r, 0, 2*cos(theta))), 8*cos(theta)**3/3)
 same(((1 - sin(theta)**2)*cos(theta)), cos(theta)**3); same(integrate(1 - u**2, (u, -1, 1)), Rational(4, 3))
 same(integrate(cos(theta)**3, (theta, -pi/2, pi/2)), Rational(4, 3))
 steps(Integral(r*r, (r, 0, 2*cos(theta)), (theta, -pi/2, pi/2)), Rational(8, 3)*Rational(4, 3), Rational(32, 9))
 rounds(Rational(32, 9)/pi, '1.13'); holds(Rational(32, 9)/pi > 1)
+same(integrate(r, (r, 0, 2*cos(theta)), (theta, -pi/2, pi/2)), pi)
 ```
 :::
 
@@ -572,7 +600,7 @@ same(integrate(Rational(8, 3)*cos(theta)**3, (theta, 0, 2*pi)), 0); holds(2*cos(
 
 ### The Gaussian integral {#gaussian}
 
-Module 12 needed the value of $\int_{-\infty}^{\infty} e^{-x^2}\,dx$ to show that the normal density has total area 1, and quoted it ([Section 12.9](module_12_EN.html#normal)) with the promise of a proof here. No antiderivative of $e^{-x^2}$ helps. The trick is to square the integral: the square is a double integral, and in polar coordinates the factor $r$ makes $e^{-r^2}$ easy to integrate.
+Module 12 needed the value of $\int_{-\infty}^{\infty} e^{-x^2}\,dx$ to show that the normal density has total area 1, and quoted it ([Section 12.9](module_12_EN.html#normal)) with the promise of a proof here. There is no elementary antiderivative of $e^{-x^2}$ (Module 11). The trick is to square the integral: the square is a double integral, and in polar coordinates the factor $r$ makes $e^{-r^2}$ easy to integrate.
 
 ::: theorem The Gaussian integral
 $$\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt\pi.$$
@@ -613,6 +641,8 @@ steps(Integral(exp(-r**2)*r, (r, 0, Rg), (theta, 0, 2*pi)), 2*pi*(Rational(1, 2)
 same((pi*(1 - exp(-Rg**2))).subs(Rg, sqrt(2)*ag), pi*(1 - exp(-2*ag**2)))
 limit_is(pi*(1 - exp(-ag**2)), ag, oo, pi); limit_is(pi*(1 - exp(-2*ag**2)), ag, oo, pi)
 limit_is(integrate(exp(-x**2), (x, 0, ag)), ag, oo, sqrt(pi)/2); same(integrate(exp(-x**2), (x, -oo, oo)), sqrt(pi))
+same(integrate(exp(-x**2), (x, -ag, 0)), integrate(exp(-x**2), (x, 0, ag)))
+limit_is(integrate(exp(-x**2), (x, -ag, 0)), ag, oo, sqrt(pi)/2)
 for av in (Rational(1, 2), 1, 2):
     Ia2 = Integral(exp(-x**2), (x, -av, av)).evalf(30)**2
     holds(pi*(1 - exp(-av**2)) <= Ia2); holds(Ia2 <= pi*(1 - exp(-2*av**2)))
@@ -661,15 +691,15 @@ Volumes and areas are the start. Whenever a quantity is spread over a region wit
 A thin flat plate, a **lamina**, occupies a region $D$ of the plane, and its **density** at $(x, y)$, its mass per unit area, is $\rho(x, y)$ kg/m². A small rectangle of the plate around a sample point has mass about $\rho\,\Delta A$, and its **moment** about the $y$-axis is about its mass times its signed distance $x$ from that axis; its moment about the $x$-axis uses $y$. Adding and taking the limit:
 
 ::: definition Mass and centre of mass of a plate
-A lamina occupying the region $D$ with continuous density $\rho(x, y) > 0$ has the **mass** and the **moments** about the $y$-axis and the $x$-axis
+Let a lamina occupy a bounded closed region $D$ of type I or type II, or a finite union of such regions, with continuous density $\rho(x, y) \ge 0$. Its **mass** and its **moments** about the $y$-axis and the $x$-axis are
 
 $$\begin{aligned} m &= \iint_D \rho\,dA, \\ M_y &= \iint_D x\rho\,dA, \qquad M_x = \iint_D y\rho\,dA, \end{aligned}$$
 
-and its **centre of mass** is the point $(\bar x, \bar y)$ with
+These integrals are finite. If $m > 0$, its **centre of mass** is the point $(\bar x, \bar y)$ with
 
 $$\bar x = \frac{M_y}{m}, \qquad \bar y = \frac{M_x}{m}.$$
 
-If $\rho$ is constant, it cancels, and the centre of mass is the **centroid** of $D$.
+If $\rho$ is a positive constant and $D$ has positive area, it cancels, and the centre of mass is the **centroid** of $D$.
 :::
 
 The plate balances on a point under its centre of mass, as the rods and plates of [Section 12.7](module_12_EN.html#centre-of-mass) did. Module 12's centroid formulas for a uniform plate between two graphs are this definition with the inner integral done: integrating $x$ and $y$ in $y$ from $g(x)$ to $f(x)$ gives $x\big(f(x) - g(x)\big)$ and $\tfrac12\big(f(x)^2 - g(x)^2\big)$.
@@ -708,16 +738,16 @@ The **moments of inertia** of the lamina of Definition 19.4 about the $x$-axis, 
 $$\begin{aligned} I_x &= \iint_D y^2\rho\,dA, \qquad I_y = \iint_D x^2\rho\,dA, \\ I_0 &= \iint_D \big(x^2 + y^2\big)\rho\,dA = I_x + I_y. \end{aligned}$$
 :::
 
-Each piece of the plate counts with its mass times the square of its distance from the axis; for $I_0$, the distance from the origin, which is the distance from the axis through the origin perpendicular to the plate. The moment of inertia measures how hard it is to start or stop the plate turning about that axis, as mass measures how hard it is to change a velocity: a body turning at $\omega$ radians per second about an axis has kinetic energy $\tfrac12 I\omega^2$, the counterpart of $\tfrac12 mv^2$. Because of the square, mass far from the axis counts most.
+Each piece of the plate counts with its mass times the square of its distance from the axis; for $I_0$, the distance from the origin, which is the distance from the axis through the origin perpendicular to the plate. The moment of inertia measures how hard it is to start or stop the plate turning about that axis, as mass measures how hard it is to change a velocity: a rigid body rotating at $\omega$ radians per second about a fixed axis has rotational kinetic energy $\tfrac12 I\omega^2$, the counterpart of $\tfrac12 mv^2$. Because of the square, mass far from the axis counts most.
 
 ::: example A disc and a ring
-Find the moment of inertia $I_0$ of a uniform disc of radius $a$ and mass $M$ about its centre, and compare it with that of a thin ring of the same radius and mass.
+Find the moment of inertia $I_0$ of a uniform disc of radius $a > 0$ and mass $M > 0$ about the axis through its centre perpendicular to the disc, and compare it with that of an ideal thin ring of the same radius and mass about the same axis.
 
 The density is $\rho = \dfrac{M}{\pi a^2}$, and in polar coordinates $x^2 + y^2 = r^2$:
 
 $$\begin{aligned} I_0 &= \int_0^{2\pi}\int_0^a r^2\,\frac{M}{\pi a^2}\,r\,dr\,d\theta \\ &= \frac{M}{\pi a^2}\cdot 2\pi\cdot\frac{a^4}{4} = \frac12 Ma^2. \end{aligned}$$
 
-In a thin ring all the mass is at distance $a$ from the centre, so $I_0 = Ma^2$: twice as much. Spinning the ring up to the same angular speed takes twice the energy, which is why a flywheel, built to store energy, carries much of its mass in a heavy rim.
+In an ideal thin ring all the mass is at distance $a$ from the centre, so $I_0 = Ma^2$: twice as much. Spinning the ring up to the same angular speed takes twice the energy. This explains why placing mass near the rim can help a flywheel store rotational energy.
 
 ```check
 aM, Mm = symbols('a M', positive=True)
@@ -728,7 +758,7 @@ same(Mm*aM**2/(Mm*aM**2/2), 2)
 
 ### Joint densities {#joint-densities}
 
-Module 12 described one random quantity by a density ([Section 12.9](module_12_EN.html#densities)). Two at once, such as the waiting times at two servers, or the two coordinates of a dart's hit on a board, are described by one function of two variables.
+Module 12 described one random quantity by a density ([Section 12.9](module_12_EN.html#densities)). Some pairs of random quantities, such as the independent waiting times below, can be described by one density function of two variables. Not every pair has such a density.
 
 ::: definition Joint density
 A **joint density** is a function $f(x, y) \ge 0$ whose integral over the whole plane is 1. A pair of random variables $(X, Y)$ has the joint density $f$ if, for every region $D$,
@@ -738,7 +768,7 @@ $$P\big((X, Y) \in D\big) = \iint_D f(x, y)\,dA.$$
 
 $P\big((X, Y) \in D\big)$ reads "the probability that the point $(X, Y)$ lies in $D$". The integral over the whole plane is improper. For the densities of this module, which are continuous on a region and 0 outside it, it is the limit of the integrals over the squares $[-a, a] \times [-a, a]$ as $a \to \infty$, as in the proof of Theorem 19.5, and an improper double integral of a function $f \ge 0$ can be computed as an iterated integral of improper integrals, in either order. This extension of Fubini's theorem is taken on trust here.
 
-**Independence.** Two random variables $X$ and $Y$ with densities $f_1$ and $f_2$ are **independent** if their joint density is the product $f(x, y) = f_1(x)f_2(y)$. Then, by the product rule of Section 19.2,
+**Independence.** Two random variables $X$ and $Y$ with densities $f_1$ and $f_2$ are **independent** if they have a joint density that can be written as the product $f(x, y) = f_1(x)f_2(y)$. Then, by the product rule of Section 19.2,
 
 $$\begin{aligned} &P(a \le X \le b \text{ and } c \le Y \le d) \\ &\quad= \int_a^b f_1(x)\,dx\int_c^d f_2(y)\,dy \\ &\quad= P(a \le X \le b)\,P(c \le Y \le d): \end{aligned}$$
 
@@ -751,11 +781,12 @@ The joint density is $f(x, y) = e^{-x}\cdot 2e^{-2y}$ for $x \ge 0$ and $y \ge 0
 
 $$\begin{aligned} P(Y < X) &= \int_0^\infty\int_0^x e^{-x}\,2e^{-2y}\,dy\,dx \\ &= \int_0^\infty e^{-x}\big(1 - e^{-2x}\big)\,dx \\ &= \int_0^\infty \big(e^{-x} - e^{-3x}\big)\,dx = 1 - \frac13 = \frac23. \end{aligned}$$
 
-The faster stream of requests wins two times out of three: its rate, 2, is two thirds of the total rate, 3.
+The faster stream of requests wins with probability two thirds: its rate, 2, is two thirds of the total rate, 3. Including the boundary $y = x$ in the integral changes nothing, because it has area 0.
 
 ```check
 fJ = exp(-x)*2*exp(-2*y)
 same(integrate(fJ, (y, 0, oo), (x, 0, oo)), 1)
+same(integrate(exp(-x), (x, 0, oo)), 1); same(integrate(2*exp(-2*y), (y, 0, oo)), 1)
 same(integrate(2*exp(-2*y), (y, 0, x)), 1 - exp(-2*x)); same(expand(exp(-x)*(1 - exp(-2*x))), exp(-x) - exp(-3*x))
 same(integrate(exp(-x), (x, 0, oo)), 1); same(integrate(exp(-3*x), (x, 0, oo)), Rational(1, 3))
 same(integrate(fJ, (y, 0, x), (x, 0, oo)), Rational(2, 3)); same(integrate(fJ, (x, y, oo), (y, 0, oo)), Rational(2, 3))
@@ -771,7 +802,7 @@ same(fJ.subs({x: 0, y: 0}), 2); same(integrate(2*exp(-2*y), (y, -oo, 0)), oo)
 :::
 
 ::: compute Probabilities by simulation
-A probability can also be estimated by simulating the random variables many times and counting. NumPy's random-number generator draws exponential waiting times directly; its `scale` is the mean, $1/\lambda$, and the seed makes the output repeatable:
+A probability can also be estimated by simulating the random variables many times and counting. NumPy's random-number generator draws exponential waiting times directly; its `scale` is the mean, $1/\lambda$. The seed makes this sequence of calls repeatable in the same software environment on the same machine; other NumPy versions or environments can give different samples:
 
 ```python
 import numpy as np
@@ -786,7 +817,15 @@ print(np.mean(Y < X))                      # the fraction of trials with Y < X
 0.666296
 ```
 
-The fraction is close to $\tfrac23 \approx 0.6667$, as Example 19.11 found. The error of such an estimate shrinks only like $1/\sqrt N$: a million trials give about three correct digits. Integrals in many dimensions, where grids of boxes need too many points, are often computed this way, by **Monte Carlo** methods.
+The fraction is close to $\tfrac23 \approx 0.6667$, as Example 19.11 found. For $N$ independent trials of an event with probability $p$, the fraction's standard deviation is $\sqrt{p(1-p)/N}$. Here $p = 2/3$, so a million trials give a standard deviation of about 0.00047. This typical sampling error decreases like $1/\sqrt N$; the error in a particular run need not decrease, and no fixed number of correct digits is guaranteed. Integrals in many dimensions, where grids of boxes need too many points, are often estimated by such **Monte Carlo** methods, with this rate when the sampled quantity has finite variance.
+
+```check
+rounds(Rational(2, 3), '0.6667')
+pMC_, NMC_ = symbols('p N', positive=True)
+same((1 - pMC_)**2*pMC_ + pMC_**2*(1 - pMC_), pMC_*(1 - pMC_))  # variance of one 0-or-1 trial
+same(NMC_*pMC_*(1 - pMC_)/NMC_**2, pMC_*(1 - pMC_)/NMC_)
+rounds(sqrt(Rational(2, 3)*Rational(1, 3)/10**6), '0.00047')
+```
 :::
 
 ## Triple integrals {#triple}
@@ -795,7 +834,7 @@ A function of three variables $f(x, y, z)$ might give the density of a solid at 
 
 $$B = [a, b] \times [c, d] \times [p, q],$$
 
-cut each edge into equal parts, so that $B$ is cut into small boxes of volume $\Delta V = \Delta x\,\Delta y\,\Delta z$, choose a sample point in each, and add up the values of $f$ at the sample points times $\Delta V$: a **triple Riemann sum**. Its limit, defined as in Definition 19.1, is the **triple integral** $\iiint_B f(x, y, z)\,dV$, read "the triple integral over $B$ of $f$, $dV$". For solids that are not boxes, extend $f$ by zero, as in Section 19.3. A solid $E$ is of **type 1** if it lies between two surfaces over a region $D$ of the $xy$-plane,
+with $a < b$, $c < d$ and $p < q$, cut each edge into equal parts, so that $B$ is cut into small boxes of volume $\Delta V = \Delta x\,\Delta y\,\Delta z$, choose a sample point in each, and add up the values of $f$ at the sample points times $\Delta V$: a **triple Riemann sum**. Its limit as all three edge lengths tend to 0, independent of the sample points, is the **triple integral** $\iiint_B f(x, y, z)\,dV$, read "the triple integral over $B$ of $f$, $dV$". For bounded solids that are not boxes, extend $f$ by zero to an enclosing box, as in Section 19.3, and use this definition when that extension is integrable. A solid $E$ is of **type 1** if it lies between two surfaces over a region $D$ of the $xy$-plane,
 
 $$E = \{(x, y, z) : (x, y) \in D,\ u_1(x, y) \le z \le u_2(x, y)\},$$
 
@@ -811,7 +850,7 @@ If $f$ is continuous on a type 1 solid $E$ whose shadow $D$ is of type I or type
 $$\iiint_E f\,dV = \iint_D\Big[\int_{u_1(x, y)}^{u_2(x, y)} f(x, y, z)\,dz\Big]\,dA.$$
 :::
 
-The proofs are those of Theorems 19.2 and 19.3, one dimension up. The double integral over $D$ is then set up as in Section 19.3. Solids that lie between two surfaces $x = \dots$ over a region of the $yz$-plane, or between two surfaces $y = \dots$ over a region of the $xz$-plane, work the same way with the letters changed. With $f = 1$, $\iiint_E dV$ is the **volume** of $E$. A solid with density $\rho(x, y, z)$ has mass $m = \iiint_E \rho\,dV$ and centre of mass $(\bar x, \bar y, \bar z)$, where $\bar x = \tfrac1m\iiint_E x\rho\,dV$, and similarly for $\bar y$ and $\bar z$; with constant density it is the **centroid** of $E$.
+The proofs follow the arguments of Theorems 19.2 and 19.3, one dimension up. The double integral over $D$ is then set up as in Section 19.3. Solids that lie between two surfaces $x = \dots$ over a region of the $yz$-plane, or between two surfaces $y = \dots$ over a region of the $xz$-plane, work the same way with the letters changed. With $f = 1$, $\iiint_E dV$ is the **volume** of $E$. For such a bounded closed solid, a continuous density $\rho(x, y, z) \ge 0$ gives finite mass $m = \iiint_E \rho\,dV$ and finite moments. If $m > 0$, its centre of mass is $(\bar x, \bar y, \bar z)$, where $\bar x = \tfrac1m\iiint_E x\rho\,dV$, and similarly for $\bar y$ and $\bar z$; with positive constant density it is the **centroid** of $E$.
 
 ::: example The centroid of a tetrahedron
 Find the volume and the centroid of the tetrahedron $E$ with vertices $(0, 0, 0)$, $(1, 0, 0)$, $(0, 1, 0)$ and $(0, 0, 1)$.
@@ -824,7 +863,7 @@ as Example 19.5 gives with $a = b = c = 1$. For the centroid,
 
 $$\begin{aligned} \iiint_E z\,dV &= \int_0^1\int_0^{1-x}\frac{(1 - x - y)^2}{2}\,dy\,dx \\ &= \int_0^1\frac{(1 - x)^3}{6}\,dx = \frac{1}{24}, \end{aligned}$$
 
-so $\bar z = \dfrac{1/24}{1/6} = \dfrac14$. Swapping any two of $x$, $y$ and $z$ leaves $E$ unchanged, so $\bar x = \bar y = \bar z = \tfrac14$. The centroid $\big(\tfrac14, \tfrac14, \tfrac14\big)$ is the average of the four vertices, a quarter of the way from the face $z = 0$ to the opposite vertex.
+so $\bar z = \dfrac{1/24}{1/6} = \dfrac14$. Swapping any two of $x$, $y$ and $z$ leaves $E$ unchanged, so $\bar x = \bar y = \bar z = \tfrac14$. The centroid $\big(\tfrac14, \tfrac14, \tfrac14\big)$ is the average of the four vertices, a quarter of the way from the centroid of the face $z = 0$ towards the opposite vertex.
 
 ```check
 same(integrate(1, (z, 0, 1 - x - y)), 1 - x - y); same(integrate(1 - x - y, (y, 0, 1 - x)), (1 - x)**2/2)
@@ -833,6 +872,7 @@ same(integrate(z, (z, 0, 1 - x - y)), (1 - x - y)**2/2); same(integrate((1 - x -
 Mz1912 = integrate(z, (z, 0, 1 - x - y), (y, 0, 1 - x), (x, 0, 1)); same(Mz1912, Rational(1, 24)); same(Mz1912/V1912, Rational(1, 4))
 same(integrate(x, (z, 0, 1 - x - y), (y, 0, 1 - x), (x, 0, 1)), Rational(1, 24)); same(integrate(y, (z, 0, 1 - x - y), (y, 0, 1 - x), (x, 0, 1)), Rational(1, 24))
 same((Rational(0) + 1 + 0 + 0)/4, Rational(1, 4))
+same(Rational(3, 4)*Matrix([Rational(1, 3), Rational(1, 3), 0]) + Rational(1, 4)*Matrix([0, 0, 1]), Matrix([Rational(1, 4)]*3))
 ```
 :::
 
@@ -850,7 +890,7 @@ In a triple iterated integral the innermost limits may depend on both outer vari
 
 ### Cylindrical coordinates {#cylindrical}
 
-**Cylindrical coordinates** $(r, \theta, z)$ describe a point by the polar coordinates $(r, \theta)$ of its shadow on the $xy$-plane and its height $z$:
+**Cylindrical coordinates** $(r, \theta, z)$ describe a point by the polar coordinates $(r, \theta)$ of its shadow on the $xy$-plane and its height $z$, with $r \ge 0$ and $z$ any real number. As in polar coordinates, $\theta$ is arbitrary on the $z$-axis:
 
 $$x = r\cos\theta, \qquad y = r\sin\theta, \qquad z = z.$$
 
@@ -865,7 +905,7 @@ where $f$ is evaluated at $(r\cos\theta, r\sin\theta, z)$, and the limits $u_1$ 
 :::
 
 ::: example Water in a parabolic bowl
-The bowl of [Example 12.7](module_12_EN.html#other-axes) is the surface $z = x^2 + y^2$, the parabola $z = x^2$ turned about the $z$-axis (Module 12 called the vertical axis $y$). It holds water to the depth $h$. Find the volume of the water and the height of its centre of mass.
+The bowl of [Example 12.7](module_12_EN.html#other-axes) is the surface $z = x^2 + y^2$, the parabola $z = x^2$ turned about the $z$-axis (Module 12 called the vertical axis $y$). It holds water of uniform positive density to the depth $h > 0$. Find the volume of the water and the height of its centre of mass.
 
 The water is the solid $r^2 \le z \le h$ over the disc $0 \le r \le \sqrt h$, $0 \le \theta \le 2\pi$, where the bowl is below the water level. Its volume is
 
@@ -875,7 +915,7 @@ as Module 12 found by discs. The water does not change when it is turned about t
 
 $$\begin{aligned} \iiint z\,dV &= 2\pi\int_0^{\sqrt h}\Big[\frac{z^2}{2}\Big]_{r^2}^{h}\,r\,dr \\ &= \pi\int_0^{\sqrt h}\big(h^2 - r^4\big)\,r\,dr \\ &= \pi\Big(\frac{h^3}{2} - \frac{h^3}{6}\Big) = \frac{\pi h^3}{3}, \end{aligned}$$
 
-so $\bar z = \dfrac{\pi h^3/3}{\pi h^2/2} = \dfrac{2h}{3}$: two thirds of the way up, because the bowl is widest at the top. (Pumping all the water over the rim therefore lifts its mass $m$ by $h - \tfrac{2h}{3} = \tfrac{h}{3}$ on average, and takes the work $\tfrac13 mgh$.)
+so $\bar z = \dfrac{\pi h^3/3}{\pi h^2/2} = \dfrac{2h}{3}$: two thirds of the way up, because the bowl is widest at the top. (If the rim is at $z = h$, pumping all the water to that height lifts its mass $m$ by $h - \tfrac{2h}{3} = \tfrac{h}{3}$ on average. With constant gravitational acceleration $g$, the ideal work against gravity is $\tfrac13 mgh$.)
 
 ```check
 hb = symbols('h', positive=True)
@@ -895,14 +935,14 @@ same(integrate(rw*gw*(hb - z)*r, (z, r**2, hb), (r, 0, sqrt(hb)), (theta, 0, 2*p
 Balls, cones with their tip at the origin and the regions between spheres call for coordinates of their own.
 
 ::: definition Spherical coordinates
-The **spherical coordinates** $(\rho, \theta, \varphi)$ of a point $P$ are its distance $\rho \ge 0$ from the origin $O$; the angle $\theta$ of its cylindrical coordinates; and the angle $\varphi$ between the positive $z$-axis and the segment $OP$, with $0 \le \varphi \le \pi$. Then
+For a point $P \ne O$, the **spherical coordinates** $(\rho, \theta, \varphi)$ are its distance $\rho > 0$ from the origin $O$; the angle $\theta$ of its cylindrical coordinates; and the angle $\varphi$ between the positive $z$-axis and the segment $OP$, with $0 \le \varphi \le \pi$. The angle $\theta$ is arbitrary on the $z$-axis. The origin is represented by $\rho = 0$, with both angles arbitrary. In every case,
 
 $$\begin{aligned} x &= \rho\sin\varphi\cos\theta, \qquad y = \rho\sin\varphi\sin\theta, \\ z &= \rho\cos\varphi, \end{aligned}$$
 
 and $\rho^2 = x^2 + y^2 + z^2$.
 :::
 
-The Greek letters are $\rho$, "rho" (here a distance, not a density), and $\varphi$, "phi". In the vertical half-plane through the $z$-axis and $P$, the segment $OP$ has length $\rho$ and makes the angle $\varphi$ with the $z$-axis, so $P$ has the height $z = \rho\cos\varphi$ and lies at the distance $r = \rho\sin\varphi$ from the $z$-axis (Figure 19.4); then $x = r\cos\theta$ and $y = r\sin\theta$, as in cylindrical coordinates. The equation $\rho = a$ describes the sphere of radius $a$; $\varphi = c$ describes a cone around the $z$-axis (and the $xy$-plane when $c = \pi/2$); $\theta = c$ describes a half-plane.
+The Greek letters are $\rho$, "rho" (here a distance, not a density), and $\varphi$, "phi". Away from the $z$-axis, the vertical half-plane through that axis and $P$ contains $OP$, which has length $\rho$ and makes the angle $\varphi$ with the positive $z$-axis. Thus $P$ has height $z = \rho\cos\varphi$ and lies at distance $r = \rho\sin\varphi$ from the axis (Figure 19.4); then $x = r\cos\theta$ and $y = r\sin\theta$. The equation $\rho = a$, for $a > 0$, describes a sphere. For $0 < c < \pi$ with $c \ne \pi/2$, $\varphi = c$ describes one cone around the $z$-axis; $c = \pi/2$ gives the $xy$-plane, and $c = 0$ or $\pi$ gives a ray along the positive or negative $z$-axis. The equation $\theta = c$ describes a vertical half-plane.
 
 ```check
 rh, ph = symbols('rho phi', nonnegative=True)
@@ -911,11 +951,11 @@ same((rh*sin(ph)*cos(theta))**2 + (rh*sin(ph)*sin(theta))**2, (rh*sin(ph))**2)
 ```
 
 ::: note
-Conventions differ. This series, like most mathematics books, measures $\varphi$ from the positive $z$-axis, so that $\varphi = 0$ on the positive $z$-axis, $\varphi = \pi/2$ in the $xy$-plane and $\varphi = \pi$ on the negative $z$-axis, and keeps $\theta$ for the angle around the $z$-axis, as in polar and cylindrical coordinates. Most physics books swap the two names, writing $\theta$ for the angle from the $z$-axis and $\varphi$ for the angle around it, and geography measures latitude from the equator, not from the pole. Before you use a formula from another source, check which angle is which.
+Conventions differ. This series measures $\varphi$ from the positive $z$-axis, so that $\varphi = 0$ on the positive $z$-axis, $\varphi = \pi/2$ in the $xy$-plane and $\varphi = \pi$ on the negative $z$-axis, and keeps $\theta$ for the angle around the $z$-axis, as in polar and cylindrical coordinates. Other references swap the two names, writing $\theta$ for the angle from the $z$-axis and $\varphi$ for the angle around it, and geography measures latitude from the equator, not from the pole. Before you use a formula from another source, check which angle is which.
 :::
 
 ::: figure id=fig-19-4
-Spherical coordinates. The point $P$ is at the distance $\rho$ from the origin and at the angle $\varphi$ from the positive $z$-axis. Its shadow on the $xy$-plane is at the distance $r = \rho\sin\varphi$ from the origin, at the angle $\theta$ of polar coordinates, and its height is $z = \rho\cos\varphi$. The grey arcs outline the part of the sphere of radius $\rho$ in the first octant; the dashed arcs through $P$ are the circle of constant $\varphi$ and the half-circle of constant $\theta$.
+Spherical coordinates. The point $P$ is at the distance $\rho$ from the origin and at the angle $\varphi$ from the positive $z$-axis. Its shadow on the $xy$-plane is at the distance $r = \rho\sin\varphi$ from the origin, at the angle $\theta$ of polar coordinates, and its height is $z = \rho\cos\varphi$. The grey arcs outline the part of the sphere of radius $\rho$ in the first octant; the dashed arcs through $P$ are parts of the circle of constant $\varphi$ and the half-circle of constant $\theta$.
 :::
 
 **The volume element.** A small **spherical wedge**, between the radii $\rho$ and $\rho + \Delta\rho$, the angles $\theta$ and $\theta + \Delta\theta$ and the angles $\varphi$ and $\varphi + \Delta\varphi$, is nearly a box. Its edge along a ray from the origin has length $\Delta\rho$. Its edge along the half-circle of constant $\theta$, which has radius $\rho$, has length about $\rho\,\Delta\varphi$. Its edge along the circle of constant $\varphi$, which has radius $r = \rho\sin\varphi$ about the $z$-axis, has length about $\rho\sin\varphi\,\Delta\theta$. The three edges meet at right angles, so the wedge has volume about $\rho^2\sin\varphi\,\Delta\rho\,\Delta\theta\,\Delta\varphi$, and
@@ -923,17 +963,17 @@ Spherical coordinates. The point $P$ is at the distance $\rho$ from the origin a
 $$dV = \rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi.$$
 
 ::: theorem Triple integrals in spherical coordinates
-Let $E$ be the spherical wedge $\rho_0 \le \rho \le \rho_1$, $\alpha \le \theta \le \beta$, $\varphi_0 \le \varphi \le \varphi_1$, where $\rho_0 \ge 0$, $0 < \beta - \alpha \le 2\pi$ and $0 \le \varphi_0 < \varphi_1 \le \pi$. If $f$ is continuous on $E$, then
+Let $E$ be the spherical wedge $\rho_0 \le \rho \le \rho_1$, $\alpha \le \theta \le \beta$, $\varphi_0 \le \varphi \le \varphi_1$, where $0 \le \rho_0 \le \rho_1 < \infty$, $0 < \beta - \alpha \le 2\pi$ and $0 \le \varphi_0 < \varphi_1 \le \pi$. If $f$ is continuous on $E$, then
 
 $$\iiint_E f\,dV = \int_{\varphi_0}^{\varphi_1}\int_\alpha^\beta\int_{\rho_0}^{\rho_1} f\,\rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi,$$
 
 where $f$ is evaluated at the point with $x = \rho\sin\varphi\cos\theta$, $y = \rho\sin\varphi\sin\theta$ and $z = \rho\cos\varphi$.
 :::
 
-The wedge argument above is the idea of the proof; Section 19.8 gives the general reason, in which $\rho^2\sin\varphi$ is a Jacobian. The same formula holds when $\rho$ runs between two continuous functions of $\theta$ and $\varphi$.
+The wedge argument above is the idea of the proof; Section 19.8 gives the general reason, in which $\rho^2\sin\varphi$ is the absolute value of a Jacobian. The angular ranges cover the solid once except at the origin, the axis and possibly an angular seam, all of which have zero volume. The same formula holds with continuous radial bounds $\rho_0(\theta,\varphi)$ and $\rho_1(\theta,\varphi)$ satisfying $0 \le \rho_0 \le \rho_1$ on the same closed angular rectangle.
 
 ::: example A ball and an ice-cream cone
-(a) Find the volume of a ball of radius $a$. (b) Find the volume of the part of the ball that lies within the angle $\pi/3$ of the positive $z$-axis, an "ice-cream cone".
+(a) Find the volume of a ball of radius $a > 0$. (b) Find the volume of the part of the ball that lies within the angle $\pi/3$ of the positive $z$-axis, an "ice-cream cone".
 
 **(a)** The ball is $0 \le \rho \le a$, $0 \le \theta \le 2\pi$, $0 \le \varphi \le \pi$. All the limits are constants and the integrand is a product of a function of each variable, so the integral splits as in Section 19.2:
 
@@ -958,11 +998,13 @@ same(tan(pi/3), sqrt(3)); same((rh*sin(ph)/(rh*cos(ph))).subs(ph, pi/3), sqrt(3)
 :::
 
 ::: pitfall
-$\varphi$ runs from 0 to $\pi$, not to $2\pi$: at $\varphi = \pi$ the segment $OP$ already points down the negative $z$-axis. With $0 \le \varphi \le 2\pi$, the factor $\int_0^{2\pi}\sin\varphi\,d\varphi = 0$ would give a ball the volume 0. And the factor is $\rho^2\sin\varphi$: without the $\sin\varphi$, $\int_0^\pi\int_0^{2\pi}\int_0^a \rho^2\,d\rho\,d\theta\,d\varphi = \tfrac{2\pi^2a^3}{3} \approx 6.58a^3$ instead of $\tfrac43\pi a^3 \approx 4.19a^3$.
+$\varphi$ runs from 0 to $\pi$, not to $2\pi$: at $\varphi = \pi$ the segment $OP$ already points down the negative $z$-axis. Allowing both angles to run from 0 to $2\pi$ covers almost every point of the ball twice. Keeping the signed factor $\sin\varphi$ would give volume 0, since $\int_0^{2\pi}\sin\varphi\,d\varphi = 0$; using its absolute value would give twice the correct volume. The coordinate range must be right as well as the Jacobian. And the factor on the usual range is $\rho^2\sin\varphi$: without the $\sin\varphi$, $\int_0^\pi\int_0^{2\pi}\int_0^a \rho^2\,d\rho\,d\theta\,d\varphi = \tfrac{2\pi^2a^3}{3} \approx 6.58a^3$ instead of $\tfrac43\pi a^3 \approx 4.19a^3$.
 
 ```check
 same(integrate(sin(ph), (ph, 0, 2*pi)), 0); same(integrate(rh**2, (rh, 0, aB), (theta, 0, 2*pi), (ph, 0, pi)), 2*pi**2*aB**3/3)
 rounds(2*pi**2/3, '6.58'); rounds(Rational(4, 3)*pi, '4.19')
+same(integrate(sin(ph), (ph, 0, pi)) - integrate(sin(ph), (ph, pi, 2*pi)), 4)
+same(4*2*pi*aB**3/3, 2*(Rational(4, 3)*pi*aB**3))
 ```
 :::
 
@@ -971,7 +1013,8 @@ SymPy's `Matrix.jacobian` builds the array of all the first partial derivatives 
 
 ```python
 import sympy as sp
-r, theta, z, rho, phi = sp.symbols('r theta z rho phi', nonnegative=True)
+r, rho = sp.symbols('r rho', nonnegative=True)
+theta, z, phi = sp.symbols('theta z phi', real=True)
 polar = sp.Matrix([r*sp.cos(theta), r*sp.sin(theta)])
 cyl = sp.Matrix([r*sp.cos(theta), r*sp.sin(theta), z])
 sph = sp.Matrix([rho*sp.sin(phi)*sp.cos(theta),
@@ -1005,7 +1048,7 @@ pi*a**3/3
 
 ## Change of variables {#change-of-variables}
 
-Polar, cylindrical and spherical coordinates are instances of one idea: describe a region with new variables in which it is simple, and pay for the change with a factor that measures how the new variables stretch areas or volumes. In one variable this is substitution: with $x = g(u)$, $\int_{g(c)}^{g(d)} f(x)\,dx = \int_c^d f\big(g(u)\big)\,g'(u)\,du$ ([Section 10.7](module_10_EN.html#definite-substitution)), where $g'(u)$ is the factor by which $g$ stretches short intervals. In two variables, a **transformation** $T$ sends each point $(u, v)$ of a region $S$ of the $uv$-plane to a point $(x, y) = T(u, v)$ of the $xy$-plane, by formulas
+Polar, cylindrical and spherical coordinates are instances of one idea: describe a region with new variables in which it is simple, and pay for the change with a factor that measures how the new variables stretch areas or volumes. In one variable this is substitution: for continuously differentiable $g$ on $[c,d]$ and continuous $f$ on its image, $\int_{g(c)}^{g(d)} f(x)\,dx = \int_c^d f\big(g(u)\big)\,g'(u)\,du$ ([Section 10.7](module_10_EN.html#definite-substitution)). The signed factor $g'(u)$ includes orientation; the local length scale is $\abs{g'(u)}$. In two variables, a **transformation** $T$ sends each point $(u, v)$ of a region $S$ of the $uv$-plane to a point $(x, y) = T(u, v)$ of the $xy$-plane, by formulas
 
 $$x = x(u, v), \qquad y = y(u, v),$$
 
@@ -1029,7 +1072,7 @@ $$\frac{\partial(x, y)}{\partial(u, v)} = \begin{vmatrix} \dfrac{\partial x}{\pa
 The symbol $\partial(x, y)/\partial(u, v)$ reads "the Jacobian of $x$ and $y$ with respect to $u$ and $v$". It is a function of $u$ and $v$.
 
 ::: theorem Change of variables in a double integral
-Let $T$ have continuous first partial derivatives, and let it map a region $S$ of the $uv$-plane onto a region $D$ of the $xy$-plane, one-to-one except perhaps on the boundary of $S$, with a Jacobian that is not 0 except perhaps on the boundary of $S$. Let $S$ and $D$ be of type I or type II. If $f$ is continuous on $D$, then
+Let $S$ and $D$ be bounded closed regions of type I or type II. Suppose that $T$ has continuous first partial derivatives on a neighbourhood of $S$, maps $S$ onto $D$, is one-to-one on the interior of $S$, and has a nonzero Jacobian there. Coincidences and a zero Jacobian on the boundary are allowed. If $f$ is continuous on $D$, then
 
 $$\begin{aligned} &\iint_D f(x, y)\,dA \\ &\quad= \iint_S f\big(x(u, v), y(u, v)\big)\,\Big|\frac{\partial(x, y)}{\partial(u, v)}\Big|\,du\,dv. \end{aligned}$$
 :::
@@ -1043,7 +1086,7 @@ With $r$ and $\theta$ in the roles of $u$ and $v$,
 
 $$\begin{aligned} \frac{\partial(x, y)}{\partial(r, \theta)} &= \begin{vmatrix} \cos\theta & -r\sin\theta \\ \sin\theta & r\cos\theta \end{vmatrix} \\ &= r\cos^2\theta + r\sin^2\theta = r. \end{aligned}$$
 
-For $r \ge 0$ its absolute value is $r$, so $dA = r\,dr\,d\theta$, as Theorem 19.4 says. The rectangle $0 \le r \le a$, $0 \le \theta \le 2\pi$ is mapped onto the disc of radius $a$, one-to-one except on its boundary: the whole side $r = 0$ goes to the origin, where the Jacobian is 0, and the sides $\theta = 0$ and $\theta = 2\pi$ go to the same segment. Theorem 19.9 allows both.
+For $r \ge 0$ its absolute value is $r$, so $dA = r\,dr\,d\theta$, as Theorem 19.4 says. For $a > 0$, the rectangle $0 \le r \le a$, $0 \le \theta \le 2\pi$ is mapped onto the disc of radius $a$, one-to-one except on its boundary: the whole side $r = 0$ goes to the origin, where the Jacobian is 0, and the sides $\theta = 0$ and $\theta = 2\pi$ go to the same segment. Theorem 19.9 allows both.
 
 ```check
 Jp = Matrix([r*cos(theta), r*sin(theta)]).jacobian([r, theta]); same(Jp, Matrix([[cos(theta), -r*sin(theta)], [sin(theta), r*cos(theta)]]))
@@ -1079,7 +1122,7 @@ same(rE*pi*aE**3*bE/4, Rational(1, 4)*(rE*pi*aE*bE)*aE**2)
 ::: example A parallelogram
 Evaluate $\displaystyle\iint_D (2x - y)\,e^{2y - x}\,dA$, where $D$ is the parallelogram with vertices $(0, 0)$, $(2, 1)$, $(3, 3)$ and $(1, 2)$.
 
-The sides of $D$ lie on the lines $2x - y = 0$ (through $(0, 0)$ and $(1, 2)$), $2x - y = 3$ (through $(2, 1)$ and $(3, 3)$), $2y - x = 0$ (through $(0, 0)$ and $(2, 1)$) and $2y - x = 3$ (through $(1, 2)$ and $(3, 3)$). In $x$ and $y$, $D$ would need three iterated integrals in either order. The integrand and the sides suggest the new variables
+The sides of $D$ lie on the lines $2x - y = 0$ (through $(0, 0)$ and $(1, 2)$), $2x - y = 3$ (through $(2, 1)$ and $(3, 3)$), $2y - x = 0$ (through $(0, 0)$ and $(2, 1)$) and $2y - x = 3$ (through $(1, 2)$ and $(3, 3)$). In either Cartesian order, using one linear formula for each boundary on each piece splits $D$ into three iterated integrals. The integrand and the sides suggest the new variables
 
 $$u = 2x - y, \qquad v = 2y - x,$$
 
@@ -1114,7 +1157,7 @@ same(integrate(Rational(1, 3), (u, 0, 3), (v, 0, 3)), 3); same(abs(2*2 - 1*1), 3
 :::
 
 ::: figure id=fig-19-5
-The transformation $x = u^2 - v^2$, $y = 2uv$ maps the grid of squares on the left onto the curved grid on the right. The small rectangle with corner $(u, v)$ and sides $\Delta u$ and $\Delta v$ (orange) becomes a small curved quadrilateral, which is nearly the parallelogram (dashed) spanned by the vectors $\Delta u\,\vb{r}_u$ and $\Delta v\,\vb{r}_v$. That parallelogram has area $\abs{\partial(x, y)/\partial(u, v)}\,\Delta u\,\Delta v$.
+On the pictured region $1 \le u \le 2$, $0 \le v \le 1$, the transformation $x = u^2 - v^2$, $y = 2uv$ maps the grid of squares one-to-one onto the curved grid on the right. The small rectangle with corner $(u, v)$ and sides $\Delta u$ and $\Delta v$ (orange) becomes a small curved quadrilateral, which is nearly the parallelogram (dashed) spanned by the vectors $\Delta u\,\vb{r}_u$ and $\Delta v\,\vb{r}_v$. That parallelogram has area $\abs{\partial(x, y)/\partial(u, v)}\,\Delta u\,\Delta v$.
 :::
 
 ::: deeper Why the Jacobian measures area
@@ -1126,11 +1169,11 @@ with the partial derivatives taken at $(u_0, v_0)$. In vector form, $T(u_0 + h, 
 
 $$\begin{aligned} &\big|(x_u\Delta u)(y_v\Delta v) - (x_v\Delta v)(y_u\Delta u)\big| \\ &\quad= \Big|\frac{\partial(x, y)}{\partial(u, v)}\Big|\,\Delta u\,\Delta v. \end{aligned}$$
 
-Cut $S$ into small rectangles. Their images cut $D$ into small pieces, of areas about $\abs{J}\,\Delta u\,\Delta v$ with $J$ the Jacobian at a corner, so
+Use a fine rectangular grid on $S$. Apart from pieces along its boundary, the cells are rectangles; their images divide $D$ into small pieces, of areas about $\abs{J}\,\Delta u\,\Delta v$ with $J$ the Jacobian at a corner, so
 
 $$\iint_D f\,dA \approx \sum f\big(T(u_i, v_j)\big)\,\abs{J(u_i, v_j)}\,\Delta u\,\Delta v,$$
 
-and the right side is a Riemann sum for the right side of Theorem 19.9. The approximations improve as the rectangles shrink. Turning this into a proof means showing that the errors of all the linear approximations together tend to 0, which is the work of an advanced calculus course.
+and the right side is a Riemann sum for the right side of Theorem 19.9. The approximations improve as the grid shrinks. Turning this into a proof means controlling the boundary pieces and showing that the errors of all the linear approximations together tend to 0, which is the work of an advanced calculus course.
 
 For a linear transformation, $x = au + bv$ and $y = cu + dv$, there is nothing to approximate: $T(u_0 + h, v_0 + k) = T(u_0, v_0) + h\langle a, c\rangle + k\langle b, d\rangle$ exactly, so every rectangle is mapped onto a parallelogram with exactly $\abs{ad - bc}$ times its area. That is what happened in Example 19.17.
 
@@ -1143,34 +1186,35 @@ same(TL.subs({u: u + h, v: v + k}) - TL, h*Matrix([pa, pc]) + k*Matrix([pb, pd])
 ```
 :::
 
-In three dimensions, a transformation $x = x(u, v, w)$, $y = y(u, v, w)$, $z = z(u, v, w)$ has a Jacobian $\partial(x, y, z)/\partial(u, v, w)$, the determinant of the 3 × 3 array of its nine first partial derivatives, and under conditions like those of Theorem 19.9,
+In three dimensions, a transformation $x = x(u, v, w)$, $y = y(u, v, w)$, $z = z(u, v, w)$ has a Jacobian $\partial(x, y, z)/\partial(u, v, w)$, the determinant of the 3 × 3 array of its nine first partial derivatives. The corresponding change-of-variables rule holds for continuous integrands on bounded closed solids with boundaries of zero volume: the transformation must have continuous first partial derivatives on a neighbourhood of the source solid, map it onto the target solid, and be one-to-one with nonzero Jacobian on the source interior. Then
 
 $$dV = \Big|\frac{\partial(x, y, z)}{\partial(u, v, w)}\Big|\,du\,dv\,dw.$$
 
-For cylindrical coordinates the Jacobian is $r$ and for spherical coordinates $\rho^2\sin\varphi$, as the compute box of Section 19.7 shows: the factors found there from pictures.
+On the stated coordinate ranges, the absolute Jacobian is $r$ for cylindrical coordinates and $\rho^2\sin\varphi$ for spherical coordinates, as the compute box of Section 19.7 shows: the factors found there from pictures.
 
 ::: pitfall
 Two slips with the Jacobian. First, use its absolute value. The transformation $x = v$, $y = u$, which swaps the axes, has Jacobian $-1$, yet it does not make areas negative. Second, use the Jacobian of $x$ and $y$ with respect to $u$ and $v$: it converts $du\,dv$ into $dA$. In Example 19.17 the formulas for $u$ and $v$ give at once
 
 $$\frac{\partial(u, v)}{\partial(x, y)} = \begin{vmatrix} 2 & -1 \\ -1 & 2 \end{vmatrix} = 3,$$
 
-the reciprocal of the factor needed, $\tfrac13$. (At matching points the two are always reciprocals, a consequence of the chain rule.) Using 3 by mistake gives an answer 9 times too large.
+the reciprocal of the factor needed, $\tfrac13$. (For differentiable inverse transformations at matching points, the two Jacobians are nonzero reciprocals, by the chain rule.) Using 3 by mistake gives an answer 9 times too large.
 
 ```check
 same(Matrix([v, u]).jacobian([u, v]).det(), -1)
 same(Matrix([2*x - y, 2*y - x]).jacobian([x, y]).det(), 3); same(3*JT, 1)
+same(3/Rational(1, 3), 9)
 ```
 :::
 
 ## What you learned {#summary}
 
-- A **double integral** $\iint_R f\,dA$ is the limit of double Riemann sums $\sum_i\sum_j f(x_{ij}^*, y_{ij}^*)\,\Delta A$: boxes on small rectangles. For $f \ge 0$ it is the volume under the graph; in general a signed volume. Continuous functions, and bounded functions that jump only along finitely many curves, are integrable.
-- **Fubini's theorem**: for $f$ continuous on a rectangle, $\iint_R f\,dA = \int_a^b\int_c^d f\,dy\,dx = \int_c^d\int_a^b f\,dx\,dy$, computed from the inside out by partial integration. Without the hypothesis, the two orders can disagree. On a rectangle, $\iint g(x)h(y)\,dA = \int g\,dx\int h\,dy$. The average value of $f$ is $\tfrac{1}{\text{area}}\iint f\,dA$.
-- Over a **type I** region $a \le x \le b$, $g_1(x) \le y \le g_2(x)$, the integral is $\int_a^b\int_{g_1(x)}^{g_2(x)} f\,dy\,dx$; over a **type II** region, $\int_c^d\int_{h_1(y)}^{h_2(y)} f\,dx\,dy$. Read the inner limits from a slice of a sketch; outer limits are constants. **Reversing the order** can turn an impossible integral, such as $\int_0^1\int_x^1 e^{y^2}\,dy\,dx = \tfrac{e - 1}{2}$, into an easy one.
-- In **polar coordinates** $dA = r\,dr\,d\theta$. Squaring the Gaussian integral, squeezing the integral over a square between two discs and letting the size grow proves $\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt\pi$, and so $\int_{-\infty}^{\infty} e^{-ct^2}\,dt = \sqrt{\pi/c}$.
-- A plate with density $\rho$ has mass $\iint_D \rho\,dA$, centre of mass $\big(\tfrac{M_y}{m}, \tfrac{M_x}{m}\big)$ with $M_y = \iint x\rho\,dA$ and $M_x = \iint y\rho\,dA$, and moments of inertia $I_x = \iint y^2\rho\,dA$, $I_y = \iint x^2\rho\,dA$, $I_0 = I_x + I_y$; a uniform disc has $I_0 = \tfrac12 Ma^2$. A **joint density** gives $P\big((X, Y) \in D\big) = \iint_D f\,dA$; independent random variables have the joint density $f_1(x)f_2(y)$.
-- **Triple integrals** $\iiint_E f\,dV$ are computed as iterated integrals in any of six orders; for a solid between two surfaces over $D$, integrate in $z$ first. In **cylindrical coordinates** $dV = r\,dz\,dr\,d\theta$; in **spherical coordinates**, with $\varphi$ measured from the positive $z$-axis and $0 \le \varphi \le \pi$, $dV = \rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi$. A ball of radius $a$ has volume $\tfrac43\pi a^3$.
-- **Change of variables**: $dA = \abs{\partial(x, y)/\partial(u, v)}\,du\,dv$, with the Jacobian $x_uy_v - x_vy_u$, the factor by which the transformation multiplies small areas (linear approximation turns small rectangles into near-parallelograms). Polar coordinates have Jacobian $r$; $x = au$, $y = bv$ turns a disc into an ellipse of area $\pi ab$; linear substitutions turn parallelograms into rectangles.
+- A **double integral** $\iint_R f\,dA$ is the limit of double Riemann sums $\sum_i\sum_j f(x_{ij}^*, y_{ij}^*)\,\Delta A$: boxes on small rectangles. For $f \ge 0$ it is the volume under the graph; in general a signed volume. On a rectangle, continuous functions are integrable, as are bounded functions continuous except along finitely many continuous graphs on closed intervals.
+- **Fubini's theorem**: for $f$ continuous on a rectangle, $\iint_R f\,dA = \int_a^b\int_c^d f\,dy\,dx = \int_c^d\int_a^b f\,dx\,dy$, computed from the inside out. Without suitable integrability hypotheses, the two improper orders can disagree. For continuous $g$ and $h$ on their intervals, $\iint_R g(x)h(y)\,dA = \int g\,dx\int h\,dy$. On a region of positive area, the average value of an integrable $f$ is $\tfrac{1}{\text{area}}\iint f\,dA$.
+- For continuous $f$ on a **type I** region $a \le x \le b$, $g_1(x) \le y \le g_2(x)$ with continuous boundary functions, the integral is $\int_a^b\int_{g_1(x)}^{g_2(x)} f\,dy\,dx$; over a **type II** region, $\int_c^d\int_{h_1(y)}^{h_2(y)} f\,dx\,dy$. Read the inner limits from a slice of a sketch; outer limits are constants. **Reversing the order** can make an integral easier: $\int_0^1\int_x^1 e^{y^2}\,dy\,dx = \tfrac{e - 1}{2}$.
+- In **polar coordinates**, use $r \ge 0$ and cover the region once, apart from its boundary: $dA = r\,dr\,d\theta$. Squaring the Gaussian integral, squeezing the integral over a square between two discs and letting the size grow proves $\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt\pi$, and for $c > 0$, $\int_{-\infty}^{\infty} e^{-ct^2}\,dt = \sqrt{\pi/c}$.
+- A bounded plate with integrable density $\rho \ge 0$ and positive mass $m = \iint_D \rho\,dA$ has centre of mass $\big(\tfrac{M_y}{m}, \tfrac{M_x}{m}\big)$ with $M_y = \iint x\rho\,dA$ and $M_x = \iint y\rho\,dA$, and moments of inertia $I_x = \iint y^2\rho\,dA$, $I_y = \iint x^2\rho\,dA$, $I_0 = I_x + I_y$; a uniform disc of radius $a > 0$ has $I_0 = \tfrac12 Ma^2$. A **joint density** is nonnegative and has total integral 1; it gives $P\big((X, Y) \in D\big) = \iint_D f\,dA$. Independent random variables with densities $f_1$ and $f_2$ have joint density $f_1(x)f_2(y)$.
+- On a box, a continuous $f$ has the same **triple integral** $\iiint_E f\,dV$ in any of six orders. For other solids, choose suitable bounds, splitting when needed; for a continuous $f$ on a solid between two continuous surfaces over a type I or type II region, integrate in $z$ first. With nonnegative radial coordinates and limits covering the solid once apart from boundary coincidences, **cylindrical coordinates** give $dV = r\,dz\,dr\,d\theta$; **spherical coordinates**, with $\varphi$ measured from the positive $z$-axis and $0 \le \varphi \le \pi$, give $dV = \rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi$. A ball of radius $a > 0$ has volume $\tfrac43\pi a^3$.
+- **Change of variables**: for a continuously differentiable, one-to-one coordinate map with nonzero Jacobian in the interior, allowing the boundary exceptions stated in Section 19.8, $dA = \abs{\partial(x, y)/\partial(u, v)}\,du\,dv$. The Jacobian is $x_uy_v - x_vy_u$, and its absolute value is the local area scale factor. Polar coordinates have Jacobian $r$; for $a, b > 0$, $x = au$, $y = bv$ maps the unit disc to an ellipse of area $\pi ab$. Suitable linear substitutions turn parallelograms into rectangles.
 
 ## Exercises {#exercises}
 
@@ -1202,6 +1246,7 @@ The two orders agree, as Fubini's theorem says.
 fE1 = x*y**2 + 1
 cE1 = [fE1.subs({x: p, y: q}) for p, q in ((half, half), (3*half, half), (half, 3*half), (3*half, 3*half))]
 same(cE1, [Rational(9, 8), Rational(11, 8), Rational(17, 8), Rational(35, 8)]); same(sum(cE1), 9); same(Rational(72, 8), 9)
+antideriv(x*y**3/3 + y, fE1, y); antideriv(x**2*y**2/2 + x, fE1, x)
 same(integrate(fE1, (y, 0, 2)), 8*x/3 + 2); same(integrate(8*x/3 + 2, (x, 0, 2)), Rational(28, 3)); rounds(Rational(28, 3), '9.333')
 same(integrate(fE1, (x, 0, 2)), 2*y**2 + 2); same(integrate(2*y**2 + 2, (y, 0, 2)), Rational(28, 3))
 same(Rational(28, 3) - 9, Rational(1, 3)); same(integrate(y**2, (y, 0, 1)), Rational(1, 3)); same(half**2, Rational(1, 4))
@@ -1210,7 +1255,7 @@ same(Rational(28, 3) - 9, Rational(1, 3)); same(integrate(y**2, (y, 0, 1)), Rati
 ::::
 
 :::: exercise Limits from a sketch {#ex-19-2} ★
-Let $D$ be the region between the curves $y = \sqrt x$ and $y = x/2$.
+Let $D$ be the region between the curves $y = \sqrt x$ and $y = x/2$, and let $f$ be continuous on $D$.
 
 - (a) Sketch $D$ and find where the curves meet.
 - (b) Write $\iint_D f\,dA$ as an iterated integral in both orders.
@@ -1240,10 +1285,12 @@ So $\bar y = \dfrac{4/3}{4/3} = 1$. (With vertical slices, $\int_0^4\big[\tfrac{
 same_set(solve(Eq(x, x**2/4), x), [0, 4]); same(sqrt(4), Rational(4, 2)); holds(sqrt(1) > Rational(1, 2))
 xn = symbols('x', nonnegative=True); same(sqrt(xn)**2, xn); holds(1**2 < 2*1)
 antideriv(Rational(2, 3)*xn**Rational(3, 2) - xn**2/4, sqrt(xn) - xn/2, xn)
+antideriv(y**2 - y**3/3, 2*y - y**2, y); antideriv(2*y**3/3 - y**4/4, y*(2*y - y**2), y)
 same(integrate(sqrt(x) - x/2, (x, 0, 4)), Rational(4, 3)); same(integrate(2*y - y**2, (y, 0, 2)), Rational(4, 3))
 same(integrate(1, (y, x/2, sqrt(x)), (x, 0, 4)), Rational(4, 3)); same(integrate(1, (x, y**2, 2*y), (y, 0, 2)), Rational(4, 3))
 same(integrate(y*(2*y - y**2), (y, 0, 2)), Rational(4, 3)); same(integrate(y, (y, x/2, sqrt(x)), (x, 0, 4)), Rational(4, 3))
 same(integrate(x/2 - x**2/8, (x, 0, 4)), Rational(4, 3))
+same(Rational(4, 3)/Rational(4, 3), 1)
 ```
 :::
 ::::
@@ -1251,11 +1298,11 @@ same(integrate(x/2 - x**2/8, (x, 0, 4)), Rational(4, 3))
 :::: exercise One order or two? {#ex-19-3} ★
 Let $D$ be the triangle with vertices $(0, 0)$, $(2, 0)$ and $(1, 1)$.
 
-- (a) Explain why the order $dy\,dx$ needs two iterated integrals and the order $dx\,dy$ needs only one.
+- (a) Using one of the triangle's straight sides for each inner bound, explain why the order $dy\,dx$ needs two pieces and the order $dx\,dy$ needs only one.
 - (b) Evaluate $\iint_D y\,dA$ in both orders, and find the height $\bar y$ of the centroid of $D$.
 
 ::: solution
-**(a)** The sides of $D$ lie on the lines $y = 0$, $y = x$ (from $(0, 0)$ to $(1, 1)$) and $y = 2 - x$ (from $(1, 1)$ to $(2, 0)$). A vertical line at $x$ enters $D$ on $y = 0$, but it leaves on $y = x$ when $0 \le x \le 1$ and on $y = 2 - x$ when $1 \le x \le 2$: the upper curve changes at $x = 1$, so $[0, 2]$ must be split there. A horizontal line at $y$, $0 \le y \le 1$, always enters on the line $x = y$ and leaves on the line $x = 2 - y$: one formula each.
+**(a)** The sides of $D$ lie on the lines $y = 0$, $y = x$ (from $(0, 0)$ to $(1, 1)$) and $y = 2 - x$ (from $(1, 1)$ to $(2, 0)$). A vertical line at $x$ enters $D$ on $y = 0$, but it leaves on $y = x$ when $0 \le x \le 1$ and on $y = 2 - x$ when $1 \le x \le 2$: the upper boundary changes formula at $x = 1$, so split $[0, 2]$ there to use one side on each piece. A single iterated integral is also possible with the upper bound $\min(x, 2 - x)$, but evaluating it still involves the two formulas. A horizontal line at $y$, $0 \le y \le 1$, always enters on the line $x = y$ and leaves on the line $x = 2 - y$: one formula each.
 
 **(b)** In the order $dy\,dx$, split at $x = 1$:
 
@@ -1272,6 +1319,7 @@ same(integrate(y, (y, 0, x)), x**2/2); same(integrate(x**2/2, (x, 0, 1)), Ration
 same(integrate(y, (y, 0, x), (x, 0, 1)) + integrate(y, (y, 0, 2 - x), (x, 1, 2)), Rational(1, 3))
 same(integrate(y, (x, y, 2 - y)), 2*y - 2*y**2); same(integrate(2*y - 2*y**2, (y, 0, 1)), Rational(1, 3))
 same(integrate(1, (x, y, 2 - y), (y, 0, 1)), 1); same(Rational(1, 2)*2*1, 1)
+same(integrate(Min(x, 2 - x)**2/2, (x, 0, 2)), Rational(1, 3))
 ```
 :::
 ::::
@@ -1307,7 +1355,7 @@ same(integrate(r**2, (r, 0, 1))*Rational(1, 2), Rational(1, 6))
 Evaluate $\displaystyle\int_0^1\int_{\sqrt x}^{1} \sqrt{1 + y^3}\,dy\,dx$.
 
 ::: solution
-The inner integral needs an antiderivative of $\sqrt{1 + y^3}$, and there is no elementary one, so reverse the order. The limits say $0 \le x \le 1$ and $\sqrt x \le y \le 1$. For $x \ge 0$ and $y \ge 0$, $y \ge \sqrt x$ is the same as $x \le y^2$, so the region is bounded by the $y$-axis, the parabola $x = y^2$ and the line $y = 1$: a horizontal line at height $y$, $0 \le y \le 1$, enters it on the $y$-axis and leaves it on the parabola $x = y^2$. So
+The inner antiderivative of $\sqrt{1 + y^3}$ is not one of our standard forms, so try reversing the order. The limits say $0 \le x \le 1$ and $\sqrt x \le y \le 1$. For $x \ge 0$ and $y \ge 0$, $y \ge \sqrt x$ is the same as $x \le y^2$, so the region is bounded by the $y$-axis, the parabola $x = y^2$ and the line $y = 1$: a horizontal line at height $y$, $0 \le y \le 1$, enters it on the $y$-axis and leaves it on the parabola $x = y^2$. So
 
 $$\begin{aligned} &\int_0^1\int_{\sqrt x}^{1} \sqrt{1 + y^3}\,dy\,dx \\ &\quad= \int_0^1\int_0^{y^2}\sqrt{1 + y^3}\,dx\,dy \\ &\quad= \int_0^1 y^2\sqrt{1 + y^3}\,dy. \end{aligned}$$
 
@@ -1320,6 +1368,7 @@ xn2, yn2 = symbols('x y', nonnegative=True)
 holds(all((sqrt(Rational(p_, 10)) <= Rational(q_, 10)) == (Rational(p_, 10) <= Rational(q_, 10)**2) for p_ in range(11) for q_ in range(11)))   # y >= sqrt(x) exactly when x <= y^2
 same(integrate(sqrt(1 + y**3), (x, 0, y**2)), y**2*sqrt(1 + y**3))
 same(diff(1 + y**3, y), 3*y**2); same((1 + y**3).subs(y, 0), 1); same((1 + y**3).subs(y, 1), 2)
+antideriv(Rational(2, 3)*u**Rational(3, 2), sqrt(u), u)
 steps(Integral(y**2*sqrt(1 + y**3), (y, 0, 1)), Rational(1, 3)*Integral(sqrt(u), (u, 1, 2)), Rational(2, 9)*(2*sqrt(2) - 1))
 rounds(Rational(2, 9)*(2*sqrt(2) - 1), '0.4063')
 import mpmath
@@ -1351,7 +1400,7 @@ and
 
 $$\begin{aligned} P\Big(XY \le \frac12\Big) &= 1 - \Big(\frac12 - \frac{\ln 2}{2}\Big) \\ &= \frac{1 + \ln 2}{2} \approx 0.847. \end{aligned}$$
 
-(Directly, the event $xy \le \tfrac12$ needs two pieces: the whole strip $0 \le x \le \tfrac12$, and $0 \le y \le \tfrac{1}{2x}$ for $\tfrac12 \le x \le 1$.)
+(Directly, the event $xy \le \tfrac12$ can be split into two pieces: the whole strip $0 \le x \le \tfrac12$, and $0 \le y \le \tfrac{1}{2x}$ for $\tfrac12 \le x \le 1$.)
 
 ```check
 same(integrate(1 - x, (x, 0, 1)), Rational(1, 2)); same(integrate(1, (y, 0, x**2), (x, 0, 1)), Rational(1, 3))
@@ -1364,7 +1413,7 @@ same(Rational(1, 2) + integrate(1/(2*x), (x, Rational(1, 2), 1)), (1 + log(2))/2
 ::::
 
 :::: exercise A plate denser at the top {#ex-19-7} ★★
-A thin plate occupies the half disc $x^2 + y^2 \le a^2$, $y \ge 0$, and its density is proportional to the distance from the $x$-axis: $\rho = ky$, with a constant $k > 0$. Find its mass and its centre of mass, and compare with the centroid $\big(0, \tfrac{4a}{3\pi}\big)$ of a uniform half disc ([Example 12.15](module_12_EN.html#centre-of-mass)).
+A thin plate occupies the half disc $x^2 + y^2 \le a^2$, $y \ge 0$, with $a > 0$, and its density is proportional to the distance from the $x$-axis: $\rho = ky$, with a constant $k > 0$. Find its mass and its centre of mass, and compare with the centroid $\big(0, \tfrac{4a}{3\pi}\big)$ of a uniform half disc ([Example 12.15](module_12_EN.html#centre-of-mass)).
 
 ::: solution
 In polar coordinates the half disc is $0 \le r \le a$, $0 \le \theta \le \pi$, and $\rho = kr\sin\theta$. The mass is
@@ -1420,7 +1469,7 @@ same(6*integrate(1, (z, 0, y), (y, 0, x), (x, 0, 1)), 1)
 ::::
 
 :::: exercise Inside a ball {#ex-19-9} ★★
-Take a ball of radius $a$ centred at the origin, with constant density $k$, so that its mass is $M = \tfrac43\pi a^3k$.
+Take a ball of radius $a > 0$ centred at the origin, with constant density $k > 0$, so that its mass is $M = \tfrac43\pi a^3k$.
 
 - (a) Find the average distance of the points of the ball from its centre.
 - (b) Find its moment of inertia about the $z$-axis, $I_z = \iiint \big(x^2 + y^2\big)k\,dV$, in terms of $M$ and $a$, and compare with the uniform disc of Example 19.10.
@@ -1500,7 +1549,7 @@ same(integrate(4*x - 1/x, (x, Rational(1, 2), 1)) + integrate(4/x - x, (x, 1, 2)
 ::::
 
 :::: exercise A napkin ring {#ex-19-11} ★★★
-A cylindrical hole of radius $b$ is drilled through the centre of a ball of radius $a > b$, along a diameter, leaving a ring.
+A cylindrical hole of radius $b > 0$ is drilled through the centre of a ball of radius $a > b$, along a diameter, leaving a ring.
 
 - (a) Use cylindrical coordinates to find the volume of the ring.
 - (b) Show that it equals $\dfrac{\pi h^3}{6}$, where $h = 2\sqrt{a^2 - b^2}$ is the height of the ring. So the volume depends only on the height.
@@ -1540,19 +1589,19 @@ same(pi*(2*sqrt(3))**3/6, 4*sqrt(3)*pi); rounds(4*sqrt(3)*pi, '21.77'); same(pi*
 ::::
 
 :::: exercise Darts and the normal distribution {#ex-19-12} ★★★
-Model the horizontal and vertical errors $X$ and $Y$ of a dart player's throws, measured in units of their standard deviation, as independent standard normal random variables (a hypothetical model). Their joint density is
+Model the horizontal and vertical errors $X$ and $Y$ of a dart player's throws as independent standard normal random variables (a hypothetical model). Assume both directions have the same standard deviation and measure all lengths in that common unit, with the target at the origin. Their joint density is
 
 $$\varphi(x)\varphi(y) = \frac{1}{2\pi}e^{-(x^2 + y^2)/2}.$$
 
-- (a) Use polar coordinates to show that the probability of landing within the distance $c$ of the target is $1 - e^{-c^2/2}$. Evaluate it for $c = 1$, 2 and 3, and compare with the 68–95–99.7 rule of [Section 12.9](module_12_EN.html#normal).
-- (b) In the way that [Section 12.9](module_12_EN.html#expected-value) defined the mean of one random variable, the mean of a quantity $g(X, Y)$ is $\iint g(x, y)f(x, y)\,dA$ over the plane. Show that the mean distance from the target is $\sqrt{\pi/2} \approx 1.253$. You may use the Gaussian integral.
+- (a) For $c \ge 0$, use polar coordinates to show that the probability of landing within the distance $c$ of the target is $1 - e^{-c^2/2}$. Evaluate it for $c = 1$, 2 and 3, and compare with the 68–95–99.7 rule of [Section 12.9](module_12_EN.html#normal).
+- (b) In the way that [Section 12.9](module_12_EN.html#expected-value) defined the mean of one random variable, the finite mean of a quantity $g(X, Y)$ is $\iint g(x, y)f(x, y)\,dA$ over the plane, provided $\iint \abs{g(x, y)}f(x, y)\,dA < \infty$. Show that the mean distance from the target is $\sqrt{\pi/2} \approx 1.253$. You may use the Gaussian integral.
 
 ::: solution
 **(a)** The event is the disc $x^2 + y^2 \le c^2$, which is $0 \le r \le c$, $0 \le \theta \le 2\pi$ in polar coordinates. With $u = r^2/2$,
 
 $$\begin{aligned} P &= \int_0^{2\pi}\int_0^c \frac{1}{2\pi}e^{-r^2/2}\,r\,dr\,d\theta \\ &= \Big[-e^{-r^2/2}\Big]_0^c = 1 - e^{-c^2/2}. \end{aligned}$$
 
-For $c = 1$, 2 and 3 this is $1 - e^{-1/2} \approx 0.393$, $1 - e^{-2} \approx 0.865$ and $1 - e^{-9/2} \approx 0.989$. In one dimension the probabilities of landing within 1, 2 and 3 standard deviations are about 0.683, 0.954 and 0.997. A dart must be close in both directions at once, so far fewer land within one standard deviation of the target.
+For $c = 1$, 2 and 3 this is $1 - e^{-1/2} \approx 0.393$, $1 - e^{-2} \approx 0.865$ and $1 - e^{-9/2} \approx 0.989$. In one dimension the probabilities of landing within 1, 2 and 3 standard deviations are about 0.683, 0.954 and 0.997. The disc condition $X^2 + Y^2 \le c^2$ is stronger than either coordinate condition $\abs{X} \le c$ or $\abs{Y} \le c$ alone; even being inside both coordinate ranges gives a square larger than the disc.
 
 **(b)** The distance is $r$, so the mean distance is
 
@@ -1570,6 +1619,8 @@ $$\frac{\sqrt{2\pi}}{2} = \sqrt{\frac{\pi}{2}} \approx 1.253.$$
 cD = symbols('c', positive=True)
 same(exp(-x**2/2)/sqrt(2*pi)*exp(-y**2/2)/sqrt(2*pi), exp(-(x**2 + y**2)/2)/(2*pi))
 PD = integrate(exp(-r**2/2)*r/(2*pi), (r, 0, cD), (theta, 0, 2*pi)); same(PD, 1 - exp(-cD**2/2))
+same((1 - exp(-cD**2/2)).subs(cD, 0), 0)
+antideriv(-exp(-r**2/2), r*exp(-r**2/2), r)
 rounds(1 - exp(-Rational(1, 2)), '0.393'); rounds(1 - exp(-2), '0.865'); rounds(1 - exp(-Rational(9, 2)), '0.989')
 rounds(erf(1/sqrt(2)), '0.683'); rounds(erf(2/sqrt(2)), '0.954'); rounds(erf(3/sqrt(2)), '0.997')
 tD = symbols('t', positive=True)
@@ -1583,7 +1634,7 @@ same(integrate(r*exp(-r**2/2)*r/(2*pi), (r, 0, oo), (theta, 0, 2*pi)), sqrt(pi/2
 ## Check yourself {#quiz}
 
 ```quiz
-? Which iterated integral equals $\iint_D f(x, y)\,dA$, where $D$ is the triangle $0 \le y \le x \le 1$ (vertices $(0, 0)$, $(1, 0)$ and $(1, 1)$)?
+? Let $f$ be continuous on the triangle $D$, where $0 \le y \le x \le 1$ (vertices $(0, 0)$, $(1, 0)$ and $(1, 1)$). Which iterated integral equals $\iint_D f(x, y)\,dA$?
 - [ ] $\displaystyle\int_0^1\int_0^y f(x, y)\,dx\,dy$
 - [ ] $\displaystyle\int_0^1\int_0^x f(x, y)\,dx\,dy$
 - [ ] $\displaystyle\int_0^x\int_0^1 f(x, y)\,dy\,dx$
@@ -1604,7 +1655,7 @@ same(integrate(r*exp(-r**2/2)*r/(2*pi), (r, 0, oo), (theta, 0, 2*pi)), sqrt(pi/2
 - [ ] $\displaystyle\int_0^{2\pi}\int_0^9 r\,dr\,d\theta$
 > The disc is $0 \le r \le 3$, $0 \le \theta \le 2\pi$, and $dA = r\,dr\,d\theta$, which gives $9\pi$. Without the factor $r$ the integral is $6\pi$; $\theta$ up to $\pi$ covers only the upper half disc; and the radius is 3, not $r^2 = 9$.
 
-? Reversing the order of integration, $\displaystyle\int_0^1\int_x^1 g(y)\,dy\,dx$ equals
+? For $g$ continuous on $[0, 1]$, reversing the order of integration gives $\displaystyle\int_0^1\int_x^1 g(y)\,dy\,dx$ equal to
 - [x] $\displaystyle\int_0^1 y\,g(y)\,dy$
 - [ ] $\displaystyle\int_0^1 (1 - y)\,g(y)\,dy$
 - [ ] $\displaystyle\int_0^1 g(y)\,dy$
@@ -1618,7 +1669,7 @@ same(integrate(r*exp(-r**2/2)*r/(2*pi), (r, 0, oo), (theta, 0, 2*pi)), sqrt(pi/2
 - [ ] 2
 > The Jacobian is $x_uy_v - x_vy_u = 2 \cdot (-1) - 1 \cdot 1 = -3$, and areas scale by its absolute value: $3 \cdot 1 = 3$. $-3$ forgets the absolute value (an area is never negative); 1 adds the two products, $-2 + 1 = -1$, instead of subtracting them.
 
-? In spherical coordinates, with $\varphi$ measured from the positive $z$-axis, the volume element $dV$ is
+? In spherical coordinates, with $\rho \ge 0$ and $0 \le \varphi \le \pi$ measured from the positive $z$-axis, the volume element $dV$ is
 - [ ] $\rho\sin\varphi\,d\rho\,d\theta\,d\varphi$
 - [x] $\rho^2\sin\varphi\,d\rho\,d\theta\,d\varphi$
 - [ ] $\rho^2\cos\varphi\,d\rho\,d\theta\,d\varphi$
@@ -1642,6 +1693,8 @@ same(integrate(r*exp(-r**2/2)*r/(2*pi), (r, 0, oo), (theta, 0, 2*pi)), sqrt(pi/2
 
 ```check
 same(integrate(1, (x, y, 1), (y, 0, 1)), Rational(1, 2)); same(integrate(1, (y, 0, x), (x, 0, 1)), Rational(1, 2))
+same(integrate(x, (x, y, 1), (y, 0, 1)), Rational(1, 3)); same(integrate(y, (x, y, 1), (y, 0, 1)), Rational(1, 6))
+same(integrate(x, (x, 0, y), (y, 0, 1)), Rational(1, 6))   # the distractor covers the other triangle
 same(integrate(x + 2*y, (y, 0, 2)), 2*x + 4); same(integrate(x + 2*y, (y, 0, 2), (x, 0, 1)), 5)
 same(integrate(x + 2*y, (y, 0, 1), (x, 0, 2)), 4); same(integrate(x, (x, 0, 1)) + integrate(2*y, (y, 0, 2)), Rational(9, 2))
 same(integrate(r, (r, 0, 3), (theta, 0, 2*pi)), 9*pi); same(integrate(1, (r, 0, 3), (theta, 0, 2*pi)), 6*pi)

@@ -1,9 +1,9 @@
 ---
 title: Optimisation in several variables
 part: 5
-lead: Find the highest and lowest points of a function of two or more variables. You will classify critical points with the Hessian, find absolute extreme values on closed bounded regions, optimise under constraints with Lagrange multipliers, fit a line to data by least squares, and see why gradient descent zigzags when a function curves much more steeply in one direction than in another.
+lead: Find the highest and lowest points of a function of two or more variables. You will classify critical points with the Hessian, find absolute extreme values on closed bounded regions, optimise under constraints with Lagrange multipliers, fit a line to data by least squares, and see why gradient descent can zigzag when a function curves much more steeply in one direction than in another.
 minutes: 270
-needs: Module 8 (optimisation in one variable) and Modules 16 and 17 (vectors, partial derivatives and the gradient); one optional proof uses Taylor's theorem from Module 15
+needs: Module 8 (optimisation in one variable) and Modules 16 and 17 (vectors, partial derivatives and the gradient); the quadratic approximation uses Taylor polynomials from Module 15, and one optional proof uses Taylor's theorem from the same module
 goals:
   - Find the critical points of a function of two variables and classify them with the second derivative test
   - Find the absolute maximum and minimum values of a continuous function on a closed bounded region
@@ -14,7 +14,7 @@ goals:
 
 ## Local extrema and critical points {#critical-points}
 
-Picture a function of two variables as a landscape: above the point $(x, y)$ of a map the ground is at height $z = f(x, y)$, and the level curves $f(x, y) = c$ are the contour lines of the map (Module 17). Three kinds of place have level ground underfoot: the top of a hill, the bottom of a hollow, and a mountain pass, the lowest point of a ridge and the highest point of the path across it. This module finds such places and tells them apart. Then it finds the extreme values of a function on a region, optimises under constraints, fits lines to data, and studies how gradient descent, the method that trains machine-learning models, finds the bottom of a valley. Unless a passage says otherwise, $f$ is a function of two variables; most of the ideas extend to more.
+Picture a function of two variables as a landscape: above the point $(x, y)$ of a map the ground is at height $z = f(x, y)$, and the level curves $f(x, y) = c$ are the contour lines of the map (Module 17). Three kinds of place have level ground underfoot: the top of a hill, the bottom of a hollow, and a mountain pass, the lowest point of a ridge and the highest point of the path across it. This module finds such places and tells them apart. Then it finds the extreme values of a function on a region, optimises under constraints, fits lines to data, and studies how gradient descent, a method used to train machine-learning models, searches for the bottom of a valley. Unless a passage says otherwise, $f$ is a function of two variables; most of the ideas extend to more.
 
 ::: definition Local and absolute extrema
 Let $f$ be a function of two variables with domain $D$, and let $(a, b)$ be a point of $D$.
@@ -77,10 +77,10 @@ Left: the surface $z = x^2 - y^2$. Along the $x$-axis it follows the parabola $z
 :::
 
 ::: definition Saddle point
-A critical point $(a, b)$ of $f$ is a **saddle point** if $f$ has neither a local maximum nor a local minimum there: every open disc centred at $(a, b)$ contains points where $f(x, y) > f(a, b)$ and points where $f(x, y) < f(a, b)$.
+A critical point $(a, b)$ in the interior of the domain of $f$ (so some open disc centred there lies in the domain) is a **saddle point** if $f$ has neither a local maximum nor a local minimum there: every open disc centred at $(a, b)$ contains domain points where $f(x, y) > f(a, b)$ and points where $f(x, y) < f(a, b)$.
 :::
 
-On a contour map the three kinds usually look different: around a local maximum or minimum the level curves are small closed loops, while through a saddle point passes a level curve that crosses itself, like the lines $y = \pm x$ in Figure 18.1.
+Common contour pictures are small closed loops around a hilltop or a hollow, and a level curve crossing itself at a saddle point, like the lines $y = \pm x$ in Figure 18.1. These pictures are guides, not definitions: a saddle's level curve need not cross itself, as $x^2 + y^3 = 0$ in Example 18.3 will show.
 
 ::: example Critical points of a cubic
 Find the critical points of $f(x, y) = x^3 + y^3 - 3xy$.
@@ -141,6 +141,7 @@ same(diff(gF, t).subs(t, 0), hh_*Subs(Derivative(fF(x, b), x), x, a) + kk_*Subs(
 fpoly = x**3*y + 2*x*y**2 - y + 5                     # an instance: g'' is the quadratic in h and k
 gp = fpoly.subs({x: a + t*hh_, y: b + t*kk_})
 same(diff(gp, t, 2).subs(t, 0), (diff(fpoly, x, 2)*hh_**2 + 2*diff(fpoly, x, y)*hh_*kk_ + diff(fpoly, y, 2)*kk_**2).subs({x: a, y: b}))
+same(diff(gp, t, 2), (diff(fpoly, x, 2)*hh_**2 + 2*diff(fpoly, x, y)*hh_*kk_ + diff(fpoly, y, 2)*kk_**2).subs({x: a + t*hh_, y: b + t*kk_}))
 ```
 
 **The sign of a quadratic.** If $A \ne 0$, complete the square:
@@ -159,6 +160,8 @@ same(A_*(hh_ + B_/A_*kk_)**2 + (A_*C_ - B_**2)/A_*kk_**2, A_*hh_**2 + 2*B_*hh_*k
 same((A_*hh_**2 + 2*B_*hh_*kk_ + C_*kk_**2).subs({hh_: 1, kk_: 0}), A_)
 same((A_*hh_**2 + 2*B_*hh_*kk_ + C_*kk_**2).subs(hh_, -B_/A_*kk_), (A_*C_ - B_**2)/A_*kk_**2)
 same((2*B_*hh_*kk_ + C_*kk_**2), kk_*(2*B_*hh_ + C_*kk_))
+same((2*B_*hh_*kk_ + C_*kk_**2).subs({hh_: (1 - C_)/(2*B_), kk_: 1}), 1)
+same((2*B_*hh_*kk_ + C_*kk_**2).subs({hh_: (-1 - C_)/(2*B_), kk_: 1}), -1)
 same((2*hh_*kk_).subs({hh_: (u - v)/sqrt(2), kk_: (u + v)/sqrt(2)}), u**2 - v**2)
 ```
 
@@ -182,7 +185,7 @@ Suppose that the second partial derivatives of $f$ are continuous on an open dis
 - If $D > 0$ and $f_{xx}(a, b) > 0$, then $f(a, b)$ is a local minimum value.
 - If $D > 0$ and $f_{xx}(a, b) < 0$, then $f(a, b)$ is a local maximum value.
 - If $D < 0$, then $(a, b)$ is a saddle point.
-- If $D = 0$, the test gives no information.
+- If $D = 0$, the test is inconclusive.
 :::
 
 When $D > 0$, $f_{xx}f_{yy} > f_{xy}^2 \ge 0$, so $f_{xx}$ and $f_{yy}$ have the same sign, and either one decides. The continuity of the second partial derivatives is what makes the quadratic $Q$ describe $f$ near $(a, b)$; the proof below shows where it is used.
@@ -196,7 +199,7 @@ with the partial derivatives at $(a + ch, b + ck)$.
 
 **Minimum.** Suppose $D > 0$ and $f_{xx} > 0$ at $(a, b)$. The functions $f_{xx}$ and $f_{xx}f_{yy} - f_{xy}^2$ are continuous and positive at $(a, b)$, so they stay positive on some smaller disc centred at $(a, b)$. If $(a + h, b + k)$ lies in that disc, so does $(a + ch, b + ck)$, and at that point the completed square shows that the bracket in $(*)$ is positive. So $f(a + h, b + k) > f(a, b)$ for every such $(h, k) \ne (0, 0)$: a local minimum. **Maximum.** Apply this to $-f$.
 
-**Saddle.** Suppose $D < 0$ at $(a, b)$. The completed square gives directions $(h_1, k_1)$ and $(h_2, k_2)$ with $Q(h_1, k_1) > 0$ and $Q(h_2, k_2) < 0$ for the second partial derivatives at $(a, b)$. Put $(h, k) = (sh_1, sk_1)$ in $(*)$: then $f(a + sh_1, b + sk_1) - f(a, b) = \tfrac12s^2\big(f_{xx}h_1^2 + 2f_{xy}h_1k_1 + f_{yy}k_1^2\big)$ at a point between $(a, b)$ and $(a + sh_1, b + sk_1)$. As $s \to 0$ that point tends to $(a, b)$, and by continuity the bracket tends to $Q(h_1, k_1) > 0$; so $f > f(a, b)$ at points $(a + sh_1, b + sk_1)$ with small $s \ne 0$. In the same way $f < f(a, b)$ at points $(a + sh_2, b + sk_2)$ with small $s \ne 0$. Every disc centred at $(a, b)$ contains both kinds of point: a saddle point. **No information.** Example 18.3 shows three functions with $D = 0$: a minimum, and two saddle points.
+**Saddle.** Suppose $D < 0$ at $(a, b)$. The completed square gives directions $(h_1, k_1)$ and $(h_2, k_2)$ with $Q(h_1, k_1) > 0$ and $Q(h_2, k_2) < 0$ for the second partial derivatives at $(a, b)$. Put $(h, k) = (sh_1, sk_1)$ in $(*)$: then $f(a + sh_1, b + sk_1) - f(a, b) = \tfrac12s^2\big(f_{xx}h_1^2 + 2f_{xy}h_1k_1 + f_{yy}k_1^2\big)$ at a point between $(a, b)$ and $(a + sh_1, b + sk_1)$. As $s \to 0$ that point tends to $(a, b)$, and by continuity the bracket tends to $Q(h_1, k_1) > 0$; so $f > f(a, b)$ at points $(a + sh_1, b + sk_1)$ with small $s \ne 0$. In the same way $f < f(a, b)$ at points $(a + sh_2, b + sk_2)$ with small $s \ne 0$. Every disc centred at $(a, b)$ contains both kinds of point: a saddle point. **Inconclusive.** Example 18.3 shows three functions with $D = 0$: a minimum, and two saddle points.
 ::::
 
 ::: example Classifying the critical points of the cubic
@@ -229,11 +232,11 @@ Level curves of $f(x, y) = x^3 + y^3 - 3xy$. Around the local minimum at $(1, 1)
 ::: example When $D = 0$
 Show that $f_1 = x^2 + y^4$, $f_2 = x^2 - y^4$ and $f_3 = x^2 + y^3$ each have exactly one critical point, the origin, with $D = 0$ there, and decide what each has at the origin.
 
-The gradients are $\langle 2x, 4y^3\rangle$, $\langle 2x, -4y^3\rangle$ and $\langle 2x, 3y^2\rangle$, which are $\vb{0}$ only at $(0, 0)$. At the origin all three have $f_{xx} = 2$, $f_{xy} = 0$ and $f_{yy} = 0$ (it is $12y^2$, $-12y^2$ and $6y$), so $D = 2 \cdot 0 - 0^2 = 0$: the test says nothing, and you must look at $f$ itself.
+The gradients are $\langle 2x, 4y^3\rangle$, $\langle 2x, -4y^3\rangle$ and $\langle 2x, 3y^2\rangle$, which are $\vb{0}$ only at $(0, 0)$. At the origin all three have $f_{xx} = 2$, $f_{xy} = 0$ and $f_{yy} = 0$ (it is $12y^2$, $-12y^2$ and $6y$), so $D = 2 \cdot 0 - 0^2 = 0$: the test is inconclusive, and you must look at $f$ itself.
 
 - $f_1(x, y) = x^2 + y^4 \ge 0 = f_1(0, 0)$: an absolute minimum.
 - $f_2(x, 0) = x^2 > 0$ for $x \ne 0$, but $f_2(0, y) = -y^4 < 0$ for $y \ne 0$: a saddle point.
-- $f_3(0, y) = y^3$ is positive for $y > 0$ and negative for $y < 0$: a saddle point, although $f_{xx} > 0$ and no direction makes $Q = 2h^2$ negative.
+- $f_3(0, y) = y^3$ is positive for $y > 0$ and negative for $y < 0$: a saddle point, although $f_{xx} > 0$ and no direction makes $Q = 2h^2$ negative. Its zero level curve $x^2 = -y^3$ has a cusp at the origin, not a crossing.
 
 ```check
 for fz in (x**2 + y**4, x**2 - y**4, x**2 + y**3):
@@ -241,13 +244,16 @@ for fz in (x**2 + y**4, x**2 - y**4, x**2 + y**3):
     Hz = hessian(fz, (x, y)).subs({x: 0, y: 0})
     same(Hz, Matrix([[2, 0], [0, 0]])); same(Hz.det(), 0)
 same([diff(fz, y, 2) for fz in (x**2 + y**4, x**2 - y**4, x**2 + y**3)], [12*y**2, -12*y**2, 6*y])
+same([[diff(fz, s_) for s_ in (x, y)] for fz in (x**2 + y**4, x**2 - y**4, x**2 + y**3)], [[2*x, 4*y**3], [2*x, -4*y**3], [2*x, 3*y**2]])
+holds(xr_**2 + yr_**4 >= 0)
+same((x**2 + y**3).subs({x: t**3, y: -t**2}), 0)       # the zero level curve is a cusp
 holds((x**2 - y**4).subs({x: Rational(1, 10), y: 0}) > 0); holds((x**2 - y**4).subs({x: 0, y: Rational(1, 10)}) < 0)
 holds((x**2 + y**3).subs({x: 0, y: Rational(1, 10)}) > 0); holds((x**2 + y**3).subs({x: 0, y: -Rational(1, 10)}) < 0)
 ```
 :::
 
 ::: pitfall
-Three slips with the test. **Reading $f_{xx}$ when $D < 0$**: then the point is a saddle point, whatever the sign of $f_{xx}$. **Checking only $f_{xx}$ and $f_{yy}$**: $f(x, y) = x^2 + 3xy + y^2$ has $f_{xx} = f_{yy} = 2 > 0$ at its critical point $(0, 0)$, but $D = 4 - 9 = -5 < 0$, and indeed $f(t, -t) = -t^2 < 0$: the mixed term $3xy$ wins along the line $y = -x$. **Treating $D = 0$ as a saddle point**: it means only that the test is silent (Example 18.3).
+Three slips with the test. **Reading $f_{xx}$ when $D < 0$**: then the point is a saddle point, whatever the sign of $f_{xx}$. **Checking only $f_{xx}$ and $f_{yy}$**: $f(x, y) = x^2 + 3xy + y^2$ has $f_{xx} = f_{yy} = 2 > 0$ at its critical point $(0, 0)$, but $D = 4 - 9 = -5 < 0$, and indeed $f(t, -t) = -t^2 < 0$: the mixed term $3xy$ wins along the line $y = -x$. **Treating $D = 0$ as a saddle point**: it means only that the test is inconclusive (Example 18.3).
 :::
 
 ```check
@@ -282,7 +288,7 @@ def classify(D, fxx):
         return 'local minimum' if fxx > 0 else 'local maximum'
     if D < 0:
         return 'saddle point'
-    return 'no information'
+    return 'inconclusive'
 
 for p in crit:
     D, fxx = H.det().subs(p), H[0, 0].subs(p)
@@ -309,7 +315,7 @@ print(len(sp.solve([sp.diff(g, u), sp.diff(g, v)], [u, v], dict=True)), 'solutio
 
 ## Absolute extrema on closed bounded regions {#absolute-extrema}
 
-Module 8 found the absolute extreme values of a continuous function on a closed interval $[a, b]$ by comparing its values at the critical numbers and at the two endpoints. In two variables the interval becomes a region, and its two endpoints become a whole boundary curve.
+Module 8 found the absolute extreme values of a continuous function on a closed interval $[a, b]$ by comparing its values at the critical numbers and at the two endpoints. In two variables the interval becomes a region, and we must check its whole boundary, usually made of curves.
 
 ::: definition Interior, boundary, closed and bounded
 Let $R$ be a set of points of the plane. A point $P$ is an **interior point** of $R$ if some open disc centred at $P$ lies in $R$, and a **boundary point** of $R$ if every open disc centred at $P$ contains points of $R$ and points not in $R$. The set $R$ is **closed** if it contains all its boundary points, and **bounded** if it lies inside some disc.
@@ -318,7 +324,7 @@ Let $R$ be a set of points of the plane. A point $P$ is an **interior point** of
 The disc $x^2 + y^2 \le 1$ is closed and bounded; its boundary is the circle $x^2 + y^2 = 1$. The open disc $x^2 + y^2 < 1$ is bounded but not closed, since it leaves out the whole circle. A rectangle with its sides, the set of points with $a \le x \le b$ and $c \le y \le d$, is closed and bounded, and so is a triangle with its sides. The half-plane $y \ge 0$ is closed but not bounded.
 
 ::: theorem The Extreme Value Theorem in two variables
-If $f$ is continuous on a closed, bounded set $R$ in the plane, then $f$ has an absolute maximum value $f(x_1, y_1)$ and an absolute minimum value $f(x_2, y_2)$ on $R$, at some points $(x_1, y_1)$ and $(x_2, y_2)$ of $R$.
+If $f$ is continuous on a nonempty, closed, bounded set $R$ in the plane, then $f$ has an absolute maximum value $f(x_1, y_1)$ and an absolute minimum value $f(x_2, y_2)$ on $R$, at some points $(x_1, y_1)$ and $(x_2, y_2)$ of $R$.
 :::
 
 As for the one-variable theorem of [Module 3](module_03_EN.html#evt), the proof belongs to real analysis, and this series uses the theorem without proof; it holds in three or more variables too. Each hypothesis is needed. On the open disc $x^2 + y^2 < 1$, $f(x, y) = x + y$ has no maximum: its values come as close to $\sqrt2$ as you like near $\big(\tfrac{1}{\sqrt2}, \tfrac{1}{\sqrt2}\big)$, a point of the missing circle, but never reach it. On the half-plane $y \ge 0$ the same $f$ is not bounded. And on the closed disc, the function equal to $x + y$ except at $\big(\tfrac{1}{\sqrt2}, \tfrac{1}{\sqrt2}\big)$, where it is 0, is not continuous and has no maximum.
@@ -326,10 +332,13 @@ As for the one-variable theorem of [Module 3](module_03_EN.html#evt), the proof 
 ```check
 same(2*(x**2 + y**2) - (x + y)**2, (x - y)**2)                  # so x + y < sqrt(2) inside the open disc
 same((x + y).subs({x: 1/sqrt(2), y: 1/sqrt(2)}), sqrt(2)); same((1/sqrt(2))**2 + (1/sqrt(2))**2, 1)
+same((x**2 + y**2).subs({x: t/sqrt(2), y: t/sqrt(2)}), t**2)
+same((x + y).subs({x: t/sqrt(2), y: t/sqrt(2)}), sqrt(2)*t); limit_is(sqrt(2)*t, t, 1, sqrt(2), '-')
+limit_is((x + y).subs(y, 0), x, oo, oo)              # unbounded on the closed half-plane
 ```
 
 ::: theorem Where the absolute extreme values are
-Let $f$ be continuous on a closed, bounded set $R$. Then $f$ has an absolute maximum value and an absolute minimum value on $R$, and each of them is taken at a boundary point of $R$ or at a critical point of $f$ that is an interior point of $R$.
+Let $f$ be continuous on a nonempty, closed, bounded set $R$. Then $f$ has an absolute maximum value and an absolute minimum value on $R$, and each of them is taken at a boundary point of $R$ or at a critical point of $f$ that is an interior point of $R$.
 :::
 
 ::: proof
@@ -337,7 +346,7 @@ By Theorem 18.3, the absolute maximum value on $R$ is $f(P)$ for some point $P$ 
 :::
 
 ::: keyidea
-**The closed region method.** To find the absolute extreme values of a continuous function $f$ on a closed, bounded region $R$:
+**The closed region method.** To find the absolute extreme values of a continuous function $f$ on a nonempty, closed, bounded region $R$:
 
 1. Find the critical points of $f$ inside $R$, and the values of $f$ there.
 2. Find the largest and the smallest values of $f$ on the boundary of $R$. Usually the boundary consists of pieces (the sides of a polygon, arcs of curves) on each of which $f$ becomes a function of one variable: substitute the equation of a side, such as $y = 2$, or a parametrisation, such as $(\cos t, \sin t)$ on a circle, and use the closed interval method of [Module 8](module_08_EN.html#closed-interval), with the ends of each piece.
@@ -396,7 +405,7 @@ Three slips. **Forgetting the ends of the boundary pieces**: in Example 18.4 bot
 
 Many problems ask for the best point of a curve or a surface: the largest rectangle that fits in an ellipse, the point of a curve closest to a given point, the box with the most volume for a given amount of cardboard. Their variables are tied by an equation $g(x, y) = c$, a **constraint**. Section 18.3 parametrised the boundary; that works when a parametrisation is easy to find. The method of this section works with the equation itself, and its picture explains every answer.
 
-Take the largest rectangle, with sides parallel to the axes, inside the ellipse $\tfrac{x^2}{4} + y^2 = 1$. Its corners are $(\pm x, \pm y)$ with $(x, y)$ on the ellipse, $x \ge 0$ and $y \ge 0$, and its area is $A = (2x)(2y) = 4xy$. Numbers first. The points $(2\cos t, \sin t)$ lie on the ellipse, since $\tfrac{4\cos^2 t}{4} + \sin^2 t = 1$, and $0 \le t \le \tfrac{\pi}{2}$ gives the quarter in the first quadrant:
+Take the largest rectangle, with sides parallel to the axes, inside the ellipse $\tfrac{x^2}{4} + y^2 = 1$. We can centre it at the origin: moving any such rectangle there decreases or preserves the largest absolute $x$-coordinate and the largest absolute $y$-coordinate of its corners, so it still fits and has the same area. Then enlarge it until its corners reach the ellipse. Thus we can take the corners to be $(\pm x, \pm y)$ with $(x, y)$ on the ellipse, $x \ge 0$ and $y \ge 0$, and its area is $A = (2x)(2y) = 4xy$. Numbers first. The points $(2\cos t, \sin t)$ lie on the ellipse, since $\tfrac{4\cos^2 t}{4} + \sin^2 t = 1$, and $0 \le t \le \tfrac{\pi}{2}$ gives the quarter in the first quadrant:
 
 ```valuetable
 t = 0, pi/12, pi/6, pi/4, pi/3, 5*pi/12, pi/2
@@ -418,12 +427,15 @@ t | x = 2\cos t | y = \sin t | A = 4xy
 The largest area in the table is 4, at $t = \tfrac{\pi}{4}$, the point $\big(\sqrt2, \tfrac{\sqrt2}{2}\big) \approx (1.414, 0.7071)$. In fact $A = 8\cos t\sin t = 4\sin 2t$, whose largest value is 4.
 
 ```check
+half_x, half_y = symbols('half_x half_y', positive=True)
+off_x, off_y = symbols('off_x off_y', nonnegative=True)
+holds((off_x + half_x)**2/4 + (off_y + half_y)**2 - half_x**2/4 - half_y**2 >= 0)  # recentering preserves feasibility
 same((2*cos(t))**2/4 + sin(t)**2, 1); same(8*cos(t)*sin(t), 4*sin(2*t)); same(4*sin(2*(pi/4)), 4)
 same(2*cos(pi/4), sqrt(2)); same(sin(pi/4), sqrt(2)/2); rounds(sqrt(2), '1.414'); rounds(sqrt(2)/2, '0.7071')
 same(maximum(4*sin(2*t), t, Interval(0, pi/2)), 4)
 ```
 
-Now the picture (Figure 18.3). The level curves of the area, $4xy = k$, are hyperbolas. For a small $k$ the level curve crosses the quarter of the ellipse twice: two rectangles in the ellipse have that area. As $k$ grows, the two crossing points move together, and at $k = 4$ they merge: the level curve **touches** the ellipse. For $k > 4$ it misses the ellipse altogether. Where the two curves touch they have the same tangent line, so the vectors perpendicular to them are parallel. The gradient of a function is perpendicular to its level curves (Module 17), and the ellipse is the level curve $g = 1$ of $g(x, y) = \tfrac{x^2}{4} + y^2$. So at the best point $\nabla A$ is parallel to $\nabla g$: $\nabla A = \lambda\nabla g$ for some number $\lambda$, read "lambda".
+Now the picture (Figure 18.3). For $k > 0$, the level curves of the area, $4xy = k$, are hyperbolas. When $0 < k < 4$ the level curve crosses the quarter of the ellipse twice: two rectangles in the ellipse have that area. As $k$ grows towards 4, the two crossing points move together, and at $k = 4$ they merge: the level curve **touches** the ellipse. For $k > 4$ it misses the ellipse altogether. Where the two curves touch they have the same tangent line, so the vectors perpendicular to them are parallel. The gradient of a differentiable function is perpendicular to its level curves where it is nonzero (Module 17), and the ellipse is the level curve $g = 1$ of $g(x, y) = \tfrac{x^2}{4} + y^2$. Both gradients are nonzero at the best point, so $\nabla A$ is parallel to $\nabla g$: $\nabla A = \lambda\nabla g$ for some number $\lambda$, read "lambda".
 
 ::: figure id=fig-18-3
 The ellipse $\tfrac{x^2}{4} + y^2 = 1$ (green) and the level curves $A = 2$, $4$ and $6$ of the area $A = 4xy$. The level curve $A = 4$ (orange) touches the ellipse at $\big(\sqrt2, \tfrac{\sqrt2}{2}\big)$, a corner of the largest rectangle (shaded); there $\nabla A$ and $\nabla g$ point the same way, and $\nabla A$ is 4 times as long (both arrows are drawn at a quarter of their length). Where $A = 2$ crosses the ellipse, at $(2\cos 75^\circ, \sin 75^\circ)$, the gradients are not parallel, and moving along the ellipse towards the touching point increases $A$. $A = 6$ misses the ellipse.
@@ -451,7 +463,7 @@ Since $\nabla g(a, b) \ne \vb{0}$, $g_x(a, b)$ or $g_y(a, b)$ is not 0; say $g_y
 The function $k(t) = f\big(\vb{r}(t)\big)$ has a local extremum at $t = 0$, so $k'(0) = 0$ by Fermat's theorem (Theorem 8.1), and by the chain rule (Module 17) $k'(0) = \nabla f(a, b) \cdot \vb{r}'(0)$. Also $g\big(\vb{r}(t)\big) = c$ for every $t$, and differentiating gives $\nabla g(a, b) \cdot \vb{r}'(0) = 0$. So both gradients are perpendicular to $\vb{r}'(0) = \langle 1, \varphi'(a)\rangle$. A vector $\langle u, v\rangle$ perpendicular to it has $u + \varphi'(a)v = 0$, so it is $v\langle -\varphi'(a), 1\rangle$: both gradients are multiples of $\langle -\varphi'(a), 1\rangle$, namely $\nabla f(a, b) = f_y(a, b)\langle -\varphi'(a), 1\rangle$ and $\nabla g(a, b) = g_y(a, b)\langle -\varphi'(a), 1\rangle$. Since $g_y(a, b) \ne 0$, $\nabla f(a, b) = \lambda\nabla g(a, b)$ with $\lambda = f_y(a, b)/g_y(a, b)$.
 :::
 
-The number $\lambda$ is a **Lagrange multiplier**. The same holds in three variables: if $f(x, y, z)$, restricted to the surface $g(x, y, z) = c$, has a local extremum at a point where $\nabla g \ne \vb{0}$, then $\nabla f = \lambda\nabla g$ there. The proof is the same, with the three-variable implicit function theorem, applied to every curve in the surface through the point: $\nabla f$ is perpendicular to all their tangent vectors, which fill the plane perpendicular to $\nabla g$, so $\nabla f$ is parallel to $\nabla g$.
+The number $\lambda$ is a **Lagrange multiplier**. The same holds in three variables, with $f$ and $g$ again having continuous first partial derivatives near the point: if $f(x, y, z)$, restricted to the surface $g(x, y, z) = c$, has a local extremum at a point where $\nabla g \ne \vb{0}$, then $\nabla f = \lambda\nabla g$ there. The proof is the same, with the three-variable implicit function theorem, applied to every curve in the surface through the point: $\nabla f$ is perpendicular to all their tangent vectors, which fill the plane perpendicular to $\nabla g$, so $\nabla f$ is a multiple of $\nabla g$. The multiple can be 0: the theorem allows $\nabla f = \vb{0}$.
 
 ```check
 uu_, vv2_, mphi = symbols('u v m')
@@ -464,17 +476,17 @@ same(Matrix([diff(gT_, x), diff(gT_, y)]).dot(Matrix([1, phi1])), 0); same(Matri
 ```
 
 ::: keyidea
-**The method of Lagrange multipliers.** To find the extreme values of $f(x, y)$ subject to $g(x, y) = c$:
+**The method of Lagrange multipliers.** Suppose $f$ and $g$ have continuous first partial derivatives near the constraint curve. To find the extreme values of $f(x, y)$ subject to $g(x, y) = c$:
 
 1. Solve the equations $f_x = \lambda g_x$, $f_y = \lambda g_y$ and $g(x, y) = c$ for $x$, $y$ and $\lambda$.
 2. Add the points of the curve where $\nabla g = \vb{0}$, and the ends of the curve if it has ends.
-3. Evaluate $f$ at all these points. If the curve is closed and bounded, like a circle or an ellipse, the largest value is the maximum and the smallest the minimum (Theorem 18.3). Otherwise an extra argument must show that an extremum exists.
+3. Evaluate $f$ at all these points. If the curve is nonempty, closed and bounded, like a circle or an ellipse, the largest value is the maximum and the smallest the minimum (Theorem 18.3). Otherwise an extra argument must show that an extremum exists.
 
 In three variables, solve $\nabla f = \lambda\nabla g$ and $g(x, y, z) = c$: four equations for $x$, $y$, $z$ and $\lambda$.
 :::
 
 ::: widget name=lagrange
-Choose $f$ and the constraint, and move the point along the curve with the slider or the arrow keys. Orange: $\nabla f$ and the level curve of $f$ through the point; green: $\nabla g$. Start with $xy$ on the ellipse (Example 18.5): find where the arrows line up, and read off $\lambda$. Elsewhere the readout says which way $f$ changes as you move on: follow it to the maximum, then to the minimum. Then try $x^2 + 2y^2$ on the circle (Exercise 18.3), and $2x + y$ on the circle, whose maximum is not at a whole number of degrees.
+Choose $f$ and the constraint, and move the point along the curve with the slider or the arrow keys. Orange: $\nabla f$ and the level curve of $f$ through the point; green: $\nabla g$. Start with $xy$ on the ellipse: it is one-quarter of the rectangle area $A = 4xy$ in Example 18.5, so at its maximum the widget gives $\lambda = 1$, while the area's multiplier is 4. Find where the arrows line up and read off $\lambda$. The "nearly parallel" readout means the arrows are within $0.5^\circ$ of parallel; it gives an approximate multiplier and suggests a nearby candidate to locate exactly with algebra. Elsewhere the readout says which way $f$ changes as you move on: follow it to the maximum, then to the minimum. Then try $x^2 + 2y^2$ on the circle (Exercise 18.3), and $2x + y$ on the circle, whose maximum is not at a whole number of degrees.
 :::
 
 ::: example The largest rectangle in an ellipse
@@ -529,9 +541,9 @@ same(Matrix([2*(1 - 3), 2*1]), 2*Matrix([-2*1, 1]))                       # grad
 :::
 
 ::: example A box from a sheet of cardboard
-An open box (with no lid) is to be made from 300 cm² of cardboard. Which dimensions give the largest volume?
+An open box (with no lid) is to be made from 300 cm² of cardboard. Ignoring joins and waste, which dimensions give the largest volume?
 
-Let the base be $x$ by $y$ and the height $z$, in centimetres. Maximise $V = xyz$ subject to $g(x, y, z) = xy + 2xz + 2yz = 300$ (the base and the four sides), with $x, y, z > 0$. Here $\nabla V = \langle yz, xz, xy\rangle$ and $\nabla g = \langle y + 2z,\ x + 2z,\ 2x + 2y\rangle$, so
+Let the base be $x$ by $y$ and the height $z$, in centimetres. Maximise $V = xyz$ subject to $g(x, y, z) = xy + 2xz + 2yz = 300$ (the base and the four sides), with $x, y, z > 0$. Here $\nabla V = \langle yz, xz, xy\rangle$ and $\nabla g = \langle y + 2z,\ x + 2z,\ 2x + 2y\rangle$, which is nonzero for positive dimensions, so
 
 $$\begin{aligned} yz &= \lambda(y + 2z), \\ xz &= \lambda(x + 2z), \\ xy &= \lambda(2x + 2y). \end{aligned}$$
 
@@ -550,7 +562,9 @@ the inequality of the arithmetic and geometric means, which Exercise 18.11 prove
 ```check
 xb, yb, zb, lb = symbols('x y z lambda', positive=True)
 Vb = xb*yb*zb; gb = xb*yb + 2*xb*zb + 2*yb*zb
+same([diff(Vb, s_) for s_ in (xb, yb, zb)], [yb*zb, xb*zb, xb*yb])
 same([diff(gb, s_) for s_ in (xb, yb, zb)], [yb + 2*zb, xb + 2*zb, 2*xb + 2*yb])
+holds(yb + 2*zb > 0); holds(xb + 2*zb > 0); holds(2*xb + 2*yb > 0)
 same(solve([diff(Vb, s_) - lb*diff(gb, s_) for s_ in (xb, yb, zb)] + [gb - 300], [xb, yb, zb, lb], dict=True), [{xb: 10, yb: 10, zb: 5, lb: Rational(5, 2)}])
 same(xb*(lb*(yb + 2*zb)), lb*(xb*yb + 2*xb*zb)); same(yb*(lb*(xb + 2*zb)), lb*(xb*yb + 2*yb*zb)); same(zb*(lb*(2*xb + 2*yb)), lb*(2*xb*zb + 2*yb*zb))
 same(gb.subs({xb: 2*zb, yb: 2*zb}), 12*zb**2); same(solve(12*zb**2 - 300, zb), [5])
@@ -571,11 +585,13 @@ xr7, yr7, lr7 = symbols('x y lambda', real=True)
 same(solve([1 + 3*lr7*xr7**2, 2*lr7*yr7, yr7**2 - xr7**3], [xr7, yr7, lr7], dict=True), [])
 same(Matrix([diff(y**2 - x**3, x), diff(y**2 - x**3, y)]).subs({x: 0, y: 0}), Matrix([0, 0]))
 same(solve([1 - lr7*yr7, 1 - lr7*xr7, xr7*yr7 - 1], [xr7, yr7, lr7], dict=True), [{xr7: -1, yr7: -1, lr7: -1}, {xr7: 1, yr7: 1, lr7: 1}])
+same(solve([1 - lp_*yp_, 1 - lp_*xp_, xp_*yp_ - 1], [xp_, yp_, lp_], dict=True), [{xp_: 1, yp_: 1, lp_: 1}])
+holds((xp_ - 1)**2/xp_ >= 0)
 same(x + 1/x - 2, (x - 1)**2/x); limit_is(x + 1/x, x, oo, oo)
 ```
 
 :::: deeper What the multiplier measures
-In the examples, $\lambda$ was found and then forgotten. It has a meaning. Let $M(c)$ be the largest value of $f$ on the curve $g = c$, taken at a point $\big(x(c), y(c)\big)$ with multiplier $\lambda(c)$, and suppose that $x(c)$ and $y(c)$ are differentiable functions of $c$. Then
+In the examples, $\lambda$ was found and then forgotten. It has a meaning. Let $M(c)$ be the largest value of $f$ on the curve $g = c$, taken at a point $\big(x(c), y(c)\big)$ with multiplier $\lambda(c)$. Suppose that this family is defined for $c$ in an open interval, that $x(c)$ and $y(c)$ are differentiable there, and that $f$ and $g$ have continuous first partial derivatives near these points. Then
 
 $$M'(c) = \lambda(c).$$
 
@@ -583,9 +599,9 @@ Indeed $M(c) = f\big(x(c), y(c)\big)$, and by the chain rule and the Lagrange eq
 
 $$\begin{aligned} M'(c) &= f_x x' + f_y y' = \lambda\,(g_x x' + g_y y') \\ &= \lambda\,\frac{d}{dc}\,g\big(x(c), y(c)\big) = \lambda\,\frac{d}{dc}\,c = \lambda. \end{aligned}$$
 
-The same argument works for the smallest value. So $\lambda$ is the rate at which the best value changes as the constraint is relaxed: if $c$ is a budget, $\lambda$ is about what one more unit of budget is worth at the optimum. Economists call it a **shadow price**.
+The same argument works for the smallest value. So $\lambda$ is the rate at which the best value changes as the constraint level changes: if $c$ is a budget, $\lambda$ is about what one more unit of budget is worth at the optimum, provided that unit is small enough for the linear approximation. Economists call it a **shadow price**.
 
-For the rectangle in the ellipse $\tfrac{x^2}{4} + y^2 = c$, the steps of Example 18.5 give the corner $\big(\sqrt{2c}, \sqrt{c/2}\big)$ and the largest area $M(c) = 4c$, so $M'(c) = 4$: the $\lambda = 4$ found there. For the box with $A$ cm² of cardboard, they give $x = y = 2z$ with $12z^2 = A$, so the largest volume is $V(A) = 4z^3 = 4\big(\tfrac{A}{12}\big)^{3/2}$, and $V'(A) = \tfrac12\big(\tfrac{A}{12}\big)^{1/2} = \tfrac{z}{2}$, which at $A = 300$ is $\tfrac52$: the multiplier of Example 18.7. Each extra cm² of cardboard adds about 2.5 cm³ of volume, near this size.
+For the rectangle in the ellipse $\tfrac{x^2}{4} + y^2 = c$ with $c > 0$, the steps of Example 18.5 give the corner $\big(\sqrt{2c}, \sqrt{c/2}\big)$ and the largest area $M(c) = 4c$, so $M'(c) = 4$: the $\lambda = 4$ found there. For the box with $A$ cm² of cardboard, where $A > 0$, they give $x = y = 2z$ with $12z^2 = A$, so the largest volume is $V(A) = 4z^3 = 4\big(\tfrac{A}{12}\big)^{3/2}$, and $V'(A) = \tfrac12\big(\tfrac{A}{12}\big)^{1/2} = \tfrac{z}{2}$, which at $A = 300$ is $\tfrac52$: the multiplier of Example 18.7. Each extra cm² of cardboard adds about 2.5 cm³ of volume, near this size.
 
 ```check
 cc_ = symbols('c', positive=True)
@@ -603,11 +619,11 @@ same((lam_*gx_)*xd + (lam_*gy_)*yd, lam_*(gx_*xd + gy_*yd))
 
 ### Two constraints {#two-constraints}
 
-To find the extreme values of $f(x, y, z)$ on a curve where two surfaces $g(x, y, z) = c$ and $h(x, y, z) = d$ meet, add a second multiplier $\mu$, read "mu": at an extremum,
+Suppose that $f$, $g$ and $h$ have continuous first partial derivatives near a point where $g(x, y, z) = c$ and $h(x, y, z) = d$. To find extreme values of $f$ on their intersection, add a second multiplier $\mu$, read "mu": at a constrained local extremum,
 
 $$\nabla f = \lambda\,\nabla g + \mu\,\nabla h,$$
 
-provided $\nabla g$ and $\nabla h$ are not parallel there (and neither is $\vb{0}$). The reason is the same as before. The curve lies in both surfaces, so its tangent vector $\vb{T}$ is perpendicular to $\nabla g$ and to $\nabla h$; and at an extremum $\nabla f$ is perpendicular to $\vb{T}$ too. The vectors perpendicular to $\vb{T}$ form a plane, and two non-parallel vectors in it, $\nabla g$ and $\nabla h$, combine to give every vector of the plane, $\nabla f$ included. With the two constraints, that makes five equations for $x$, $y$, $z$, $\lambda$ and $\mu$.
+provided $\nabla g$ and $\nabla h$ are not parallel there (and neither is $\vb{0}$). These hypotheses ensure that the intersection is locally a differentiable curve with a nonzero tangent vector, by a version of the implicit function theorem of Module 17. The reason for the multiplier equation is the same as before. The curve lies in both surfaces, so its tangent vector $\vb{T}$ is perpendicular to $\nabla g$ and to $\nabla h$; and at an extremum $\nabla f$ is perpendicular to $\vb{T}$ too. The vectors perpendicular to $\vb{T}$ form a plane, and two non-parallel vectors in it, $\nabla g$ and $\nabla h$, combine to give every vector of the plane, $\nabla f$ included. With the two constraints, that makes five equations for $x$, $y$, $z$, $\lambda$ and $\mu$.
 
 ::: example The highest point of a tilted circle
 The plane $x + y + z = 0$ meets the sphere $x^2 + y^2 + z^2 = 6$ in a circle. Find its highest and lowest points.
@@ -626,15 +642,18 @@ same_set(solve(eq8, [xr8, yr8, zr8, lr8, mr8], dict=True),
 same((lr8 + 2*mr8*xr8) - (lr8 + 2*mr8*yr8), 2*mr8*(xr8 - yr8))
 same(solve(x**2 + x**2 + 4*x**2 - 6, x), [-1, 1])
 same(Matrix([1, 1, 1]).cross(Matrix([2*x, 2*y, 2*z])), Matrix([2*z - 2*y, 2*x - 2*z, 2*y - 2*x]))
+same((2*z - 2*y)**2 + (2*x - 2*z)**2 + (2*y - 2*x)**2, 12*(x**2 + y**2 + z**2) - 4*(x + y + z)**2)
+same(12*6 - 4*0**2, 72); holds(72 > 0)                         # the gradients are independent everywhere on the circle
 ```
 :::
 
 ::: compute Lagrange systems with SymPy
-`solve` handles the systems of this section. Declaring the unknowns positive keeps only the boxes that can be built:
+`solve` handles the systems of this section. Declaring the dimensions positive keeps only the boxes that can be built; the multiplier is left real:
 
 ```python
 import sympy as sp
-x, y, z, lam = sp.symbols('x y z lambda', positive=True)
+x, y, z = sp.symbols('x y z', positive=True)
+lam = sp.symbols('lambda', real=True)
 V = x*y*z                                   # the open box of Example 18.7
 g = x*y + 2*x*z + 2*y*z
 eqs = [sp.diff(V, s) - lam*sp.diff(g, s) for s in (x, y, z)] + [g - 300]
@@ -677,10 +696,10 @@ $$E(m, b) = \sum_{i=1}^{n}\big(y_i - mx_i - b\big)^2.$$
 Here the data are fixed numbers, and the unknowns are the slope $m$ and the intercept $b$: $E$ is a function of two variables.
 
 ::: definition Least-squares line
-The **least-squares line**, or **regression line**, of data points $(x_1, y_1), \dots, (x_n, y_n)$ is the line $y = mx + b$ whose slope and intercept minimise the sum of squared errors $E(m, b)$.
+A **least-squares line**, or **regression line**, of a nonempty finite collection of data points $(x_1, y_1), \dots, (x_n, y_n)$ is a line $y = mx + b$ whose slope and intercept minimise the sum of squared errors $E(m, b)$. The next theorem gives the condition for this line to be unique.
 :::
 
-Squares, rather than absolute values of the errors, make $E$ a smooth function of $m$ and $b$, so that calculus applies; they also punish one large error more than several small ones, which matters when the data contain a wild value. Mathematical Foundations' [least squares module](../math/module_12_EN.html) treats the same problem with vectors and projections; here partial derivatives find the answer.
+Squares, rather than absolute values of the errors, make $E$ a smooth function of $m$ and $b$, so that calculus applies; a large error can outweigh several smaller ones, which matters when the data contain a wild value. Mathematical Foundations' [least squares module](../math/module_12_EN.html) treats the same problem with vectors and projections; here partial derivatives find the answer.
 
 ::: theorem The normal equations
 Let $(x_1, y_1), \dots, (x_n, y_n)$ be data points with at least two different $x_i$. Then $E(m, b)$ has exactly one critical point, the solution of the **normal equations**
@@ -786,11 +805,11 @@ np.polyfit: [1.2 1.6]
 residuals: [-0.6  1.2 -1.   0.8 -0.4]  E = 3.6
 ```
 
-`np.polyfit(xs, ys, 1)` fits a polynomial of degree 1 and returns its coefficients highest power first, $[m, b]$, here as floating-point numbers. With degree 2 it fits a parabola $y = ax^2 + bx + c$ by least squares in the same way, from three normal equations.
+`np.polyfit(xs, ys, 1)` fits a polynomial of degree 1 and returns its coefficients highest power first, $[m, b]$, here as floating-point numbers. With degree 2 it fits $y = ax^2 + bx + c$ by least squares; the minimiser satisfies three normal equations and is unique when there are at least three distinct input values. The fitted coefficient $a$ can be 0, so the result need not be a parabola. The numerical routine solves a scaled least-squares system rather than forming these normal equations. NumPy recommends `numpy.polynomial.Polynomial.fit` for new code because it is more stable numerically.
 :::
 
 ::: pitfall
-Three slips with least squares. **Expecting the line to treat $x$ and $y$ alike**: it minimises vertical errors. Fitting $x$ as a function of $y$ to the data of Example 18.9 gives $x = \tfrac23y - \tfrac23$, that is, $y = 1.5x + 1$, a different line (both pass through the mean point). **Forgetting the condition**: if every $x_i$ is the same, the data lie on a vertical line, which is not of the form $y = mx + b$, and the normal equations have no unique solution. **Trusting a fit blindly**: a least-squares line exists for any data, even data that follow a curve. A pattern in the residuals, such as positive at both ends and negative in the middle, says that a line is the wrong model.
+Three slips with least squares. **Expecting the line to treat $x$ and $y$ alike**: it minimises vertical errors. Fitting $x$ as a function of $y$ to the data of Example 18.9 gives $x = \tfrac23y - \tfrac23$, that is, $y = 1.5x + 1$, a different line (both pass through the mean point). **Forgetting the condition**: if every $x_i$ equals the same number $a$, only the fitted value $ma + b$ is determined. It must equal $\bar y$, so infinitely many pairs with $b = \bar y - ma$ minimise $E$. **Trusting a fit blindly**: a least-squares fit exists for every nonempty finite data set, even data that follow a curve. A pattern in the residuals, such as positive at both ends and negative in the middle, suggests that a line is a poor model; it is evidence, not proof, because measurements can contain noise.
 :::
 
 ```check
@@ -799,15 +818,17 @@ same(solve([diff(E9x, m), diff(E9x, b)], [m, b], dict=True), [{m: Rational(2, 3)
 same(solve(Eq(x, Rational(2, 3)*y - Rational(2, 3)), y), [Rational(3, 2)*x + 1]); same(Rational(3, 2)*2 + 1, 4)
 E3c = sum((7 - m*3 - b)**2 for _ in range(3))
 same(hessian(E3c, (m, b)).det(), 0)                                          # equal x values: no unique solution
+same(E3c.subs(b, 7 - 3*m), 0)
+same([diff(E3c, v_).subs(b, 7 - 3*m) for v_ in (m, b)], [0, 0])
 ```
 
 ## Gradient descent: step size and conditioning {#gradient-descent}
 
-Solving $\nabla f = \vb{0}$ by algebra works only for simple functions. A machine-learning model may have millions of parameters, and its loss is minimised by a search instead: gradient descent, met in one variable in [Module 8](module_08_EN.html#gradient-descent) and in two in Module 17. From a starting point $\vb{x}_0$, with a step size $\eta > 0$ ("eta"),
+Solving $\nabla f = \vb{0}$ by algebra works only for simple functions. A machine-learning model may have millions of parameters, and training often seeks smaller loss by gradient descent, met in one variable in [Module 8](module_08_EN.html#gradient-descent) and in two in [Module 17](module_17_EN.html#gradient-descent). For a differentiable function $f$, from a starting point $\vb{x}_0$, with a step size $\eta > 0$ ("eta"),
 
 $$\vb{x}_{k+1} = \vb{x}_k - \eta\,\nabla f(\vb{x}_k), \qquad k = 0, 1, 2, \dots,$$
 
-where $\vb{x}_k = \langle x_k, y_k\rangle$. Each step moves against the gradient, the direction in which $f$ decreases fastest. [Example 8.18](module_08_EN.html#gradient-descent) showed that on the parabola $\tfrac q2x^2$ the steps converge exactly when $0 < \eta < 2/q$. In two variables a bowl can curve more steeply in one direction than in another, and that changes everything.
+where $\vb{x}_k = \langle x_k, y_k\rangle$, and each new point must stay in the domain. A nonzero gradient gives the direction of fastest decrease through $-\nabla f$, but a finite step can still increase $f$ if it is too large. [Example 8.18](module_08_EN.html#gradient-descent) showed that on the parabola $\tfrac q2x^2$, with $q > 0$, convergence to the minimum from every starting point holds exactly when $0 < \eta < 2/q$. In two variables a bowl can curve more steeply in one direction than in another, and that affects the choice of step size.
 
 ::: example Gradient descent in a long valley
 Run gradient descent on $f(x, y) = \tfrac12(x^2 + 10y^2)$ from $(-6, 2.5)$ with step size $\eta = 0.18$.
@@ -836,7 +857,7 @@ k | x_k | y_k | f
 20 | -0.1134 | 0.02882 | 0.01058
 ```
 
-The $x$-coordinate creeps towards 0, losing 18% each step. The $y$-coordinate overshoots every time: it changes sign at each step, and shrinks by only 20%. The path zigzags across the valley while it drifts slowly along it (Figure 18.5, left); after 20 steps $f$ has fallen from 49.25 to about 0.0106.
+The $x$-coordinate creeps towards 0, losing 18% of its magnitude each step. The $y$-coordinate overshoots every time: it changes sign at each step, and its magnitude shrinks by only 20%. The path zigzags across the valley while it drifts slowly along it (Figure 18.5, left); after 20 steps $f$ has fallen from 49.25 to about 0.0106.
 
 ```check
 fb18 = (x**2 + 10*y**2)/2
@@ -879,24 +900,28 @@ for cv_ in (1, 10, 25):
 
 ### Ill-conditioning {#ill-conditioning}
 
-Theorem 18.7 says that the steepest direction sets the speed limit: $\eta$ must stay below $2/c$, where $c$ is the larger curvature. In the flatter direction, with curvature $a$, the factor $1 - \eta a$ is then more than $1 - 2a/c$, which is close to 1 when $c$ is much larger than $a$: that coordinate creeps. The best compromise is the step $\eta^* = \dfrac{2}{a + c}$, which makes the two factors equal in size:
+Theorem 18.7 says that convergence from every starting point requires $\eta < 2/c$, where $c$ is the larger curvature. In the flatter direction, with curvature $a$, the factor $1 - \eta a$ is then more than $1 - 2a/c$, which is close to 1 when $c$ is much larger than $a$: a nonzero coordinate in that direction creeps towards 0. To minimise the larger of the two coordinate factors in magnitude, the best fixed step is $\eta^* = \dfrac{2}{a + c}$, which makes the two factors equal in size:
 
 $$1 - \eta^*a = \frac{c - a}{c + a}, \qquad 1 - \eta^*c = -\frac{c - a}{c + a}.$$
 
-Exercise 18.10 shows that no other step size does better. With $\kappa = c/a$, read "kappa", the **condition number** of the bowl, the factor is
+Exercise 18.10 shows that no other fixed step size makes that larger factor smaller. With $\kappa = c/a$, read "kappa", the **condition number** of the bowl, the factor is
 
 $$\frac{c - a}{c + a} = \frac{\kappa - 1}{\kappa + 1}.$$
 
-For the valley of Example 18.10, $\kappa = 10$: the best step is $\eta^* = \tfrac{2}{11} \approx 0.18$, and with it each step shrinks both coordinates, in size, by the factor $\tfrac{9}{11} \approx 0.82$. When $\kappa$ is large the factor is close to 1, and gradient descent is slow: the number of steps it needs grows in proportion to $\kappa$ (the Compute it box below counts them, and Exercise 18.10 explains why).
+For the valley of Example 18.10, $\kappa = 10$: this best fixed step is $\eta^* = \tfrac{2}{11} \approx 0.18$, and with it each step shrinks both coordinates, in size, by the factor $\tfrac{9}{11} \approx 0.82$. When $\kappa$ is large the factor is close to 1, and gradient descent is slow: to reduce the distance from the minimum by a fixed factor, the number of steps with $\eta^*$ grows asymptotically in proportion to $\kappa$ (the Compute it box below counts them, and Exercise 18.10 explains why).
 
 ```check
 same(1 - 2*ab_/(ab_ + cb_), (cb_ - ab_)/(cb_ + ab_)); same(1 - 2*cb_/(ab_ + cb_), -(cb_ - ab_)/(cb_ + ab_))
 kp_ = symbols('kappa', positive=True)
 same(((cb_ - ab_)/(cb_ + ab_)).subs(cb_, kp_*ab_), (kp_ - 1)/(kp_ + 1))
 same(Rational(2, 1 + 10), Rational(2, 11)); rounds(Rational(2, 11), '0.18'); same((10 - 1)/Integer(10 + 1), Rational(9, 11)); rounds(Rational(9, 11), '0.82')
+Cp_ = symbols('C', positive=True)
+same(fab.subs({x: sqrt(2*Cp_/ab_), y: 0}), Cp_); same(fab.subs({x: 0, y: sqrt(2*Cp_/cb_)}), Cp_)
+same(sqrt(2*Cp_/ab_)/sqrt(2*Cp_/cb_), sqrt(cb_/ab_))
+limit_is((-1/log((kp_ - 1)/(kp_ + 1)))/kp_, kp_, oo, Rational(1, 2))
 ```
 
-The picture explains it. The level curves $\tfrac12(ax^2 + cy^2) = C$ are ellipses with semi-axes $\sqrt{2C/a}$ and $\sqrt{2C/c}$, so they are $\sqrt\kappa$ times as long as they are wide. The gradient is perpendicular to the level curve through the point (Module 17), and on a long, thin ellipse the perpendicular points mostly across the valley rather than along it towards the minimum. A function whose level curves near the minimum are long, thin ellipses is **ill-conditioned**, and gradient descent zigzags on it (Figure 18.5).
+The picture explains it. For $C > 0$, the level curves $\tfrac12(ax^2 + cy^2) = C$ are ellipses with semi-axes $\sqrt{2C/a}$ and $\sqrt{2C/c}$, so they are $\sqrt\kappa$ times as long as they are wide. The gradient is perpendicular to the level curve through the point (Module 17), and often points across the valley rather than directly towards the minimum. A quadratic bowl with a large condition number, and hence long, thin elliptical level curves, is **ill-conditioned**. Gradient descent can zigzag on it, as in Figure 18.5, though smaller steps or a start on an axis need not zigzag.
 
 ### Rescaling {#rescaling}
 
@@ -907,9 +932,11 @@ vv_ = symbols('v')
 same(fb18.subs(y, vv_/sqrt(10)), (x**2 + vv_**2)/2)
 same(Matrix([x, vv_]) - 1*Matrix([diff((x**2 + vv_**2)/2, x), diff((x**2 + vv_**2)/2, vv_)]), Matrix([0, 0]))
 same(sqrt(10)*(vv_/sqrt(10)), vv_)
+same(Matrix([x, vv_]) - Rational(1, 2)*Matrix([x, vv_]), Matrix([x/2, vv_/2]))
+same((vv_ - eb_*vv_).subs(vv_, sqrt(10)*y)/sqrt(10), y - eb_*diff(fb18, y)/10)
 ```
 
-A common cause of ill-conditioning is easy to spot: variables measured on very different scales. That is why, before a model is trained, its input features are usually **standardised**: shifted to mean 0 and scaled to a similar spread. Least squares shows the effect. For the data of Example 18.9, the second partial derivatives of $E(m, b)$ are $E_{mm} = 2\sum x_i^2 = 60$, $E_{mb} = 2\sum x_i = 20$ and $E_{bb} = 2n = 10$; the mixed term tilts the elliptical level curves, and they are long and thin. Centre the inputs, using $x_i - 2$ in place of $x_i$, where 2 is their mean: then $\sum (x_i - 2) = 0$, the mixed term disappears, and $E_{mm} = 20$, $E_{mb} = 0$, $E_{bb} = 10$, a condition number of 2. The fitted line is the same, $y = 1.2(x - 2) + 4 = 1.2x + 1.6$ (Exercise 18.12), but gradient descent finds it far faster, as the box below shows.
+A common cause of ill-conditioning is variables measured on very different scales. One common preprocessing step is to **standardise** nonconstant input features: subtract each feature's training-data mean and divide by its **standard deviation**, the square root of the mean squared distance from that mean. The transformed training values then have mean 0 and standard deviation 1. This can help conditioning, though it does not remove every cause, such as strongly related features. Even centring alone can help. For the data of Example 18.9, the second partial derivatives of $E(m, b)$ are $E_{mm} = 2\sum x_i^2 = 60$, $E_{mb} = 2\sum x_i = 20$ and $E_{bb} = 2n = 10$; the mixed term tilts the elliptical level curves, and they are long and thin. Centre the inputs, using $x_i - 2$ in place of $x_i$, where 2 is their mean: then $\sum (x_i - 2) = 0$, the mixed term disappears, and $E_{mm} = 20$, $E_{mb} = 0$, $E_{bb} = 10$, a condition number of 2. The fitted line is the same, $y = 1.2(x - 2) + 4 = 1.2x + 1.6$ (Exercise 18.12), but gradient descent finds it far faster in the computation below.
 
 ```check
 same(hessian(E9, (m, b)), Matrix([[60, 20], [20, 10]]))
@@ -918,7 +945,7 @@ same(sum(X9c), 0); same(hessian(E9c, (m, b)), Matrix([[20, 0], [0, 10]])); same(
 same(solve([diff(E9c, m), diff(E9c, b)], [m, b], dict=True), [{m: Rational(6, 5), b: 4}]); same(expand(Rational(6, 5)*(x - 2) + 4), Rational(6, 5)*x + Rational(8, 5))
 ```
 
-For a bowl whose elliptical level curves are tilted, the same analysis holds along the axes of the ellipses; their curvatures are the **eigenvalues** of the Hessian matrix, which Mathematical Foundations' [Module 13](../math/module_13_EN.html) studies. Near the minimum of any smooth function, the Hessian there plays the role of $a$ and $c$, as the second derivative did in Module 8's rule of thumb for the step size. Mathematical Foundations' [Module 19](../math/module_19_EN.html) treats gradient methods and conditioning from the computing side, and the [AI series](../ai/index.html) shows them training real models.
+For a quadratic bowl whose elliptical level curves are tilted, the same analysis holds along the axes of the ellipses; their curvatures are the positive **eigenvalues** of the Hessian matrix, which Mathematical Foundations' [Module 13](../math/module_13_EN.html) studies. For a function with continuous second partial derivatives near a minimum, this gives a local guide when both Hessian eigenvalues there are positive: the quadratic approximation is a bowl. It is not a global convergence guarantee. A minimum with a zero eigenvalue, such as the origin for $x^4 + y^4$, needs a different analysis. Mathematical Foundations' [Module 19](../math/module_19_EN.html) treats gradient methods and conditioning from the computing side, and the [AI series](../ai/index.html) shows them training real models.
 
 ::: compute Condition number and steps
 How many steps does gradient descent with the best fixed step need on $f = \tfrac12(x^2 + \kappa y^2)$, from $(1, 1)$, to bring the point a million times closer to the minimum?
@@ -926,12 +953,18 @@ How many steps does gradient descent with the best fixed step need on $f = \tfra
 ```python
 import math
 
-def steps_needed(kappa):
+def steps_needed(kappa, max_steps=100000):
+    if not math.isfinite(kappa) or kappa < 1:
+        raise ValueError("kappa must be finite and at least 1")
     eta = 2/(1 + kappa)                         # the best fixed step
-    x, y, k = 1.0, 1.0, 0
-    while math.hypot(x, y) > 1e-6*math.sqrt(2): # 10^6 times closer
-        x, y, k = x - eta*x, y - eta*kappa*y, k + 1
-    return k
+    x, y = 1.0, 1.0
+    for k in range(max_steps + 1):
+        if math.hypot(x, y) <= 1e-6*math.sqrt(2):
+            return k                           # completed updates
+        if k == max_steps:
+            break
+        x, y = x - eta*x, y - eta*kappa*y
+    raise RuntimeError("distance tolerance not reached within the step limit")
 
 for kappa in (1, 10, 100, 1000):
     print(f"kappa = {kappa:4}   steps needed: {steps_needed(kappa)}")
@@ -944,21 +977,28 @@ kappa =  100   steps needed: 691
 kappa = 1000   steps needed: 6908
 ```
 
-Each tenfold increase in $\kappa$ multiplies the work by about ten. Now least squares: fit the line of Example 18.9 by gradient descent on $E(m, b)$, with the raw inputs and with the inputs centred, using the same step size $\eta = 0.025$ for both, and stop when both partial derivatives are below $10^{-6}$:
+From $\kappa = 10$ onwards, each tenfold increase in this table multiplies the work by about ten. The step limit prevents an endless loop if the requested reduction takes too long or floating-point arithmetic stops making progress.
+
+Now least squares: fit the line of Example 18.9 by gradient descent on $E(m, b)$, with the raw inputs and with the inputs centred, using the same step size $\eta = 0.025$ for both, and stop when both partial derivatives have magnitude below $10^{-6}$:
 
 ```python
 import numpy as np
 xs = np.array([0, 1, 2, 3, 4.0])
 ys = np.array([1, 4, 3, 6, 6.0])
 
-def fit_by_descent(xs, ys, eta=0.025):
+def fit_by_descent(xs, ys, eta=0.025, max_steps=100000):
     m = b = 0.0
-    for k in range(1, 100001):
+    for k in range(max_steps + 1):
         e = ys - (m*xs + b)                       # the residuals
         Em, Eb = -2*np.sum(xs*e), -2*np.sum(e)    # the partial derivatives of E
+        if not np.isfinite([Em, Eb]).all():
+            raise RuntimeError("nonfinite gradient; try a smaller step")
         if max(abs(Em), abs(Eb)) < 1e-6:
-            return k - 1, m, b
+            return k, m, b                       # completed updates
+        if k == max_steps:
+            break
         m, b = m - eta*Em, b - eta*Eb
+    raise RuntimeError("gradient tolerance not reached within the step limit")
 
 for name, x in (("raw", xs), ("centred", xs - 2)):
     k, m, b = fit_by_descent(x, ys)
@@ -970,14 +1010,29 @@ raw      inputs: 193 steps, m = 1.200000, b = 1.600000
 centred  inputs: 61 steps, m = 1.200000, b = 4.000000
 ```
 
-With the same step size, the centred inputs need 61 steps instead of 193. They also allow larger steps: the largest second partial derivative of the centred $E$ is $E_{mm} = 20$, so by Theorem 18.7 any $\eta < 0.1$ converges, while the raw inputs diverge already for $\eta = 0.03$. The centred fit reports $b \approx 4$, the intercept at $x = 2$: the line $y = 1.2(x - 2) + 4$, the same line as before.
+With the same step size, the centred inputs need 61 steps instead of 193. They also allow larger steps: the centred Hessian is diagonal with curvatures 20 and 10, so Theorem 18.7, applied after shifting the minimum to the origin, gives convergence from every start when $0 < \eta < 0.1$. From the same zero start, the raw inputs diverge already for $\eta = 0.03$. The centred fit reports $b \approx 4$, the intercept at $x = 2$: the line $y = 1.2(x - 2) + 4$, the same line as before. Both functions report an error if their tolerance is not reached within the permitted number of updates.
 :::
 
 ```check
 Hraw = hessian(E9, (m, b))
 same_set(list(Hraw.eigenvals().keys()), [35 + 5*sqrt(41), 35 - 5*sqrt(41)])
 holds(Abs(1 - Rational(3, 100)*(35 + 5*sqrt(41))) > 1); holds(Abs(1 - Rational(3, 100)*(35 - 5*sqrt(41))) < 1)   # eta = 0.03 diverges (raw)
+vfast_ = Matrix([(5 + sqrt(41))/4, 1])
+same(Hraw*vfast_, (35 + 5*sqrt(41))*vfast_)
+holds(Matrix([-Rational(6, 5), -Rational(8, 5)]).dot(vfast_) < 0)       # the zero start has a nonzero unstable component
 same(2/Integer(20), Rational(1, 10)); same(hessian(E9c, (m, b))[0, 0], 20)
+for curvature_, count_ in ((10, 69), (100, 691), (1000, 6908)):
+    rho_ = Rational(curvature_ - 1, curvature_ + 1)
+    holds(rho_**count_ <= Rational(1, 10**6)); holds(rho_**(count_ - 1) > Rational(1, 10**6))
+same(1 - Rational(2, 1 + 1), 0)                                    # kappa = 1: one update
+for objective_, count_ in ((E9, 193), (E9c, 61)):
+    H_ = hessian(objective_, (m, b))
+    g0_ = Matrix([diff(objective_, v_).subs({m: 0, b: 0}) for v_ in (m, b)])
+    before_ = (eye(2) - H_/40)**(count_ - 1)*g0_
+    after_ = (eye(2) - H_/40)*before_
+    holds(max(abs(v_) for v_ in before_) >= Rational(1, 10**6))
+    holds(max(abs(v_) for v_ in after_) < Rational(1, 10**6))
+same(hessian(x**4 + y**4, (x, y)).subs({x: 0, y: 0}), zeros(2))
 import numpy as _np
 def _gd(xv, eta, n):
     mm_ = bb_ = 0.0
@@ -988,11 +1043,14 @@ holds(abs(_gd(_np.array([0, 1, 2, 3, 4.0]), 0.03, 400)[0]) > 50); near(_gd(_np.a
 ```
 
 ::: pitfall
-Three slips with gradient descent. **"A larger step is always faster"**: only up to $2/c$; beyond it the steps in the steepest direction grow, and the method diverges. **"Gradient descent heads for the minimum"**: it heads downhill as steeply as possible, perpendicular to the level curve, which points at the minimum only when the level curves are circles. **"It always finds a minimum"**: it finds a critical point. On the saddle $f = x^2 - y^2$, from a start on the $x$-axis, every step keeps $y = 0$ and the points converge to the saddle point; a start slightly off the axis escapes, but slowly at first.
+Three slips with gradient descent. **"A larger step is always faster"**: a larger step can be worse even below $2/c$. For the quadratic bowl, a step above $2/c$ makes any nonzero component in the steepest direction grow. **"Gradient descent heads for the minimum"**: a nonzero negative gradient gives the direction of steepest local decrease. On an elliptical bowl it points directly at the minimum on the axes, but usually across the valley elsewhere; circular level curves make every such direction radial. **"It always finds a minimum"**: it need not converge, and even a convergent sequence can reach a saddle. On $f = x^2 - y^2$, with $0 < \eta < 1$, a start on the $x$-axis stays there and converges to the saddle at the origin; a start off the axis escapes because its $y$-coordinate is multiplied by $1 + 2\eta > 1$ at every step.
 :::
 
 ```check
 xs_, ys_ = Integer(1), Integer(0)
+same(Matrix([x, y]) - eb_*Matrix([2*x, -2*y]), Matrix([(1 - 2*eb_)*x, (1 + 2*eb_)*y]))
+same(solve_univariate_inequality(Abs(1 - 2*er_) < 1, er_, relational=False), Interval.open(0, 1))
+holds(1 + 2*eb_ > 1)
 for _ in range(30):
     xs_, ys_ = xs_ - Rational(1, 10)*2*xs_, ys_ + Rational(1, 10)*2*ys_
 holds(ys_ == 0); holds(abs(xs_) < Rational(1, 100)); same(xs_, Rational(4, 5)**30)
@@ -1004,12 +1062,12 @@ holds(ys_ > 0.2); holds(Rational(1, 1000)*Rational(12, 10)**5 < Rational(3, 1000
 
 ## What you learned {#summary}
 
-- A local extremum of $f(x, y)$ is at a **critical point**, where $\nabla f = \vb{0}$ or a partial derivative does not exist. A critical point that is not an extremum is a **saddle point**, like the origin for $x^2 - y^2$.
-- **The second derivative test**, with $D = f_{xx}f_{yy} - f_{xy}^2$, the determinant of the **Hessian matrix**: $D > 0$ and $f_{xx} > 0$, local minimum; $D > 0$ and $f_{xx} < 0$, local maximum; $D < 0$, saddle point; $D = 0$, no information. It reads the sign of the quadratic approximation.
-- A continuous function on a **closed, bounded** region has absolute extreme values (the Extreme Value Theorem): compare its values at the critical points inside with its extreme values on the boundary, found piece by piece with one-variable methods.
-- **Lagrange multipliers**: at an extremum of $f$ on the curve $g = c$, with $\nabla g \ne \vb{0}$, the level curve of $f$ touches the curve, so $\nabla f = \lambda\nabla g$. Add the points where $\nabla g = \vb{0}$ and the ends of the curve, compare, and make sure an extremum exists. With two constraints, $\nabla f = \lambda\nabla g + \mu\nabla h$. The multiplier is the rate at which the best value changes with $c$.
-- **Least squares**: the line $y = mx + b$ that minimises $E(m, b) = \sum(y_i - mx_i - b)^2$ solves the normal equations, $\partial E/\partial m = \partial E/\partial b = 0$. It passes through the mean point.
-- **Gradient descent** on a bowl $\tfrac12(ax^2 + cy^2)$ converges exactly when $0 < \eta < 2/c$, and at best shrinks the error by the factor $\tfrac{\kappa - 1}{\kappa + 1}$ per step, where $\kappa = c/a$ is the **condition number**. Long, thin level curves make it zigzag and crawl; rescaling or centring the variables helps.
+- A local extremum of $f(x, y)$ is at a **critical point**, where $\nabla f = \vb{0}$ or a partial derivative does not exist. An interior critical point that is neither a local maximum nor a local minimum is a **saddle point**, like the origin for $x^2 - y^2$.
+- **The second derivative test** applies at an interior point where $\nabla f = \vb{0}$, when the second partial derivatives are continuous nearby. With $D = f_{xx}f_{yy} - f_{xy}^2$, the determinant of the **Hessian matrix**: $D > 0$ and $f_{xx} > 0$, local minimum; $D > 0$ and $f_{xx} < 0$, local maximum; $D < 0$, saddle point; $D = 0$, inconclusive. It reads the sign of the quadratic approximation.
+- A continuous function on a **nonempty, closed, bounded** region has absolute extreme values (the Extreme Value Theorem): compare its values at the critical points inside with its extreme values on the boundary, found piece by piece with one-variable methods.
+- **Lagrange multipliers**: for $f$ and $g$ with continuous first partial derivatives nearby, an extremum of $f$ on $g = c$ where $\nabla g \ne \vb{0}$ satisfies $\nabla f = \lambda\nabla g$. Add singular points and any ends of the constraint, compare, and make sure an extremum exists. With two such constraints and independent gradients, $\nabla f = \lambda\nabla g + \mu\nabla h$. Along a differentiable family of optimal points, the multiplier is the rate at which the best value changes with $c$.
+- **Least squares**: the line $y = mx + b$ that minimises $E(m, b) = \sum(y_i - mx_i - b)^2$ solves the normal equations, $\partial E/\partial m = \partial E/\partial b = 0$. It passes through the mean point and is unique when at least two inputs differ.
+- **Gradient descent** on a bowl $\tfrac12(ax^2 + cy^2)$, with $0 < a \le c$, converges from every starting point exactly when $0 < \eta < 2/c$. The best fixed step shrinks the distance to the minimum by $\tfrac{\kappa - 1}{\kappa + 1}$ per step, where $\kappa = c/a$ is the **condition number**. Long, thin level curves can lead to slow, zigzagging paths; rescaling or centring can help.
 
 ## Exercises {#exercises}
 
@@ -1034,7 +1092,9 @@ same(solve([diff(f1a, x), diff(f1a, y)], [x, y], dict=True), [{x: 2, y: -1}])
 same(hessian(f1a, (x, y)), Matrix([[2, 1], [1, 2]])); same(hessian(f1a, (x, y)).det(), 3); same(f1a.subs({x: 2, y: -1}), -3)
 same(expand(f1a.subs({x: 2 + h, y: -1 + k})), -3 + h**2 + h*k + k**2); same(expand((h + k/2)**2 + Rational(3, 4)*k**2), h**2 + h*k + k**2)
 g1b = x**3 - 12*x + y**2 + 4*y
+same(diff(g1b, x), 3*x**2 - 12); same(diff(g1b, y), 2*y + 4)
 same_set(solve([diff(g1b, x), diff(g1b, y)], [x, y], dict=True), [{x: 2, y: -2}, {x: -2, y: -2}])
+same(hessian(g1b, (x, y)), Matrix([[6*x, 0], [0, 2]]))
 same(hessian(g1b, (x, y)).det(), 12*x)
 same(g1b.subs({x: 2, y: -2}), -20); same(g1b.subs({x: -2, y: -2}), 12); same(8 - 24 + 4 - 8, -20); same(-8 + 24 + 4 - 8, 12)
 ```
@@ -1042,7 +1102,7 @@ same(g1b.subs({x: 2, y: -2}), -20); same(g1b.subs({x: -2, y: -2}), 12); same(8 -
 ::::
 
 :::: exercise Reading the test {#ex-18-2} ★
-At five critical points of functions with continuous second partial derivatives, the second partial derivatives are:
+At five interior critical points of functions with continuous second partial derivatives nearby, the second partial derivatives are:
 
 | Point | $f_{xx}$ | $f_{xy}$ | $f_{yy}$ |
 |---|---|---|---|
@@ -1061,16 +1121,17 @@ At five critical points of functions with continuous second partial derivatives,
 - $P_1$: $D = 10 - 9 = 1 > 0$ and $f_{xx} > 0$: a local minimum.
 - $P_2$: $D = 3 - 4 = -1 < 0$: a saddle point.
 - $P_3$: $D = 4 - 1 = 3 > 0$ and $f_{xx} < 0$: a local maximum.
-- $P_4$: $D = 4 - 4 = 0$: the test gives no information.
+- $P_4$: $D = 4 - 4 = 0$: the test is inconclusive.
 - $P_5$: $D = 0 - 1 = -1 < 0$: a saddle point.
 
-**(b)** At $P_2$, $Q(h, k) = -h^2 + 4hk - 3k^2 = -(h - k)(h - 3k)$. It is positive when $h - k$ and $h - 3k$ have opposite signs, for example at $(h, k) = (2, 1)$, where $Q = -4 + 8 - 3 = 1$. So $f$ increases from $P_2$ in the direction $\langle 2, 1\rangle$ (and in the opposite direction), while along $\langle 1, 0\rangle$, where $Q = -1$, it decreases. A saddle point can hide behind two negative pure second derivatives; the mixed one decides.
+**(b)** At $P_2$, $Q(h, k) = -h^2 + 4hk - 3k^2 = -(h - k)(h - 3k)$. It is positive when $h - k$ and $h - 3k$ have opposite signs, for example at $(h, k) = (2, 1)$, where $Q = -4 + 8 - 3 = 1$. For displacements $(h, k) = (2t, t)$, $Q = t^2$, so the quadratic approximation and its smaller remainder give $f(P_2 + (2t, t)) > f(P_2)$ for sufficiently small nonzero $t$. Along $(t, 0)$, $Q = -t^2$, and the values are smaller. A saddle point can hide behind two negative pure second derivatives; the mixed one decides.
 
 ```check
 tab = {1: (2, 3, 5), 2: (-1, 2, -3), 3: (-4, 1, -1), 4: (4, -2, 1), 5: (0, 1, 0)}
 same({kname: fxx_*fyy_ - fxy_**2 for kname, (fxx_, fxy_, fyy_) in tab.items()}, {1: 1, 2: -1, 3: 3, 4: 0, 5: -1})
 QQ = -hh_**2 + 2*2*hh_*kk_ - 3*kk_**2
 same(QQ, -(hh_ - kk_)*(hh_ - 3*kk_)); same(QQ.subs({hh_: 2, kk_: 1}), 1); same(QQ.subs({hh_: -2, kk_: -1}), 1); same(QQ.subs({hh_: 1, kk_: 0}), -1)
+same(QQ.subs({hh_: 2*t, kk_: t}), t**2); same(QQ.subs({hh_: t, kk_: 0}), -t**2)
 ```
 :::
 ::::
@@ -1085,7 +1146,7 @@ $$2x = 2\lambda x, \quad 4y = 2\lambda y, \quad x^2 + y^2 = 1,$$
 
 that is, $x(1 - \lambda) = 0$ and $y(2 - \lambda) = 0$. If $x \ne 0$, then $\lambda = 1$, so $y(2 - 1) = 0$ gives $y = 0$ and $x = \pm1$. If $x = 0$, the circle gives $y = \pm1$, and then $\lambda = 2$. The candidates are $(\pm1, 0)$, with $f = 1$ and $\lambda = 1$, and $(0, \pm1)$, with $f = 2$ and $\lambda = 2$. The circle is closed and bounded, so the largest value of $f$ on it is 2, at $(0, \pm1)$, and the smallest is 1, at $(\pm1, 0)$.
 
-Cancelling $x$ in the first equation to get $\lambda = 1$ would have lost the two maximum points. In the widget, choose $x^2 + 2y^2$ and the circle: at $t = 0^\circ$ and $180^\circ$ it reports $\lambda = 1$, at $90^\circ$ and $270^\circ$ $\lambda = 2$. The level curves $x^2 + 2y^2 = k$ are ellipses, twice as long as they are high. The ellipse $k = 1$, with semi-axes 1 and $\tfrac{1}{\sqrt2}$, lies inside the circle and touches it at $(\pm1, 0)$; the ellipse $k = 2$, with semi-axes $\sqrt2$ and 1, lies outside it and touches it at $(0, \pm1)$.
+Cancelling $x$ in the first equation to get $\lambda = 1$ would have lost the two maximum points. In the widget, choose $x^2 + 2y^2$ and the circle: at $t = 0^\circ$ and $180^\circ$ it reports $\lambda = 1$, at $90^\circ$ and $270^\circ$ $\lambda = 2$. For $k > 0$, the level curves $x^2 + 2y^2 = k$ are ellipses, $\sqrt2$ times as wide as they are high. The ellipse $k = 1$, with semi-axes 1 and $\tfrac{1}{\sqrt2}$, lies inside the circle and touches it at $(\pm1, 0)$; the ellipse $k = 2$, with semi-axes $\sqrt2$ and 1, lies outside it and touches it at $(0, \pm1)$.
 
 ```check
 xr3, yr3, lr3 = symbols('x y lambda', real=True)
@@ -1094,6 +1155,7 @@ same_set(solve([2*xr3 - 2*lr3*xr3, 4*yr3 - 2*lr3*yr3, xr3**2 + yr3**2 - 1], [xr3
 same(2*x - 2*lam_*x, 2*x*(1 - lam_)); same([(x**2 + 2*y**2).subs({x: px_, y: py_}) for px_, py_ in ((1, 0), (0, 1))], [1, 2])
 same(maximum(cos(t)**2 + 2*sin(t)**2, t, Interval(0, 2*pi)), 2); same(minimum(cos(t)**2 + 2*sin(t)**2, t, Interval(0, 2*pi)), 1)
 holds(1/sqrt(2) < 1); same((x**2 + 2*y**2).subs({x: 0, y: 1/sqrt(2)}), 1); same((x**2 + 2*y**2).subs({x: sqrt(2), y: 0}), 2)
+level18 = symbols('level', positive=True); same(sqrt(level18)/sqrt(level18/2), sqrt(2))
 ```
 :::
 ::::
@@ -1200,7 +1262,7 @@ $$2(x - 1) = \lambda, \quad 2(y - 1) = 2\lambda, \quad 2(z - 1) = 2\lambda,$$
 
 so $x = 1 + \tfrac{\lambda}{2}$ and $y = z = 1 + \lambda$. The plane gives $\big(1 + \tfrac{\lambda}{2}\big) + 2(1 + \lambda) + 2(1 + \lambda) = 5 + \tfrac92\lambda = 14$, so $\lambda = 2$ and the point is $(2, 3, 3)$. Its distance from $(1, 1, 1)$ is $\sqrt{1 + 4 + 4} = 3$.
 
-**A closest point exists.** The points of the plane with $f \le 9$ form a closed, bounded set (a disc), which contains $(2, 3, 3)$. On it $f$ has a smallest value (the Extreme Value Theorem in three variables), at most 9, and outside it $f > 9$. So that smallest value is the minimum over the whole plane, at a point where the method applies: it is the only candidate, $(2, 3, 3)$.
+**A closest point exists.** The points of the plane with $f \le 9$ form a closed, bounded set, nonempty because it contains $(2, 3, 3)$. On it $f$ has a smallest value (the Extreme Value Theorem in three variables), at most 9, and outside it $f > 9$. So that smallest value is the minimum over the whole plane, at a point where the method applies: it is the only candidate, $(2, 3, 3)$. The set with $f \le 9$ therefore consists of that point.
 
 **Geometrically**, $(2, 3, 3) - (1, 1, 1) = \langle 1, 2, 2\rangle$, the normal vector of the plane (Module 16): the shortest segment from a point to a plane is perpendicular to the plane. Module 16's formula for the distance from a point to a plane gives the same answer:
 
@@ -1239,6 +1301,7 @@ $$(4, 2) \to (2.4, -1.2) \to (1.44, 0.72) \to (0.864, -0.432).$$
 
 ```check
 pg = [(Integer(4), Integer(2))]
+same([diff(x**2 + 4*y**2, v) for v in (x, y)], [2*x, 8*y])
 for _ in range(3):
     px_, py_ = pg[-1]; pg.append((px_ - Rational(1, 5)*2*px_, py_ - Rational(1, 5)*8*py_))
 same(pg, [(4, 2), (Rational(12, 5), -Rational(6, 5)), (Rational(36, 25), Rational(18, 25)), (Rational(108, 125), -Rational(54, 125))])
@@ -1314,6 +1377,7 @@ import math as _m
 for kv_, want_ in ((10, '69'), (100, '691'), (1000, '6908')):
     rounds(log(10**6)/2*kv_, want_)
     holds(abs(_m.log(1e6)/_m.log((kv_ + 1)/(kv_ - 1)) - _m.log(1e6)/2*kv_) < 1)
+    same(ceiling(log(10**6)/log(Rational(kv_ + 1, kv_ - 1))), Integer(want_))
 ```
 :::
 ::::
@@ -1358,7 +1422,7 @@ $$\sum(x_i - \bar x)(y_i - \bar y) = \sum x_iy_i - \bar y\sum x_i - \bar x\sum y
 
 since $\sum x_i = n\bar x$ and $\sum y_i = n\bar y$.
 
-**(b)** If $\bar x = 0$, then $\sum x_i = 0$, and the normal equations lose their mixed terms: $\big(\sum x_i^2\big)m = \sum x_iy_i$ and $nb = \sum y_i$, that is, $b = \bar y$. The mixed partial derivative is $E_{mb} = 2\sum x_i = 0$: the level curves of $E$ are ellipses with axes along the $m$ and $b$ directions, and the two unknowns can be found separately.
+**(b)** If $\bar x = 0$, then $\sum x_i = 0$, and the normal equations lose their mixed terms: $\big(\sum x_i^2\big)m = \sum x_iy_i$ and $nb = \sum y_i$, that is, $b = \bar y$. The mixed partial derivative is $E_{mb} = 2\sum x_i = 0$: above the minimum value, the level curves of $E$ are ellipses with axes along the $m$ and $b$ directions (circles if $\sum x_i^2 = n$), and the two unknowns can be found separately. At the minimum value the level set is a single point.
 
 **(c)** The centred inputs are $-2, -1, 0, 1, 2$, with the same $y$ values $1, 4, 3, 6, 6$. Then $\sum x_i^2 = 10$ and $\sum x_iy_i = -2 - 4 + 0 + 6 + 12 = 12$, so $m = \tfrac{12}{10} = 1.2$, and $b = \bar y = 4$. The line is $y = 1.2(x - 2) + 4 = 1.2x + 1.6$, as in Example 18.9.
 
@@ -1378,26 +1442,26 @@ same(Rational(12, 10), Rational(6, 5)); same(expand(Rational(6, 5)*(x - 2) + 4),
 ## Check yourself {#quiz}
 
 ```quiz
-? At a critical point of a function with continuous second partial derivatives, $f_{xx} = 3$, $f_{xy} = 4$ and $f_{yy} = 2$. The point is
+? At an interior critical point of a function with continuous second partial derivatives nearby, $f_{xx} = 3$, $f_{xy} = 4$ and $f_{yy} = 2$. The point is
 - [ ] a local minimum, since $f_{xx} > 0$ and $f_{yy} > 0$
 - [ ] a local maximum
 - [x] a saddle point
 - [ ] impossible to classify with the second derivative test
-> $D = 3 \cdot 2 - 4^2 = -10 < 0$, so it is a saddle point. The signs of $f_{xx}$ and $f_{yy}$ decide only when $D > 0$; here the mixed term wins, as for $x^2 + 3xy + y^2$. The test is silent only when $D = 0$.
+> $D = 3 \cdot 2 - 4^2 = -10 < 0$, so it is a saddle point. The signs of $f_{xx}$ and $f_{yy}$ decide the classification when $D > 0$; here the mixed term wins, as for $x^2 + 3xy + y^2$. When $D = 0$ the test is inconclusive.
 
-? $\nabla f(a, b) = \vb{0}$. Which statement must be true?
+? At an interior point of the domain, $\nabla f(a, b) = \vb{0}$. Which statement must be true?
 - [x] $(a, b)$ is a critical point, which may be a local maximum, a local minimum or a saddle point
 - [ ] $f$ has a local extremum at $(a, b)$
 - [ ] $f$ has an absolute extremum at $(a, b)$
 - [ ] $f$ is constant near $(a, b)$
 > Fermat's theorem does not work backwards: $x^2 - y^2$ has $\nabla f = \vb{0}$ at the origin, a saddle point. Even a local minimum need not be absolute, like $(1, 1)$ for $x^3 + y^3 - 3xy$. And a zero gradient at one point says nothing about nearby points.
 
-? At a point $(a, b)$ where $f_x = f_y = 0$, the second partial derivatives are continuous, $D = 0$ and $f_{xx} = 2$. Then
+? At an interior point $(a, b)$ where $f_x = f_y = 0$, the second partial derivatives are continuous nearby, $D = 0$ and $f_{xx} = 2$. Then
 - [ ] $(a, b)$ is a saddle point
 - [ ] $f$ has a local minimum there, since $f_{xx} > 0$
 - [ ] $f$ has no extremum there
-- [x] the second derivative test gives no information
-> With $D = 0$ anything can happen: $x^2 + y^4$, $x^2 - y^4$ and $x^2 + y^3$ all have $D = 0$ and $f_{xx} = 2$ at the origin, and they have a minimum, a saddle point and a saddle point.
+- [x] the test does not decide between a local minimum and a saddle point
+> $x^2 + y^4$, $x^2 - y^4$ and $x^2 + y^3$ all have $D = 0$ and $f_{xx} = 2$ at the origin, and they have a minimum, a saddle point and a saddle point. A local maximum is ruled out: along $y = b$, the one-variable second derivative test gives a strict minimum at $x = a$ because $f_{xx} = 2 > 0$.
 
 ? On which of these sets does every continuous function $f(x, y)$ have an absolute maximum and an absolute minimum?
 - [ ] the open disc $x^2 + y^2 < 1$
@@ -1406,12 +1470,12 @@ same(Rational(12, 10), Rational(6, 5)); same(expand(Rational(6, 5)*(x - 2) + 4),
 - [ ] the whole plane
 > The Extreme Value Theorem needs a closed, bounded set, and the triangle with its sides is both. The open disc is not closed ($x + y$ comes as close to $\sqrt2$ as you like there without reaching it); the half-plane and the plane are not bounded ($x$ has no largest value on them).
 
-? $f$ has a maximum on the curve $g(x, y) = c$ at $(a, b)$, and $\nabla g(a, b) \ne \vb{0}$. Then at $(a, b)$
+? $f$ and $g$ have continuous first partial derivatives near $(a, b)$. There $f$ has a maximum on the curve $g(x, y) = c$, and $\nabla g(a, b) \ne \vb{0}$. Then at $(a, b)$
 - [ ] $\nabla f(a, b) = \vb{0}$
 - [ ] $\nabla f$ is perpendicular to $\nabla g$
-- [x] $\nabla f$ is parallel to $\nabla g$: the level curve of $f$ touches the constraint curve
+- [x] $\nabla f = \lambda\nabla g$ for some real $\lambda$, possibly 0
 - [ ] the level curve of $f$ crosses the constraint curve
-> By Lagrange's theorem $\nabla f = \lambda\nabla g$. $\nabla f$ need not be $\vb{0}$: $x + y$ has gradient $\langle 1, 1\rangle$ at its maximum on the circle. If $\nabla f$ were perpendicular to $\nabla g$ (and not zero), it would point along the curve, and $f$ would increase along it. Where the level curve crosses the constraint curve, $f$ takes larger values on the curve nearby.
+> By Lagrange's theorem $\nabla f = \lambda\nabla g$. $\nabla f$ need not be $\vb{0}$: $x + y$ has gradient $\langle 1, 1\rangle$ at its maximum on a circle. When $\nabla f \ne \vb{0}$, its level curve is tangent to the constraint. But a zero gradient is possible too: $f = -x^2 - y^2$ is largest on $g = y = 0$ at the origin, where $\lambda = 0$ and the level set $f = 0$ is a single point.
 
 ? The largest value of $f(x, y) = x + y$ on the circle $x^2 + y^2 = 2$ is
 - [ ] $\sqrt2$
@@ -1432,17 +1496,25 @@ same(Rational(12, 10), Rational(6, 5)); same(expand(Rational(6, 5)*(x - 2) + 4),
 - [ ] $0 < \eta < 0.04$
 - [ ] $0 < \eta < 1$
 - [ ] $0 < \eta < 2$
-> By Theorem 18.7, $\eta < 2/c = \tfrac{2}{25} = 0.08$, set by the steeper direction. $0.04 = \tfrac{1}{25}$ is the step that removes the $y$-error in a single step, but larger steps up to 0.08 still converge, with a zigzag. $0 < \eta < 2$ is the condition for the $x$-direction alone: with $\eta = 1$ the factor in $y$ is $1 - 25 = -24$.
+> By Theorem 18.7, $0 < \eta < 2/c = \tfrac{2}{25} = 0.08$, set by the steeper direction. $0.04 = \tfrac{1}{25}$ is the step that removes the $y$-error in a single step, but larger steps strictly below 0.08 still converge, with a zigzag when $y_0 \ne 0$. At $\eta = 0.08$, the $y$-factor is $-1$, so nonzero $y$-coordinates alternate without shrinking. $0 < \eta < 2$ is the condition for the $x$-direction alone: with $\eta = 1$ the factor in $y$ is $1 - 25 = -24$.
 ```
 
 ```check
 same(3*2 - 4**2, -10)
 same(diff(x**2 - y**2, x).subs({x: 0, y: 0}), 0)
+for fq3 in (x**2 + y**4, x**2 - y**4, x**2 + y**3):
+    same([diff(fq3, v).subs({x: 0, y: 0}) for v in (x, y)], [0, 0])
+    same(hessian(fq3, (x, y)).subs({x: 0, y: 0}), Matrix([[2, 0], [0, 0]]))
+    same(fq3.subs(y, 0), x**2)
+same((x**2 - y**4).subs(x, 0), -y**4); same((x**2 + y**3).subs(x, 0), y**3)
+fq5 = -x**2 - y**2; same([diff(fq5, v).subs({x: 0, y: 0}) for v in (x, y)], [0, 0])
+same(fq5.subs(y, 0), -x**2); same([diff(y, v) for v in (x, y)], [0, 1])
 same((x + y).subs({x: 1, y: 1}), 2); same(solve(2*x**2 - 2, x), [-1, 1]); same(2*sqrt(2), 2*sqrt(2)*1); same(((x + y)**2).subs({x: 1, y: 1}), 4)
 xq8, yq8, lq8 = symbols('x y lambda', real=True)
 same_set(solve([1 - 2*lq8*xq8, 1 - 2*lq8*yq8, xq8**2 + yq8**2 - 2], [xq8, yq8, lq8], dict=True), [{xq8: 1, yq8: 1, lq8: Rational(1, 2)}, {xq8: -1, yq8: -1, lq8: -Rational(1, 2)}])
 same(Rational(6, 5)*0 + Rational(8, 5), Rational(8, 5)); holds(all(Rational(6, 5)*xi + Rational(8, 5) != yi for xi, yi in zip(X9, Y9)))
 same(Rational(2, 25), Rational(8, 100)); same(Rational(1, 25), Rational(4, 100)); same(1 - 25*1, -24)
+same(1 - 25*Rational(8, 100), -1)
 same(solve_univariate_inequality(Abs(1 - 25*er_) < 1, er_, relational=False), Interval.open(0, Rational(2, 25)))
 holds(all(bool(Abs(1 - 25*e_) < 1) == bool(0 < e_ < Rational(8, 100)) for e_ in (Rational(-1, 100), 0, Rational(4, 100), Rational(79, 1000), Rational(8, 100), Rational(81, 1000), 1)))
 ```

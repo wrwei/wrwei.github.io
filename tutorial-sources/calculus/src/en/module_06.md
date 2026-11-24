@@ -1134,6 +1134,8 @@ C*exp(k*t)
 [log(2)/k]
 ```
 
+The call `sp.solve(equation, t)` returns a list of solutions for `t` here. To find the doubling time, `sp.Eq` builds the equation $e^{kt} = 2$.
+
 Then the numbers of Example 6.12:
 
 ```python

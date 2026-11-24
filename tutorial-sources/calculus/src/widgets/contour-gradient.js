@@ -26,13 +26,13 @@ CalcWidgets.register('contour-gradient', function (root, api) {
   function eq(v, sig) { return isFinite(v) && Number(v.toPrecision(sig || 4)) === v ? '= ' : '≈ ' }
   function value(x, y) { var v; try { v = state.f(x, y) } catch (e) { v = NaN } return typeof v === 'number' ? v : NaN }
   function safe(f) { return function (x, y) { var v; try { v = f(x, y) } catch (e) { v = NaN } return typeof v === 'number' && isFinite(v) ? v : NaN } }
-  // The gradient by central differences. Their error is about 10⁻¹⁰ of the size of f's derivatives, so components
-  // below 10⁻⁷ of a typical gradient on the map are rounding noise and are shown as 0.
+  // For the smooth presets, suppress tiny residuals at their stationary points. A typed formula can have
+  // components on very different scales: do not discard one just because another is much larger.
   function noise() { return 1e-7 * (state.gtyp > 0 ? state.gtyp : 1) }
   function gradAt(x, y, raw) {
     var g = api.num.grad(value, x, y)
     if (!isFinite(g[0]) || !isFinite(g[1])) return null
-    return raw ? g : g.map(function (c) { return Math.abs(c) < noise() ? 0 : c })
+    return raw || !state.preset ? g : g.map(function (c) { return Math.abs(c) < noise() ? 0 : c })
   }
 
   // ------------------------------------------------------------------ levels, colours and the arrow's scale
@@ -56,7 +56,7 @@ CalcWidgets.register('contour-gradient', function (root, api) {
     vals.sort(function (a, b) { return a - b })
     if (vals.length > 10) {
       var lo = percentile(vals, 0.02), hi = percentile(vals, 0.98)
-      if (hi - lo > 1e-9 * Math.max(1, Math.abs(hi))) {
+      if (hi - lo > 1e-9 * Math.max(Math.abs(lo), Math.abs(hi))) {
         var step = niceStep((hi - lo) / 10), k
         while ((hi - lo) / step > 14) step = niceStep(step * 2.2)
         for (k = Math.ceil(lo / step - 1e-9); k * step < hi - 1e-9 * step; k++) state.levels.push(Number((k * step).toPrecision(12)))
@@ -168,6 +168,8 @@ CalcWidgets.register('contour-gradient', function (root, api) {
       out.appendChild(line('cg-warn', t('The gradient cannot be computed here (f is not defined on both sides of the point).', '这里无法计算梯度（f 在该点两侧没有定义）。')))
       return
     }
+    if (!state.preset) out.appendChild(line(null, t('Central-difference estimates: use a function differentiable near this point. Numerical differences alone do not establish differentiability.',
+      '中心差分估计：请使用在该点附近可微的函数。仅凭数值差分不能确定可微性。')))
     var len = Math.hypot(g[0], g[1]), a = state.ang * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a)
     if (Math.abs(ux) < 1e-15) ux = 0
     if (Math.abs(uy) < 1e-15) uy = 0
@@ -178,19 +180,21 @@ CalcWidgets.register('contour-gradient', function (root, api) {
     out.appendChild(line(null, 'u = ⟨cos ' + state.ang + '°, sin ' + state.ang + '°⟩ ' + (eq(ux) === '= ' && eq(uy) === '= ' ? '= ' : '≈ ') + '⟨' + fmt(ux) + ', ' + fmt(uy) + '⟩'))
     out.appendChild(line('cg-big', 'Dᵤf = ∇f · u ≈ ' + fmt(D)))
     if (len <= noise()) {
-      out.appendChild(line('cg-note', t('∇f ≈ 0 here: f is level to first order, and Dᵤf ≈ 0 in every direction. This is a critical point (Module 18).',
-        '这里 ∇f ≈ 0：f 在一阶近似下是平的，各个方向的 Dᵤf ≈ 0。这是一个临界点（第 18 单元）。')))
+      out.appendChild(line('cg-note', state.preset ? t('∇f ≈ 0 here: f is level to first order, and Dᵤf ≈ 0 in every direction. This is a critical point (Module 18).',
+        '这里 ∇f ≈ 0：f 在一阶近似下是平的，各个方向的 Dᵤf ≈ 0。这是一个临界点（第 18 单元）。')
+        : t('The estimated gradient is small on this map. This alone does not establish a critical point (Module 18).',
+          '估计的梯度在此图的尺度下很小。仅凭这一点不能确定这是一个临界点（第 18 单元）。')))
       return
     }
     var cos = Math.max(-1, Math.min(1, D / len)), th = Math.acos(cos) * 180 / Math.PI
     out.appendChild(line(null, t('angle θ between u and ∇f ≈ ', 'u 与 ∇f 的夹角 θ ≈ ') + minus(String(Math.round(th * 10) / 10)) + '°'))
     var note
-    if (th <= TOL + 1e-9) note = t('u points along ∇f (to within 0.5°): Dᵤf is as large as it can be, ‖∇f‖ ≈ ' + fmt(len) + '.',
-      'u 沿 ∇f 的方向（误差在 0.5° 以内）：Dᵤf 达到最大值 ‖∇f‖ ≈ ' + fmt(len) + '。')
-    else if (th >= 180 - TOL - 1e-9) note = t('u points against ∇f (to within 0.5°): Dᵤf is as small as it can be, −‖∇f‖ ≈ ' + fmt(-len) + ', the steepest descent.',
-      'u 与 ∇f 方向相反（误差在 0.5° 以内）：Dᵤf 达到最小值 −‖∇f‖ ≈ ' + fmt(-len) + '，即最速下降方向。')
-    else if (Math.abs(th - 90) <= TOL + 1e-9) note = t('u runs along the level curve (to within 0.5°), at right angles to ∇f: Dᵤf ≈ 0.',
-      'u 沿等高线方向（误差在 0.5° 以内），与 ∇f 垂直：Dᵤf ≈ 0。')
+    if (th <= TOL + 1e-9) note = t('u points nearly along ∇f (to within 0.5°): Dᵤf is close to its largest value, ‖∇f‖ ≈ ' + fmt(len) + '.',
+      'u 几乎沿 ∇f 的方向（误差在 0.5° 以内）：Dᵤf 接近最大值 ‖∇f‖ ≈ ' + fmt(len) + '。')
+    else if (th >= 180 - TOL - 1e-9) note = t('u points nearly against ∇f (to within 0.5°): Dᵤf is close to its smallest value, −‖∇f‖ ≈ ' + fmt(-len) + ', the steepest descent.',
+      'u 几乎与 ∇f 方向相反（误差在 0.5° 以内）：Dᵤf 接近最小值 −‖∇f‖ ≈ ' + fmt(-len) + '，即最速下降的变化率。')
+    else if (Math.abs(th - 90) <= TOL + 1e-9) note = t('u points nearly along the level curve (to within 0.5° of a right angle to ∇f): Dᵤf is small compared with ‖∇f‖.',
+      'u 几乎沿等高线方向（与 ∇f 的夹角距直角不超过 0.5°）：Dᵤf 相对于 ‖∇f‖ 很小。')
     out.appendChild(line(note ? 'cg-note' : null, note || t('Dᵤf = ‖∇f‖ cos θ: largest along ∇f, smallest against it, 0 along the level curve. Turn u to see.',
       'Dᵤf = ‖∇f‖ cos θ：沿 ∇f 最大，逆 ∇f 最小，沿等高线为 0。转动 u 看看。')))
   }
@@ -207,8 +211,8 @@ CalcWidgets.register('contour-gradient', function (root, api) {
     if (!state.f) return
     var sc = fmt(state.scale)
     key.appendChild(h('b', { class: 'cg-red' }, t('Red: ', '红色：')))
-    key.appendChild(document.createTextNode(state.scale === 1 ? t('∇f, at its true length. ', '∇f，按实际长度画出。')
-      : t('∇f, drawn at ' + sc + ' times its true length. ', '∇f，按实际长度的 ' + sc + ' 倍画出。')))
+    key.appendChild(document.createTextNode(state.scale === 1 ? t('∇f, at its estimated length. ', '∇f，按估计长度画出。')
+      : t('∇f, drawn at ' + sc + ' times its estimated length. ', '∇f，按估计长度的 ' + sc + ' 倍画出。')))
     key.appendChild(h('b', { class: 'cg-green' }, t('Green: ', '绿色：')))
     key.appendChild(document.createTextNode(t('the unit vector u. ', '单位向量 u。')))
     key.appendChild(h('b', { class: 'cg-purple' }, t('Purple: ', '紫色：')))
@@ -233,6 +237,7 @@ CalcWidgets.register('contour-gradient', function (root, api) {
     update()
   }
   function fromField(src) {
+    state.preset = null
     var res = api.Expr.parse(src, ['x', 'y'])
     if (!res.ok) { field.error(res.error); state.f = null; newFunction(); update(); return }
     field.error('')

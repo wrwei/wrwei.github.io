@@ -80,8 +80,8 @@ def fig_20_1(L):
     R = np.hypot(X, Y)
     keep = R > 1e-9
     Rs = np.where(keep, R, 1.0)
-    quiver(a, X[keep], Y[keep], (-X / Rs)[keep], (-Y / Rs)[keep], scale=1 / 0.34)
-    dot(a, 0, 0, color=C['navy'], size=7)
+    quiver(a, X[keep], Y[keep], (-X / Rs)[keep], (-Y / Rs)[keep], scale=1 / 0.24)
+    dot(a, 0, 0, color=C['navy'], hollow=True, size=7)
     title(a, 'inverse square', size=11, pad=22)
 
     a = axs[2]

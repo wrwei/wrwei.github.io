@@ -15,7 +15,7 @@ goals:
 
 ## Functions of several variables {#functions}
 
-So far every function in this series has had one input. Most quantities depend on several. The volume of a cylindrical can depends on its radius $r$ and its height $h$: $V = \pi r^2 h$. The temperature on a weather map depends on two coordinates, the temperature in a room on three, and the error of a machine-learning model on all of its parameters, often millions of them. This module extends the derivative to such functions. Two variables already show every new idea, and most of what follows carries over to three variables, or to a million, unchanged.
+So far this series has concentrated on functions of one independent variable. Most quantities depend on several. The volume of a cylindrical can depends on its radius $r$ and its height $h$: $V = \pi r^2 h$. The temperature on a weather map depends on two coordinates, the temperature in a room on three, and the error of a machine-learning model on all of its parameters, often millions of them. This module extends the derivative to such functions. Two variables already show the main new ideas, and most of what follows carries over to three variables, or to a million, unchanged.
 
 ::: definition Function of two variables
 A **function of two variables** $f$ is a rule that assigns to each ordered pair of real numbers $(x, y)$ in a set $D$ exactly one real number $f(x, y)$, read "f of x, y". The set $D$, a set of points of the plane, is the **domain** of $f$, and the set of all values $f(x, y)$ for $(x, y)$ in $D$ is its **range**. A **function of three variables** assigns a number $f(x, y, z)$ to each point $(x, y, z)$ of a set $D$ in space.
@@ -42,7 +42,7 @@ same(function_range(log(y), y, Interval.open(0, oo)), S.Reals)            # g(0,
 
 ### Graphs {#graphs}
 
-The **graph** of a function $f$ of two variables is the set of points $(x, y, z)$ in space with $z = f(x, y)$ and $(x, y)$ in the domain. Above each point $(x, y)$ of the domain it has exactly one point, at height $f(x, y)$: it is a **surface** (Figure 17.1, left). The graph of $f(x, y) = \sqrt{9 - x^2 - y^2}$ from Example 17.1 is a dome: squaring $z = \sqrt{9 - x^2 - y^2}$ gives $x^2 + y^2 + z^2 = 9$ with $z \ge 0$, the upper half of the sphere of radius 3 centred at the origin. The graph of a linear function $f(x, y) = ax + by + c$ is a plane (Module 16).
+The **graph** of a function $f$ of two variables is the set of points $(x, y, z)$ in space with $z = f(x, y)$ and $(x, y)$ in the domain. Above each point $(x, y)$ of the domain it has exactly one point, at height $f(x, y)$. For a continuous function on a region of the plane, picture the graph as a **surface** (Figure 17.1, left). The graph of $f(x, y) = \sqrt{9 - x^2 - y^2}$ from Example 17.1 is a dome: squaring $z = \sqrt{9 - x^2 - y^2}$ gives $x^2 + y^2 + z^2 = 9$ with $z \ge 0$, the upper half of the sphere of radius 3 centred at the origin. The graph of a linear function $f(x, y) = ax + by + c$ is a plane (Module 16).
 
 ```check
 same(f171**2 + x**2 + y**2, 9)
@@ -55,7 +55,7 @@ Drawing a surface by hand is hard, and even a computer's picture of one hides so
 A hiking map does not show a mountain in three dimensions. It draws **contour lines**, each joining the points at one height above sea level, and labels them with their heights. Weather maps do the same with **isotherms**, curves of equal temperature, and **isobars**, curves of equal air pressure.
 
 ::: definition Level curves
-The **level curves** of a function $f$ of two variables are the curves $f(x, y) = k$, for constants $k$ in the range of $f$. A drawing of level curves for equally spaced values of $k$, labelled with the values, is a **contour map** of $f$.
+The **level sets** of a function $f$ of two variables are the sets of points satisfying $f(x, y) = k$, for constants $k$ in the range of $f$. They are usually curves, called **level curves**, but a level set can also be a single point or a whole region. A drawing of level curves for equally spaced values of $k$, labelled with the values, is a **contour map** of $f$.
 :::
 
 The level curve $f(x, y) = k$ is the set of points of the domain above which the surface has height $k$: cut the surface with the horizontal plane $z = k$, and look at the cut from above. Figure 17.1 shows a surface with two peaks, with its level curves drawn on it at their heights, and the contour map that they make.
@@ -76,10 +76,10 @@ A contour map is read like this:
 
 - Where the level curves crowd together, the surface is steep; where they spread out, it is gentle. Equal steps in height take little horizontal distance on a steep slope.
 - Small closed level curves nested around a point mark a peak or a pit; the labels tell you which.
-- At a pass the level curve through it crosses itself, as $f = 1$ does in Figure 17.1.
+- At the passes in Figure 17.1, the level curve $f = 1$ crosses itself.
 
 ::: example Level curves of a dome
-Describe the level curves $f(x, y) = k$ of $f(x, y) = \sqrt{9 - x^2 - y^2}$ for $k = 0, 1, 2, 3$, and explain how they show the shape of the dome.
+Describe the level sets $f(x, y) = k$ of $f(x, y) = \sqrt{9 - x^2 - y^2}$ for $k = 0, 1, 2, 3$, and explain how they show the shape of the dome.
 
 For $0 \le k \le 3$, $\sqrt{9 - x^2 - y^2} = k$ means $9 - x^2 - y^2 = k^2$ (both sides are non-negative, so squaring loses nothing), that is,
 
@@ -98,7 +98,7 @@ holds(3 - sqrt(8) < sqrt(8) - sqrt(5)); holds(sqrt(8) - sqrt(5) < sqrt(5))
 :::
 
 ::: pitfall
-A contour map alone cannot tell a peak from a pit: both are nested closed curves. Read the labels. And do not confuse level curves with the graph: the level curves of $f(x, y) = x^2 + y^2$ are circles, but its graph is a bowl, the surface $z = x^2 + y^2$, whose horizontal cuts are those circles.
+A contour map without labels cannot tell a peak from a pit: both can have nested closed curves. Read the labels. And do not confuse level curves with the graph: the positive level curves of $f(x, y) = x^2 + y^2$ are circles, while its level set at 0 is a point. Its graph is a bowl, the surface $z = x^2 + y^2$, whose horizontal cuts at positive heights are those circles.
 :::
 
 ### Three variables and level surfaces {#level-surfaces}
@@ -152,7 +152,7 @@ t | f(t, 0) | f(t, t) | f(t, 2t) | f(t, -t)
 Along each line the values do not change at all, but they differ from line to line: 0 along the $x$-axis, 0.5 along $y = x$, 0.4 along $y = 2x$ and $-0.5$ along $y = -x$. However close to the origin you look, there are values near 0.5 and values near $-0.5$, so no single number $L$ satisfies Definition 17.3.
 
 ::: theorem Limits along paths
-Suppose that $\lim_{(x, y)\to(a, b)} f(x, y) = L$, and let $x(t)$ and $y(t)$ be functions with $x(t) \to a$ and $y(t) \to b$ as $t \to t_0$, and $\big(x(t), y(t)\big) \ne (a, b)$ for $t \ne t_0$ near $t_0$. Then
+Suppose that $\lim_{(x, y)\to(a, b)} f(x, y) = L$, and let $x(t)$ and $y(t)$ be functions with $x(t) \to a$ and $y(t) \to b$ as $t \to t_0$. Suppose also that $\big(x(t), y(t)\big)$ lies in the domain of $f$ and differs from $(a, b)$ for $t \ne t_0$ near $t_0$. Then
 
 $$\lim_{t\to t_0} f\big(x(t), y(t)\big) = L.$$
 
@@ -288,7 +288,8 @@ fd = 6 - x**2 - 2*y**2
 same(fd.subs({x: 1, y: 1}), 3); same(fd.subs(y, 1), 4 - x**2); same(fd.subs(x, 1), 5 - 2*y**2)
 same(diff(4 - x**2, x).subs(x, 1), -2); same(diff(5 - 2*y**2, y).subs(y, 1), -4)
 same(diff(fd, x), -2*x); same(diff(fd, y), -4*y)
-same(limit((fd.subs({x: 1 + h, y: 1}) - fd.subs({x: 1, y: 1}))/h, h, 0), -2)      # from the definition
+limit_is((fd.subs({x: 1 + h, y: 1}) - fd.subs({x: 1, y: 1}))/h, h, 0, -2)      # both partials from their two-sided definitions
+limit_is((fd.subs({x: 1, y: 1 + h}) - fd.subs({x: 1, y: 1}))/h, h, 0, -4)
 ```
 
 ::: figure id=fig-17-2
@@ -349,7 +350,7 @@ same(diff(w3, x), y**2*z**3); same(diff(w3, y), 2*x*y*z**3); same(diff(w3, z), 3
 
 ### Higher partial derivatives {#higher}
 
-The partial derivatives $f_x$ and $f_y$ are again functions of $x$ and $y$, with partial derivatives of their own, the four **second partial derivatives** of $f$:
+The partial derivatives $f_x$ and $f_y$ are again functions of $x$ and $y$. Where their partial derivatives exist, these are the four **second partial derivatives** of $f$:
 
 $$\begin{aligned} f_{xx} &= (f_x)_x = \frac{\partial^2 f}{\partial x^2}, & f_{xy} &= (f_x)_y = \frac{\partial^2 f}{\partial y\,\partial x}, \\ f_{yx} &= (f_y)_x = \frac{\partial^2 f}{\partial x\,\partial y}, & f_{yy} &= (f_y)_y = \frac{\partial^2 f}{\partial y^2}. \end{aligned}$$
 
@@ -382,7 +383,7 @@ The agreement is no accident.
 Suppose that $f$ is defined on a disc $D$ that contains the point $(a, b)$. If the functions $f_{xy}$ and $f_{yx}$ are both continuous on $D$, then $f_{xy}(a, b) = f_{yx}(a, b)$.
 :::
 
-The functions met in this series have mixed partial derivatives given by formulas built from the catalogue of Module 1, which are continuous wherever they are defined; there the order of differentiation does not matter. The hypothesis cannot be dropped: Exercise 17.10 gives a function with $f_{xy}(0, 0) = -1$ but $f_{yx}(0, 0) = 1$. The theorem extends to higher derivatives: for example, $f_{xyy} = f_{yxy} = f_{yyx}$ when these are continuous.
+The mixed partial derivatives in Examples 17.5 and 17.6 are continuous wherever the functions are defined, so there the order of differentiation does not matter. The hypothesis cannot be dropped: Exercise 17.10 gives a function with $f_{xy}(0, 0) = -1$ but $f_{yx}(0, 0) = 1$. The theorem extends to higher derivatives: for example, $f_{xyy} = f_{yxy} = f_{yyx}$ on a disc where all partial derivatives through order 3 exist and are continuous.
 
 ::: deeper The proof of Clairaut's theorem
 A first reading may skip this proof. It uses the Mean Value Theorem ([Theorem 8.4](module_08_EN.html#mvt)) four times. For a small $h \ne 0$, so small that the square with corners $(a, b)$ and $(a + h, b + h)$ lies in $D$, consider the combination of four values
@@ -407,7 +408,7 @@ same(G_(a + h) - G_(a), D_); same(H_(b + h) - H_(b), D_)
 ```
 :::
 
-Many laws of physics are equations between partial derivatives, called **partial differential equations**. The temperature $u(x, t)$ at position $x$ along a thin insulated rod at time $t$ obeys the **heat equation** $u_t = k\,u_{xx}$ for a constant $k > 0$ that depends on the material; steady temperatures in a flat plate obey **Laplace's equation** $u_{xx} + u_{yy} = 0$ (Exercise 17.9). Solving such equations is beyond this course, but checking a solution needs only partial derivatives: $u = e^{-t}\sin x$ satisfies the heat equation with $k = 1$, since $u_t = -e^{-t}\sin x$ and $u_{xx} = -e^{-t}\sin x$.
+Many laws of physics are equations between partial derivatives, called **partial differential equations**. For a thin, uniform rod insulated along its sides, with no internal heat sources, the temperature $u(x, t)$ is modelled by the **heat equation** $u_t = k\,u_{xx}$, with constant $k > 0$ determined by the material. For a thin, uniform flat plate insulated on its faces, with no internal heat sources, steady temperatures satisfy **Laplace's equation** $u_{xx} + u_{yy} = 0$ (Exercise 17.9). Solving such equations is beyond this course, but checking a solution needs only partial derivatives: $u = e^{-t}\sin x$ satisfies the heat equation with $k = 1$, since $u_t = -e^{-t}\sin x$ and $u_{xx} = -e^{-t}\sin x$.
 
 ```check
 uh = exp(-t)*sin(x)
@@ -466,7 +467,7 @@ Suppose that the partial derivatives of $f$ exist on a disc centred at $(a, b)$ 
 $$\begin{aligned} z = f(a, b) &+ f_x(a, b)(x - a) \\ &+ f_y(a, b)(y - b). \end{aligned}$$
 :::
 
-The condition of continuity makes sure that this plane fits the surface in every direction, not only in the two directions of the slices; the subsection on differentiability below explains why it is needed.
+This continuity condition guarantees that the plane fits the surface in every direction, not only in the two directions of the slices. The subsection on differentiability below explains why having partial derivatives alone is not enough.
 
 ::: example A tangent plane
 Find the tangent plane to the surface $z = 6 - x^2 - 2y^2$ at $P(1, 1, 3)$.
@@ -543,13 +544,13 @@ As in Module 7, the error $f - L$ shrinks about a hundredfold each time the dist
 E_ = lambda T: fh.subs({x: 3 + T, y: 4 - T}) - Lh.subs({x: 3 + T, y: 4 - T})
 same(Lh.subs({x: 3 + t, y: 4 - t}), 5 + 3*t/5 - 4*t/5); same(Lh.subs({x: 3 + t, y: 4 - t}), 5 - t/5)
 rounds(E_(Rational(1, 10))/E_(Rational(1, 100)), '100'); rounds(E_(Rational(1, 100))/E_(Rational(1, 1000)), '100')
-limit_is(E_(t)/(sqrt(2)*t), t, 0, 0, '+')
+limit_is(E_(t)/(sqrt(2)*Abs(t)), t, 0, 0)   # error divided by distance, from either side
 ```
 
 ### Differentiability {#differentiability}
 
 ::: definition Differentiability
-A function $f$ of two variables is **differentiable at $(a, b)$** if $f_x(a, b)$ and $f_y(a, b)$ exist and the error of its linearisation, $E(x, y) = f(x, y) - L(x, y)$, satisfies
+A function $f$ defined on a disc centred at $(a, b)$ is **differentiable at $(a, b)$** if $f_x(a, b)$ and $f_y(a, b)$ exist and the error of its linearisation, $E(x, y) = f(x, y) - L(x, y)$, satisfies
 
 $$\lim_{(x, y)\to(a, b)}\frac{E(x, y)}{\sqrt{(x - a)^2 + (y - b)^2}} = 0.$$
 
@@ -574,7 +575,7 @@ As $(x, y) \to (a, b)$: $L(x, y) \to L(a, b) = f(a, b)$, because $L$ is a polyno
 If $f_x$ and $f_y$ exist on a disc centred at $(a, b)$ and are continuous at $(a, b)$, then $f$ is differentiable at $(a, b)$.
 :::
 
-The proof is in the Going deeper box below. Theorem 17.5 is how differentiability is checked in practice. Polynomials are differentiable everywhere, and functions such as $e^{xy}\sin y$ or $\ln(x^2 + y^2)$ wherever they are defined: the rules give partial derivatives that are again formulas of the same kind, continuous there. The definition of the tangent plane (Definition 17.6) asks for continuous partial derivatives for this reason: then $f$ is differentiable, and the plane is the one that fits.
+The proof is in the Going deeper box below. Theorem 17.5 is how differentiability is checked in practice. Polynomials are differentiable everywhere, and functions such as $e^{xy}\sin y$ or $\ln(x^2 + y^2)$ wherever they are defined: the rules give partial derivatives that are again formulas of the same kind, continuous there. The definition of the tangent plane (Definition 17.6) uses this sufficient condition. More generally, differentiability itself gives the tangent plane by the same formula, even if the partial derivatives are not continuous.
 
 ::: deeper Partial derivatives are not enough
 A first reading may skip this box. Let $f(x, y) = \dfrac{xy}{x^2 + y^2}$ for $(x, y) \ne (0, 0)$ and $f(0, 0) = 0$, the function of Example 17.3. On both axes $f$ is 0, so
@@ -583,11 +584,11 @@ $$\begin{aligned} f_x(0, 0) &= \lim_{h\to0}\frac{f(h, 0) - f(0, 0)}{h} \\ &= \li
 
 and $f_y(0, 0) = 0$ in the same way. Both partial derivatives exist, and the linearisation at the origin is $L(x, y) = 0$. But $f$ is not continuous at the origin (Section 17.2), so by Theorem 17.4 it is not differentiable there, and the plane $z = 0$ is no tangent plane: along the line $y = x$ the surface stays at height $\tfrac12$, however close to the origin. The partial derivatives see only the slices along the two axes, where this surface has height 0; along the other lines through the origin it has other heights.
 
-**Proof of Theorem 17.5.** Let $(x, y)$ be in the disc, and write $\Delta x = x - a$, $\Delta y = y - b$ and $\rho = \sqrt{\Delta x^2 + \Delta y^2}$. Go from $(a, b)$ to $(x, y)$ in two legs, first changing $y$, then $x$:
+**Proof of Theorem 17.5.** Let $(x, y) \ne (a, b)$ be in the disc, and write $\Delta x = x - a$, $\Delta y = y - b$ and $\rho = \sqrt{\Delta x^2 + \Delta y^2} > 0$. Go from $(a, b)$ to $(x, y)$ in two legs, first changing $y$, then $x$:
 
 $$\begin{aligned} f(x, y) - f(a, b) &= \big[f(x, y) - f(a, y)\big] \\ &\quad + \big[f(a, y) - f(a, b)\big]. \end{aligned}$$
 
-By the Mean Value Theorem, applied to $f$ as a function of $x$ alone in the first bracket and of $y$ alone in the second, the brackets are $f_x(c, y)\,\Delta x$ and $f_y(a, d)\,\Delta y$, for some $c$ between $a$ and $x$ and some $d$ between $b$ and $y$. Subtract $f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y$ from both sides:
+For each nonzero leg, the Mean Value Theorem applies to $f$ as a function of that variable alone. The brackets are $f_x(c, y)\,\Delta x$ and $f_y(a, d)\,\Delta y$, with $c$ between $a$ and $x$ and $d$ between $b$ and $y$. If $\Delta x = 0$, the first bracket is 0 and we take $c = a$; if $\Delta y = 0$, take $d = b$ for the same reason. Subtract $f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y$ from both sides:
 
 $$\begin{aligned} E(x, y) &= \big[f_x(c, y) - f_x(a, b)\big]\Delta x \\ &\quad + \big[f_y(a, d) - f_y(a, b)\big]\Delta y. \end{aligned}$$
 
@@ -599,7 +600,7 @@ As $(x, y) \to (a, b)$, the points $(c, y)$ and $(a, d)$ approach $(a, b)$ too, 
 
 ```check
 same((x*y/(x**2 + y**2)).subs({x: h, y: 0}), 0); same((x*y/(x**2 + y**2)).subs({x: 0, y: h}), 0)
-same(limit((0 - 0)/h, h, 0), 0); same(fp172.subs(y, x), Rational(1, 2))
+limit_is((0 - 0)/h, h, 0, 0); same(fp172.subs(y, x), Rational(1, 2))
 Fxc, Fyd, fx0, fy0, dX, dY = symbols('F_xc F_yd f_x0 f_y0 dX dY')
 same((Fxc*dX + Fyd*dY) - (fx0*dX + fy0*dY), (Fxc - fx0)*dX + (Fyd - fy0)*dY)   # the error E after the two legs
 ```
@@ -618,17 +619,17 @@ $$dz = f_x(x, y)\,dx + f_y(x, y)\,dy = \frac{\partial z}{\partial x}\,dx + \frac
 When $x$ and $y$ change by $dx$ and $dy$, the actual change of $z$ is $\Delta z = f(x + dx, y + dy) - f(x, y)$, while $dz$ is the change of the linearisation; $\Delta z \approx dz$ when $dx$ and $dy$ are small. As in [Section 7.3](module_07_EN.html#errors), this propagates measurement errors, now from several measurements at once.
 
 ::: example Measurement errors in a can
-The radius and the height of a can are measured as $r = 3$ cm and $h = 10$ cm, with errors of at most 0.02 cm in $r$ and 0.05 cm in $h$. Estimate the largest possible error in the computed volume $V = \pi r^2 h$, and the relative error.
+The radius and the height of a can are measured as $r = 3$ cm and $h = 10$ cm, with absolute errors of at most 0.02 cm in $r$ and 0.05 cm in $h$. Estimate the largest possible absolute error in the computed volume $V = \pi r^2 h$, and the relative error.
 
-$dV = V_r\,dr + V_h\,dh = 2\pi rh\,dr + \pi r^2\,dh$, and at $(3, 10)$, $V_r = 60\pi$ and $V_h = 9\pi$. The error is largest when both terms have the same sign:
+$dV = V_r\,dr + V_h\,dh = 2\pi rh\,dr + \pi r^2\,dh$, and at $(3, 10)$, $V_r = 60\pi$ and $V_h = 9\pi$. Take $dr$ and $dh$ to be the true values minus the measured values, so $dV$ estimates the error with the sign convention of Module 7. The magnitude $\abs{dV}$ is largest when both terms have the same sign and each measurement error has its largest allowed magnitude:
 
 $$\begin{aligned} \abs{dV} &\le 60\pi(0.02) + 9\pi(0.05) \\ &= 1.2\pi + 0.45\pi = 1.65\pi \approx 5.18 \text{ cm}^3. \end{aligned}$$
 
-So the computed volume, $90\pi \approx 282.7$ cm³, may be off by about 5.2 cm³. Dividing $dV$ by $V = \pi r^2 h$ gives a neat rule for the relative error:
+So the computed volume, $90\pi \approx 282.7$ cm³, may be off by about 5.2 cm³. This is an estimate from the tangent plane, not a bound on the exact volume error. Dividing $dV$ by the measured volume $V = \pi r^2 h$ gives
 
 $$\begin{aligned} \frac{dV}{V} &= \frac{2\pi rh\,dr + \pi r^2\,dh}{\pi r^2 h} \\ &= 2\,\frac{dr}{r} + \frac{dh}{h}, \end{aligned}$$
 
-here at most $2 \cdot \tfrac{0.02}{3} + \tfrac{0.05}{10} \approx 0.0133 + 0.005 = 0.0183$, about 1.8%. The relative error in the radius counts twice, because the radius appears squared.
+The relative error is estimated by $\abs{dV}/V$. Here this estimate is at most $2 \cdot \tfrac{0.02}{3} + \tfrac{0.05}{10} \approx 0.0133 + 0.005 = 0.0183$, about 1.8%. In this estimate the relative error in the radius counts twice, because the radius appears squared.
 
 ```check
 same(diff(Vc, r), 2*pi*r*h); same(diff(Vc, h), pi*r**2)
@@ -636,6 +637,9 @@ same(diff(Vc, r).subs({r: 3, h: 10}), 60*pi); same(diff(Vc, h).subs({r: 3, h: 10
 steps(60*pi*Rational(2, 100) + 9*pi*Rational(5, 100), Rational(12, 10)*pi + Rational(45, 100)*pi, Rational(165, 100)*pi)
 rounds(Rational(165, 100)*pi, '5.18'); rounds(Rational(165, 100)*pi, '5.2')
 dr_, dh_ = symbols('dr dh')
+same(60*pi*dr_ + 9*pi*dh_, diff(Vc, r).subs({r: 3, h: 10})*dr_ + diff(Vc, h).subs({r: 3, h: 10})*dh_)
+same(max(Abs(60*pi*er + 9*pi*eh) for er in (-Rational(2, 100), Rational(2, 100)) for eh in (-Rational(5, 100), Rational(5, 100))), Rational(165, 100)*pi)
+holds(Vc.subs({r: Rational(302, 100), h: Rational(1005, 100)}) - 90*pi > Rational(165, 100)*pi)  # the differential bound is not an exact-error bound
 same((2*pi*r*h*dr_ + pi*r**2*dh_)/(pi*r**2*h), 2*dr_/r + dh_/h)
 rounds(2*Rational(2, 100)/3, '0.0133'); same(Rational(5, 100)/10, Rational(5, 1000)); rounds(2*Rational(2, 100)/3 + Rational(5, 1000), '0.0183')
 rounds(100*(2*Rational(2, 100)/3 + Rational(5, 1000)), '1.8'); same(Rational(165, 100)*pi/(90*pi), 2*Rational(2, 100)/3 + Rational(5, 1000))
@@ -643,7 +647,7 @@ rounds(100*(2*Rational(2, 100)/3 + Rational(5, 1000)), '1.8'); same(Rational(165
 :::
 
 ::: pitfall
-$dz$ is not $\Delta z$: $dz$ is the change along the tangent plane, $\Delta z$ the change along the surface, and they are close only when $dx$ and $dy$ are small. And for the largest possible error, add the sizes of the terms, $\abs{f_x}\abs{dx} + \abs{f_y}\abs{dy}$: errors in two measurements can push the result the same way.
+$dz$ is not $\Delta z$: $dz$ is the change along the tangent plane and $\Delta z$ the change along the surface. Differentiability makes the approximation accurate for sufficiently small changes. To estimate the largest absolute error, add the sizes of the terms, $\abs{f_x}\abs{dx} + \abs{f_y}\abs{dy}$: errors in two measurements can push the result the same way. This bounds the differential; an exact error bound needs control of the remaining terms.
 :::
 
 ## The chain rule {#chain-rule}
@@ -686,6 +690,8 @@ The volume is growing. The height shrinks three times as fast as the radius grow
 ```check
 Rt, Ht = Function('R')(t), Function('H')(t)
 same(diff(pi*Rt**2*Ht, t), 2*pi*Rt*Ht*diff(Rt, t) + pi*Rt**2*diff(Ht, t))
+same(diff(pi*r**2*h, r).subs({r: 3, h: 10}), 60*pi); same(diff(pi*r**2*h, h).subs(r, 3), 9*pi)
+holds(60*pi/(9*pi) > 6)
 steps(60*pi*Rational(1, 10) + 9*pi*(-Rational(3, 10)), 6*pi - Rational(27, 10)*pi, Rational(33, 10)*pi)
 rounds(Rational(33, 10)*pi, '10.37'); holds(Rational(33, 10)*pi > 0); same(Rational(3, 10)/Rational(1, 10), 3)
 ```
@@ -726,12 +732,13 @@ At $r = 2$ and $\theta = \pi/6$, $x = 2\cos\frac{\pi}{6} = \sqrt3$ and $y = 2\si
 
 $$\begin{aligned} \frac{\partial z}{\partial r} &= 2\sqrt3\cdot\frac{\sqrt3}{2} + 3\cdot\frac12 = 3 + \frac32 = \frac92, \\ \frac{\partial z}{\partial \theta} &= -2\sqrt3\cdot 2\cdot\frac12 + 3\cdot 2\cdot\frac{\sqrt3}{2} \\ &= -2\sqrt3 + 3\sqrt3 = \sqrt3. \end{aligned}$$
 
-Check: substituting first, $z = r^3\cos^2\theta\sin\theta$, so $\partial z/\partial r = 3r^2\cos^2\theta\sin\theta = 3 \cdot 4 \cdot \tfrac34 \cdot \tfrac12 = \tfrac92$. The chain rule needs no such substitution, which for a complicated $f$ may be impractical.
+Check: substituting first, $z = r^3\cos^2\theta\sin\theta$, so $\partial z/\partial r = 3r^2\cos^2\theta\sin\theta = 3 \cdot 4 \cdot \tfrac34 \cdot \tfrac12 = \tfrac92$. Also $\partial z/\partial\theta = r^3\cos\theta(\cos^2\theta - 2\sin^2\theta)$, which at the given point is $8\cdot\tfrac{\sqrt3}{2}(\tfrac34 - \tfrac12) = \sqrt3$. The chain rule needs no such substitution, which for a complicated $f$ may be impractical.
 
 ```check
 xp_, yp_ = r*cos(theta), r*sin(theta)
 zp = x**2*y
 same(diff(zp, x), 2*x*y); same(diff(zp, y), x**2)
+same([diff(xp_, r), diff(yp_, r), diff(xp_, theta), diff(yp_, theta)], [cos(theta), sin(theta), -r*sin(theta), r*cos(theta)])
 same(diff(zp.subs({x: xp_, y: yp_}), r), (2*x*y*cos(theta) + x**2*sin(theta)).subs({x: xp_, y: yp_}))
 same(diff(zp.subs({x: xp_, y: yp_}), theta), (-2*x*y*r*sin(theta) + x**2*r*cos(theta)).subs({x: xp_, y: yp_}))
 P_ = {r: 2, theta: pi/6}
@@ -741,6 +748,8 @@ steps(-2*sqrt(3)*2*Rational(1, 2) + 3*2*sqrt(3)/2, -2*sqrt(3) + 3*sqrt(3), sqrt(
 same(zp.subs({x: xp_, y: yp_}), r**3*cos(theta)**2*sin(theta))
 same(diff(r**3*cos(theta)**2*sin(theta), r).subs(P_), Rational(9, 2)); same(3*4*Rational(3, 4)*Rational(1, 2), Rational(9, 2))
 same(diff(r**3*cos(theta)**2*sin(theta), theta).subs(P_), sqrt(3))
+same(diff(r**3*cos(theta)**2*sin(theta), theta), r**3*cos(theta)*(cos(theta)**2 - 2*sin(theta)**2))
+steps(8*sqrt(3)/2*(Rational(3, 4) - Rational(1, 2)), sqrt(3))
 ```
 :::
 
@@ -750,7 +759,7 @@ Every path contributes. A common slip is to write $\dfrac{\partial z}{\partial s
 
 ### Implicit differentiation {#implicit}
 
-[Section 6.4](module_06_EN.html#implicit) found slopes of curves such as the circle $x^2 + y^2 = 25$ by differentiating their equations. The chain rule explains the method and turns it into a formula. Write the curve as $F(x, y) = 0$, and suppose that near a point of it the curve is the graph of a differentiable function $y = y(x)$. Then $F\big(x, y(x)\big) = 0$ for all $x$ near the point. Differentiate with respect to $x$ by Theorem 17.6, with $x$ itself as the first intermediate variable ($dx/dx = 1$):
+[Section 6.4](module_06_EN.html#implicit) found slopes of curves such as the circle $x^2 + y^2 = 25$ by differentiating their equations. The chain rule explains the method and turns it into a formula. Write the curve as $F(x, y) = 0$, with $F$ differentiable near the point in question, and suppose that near that point the curve is the graph of a differentiable function $y = y(x)$. Then $F\big(x, y(x)\big) = 0$ for all $x$ near the point. Differentiate with respect to $x$ by Theorem 17.6, with $x$ itself as the first intermediate variable ($dx/dx = 1$):
 
 $$F_x + F_y\,\frac{dy}{dx} = 0, \quad\text{so}\quad \frac{dy}{dx} = -\frac{F_x}{F_y} \quad (F_y \ne 0).$$
 
@@ -788,7 +797,7 @@ same([diff(Ff, x).subs({x: 0, y: 0}), diff(Ff, y).subs({x: 0, y: 0})], [0, 0])
 ```
 :::
 
-In the same way, an equation $F(x, y, z) = 0$ defines $z$ as a function of $x$ and $y$ near a point where $F_z \ne 0$ (the theorem has a version for three variables). Holding $y$ fixed and differentiating $F\big(x, y, z(x, y)\big) = 0$ with respect to $x$ gives $F_x + F_z\,\dfrac{\partial z}{\partial x} = 0$, and similarly for $y$:
+In the same way, if $F$ has continuous partial derivatives near a point on $F(x, y, z) = 0$ and $F_z \ne 0$ there, the equation defines $z$ as a differentiable function of $x$ and $y$ near that point (the theorem has a version for three variables). Holding $y$ fixed and differentiating $F\big(x, y, z(x, y)\big) = 0$ with respect to $x$ gives $F_x + F_z\,\dfrac{\partial z}{\partial x} = 0$, and similarly for $y$:
 
 $$\frac{\partial z}{\partial x} = -\frac{F_x}{F_z}, \qquad \frac{\partial z}{\partial y} = -\frac{F_y}{F_z}.$$
 
@@ -809,14 +818,14 @@ provided that the limit exists.
 $D_{\vb{u}} f$ reads "D sub u of f". The point $(a + hu_1, b + hu_2)$ lies on the line through $(a, b)$ in the direction of $\vb{u}$, at a distance $\abs{h}$ from $(a, b)$, because $\norm{\vb{u}} = 1$; so $D_{\vb{u}} f(a, b)$ is the rate of change of $f$ per unit of distance as you move from $(a, b)$ in that direction. For $\vb{u} = \vb{i} = \langle 1, 0\rangle$ it is $f_x(a, b)$, and for $\vb{u} = \vb{j} = \langle 0, 1\rangle$ it is $f_y(a, b)$.
 
 ::: definition Gradient
-The **gradient** of $f$ at $(a, b)$ is the vector of its partial derivatives,
+Provided that its partial derivatives exist, the **gradient** of $f$ at $(a, b)$ is the vector
 
 $$\nabla f(a, b) = \big\langle f_x(a, b), f_y(a, b)\big\rangle.$$
 
 For a function of three variables, $\nabla f = \langle f_x, f_y, f_z\rangle$.
 :::
 
-The symbol $\nabla$ is called "nabla", and $\nabla f$ reads "del f" or "grad f". The gradient of a function of two variables is a vector in the plane of its domain, a direction on the contour map, not a direction in space. With it, the linear approximation of Section 17.4 reads $f(a + \Delta x, b + \Delta y) \approx f(a, b) + \nabla f(a, b)\cdot\langle\Delta x, \Delta y\rangle$, with the dot product of Module 16. Directional derivatives come from the gradient in the same way.
+The symbol $\nabla$ is called "nabla", and $\nabla f$ reads "del f" or "grad f". The gradient of a function of two variables is a vector in the plane of its domain; when nonzero, it gives a direction on the contour map. If $f$ is differentiable at $(a, b)$, the linear approximation of Section 17.4 reads $f(a + \Delta x, b + \Delta y) \approx f(a, b) + \nabla f(a, b)\cdot\langle\Delta x, \Delta y\rangle$, with the dot product of Module 16. Directional derivatives come from the gradient in the same way.
 
 ::: theorem Directional derivatives from the gradient
 If $f$ is differentiable at $(a, b)$, then $f$ has a directional derivative at $(a, b)$ in the direction of every unit vector $\vb{u} = \langle u_1, u_2\rangle$, and
@@ -845,7 +854,7 @@ gfe = Matrix([diff(fe, x), diff(fe, y)])
 same(gfe, Matrix([exp(y), x*exp(y)])); same(gfe.subs({x: 2, y: 0}), Matrix([1, 2]))
 vv = Matrix([3, 4]); same(vv.norm(), 5); uu = vv/vv.norm(); same(uu, Matrix([Rational(3, 5), Rational(4, 5)]))
 steps(gfe.subs({x: 2, y: 0}).dot(uu), Rational(3, 5) + Rational(8, 5), Rational(11, 5)); same(Rational(11, 5), Rational(22, 10))
-same(limit((fe.subs({x: 2 + h*uu[0], y: h*uu[1]}) - fe.subs({x: 2, y: 0}))/h, h, 0), Rational(11, 5))   # from the definition
+limit_is((fe.subs({x: 2 + h*uu[0], y: h*uu[1]}) - fe.subs({x: 2, y: 0}))/h, h, 0, Rational(11, 5))   # both sides, from the definition
 ```
 :::
 
@@ -867,7 +876,7 @@ $$\begin{aligned} D_{\vb{u}} f(a, b) &= \nabla f(a, b)\cdot\vb{u} \\ &= \norm{\n
 since $\norm{\vb{u}} = 1$. As $\vb{u}$ turns, only $\cos\theta$ changes. It is largest, 1, exactly when $\theta = 0$; smallest, $-1$, exactly when $\theta = \pi$; and 0 when $\theta = \pi/2$.
 :::
 
-So the gradient points uphill, in the steepest direction, and its length is the slope in that direction. For $f(x, y) = xe^y$ at $(2, 0)$ (Example 17.13), the steepest rate is $\norm{\langle 1, 2\rangle} = \sqrt5 \approx 2.236$, in the direction $\langle 1, 2\rangle/\sqrt5$. The rate 2.2 towards $(5, 4)$ comes close to it because $\langle 3, 4\rangle$ points within about $10.3^\circ$ of $\langle 1, 2\rangle$ ($\cos\theta = 2.2/\sqrt5$). The fastest decrease, at the rate $-\sqrt5$, is in the direction $\langle -1, -2\rangle/\sqrt5$, and the rate of change is 0 in the directions $\pm\langle 2, -1\rangle/\sqrt5$. Water running downhill follows $-\nabla f$, the direction of steepest descent.
+So a nonzero gradient points uphill, in the steepest direction, and its length is the slope in that direction. For $f(x, y) = xe^y$ at $(2, 0)$ (Example 17.13), the steepest rate is $\norm{\langle 1, 2\rangle} = \sqrt5 \approx 2.236$, in the direction $\langle 1, 2\rangle/\sqrt5$. The rate 2.2 towards $(5, 4)$ comes close to it because $\langle 3, 4\rangle$ points within about $10.3^\circ$ of $\langle 1, 2\rangle$ ($\cos\theta = 2.2/\sqrt5$). The fastest decrease, at the rate $-\sqrt5$, is in the direction $\langle -1, -2\rangle/\sqrt5$, and the rate of change is 0 in the directions $\pm\langle 2, -1\rangle/\sqrt5$. Section 17.7 uses steps along $-\nabla f$ to seek smaller values of $f$. If the gradient is $\vb{0}$, every directional derivative is 0 and there is no unique steepest direction.
 
 ```check
 gg = Matrix([1, 2])
@@ -886,14 +895,14 @@ Let $f$ be differentiable at $(a, b)$, and let $\vb{r}(t) = \langle x(t), y(t)\r
 
 $$\nabla f(a, b)\cdot\vb{r}'(t_0) = 0:$$
 
-the gradient is perpendicular to the tangent vector of the level curve.
+when the gradient is nonzero, it is perpendicular to the tangent vector of the level curve. A zero gradient satisfies the same dot-product identity but supplies no normal direction.
 :::
 
 ::: proof
 For every $t$, $f\big(x(t), y(t)\big) = k$. Differentiate both sides at $t_0$, with the chain rule on the left: $f_x(a, b)\,x'(t_0) + f_y(a, b)\,y'(t_0) = 0$, that is, $\nabla f(a, b)\cdot\vb{r}'(t_0) = 0$.
 :::
 
-So on a contour map the gradient at each point, where it is not $\vb{0}$, is perpendicular to the contour through the point, points towards higher values, and is long where the contours crowd together and short where they spread out (Figure 17.4, left). For $f(x, y) = x^2 + y^2$, $\nabla f = \langle 2x, 2y\rangle$ points straight away from the origin, across the circles $x^2 + y^2 = k$ at right angles, and its length $2\sqrt{x^2 + y^2}$ grows with the distance from the origin, where the circles crowd together.
+So on a contour map the gradient at each point, where it is not $\vb{0}$, is perpendicular to the contour through the point and points towards higher values. When contours represent equally spaced values, closely spaced contours indicate a large gradient, and widely spaced contours a small one (Figure 17.4, left). For $f(x, y) = x^2 + y^2$, $\nabla f = \langle 2x, 2y\rangle$ points straight away from the origin, across the circles $x^2 + y^2 = k$ at right angles, and its length $2\sqrt{x^2 + y^2}$ grows with the distance from the origin, where circles for equally spaced positive values of $k$ crowd together.
 
 ```check
 gq = Matrix([diff(x**2 + y**2, x), diff(x**2 + y**2, y)]); same(gq, 2*Matrix([x, y]))
@@ -907,20 +916,20 @@ Left: the contour map of Figure 17.1, with the gradient at points of three level
 :::
 
 ::: widget name=contour-gradient
-Choose a function, then click the map, or set $x$ and $y$ with the sliders, to pick a point. The red arrow is the gradient there, drawn to a scale (its true length $\norm{\nabla f}$ is in the readout); the green arrow is the unit vector $\vb{u}$, at the angle set by its slider; the purple curve is the level curve through the point. Turn $\vb{u}$ and watch $D_{\vb{u}} f = \nabla f\cdot\vb{u}$: largest when $\vb{u}$ points along $\nabla f$, smallest when it points the opposite way, 0 along the level curve. With $x^2 + y^2$, every gradient points away from the origin. On the landscape of Figure 17.1, pick a point near a pass at $(\pm1, 0)$, where $\nabla f$ is almost $\vb{0}$. Then type `x e^y`, pick the point $(2, 0)$ and set the angle to $53^\circ$, close to the direction of $\langle 3, 4\rangle$: the readout shows Example 17.13.
+Choose a function, then click the map, or set $x$ and $y$ with the sliders, to pick a point. The red arrow shows a numerical estimate of the gradient, drawn to a scale; the readout gives the estimated length $\norm{\nabla f}$. The green arrow is the unit vector $\vb{u}$, at the angle set by its slider; the purple curve is the level curve through the point. For a function differentiable near the chosen point, with nonzero gradient, turn $\vb{u}$ and watch the estimate of $D_{\vb{u}} f = \nabla f\cdot\vb{u}$: largest when $\vb{u}$ points along $\nabla f$, smallest when it points the opposite way, 0 tangent to the level curve. With $x^2 + y^2$, every nonzero gradient points away from the origin. On the landscape of Figure 17.1, pick a point near a pass at $(\pm1, 0)$, where $\nabla f$ is almost $\vb{0}$. Then type `x e^y`, pick the point $(2, 0)$ and set the angle to $53^\circ$, close to the direction of $\langle 3, 4\rangle$: the readout is about 2.199, close to the value 2.2 in Example 17.13.
 :::
 
 ### Level surfaces and tangent planes {#tangent-planes-3d}
 
-Everything in this section holds for functions of three variables, with $\nabla f = \langle f_x, f_y, f_z\rangle$ and unit vectors $\vb{u}$ in space: $D_{\vb{u}} f = \nabla f\cdot\vb{u}$, the gradient points in the direction of steepest ascent, and, by the proof of Theorem 17.11 with three variables, it is perpendicular to every curve through the point that lies on the level surface. A plane is fixed by a point and a normal vector (Module 16), so the gradient gives tangent planes to level surfaces.
+The same results hold for differentiable functions of three variables, with $\nabla f = \langle f_x, f_y, f_z\rangle$ and unit vectors $\vb{u}$ in space: $D_{\vb{u}} f = \nabla f\cdot\vb{u}$, a nonzero gradient points in the direction of steepest ascent, and, by the proof of Theorem 17.11 with three variables, it is perpendicular to the tangent vector of every differentiable curve through the point that lies on the level surface. A plane is fixed by a point and a nonzero normal vector (Module 16), so the gradient gives tangent planes to regular level surfaces.
 
 ::: definition Tangent plane to a level surface
-Let $F$ be a function of three variables, differentiable at a point $P(x_0, y_0, z_0)$ of the level surface $F(x, y, z) = k$, with $\nabla F(P) \ne \vb{0}$. The **tangent plane** to the surface at $P$ is the plane through $P$ with normal vector $\nabla F(P)$:
+Let $F$ have continuous partial derivatives in a neighbourhood of a point $P(x_0, y_0, z_0)$ of the level set $F(x, y, z) = k$, with $\nabla F(P) \ne \vb{0}$. The implicit function theorem ensures that this level set is locally a surface. Its **tangent plane** at $P$ is the plane through $P$ with normal vector $\nabla F(P)$:
 
 $$\begin{aligned} &F_x(P)(x - x_0) + F_y(P)(y - y_0) \\ &\quad + F_z(P)(z - z_0) = 0. \end{aligned}$$
 :::
 
-The graph $z = f(x, y)$ is the level surface $F(x, y, z) = f(x, y) - z = 0$, with $\nabla F = \langle f_x, f_y, -1\rangle$; at $P(a, b, c)$ Definition 17.11 gives $f_x(a, b)(x - a) + f_y(a, b)(y - b) - (z - c) = 0$, the tangent plane of Definition 17.6 again.
+For $f$ with continuous partial derivatives, the graph $z = f(x, y)$ is the level surface $F(x, y, z) = f(x, y) - z = 0$, with $\nabla F = \langle f_x, f_y, -1\rangle$; at $P(a, b, c)$ Definition 17.11 gives $f_x(a, b)(x - a) + f_y(a, b)(y - b) - (z - c) = 0$, the tangent plane of Definition 17.6 again.
 
 ```check
 fg_ = Function('f')
@@ -1002,6 +1011,7 @@ The best of the 720 directions, at $63.5^\circ$, is the one nearest to the direc
 rounds(atan2(2, 1)*180/pi, '63.4349'); rounds(sqrt(5), '2.236068')
 rounds(sqrt(5)*cos((Rational(635, 10) - atan2(2, 1)*180/pi)*pi/180), '2.236067')
 holds(abs(Rational(635, 10) - atan2(2, 1)*180/pi) < Rational(1, 4))
+rounds(cos(53*pi/180) + 2*sin(53*pi/180), '2.199')
 ```
 
 ## Gradient descent {#gradient-descent}
@@ -1013,14 +1023,14 @@ To minimise a differentiable function $f$ of two (or more) variables, choose a s
 
 $$\vb{x}_{k+1} = \vb{x}_k - \eta\,\nabla f(\vb{x}_k), \qquad k = 0, 1, 2, \dots$$
 
-Here $\vb{x}_k = \langle x_k, y_k\rangle$ is the $k$th point, written as a vector, and $f(\vb{x}_k)$ means $f(x_k, y_k)$.
+Here $\vb{x}_k = \langle x_k, y_k\rangle$ is the $k$th point, written as a vector, and $f(\vb{x}_k)$ means $f(x_k, y_k)$. The iteration requires each new point to remain in the domain of $f$.
 :::
 
-Each step moves in the direction of steepest descent, a distance $\eta\norm{\nabla f(\vb{x}_k)}$: long steps where the surface is steep, short ones where it is flat. By the linear approximation in its gradient form (Section 17.6),
+When the gradient is nonzero, each step moves in the direction of steepest descent, a distance $\eta\norm{\nabla f(\vb{x}_k)}$: long steps where the surface is steep, short ones where it is flat. By the linear approximation in its gradient form (Section 17.6),
 
 $$\begin{aligned} f(\vb{x}_{k+1}) &\approx f(\vb{x}_k) + \nabla f(\vb{x}_k)\cdot(\vb{x}_{k+1} - \vb{x}_k) \\ &= f(\vb{x}_k) - \eta\norm{\nabla f(\vb{x}_k)}^2, \end{aligned}$$
 
-which is less than $f(\vb{x}_k)$ when $\nabla f(\vb{x}_k) \ne \vb{0}$, at least when the step is small enough for the approximation to be good. The points stop moving only where $\nabla f = \vb{0}$; Module 18 studies these critical points.
+The predicted change is negative when $\nabla f(\vb{x}_k) \ne \vb{0}$. Differentiability makes the error divided by the step length tend to 0; at a fixed such point, for sufficiently small $\eta > 0$ the error is smaller in magnitude than $\tfrac12\eta\norm{\nabla f(\vb{x}_k)}^2$, so the actual change is negative too. How small $\eta$ must be can depend on the point. The points stop moving only where $\nabla f = \vb{0}$; Module 18 studies these critical points.
 
 ```check
 g1_, g2_, et_ = symbols('g1 g2 eta')
@@ -1117,15 +1127,19 @@ eta = 0.3, k = 20: ( 0.000000,  0.011529)
 With $\eta = 0.1$ the $y$-coordinate, multiplied by 0.4 at each step, is soon negligible, and the $x$-coordinate, multiplied by 0.8, lags behind: after 20 steps it is still about 0.035. With $\eta = 0.3$ the roles swap: $x$ shrinks by the factor 0.4, but $y$ changes sign at every step and shrinks only by the factor 0.8. How many steps until $\norm{\nabla f} < 10^{-8}$, for different step sizes?
 
 ```python
-def steps_needed(eta, tol=1e-8):
-    p, k = np.array([3.0, 1.0]), 0
-    while tol < np.linalg.norm(grad(p)) < 1e6:
-        p, k = p - eta*grad(p), k + 1
-    return k if np.linalg.norm(grad(p)) <= tol else None
+def steps_needed(eta, tol=1e-8, max_steps=10000):
+    p = np.array([3.0, 1.0])
+    for k in range(max_steps + 1):
+        size = np.linalg.norm(grad(p))
+        if size < tol:
+            return k
+        if size >= 1e6 or k == max_steps:
+            return None
+        p = p - eta*grad(p)
 
 for eta in (0.05, 0.1, 0.2, 0.25, 0.3, 0.33, 0.34):
     k = steps_needed(eta)
-    print(f"eta = {eta}: " + (f"{k} steps" if k is not None else "diverges"))
+    print(f"eta = {eta}: " + (f"{k} steps" if k is not None else "tolerance not reached"))
 ```
 
 ```output
@@ -1135,10 +1149,12 @@ eta = 0.2: 40 steps
 eta = 0.25: 30 steps
 eta = 0.3: 91 steps
 eta = 0.33: 1001 steps
-eta = 0.34: diverges
+eta = 0.34: tolerance not reached
 ```
 
-The best of these step sizes is 0.25, where the two factors $1 - 2\eta = 0.5$ and $1 - 6\eta = -0.5$ are equally small. At $\eta = 0.33$ the factor $1 - 6\eta = -0.98$ is close to $-1$, and the zigzag takes a thousand steps to die down; at 0.34, beyond $\tfrac13$, it grows, and gradient descent diverges. The steep direction limits the step size, while the gentle direction would like long steps. When the curvature is very different in different directions, gradient descent is slow whatever $\eta$ is; Module 18 studies this problem, called ill-conditioning.
+The loop stops after at most 10,000 updates, or earlier if the gradient grows to $10^6$. This also handles bounded sequences that never reach the tolerance, such as the oscillation at $\eta = \tfrac13$; `None` means that the tolerance was not reached before stopping, and does not by itself prove divergence.
+
+The best of these step sizes is 0.25, where the two factors $1 - 2\eta = 0.5$ and $1 - 6\eta = -0.5$ are equally small. At $\eta = 0.33$ the factor $1 - 6\eta = -0.98$ is close to $-1$, and the zigzag takes a thousand steps to die down; at 0.34, beyond $\tfrac13$, it grows, and gradient descent diverges, as the formula proves. The steep direction limits the step size, while the gentle direction would like long steps. When the curvature is very different in different directions, even the best fixed step size can give slow gradient descent; Module 18 studies this problem, called ill-conditioning.
 :::
 
 ```check
@@ -1147,60 +1163,62 @@ same([1 - 2*Rational(1, 4), 1 - 6*Rational(1, 4)], [Rational(1, 2), -Rational(1,
 holds(abs(1 - 6*Rational(34, 100)) > 1); rounds(Rational(4, 5)**20, '0.011529')
 ```
 
-In machine learning, $\vb{x}$ is the list of a model's parameters, its weights, often millions of them, and $f$ is the **loss**, a measure of the model's error on its training data. Training is gradient descent or one of its variants: stochastic gradient descent estimates the gradient at each step from a small random batch of the training data, and methods such as momentum and Adam adapt each step to the gradients of earlier steps. Every step needs the whole gradient, one partial derivative per parameter, and the next section shows how to compute it efficiently. The series [AI: From Machine Learning to Large Language Models](../ai/index.html) puts these methods to work.
+In many machine-learning models, $\vb{x}$ is the list of parameters, such as weights and biases, often millions of them, and $f$ is the **loss**, a measure of the model's error on its training data. These models often train by gradient descent or one of its variants: stochastic gradient descent estimates the gradient at each step from a randomly chosen example or batch of the training data, and methods such as momentum and Adam use gradients of earlier steps when forming the next update. Every such step needs a gradient, one partial derivative per parameter, and the next section shows how to compute it efficiently. The series [AI: From Machine Learning to Large Language Models](../ai/index.html) puts these methods to work.
 
 ## Backpropagation {#backpropagation}
 
-The loss of a neural network is computed by a long chain of simple operations: multiplications by weights, sums, and simple functions of one variable. [Section 5.8](module_05_EN.html#autodiff) showed how a program can differentiate such a computation with dual numbers, carrying derivatives forwards, one input at a time. With a million parameters that takes a million runs. **Backpropagation** finds the derivative of the loss with respect to every parameter in one backward pass, at a cost of a small multiple of computing the loss itself. It is the chain rule of Section 17.5, organised on a graph.
+The loss of a neural network is computed by a long chain of simple operations: multiplications by weights, sums, and simple functions of one variable. [Section 5.8](module_05_EN.html#autodiff) showed how a program can differentiate such a computation with dual numbers, carrying derivatives forwards, one input at a time. With that implementation, a million parameters take a million runs. For a computation whose operations are differentiable at their inputs, **backpropagation** finds the derivative of the loss with respect to every parameter in one backward pass, at a cost of a small multiple of computing the loss itself. It is the chain rule of Section 17.5, organised on a graph.
 
 ::: definition Computational graph
-A **computational graph** of a computation has a node for each input and for each intermediate result, and an arrow from each node to each node computed directly from it. The nodes that a node points to are its **children**, and the nodes it is computed from are its **parents**. Each arrow carries a **local derivative**: the partial derivative of the child with respect to the node the arrow comes from. If the computation ends with the number $L$, the **adjoint** of a node $v$ is $\bar v = \partial L/\partial v$, read "v bar".
+A **computational graph** of a computation is a directed graph with no cycles: it has a node for each input and for each intermediate result, and one arrow for each use of a node as an input to another node. The nodes that a node points to are its **children**, and the nodes it is computed from are its **parents**. For differentiable operations, each arrow carries a **local derivative**: the partial derivative of the child's operation with respect to that input argument, holding the other arguments fixed. If a node supplies two arguments, as in $e\cdot e$, there are two arrows, each carrying $e$. If the computation ends with the number $L$, the **adjoint** of a node $v$ is $\bar v = \partial L/\partial v$, read "v bar".
 :::
 
 The graph is evaluated in two passes.
 
 1. **The forward pass** computes the value of every node, from the inputs to the output, and keeps the values.
-2. **The backward pass** computes the adjoints, from the output back to the inputs. It starts with $\bar L = 1$, and gives every other node $v$ the sum over its children $c$:
+2. **The backward pass** computes the adjoints, from the output back to the inputs. It starts with $\bar L = 1$, and gives every other node $v$ the sum over its arrows to children $c$, counting repeated input uses separately:
 
-$$\bar v = \sum_{c}\,\bar c\,\frac{\partial c}{\partial v}.$$
+$$\bar v = \sum_{v\to c}\,\bar c\,\frac{\partial c}{\partial v},$$
+
+where each $\partial c/\partial v$ is the local derivative on that arrow.
 
 Why is this right? $L$ depends on $v$ only through the children of $v$, so the general chain rule of Section 17.5, with the children as the intermediate variables, gives exactly this sum. Unwound, it is the key idea of Section 17.5: $\partial L/\partial v$ is the sum, over all paths from $v$ to $L$, of the products of the local derivatives along the path. The backward pass adds up these products economically. Each adjoint $\bar c$ is computed once and then serves every path through $c$, so each arrow is used once, and the backward pass costs a small multiple of the forward pass, however many inputs there are.
 
 ::: figure id=fig-17-5
-The computational graph of the loss $L(w, b) = (w + b - 1)^2 + (2w + b - 3)^2$ of Example 17.16, at $w = b = 0$. Each arrow carries its local derivative. The forward pass gives the values (blue); the backward pass, from $\bar L = 1$ back to the inputs, gives the adjoints (orange), and $\bar w = -14$ and $\bar b = -8$ are the two partial derivatives of $L$.
+The computational graph of the loss $L(w, b) = (1 - w - b)^2 + (3 - 2w - b)^2$ of Example 17.16, at $w = b = 0$. Each arrow carries its local derivative. The forward pass gives the values (blue); the backward pass, from $\bar L = 1$ back to the inputs, gives the adjoints (orange), and $\bar w = -14$ and $\bar b = -8$ are the two partial derivatives of $L$.
 :::
 
 ::: example A forward and a backward pass
-A model predicts the value $wx + b$ from an input $x$, with two parameters $w$ and $b$. On the two data points $(x, t) = (1, 1)$ and $(2, 3)$, where $t$ is the true value, its errors are $e_1 = w \cdot 1 + b - 1$ and $e_2 = w \cdot 2 + b - 3$, and its loss is $L = e_1^2 + e_2^2$. Starting from $w = b = 0$, find $\partial L/\partial w$ and $\partial L/\partial b$ by a forward and a backward pass (Figure 17.5), and take one step of gradient descent with $\eta = 0.05$.
+A model predicts the value $wx + b$ from an input $x$, with two parameters $w$ and $b$. On the two data points $(x, t) = (1, 1)$ and $(2, 3)$, where $t$ is the true value, its errors (true value minus prediction) are $e_1 = 1 - w \cdot 1 - b$ and $e_2 = 3 - w \cdot 2 - b$, and its loss is $L = e_1^2 + e_2^2$. Starting from $w = b = 0$, find $\partial L/\partial w$ and $\partial L/\partial b$ by a forward and a backward pass (Figure 17.5), and take one step of gradient descent with $\eta = 0.05$.
 
-**Forward pass.** $e_1 = -1$, $e_2 = -3$ and $L = 1 + 9 = 10$.
+**Forward pass.** $e_1 = 1$, $e_2 = 3$ and $L = 1 + 9 = 10$.
 
-**Backward pass.** Start with $\bar L = 1$. The local derivatives of $L = e_1^2 + e_2^2$ are $2e_1$ and $2e_2$, so $\bar e_1 = \bar L \cdot 2e_1 = -2$ and $\bar e_2 = \bar L \cdot 2e_2 = -6$. The node $w$ has two children, $e_1$ and $e_2$, with local derivatives 1 and 2, the inputs $x$ of the two points; $b$ has the same children, with local derivatives 1 and 1:
+**Backward pass.** Start with $\bar L = 1$. The local derivatives of $L = e_1^2 + e_2^2$ are $2e_1$ and $2e_2$, so $\bar e_1 = \bar L \cdot 2e_1 = 2$ and $\bar e_2 = \bar L \cdot 2e_2 = 6$. The node $w$ has two children, $e_1$ and $e_2$, with local derivatives $-1$ and $-2$, the negatives of the inputs $x$ of the two points; $b$ has the same children, with local derivatives $-1$ and $-1$:
 
-$$\begin{aligned} \bar w &= \bar e_1 \cdot 1 + \bar e_2 \cdot 2 = -2 - 12 = -14, \\ \bar b &= \bar e_1 \cdot 1 + \bar e_2 \cdot 1 = -2 - 6 = -8. \end{aligned}$$
+$$\begin{aligned} \bar w &= \bar e_1 \cdot (-1) + \bar e_2 \cdot (-2) = -2 - 12 = -14, \\ \bar b &= \bar e_1 \cdot (-1) + \bar e_2 \cdot (-1) = -2 - 6 = -8. \end{aligned}$$
 
 | Node | Forward pass | Backward pass |
 |---|---|---|
 | $w$, $b$ | $0$, $0$ | $\bar w = -14$, $\bar b = -8$ |
-| $e_1 = w + b - 1$ | $-1$ | $\bar e_1 = \bar L \cdot 2e_1 = -2$ |
-| $e_2 = 2w + b - 3$ | $-3$ | $\bar e_2 = \bar L \cdot 2e_2 = -6$ |
+| $e_1 = 1 - w - b$ | $1$ | $\bar e_1 = \bar L \cdot 2e_1 = 2$ |
+| $e_2 = 3 - 2w - b$ | $3$ | $\bar e_2 = \bar L \cdot 2e_2 = 6$ |
 | $L = e_1^2 + e_2^2$ | $10$ | $\bar L = 1$ |
 
-So $\nabla L(0, 0) = \langle -14, -8\rangle$. Check by differentiating $L(w, b) = (w + b - 1)^2 + (2w + b - 3)^2$ directly: $L_w = 2(w + b - 1) + 4(2w + b - 3)$ and $L_b = 2(w + b - 1) + 2(2w + b - 3)$, which are $-2 - 12 = -14$ and $-2 - 6 = -8$ at $(0, 0)$.
+So $\nabla L(0, 0) = \langle -14, -8\rangle$. Check by differentiating $L(w, b) = (1 - w - b)^2 + (3 - 2w - b)^2$ directly: $L_w = -2(1 - w - b) - 4(3 - 2w - b)$ and $L_b = -2(1 - w - b) - 2(3 - 2w - b)$, which are $-2 - 12 = -14$ and $-2 - 6 = -8$ at $(0, 0)$.
 
-One step of gradient descent gives $\langle w, b\rangle = \langle 0, 0\rangle - 0.05\,\langle -14, -8\rangle = \langle 0.7, 0.4\rangle$, where $e_1 = 0.1$, $e_2 = -1.2$ and $L = 0.01 + 1.44 = 1.45$, down from 10. Further steps approach $w = 2$, $b = -1$, the line $t = 2x - 1$ through both points, where $L = 0$; Module 18 finds such best-fitting lines directly, by least squares.
+One step of gradient descent gives $\langle w, b\rangle = \langle 0, 0\rangle - 0.05\,\langle -14, -8\rangle = \langle 0.7, 0.4\rangle$, where $e_1 = -0.1$, $e_2 = 1.2$ and $L = 0.01 + 1.44 = 1.45$, down from 10. Further steps approach $w = 2$, $b = -1$, the line $t = 2x - 1$ through both points, where $L = 0$; Module 18 finds such best-fitting lines directly, by least squares.
 
 ```check
 W_, B_ = symbols('w b')
-e1_, e2_ = W_ + B_ - 1, 2*W_ + B_ - 3
+e1_, e2_ = 1 - W_ - B_, 3 - 2*W_ - B_
 Lw = e1_**2 + e2_**2
-same([e1_.subs({W_: 0, B_: 0}), e2_.subs({W_: 0, B_: 0}), Lw.subs({W_: 0, B_: 0})], [-1, -3, 10])
-same([2*(-1), 2*(-3)], [-2, -6]); same([diff(e1_, W_), diff(e2_, W_), diff(e1_, B_), diff(e2_, B_)], [1, 2, 1, 1])
-steps(-2*1 + (-6)*2, -2 - 12, -14); steps(-2*1 + (-6)*1, -2 - 6, -8)
-same(diff(Lw, W_), 2*(W_ + B_ - 1) + 4*(2*W_ + B_ - 3)); same(diff(Lw, B_), 2*(W_ + B_ - 1) + 2*(2*W_ + B_ - 3))
+same([e1_.subs({W_: 0, B_: 0}), e2_.subs({W_: 0, B_: 0}), Lw.subs({W_: 0, B_: 0})], [1, 3, 10])
+same([2*1, 2*3], [2, 6]); same([diff(e1_, W_), diff(e2_, W_), diff(e1_, B_), diff(e2_, B_)], [-1, -2, -1, -1])
+steps(2*(-1) + 6*(-2), -2 - 12, -14); steps(2*(-1) + 6*(-1), -2 - 6, -8)
+same(diff(Lw, W_), -2*(1 - W_ - B_) - 4*(3 - 2*W_ - B_)); same(diff(Lw, B_), -2*(1 - W_ - B_) - 2*(3 - 2*W_ - B_))
 same(Matrix([diff(Lw, W_), diff(Lw, B_)]).subs({W_: 0, B_: 0}), Matrix([-14, -8]))
 st1 = Matrix([0, 0]) - Rational(5, 100)*Matrix([-14, -8]); same(st1, Matrix([Rational(7, 10), Rational(4, 10)]))
-same([e1_.subs({W_: st1[0], B_: st1[1]}), e2_.subs({W_: st1[0], B_: st1[1]})], [Rational(1, 10), -Rational(12, 10)])
+same([e1_.subs({W_: st1[0], B_: st1[1]}), e2_.subs({W_: st1[0], B_: st1[1]})], [-Rational(1, 10), Rational(12, 10)])
 steps(Lw.subs({W_: st1[0], B_: st1[1]}), Rational(1, 100) + Rational(144, 100), Rational(145, 100))
 same(solve([e1_, e2_], [W_, B_]), {W_: 2, B_: -1})
 ```
@@ -1227,10 +1245,12 @@ class Var:
         return Var(a*b, [(self, b), (other, a)])
     def __sub__(self, other):
         return self + (-1.0)*other
+    def __rsub__(self, other):
+        return (-1.0)*self + other
     __radd__, __rmul__ = __add__, __mul__
 ```
 
-The backward pass lists the nodes so that each comes after the nodes it was computed from, then walks the list backwards; each node passes its adjoint times the local derivative to each parent, which adds up what it receives:
+The backward pass lists the nodes so that each comes after the nodes it was computed from, resets their adjoints to 0, then walks the list backwards; each node passes its adjoint times the local derivative to each parent, which adds up what it receives. Resetting lets us run the backward pass on the same graph again:
 
 ```python
 def backward(out):
@@ -1242,6 +1262,8 @@ def backward(out):
                 visit(p)
             order.append(v)
     visit(out)
+    for v in order:
+        v.grad = 0.0
     out.grad = 1.0
     for v in reversed(order):
         for p, local in v.parents:
@@ -1256,7 +1278,7 @@ data = [(1, 1), (2, 3)]                 # the points (x, t)
 def loss(w, b):
     L = 0
     for x, t in data:
-        e = w*x + b - t                 # the error at this point
+        e = t - (w*x + b)               # true value minus prediction
         L = L + e*e
     return L
 
@@ -1275,7 +1297,7 @@ The product `e*e` lists `e` twice as a parent, with the local derivative $e$ eac
 ```python
 import sympy as sp
 ws, bs = sp.symbols('w b')
-Ls = sum((ws*x + bs - t)**2 for x, t in data)
+Ls = sum((t - (ws*x + bs))**2 for x, t in data)
 print(sp.expand(Ls), '|', [sp.diff(Ls, v).subs({ws: 0, bs: 0}) for v in (ws, bs)])
 ```
 
@@ -1289,44 +1311,49 @@ Training is a loop of forward pass, backward pass and gradient descent step:
 
 ```python
 w, b = Var(0.0), Var(0.0)
-for step in range(1, 501):
+for step in range(501):
     L = loss(w, b)
-    backward(L)
-    if step in (1, 2, 3, 10, 100, 500):
+    if step in (0, 1, 2, 10, 100, 500):
         Lv, wv, bv = L.value, w.value, b.value
         print(f"step {step:3d}: L = {Lv:.3g}, w = {wv:.4f}, b = {bv:.4f}")
-    w, b = Var(w.value - 0.05*w.grad), Var(b.value - 0.05*b.grad)
+    if step < 500:
+        backward(L)
+        w, b = Var(w.value - 0.05*w.grad), Var(b.value - 0.05*b.grad)
 ```
 
 ```output
-step   1: L = 10, w = 0.0000, b = 0.0000
-step   2: L = 1.45, w = 0.7000, b = 0.4000
-step   3: L = 0.59, w = 0.9300, b = 0.5100
-step  10: L = 0.405, w = 1.1239, b = 0.4175
-step 100: L = 0.0288, w = 1.7666, b = -0.6224
-step 500: L = 2.25e-07, w = 1.9993, b = -0.9989
+step   0: L = 10, w = 0.0000, b = 0.0000
+step   1: L = 1.45, w = 0.7000, b = 0.4000
+step   2: L = 0.59, w = 0.9300, b = 0.5100
+step  10: L = 0.393, w = 1.1367, b = 0.3969
+step 100: L = 0.0279, w = 1.7700, b = -0.6279
+step 500: L = 2.19e-07, w = 1.9994, b = -0.9990
 ```
 
-The second line is the step of Example 17.16. The loss falls fast at first and then slowly: after 100 steps it is still 0.0288, and only after some hundreds of steps do $w$ and $b$ settle near 2 and $-1$. The valley of this loss is long and narrow, the situation that Module 18 explains.
+Each printed step counts completed updates: step 0 is the starting point, and the second line is the step of Example 17.16. The loss falls fast at first and then slowly: after 100 steps it is still about 0.0279, and only after some hundreds of steps do $w$ and $b$ settle near 2 and $-1$. The valley of this loss is long and narrow, the situation that Module 18 explains.
 :::
 
 ```check
 Lq = 5*W_**2 + 6*W_*B_ + 2*B_**2 - 14*W_ - 8*B_ + 10; same(expand(Lw), Lq)
 st2 = st1 - Rational(5, 100)*Matrix([diff(Lw, W_), diff(Lw, B_)]).subs({W_: st1[0], B_: st1[1]})
 same(st2, Matrix([Rational(93, 100), Rational(51, 100)])); rounds(Lw.subs({W_: st2[0], B_: st2[1]}), '0.59')
+wb_ = Matrix([0, 0])
+for _ in range(100):
+    wb_ -= Rational(1, 20)*Matrix([10*wb_[0] + 6*wb_[1] - 14, 6*wb_[0] + 4*wb_[1] - 8])
+rounds(Lw.subs({W_: wb_[0], B_: wb_[1]}), '0.0279')
 ```
 
-Neural networks are trained in exactly this way, with arrays of numbers in place of single numbers, nonlinear functions between the layers, and graphs of millions of nodes. The series [AI: From Machine Learning to Large Language Models](../ai/index.html) works through backpropagation in neural networks in [its Module 2](../ai/module_02_EN.html), and [Module 18 of Mathematical Foundations](../math/module_18_EN.html) writes the same chain rule with matrices.
+Neural networks use the same forward and backward organisation, with arrays of numbers in place of single numbers, nonlinear functions between the layers, and potentially millions of operations; the parameter updates may use variants of gradient descent. The series [AI: From Machine Learning to Large Language Models](../ai/index.html) works through backpropagation in neural networks in [its Module 2](../ai/module_02_EN.html), and [Module 18 of Mathematical Foundations](../math/module_18_EN.html) writes the same chain rule with matrices.
 
 ## What you learned {#summary}
 
-- A function of two or three variables has a domain in the plane or in space. The graph of $f(x, y)$ is a surface; its level curves $f(x, y) = k$ make a contour map, on which crowded contours mean steep ground. Functions of three variables have level surfaces $f(x, y, z) = k$.
-- $\lim_{(x,y)\to(a,b)} f(x, y) = L$ needs the values to approach $L$ along every path. Two paths with different limits prove that no limit exists; agreement along every line proves nothing; a squeeze $\abs{f - L} \le g \to 0$ proves that the limit exists.
-- The partial derivatives $f_x = \partial f/\partial x$ and $f_y$ are found by holding the other variable fixed; they are the slopes of slices of the surface. Clairaut's theorem: $f_{xy} = f_{yx}$ where both are continuous.
-- The tangent plane $z = f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b)$ gives the linear approximation. $f$ is differentiable when the error is small compared with the distance; continuous partial derivatives guarantee it, partial derivatives alone do not. The total differential $dz = f_x\,dx + f_y\,dy$ propagates errors.
-- The chain rule adds one product for each path in the tree diagram, as in $\dfrac{dz}{dt} = \dfrac{\partial z}{\partial x}\dfrac{dx}{dt} + \dfrac{\partial z}{\partial y}\dfrac{dy}{dt}$; it gives implicit differentiation, $dy/dx = -F_x/F_y$ where $F_y \ne 0$.
-- The gradient $\nabla f = \langle f_x, f_y\rangle$ gives every directional derivative, $D_{\vb{u}} f = \nabla f\cdot\vb{u}$. It points in the direction of steepest ascent, with rate $\norm{\nabla f}$, and is perpendicular to level curves; $\nabla F$ is normal to the level surface $F = k$.
-- Gradient descent $\vb{x}_{k+1} = \vb{x}_k - \eta\nabla f(\vb{x}_k)$ steps downhill; too large a step size makes it zigzag or diverge. Backpropagation finds every partial derivative of a loss in one backward pass over the computational graph, adding over the children of each node: the chain rule, organised for many inputs.
+- A function of two or three variables has a domain in the plane or in space. Surface plots show graphs $z = f(x, y)$; contour maps show level sets $f(x, y) = k$, usually curves, though some levels can be points or larger sets. With equally spaced levels, crowded contours indicate steep ground. In three variables, level sets $f(x, y, z) = k$ are often surfaces.
+- $\lim_{(x,y)\to(a,b)} f(x, y) = L$ needs the values to approach $L$ along every path in the domain. Two paths with different limits prove that no limit exists; agreement along every line does not establish a limit; a squeeze $\abs{f - L} \le g \to 0$ proves that the limit exists.
+- The partial derivatives $f_x = \partial f/\partial x$ and $f_y$ are found by holding the other variable fixed; they are the slopes of slices of the surface. Clairaut's theorem gives $f_{xy} = f_{yx}$ when both mixed partial derivatives are continuous on a neighbourhood of the point.
+- For a differentiable function, the tangent plane $z = f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b)$ gives the linear approximation. Differentiability means that the error divided by the distance tends to 0; continuous partial derivatives guarantee it, partial derivatives alone do not. The total differential $dz = f_x\,dx + f_y\,dy$ estimates the change in $z$ and gives a first-order estimate of propagated measurement errors.
+- For differentiable functions, the chain rule adds one product for each path in the tree diagram, as in $\dfrac{dz}{dt} = \dfrac{\partial z}{\partial x}\dfrac{dx}{dt} + \dfrac{\partial z}{\partial y}\dfrac{dy}{dt}$. With continuous partial derivatives near a point on $F = 0$ and $F_y \ne 0$ there, implicit differentiation gives $dy/dx = -F_x/F_y$ for the local graph.
+- For differentiable $f$ and a unit vector $\vb{u}$, the gradient $\nabla f = \langle f_x, f_y\rangle$ gives $D_{\vb{u}} f = \nabla f\cdot\vb{u}$. A nonzero gradient points in the direction of steepest ascent, with rate $\norm{\nabla f}$; if it is zero, every directional derivative is zero. With continuous partial derivatives near the point and a nonzero gradient, the level set is locally a curve (in two variables) or a surface (in three), with that gradient as its normal.
+- Gradient descent $\vb{x}_{k+1} = \vb{x}_k - \eta\nabla f(\vb{x}_k)$ lowers a differentiable function when the gradient is nonzero and the positive step size is sufficiently small. Larger steps can zigzag or diverge. Backpropagation finds every input partial derivative of a loss in one backward pass over a differentiable computational graph, adding over the children of each node: the chain rule, organised for many inputs.
 
 ## Exercises {#exercises}
 
@@ -1334,12 +1361,12 @@ Neural networks are trained in exactly this way, with arrays of numbers in place
 Let $f(x, y) = \sqrt{16 - x^2 - 4y^2}$.
 
 - (a) Find and describe the domain and the range of $f$.
-- (b) Describe the level curves $f(x, y) = k$ for $k = 0, 1, 2, 3, 4$. Where are they closest together, and what does that say about the surface?
+- (b) Describe the level sets $f(x, y) = k$ for $k = 0, 1, 2, 3, 4$. Where are the curves closest together, and what does that say about the surface?
 
 ::: solution
 **(a)** The square root needs $16 - x^2 - 4y^2 \ge 0$, that is, $x^2 + 4y^2 \le 16$, or $\dfrac{x^2}{16} + \dfrac{y^2}{4} \le 1$: the ellipse with semi-axes 4 along the $x$-axis and 2 along the $y$-axis, together with its inside. On the domain, $16 - x^2 - 4y^2$ lies between 0 and 16, so $f$ takes values in $[0, 4]$; along the $x$-axis, $f(x, 0) = \sqrt{16 - x^2}$ takes every value from 0 to 4 as $x$ goes from 4 down to 0. The range is $[0, 4]$.
 
-**(b)** For $0 \le k \le 4$, $f(x, y) = k$ means $x^2 + 4y^2 = 16 - k^2$ (square both sides, which are non-negative): an ellipse centred at the origin with semi-axes $\sqrt{16 - k^2}$ and $\tfrac12\sqrt{16 - k^2}$, always of the same shape. For $k = 0$ it is the edge of the domain. It crosses the positive $x$-axis at 4, $\sqrt{15} \approx 3.87$, $\sqrt{12} \approx 3.46$ and $\sqrt7 \approx 2.65$ for $k = 0, 1, 2, 3$; for $k = 4$ the level curve is the single point $(0, 0)$, the top. The gaps grow, from about 0.13 to 0.41, 0.82 and 2.65: the level curves are closest together near the edge, where the surface, the top half of an ellipsoid, is steepest.
+**(b)** For $0 \le k \le 4$, $f(x, y) = k$ means $x^2 + 4y^2 = 16 - k^2$ (square both sides, which are non-negative). For $k < 4$ this is an ellipse centred at the origin with semi-axes $\sqrt{16 - k^2}$ and $\tfrac12\sqrt{16 - k^2}$, always of the same shape. For $k = 0$ it is the edge of the domain. It crosses the positive $x$-axis at 4, $\sqrt{15} \approx 3.87$, $\sqrt{12} \approx 3.46$ and $\sqrt7 \approx 2.65$ for $k = 0, 1, 2, 3$; for $k = 4$ the level set is the single point $(0, 0)$, the top. The gaps grow, from about 0.13 to 0.41, 0.82 and 2.65: the level curves are closest together near the edge, where the surface, the top half of an ellipsoid, is steepest.
 
 ```check
 f_e1 = sqrt(16 - x**2 - 4*y**2)
@@ -1418,7 +1445,7 @@ $$D_{\vb{u}} f(2, 1) = \frac{4 \cdot 1 + 1 \cdot (-1)}{\sqrt2} = \frac{3}{\sqrt2
 
 Using $\langle 1, -1\rangle$ itself would give 3, which is wrong: it is not a unit vector.
 
-**(c)** Fastest in the direction of $\nabla f(2, 1)$, that is, $\vb{u} = \langle 4, 1\rangle/\sqrt{17}$, at the rate $\norm{\langle 4, 1\rangle} = \sqrt{17} \approx 4.123$ (Theorem 17.10). The rate is 0 in the two directions perpendicular to the gradient, $\pm\langle 1, -4\rangle/\sqrt{17}$, along the level curve through $(2, 1)$: indeed $\langle 4, 1\rangle\cdot\langle 1, -4\rangle = 4 - 4 = 0$.
+**(c)** Fastest in the direction of $\nabla f(2, 1)$, that is, $\vb{u} = \langle 4, 1\rangle/\sqrt{17}$, at the rate $\norm{\langle 4, 1\rangle} = \sqrt{17} \approx 4.123$ (Theorem 17.10). The rate is 0 in the two directions perpendicular to the gradient, $\pm\langle 1, -4\rangle/\sqrt{17}$, tangent to the level curve through $(2, 1)$: indeed $\langle 4, 1\rangle\cdot\langle 1, -4\rangle = 4 - 4 = 0$.
 
 ```check
 f_e4 = x**2*y - y**3
@@ -1445,6 +1472,8 @@ xr2, yr2 = symbols('x y', real=True)
 rho_ = sqrt(xr2**2 + yr2**2)
 holds(all(abs(((x**3 + y**3)/(x**2 + y**2)).subs({x: p_, y: q_})) <= sqrt(p_**2 + q_**2) for p_ in (Rational(1, 2), -3, Rational(2, 7)) for q_ in (-Rational(1, 3), 2, 5)))
 same(Abs(xr2**3), Abs(xr2)*xr2**2); same(rho_**2 - xr2**2, yr2**2)                # |x^3| = |x| x^2, and |x| <= rho since rho^2 - x^2 = y^2 >= 0
+same(Abs(yr2**3), Abs(yr2)*yr2**2); same(rho_**2 - yr2**2, xr2**2)
+holds(rho_**2 - xr2**2 >= 0); holds(rho_**2 - yr2**2 >= 0)
 same(simplify(((x**3 + y**3)/(x**2 + y**2)).subs(y, m*x)), (1 + m**3)*x/(1 + m**2)); limit_is((1 + m**3)*x/(1 + m**2), x, 0, 0)
 same(rho_*(xr2**2 + yr2**2)/(xr2**2 + yr2**2), rho_)
 ```
@@ -1460,7 +1489,7 @@ Let $f(x, y) = xe^{xy}$.
 ::: solution
 **(a)** By the product and chain rules, $f_x = e^{xy} + xye^{xy} = (1 + xy)e^{xy}$ and $f_y = x \cdot xe^{xy} = x^2e^{xy}$, both continuous everywhere. At $(1, 0)$: $f(1, 0) = 1$, $f_x(1, 0) = 1$ and $f_y(1, 0) = 1$. The tangent plane is $z = 1 + (x - 1) + (y - 0)$, that is, $z = x + y$.
 
-**(b)** $f(1.1, -0.1) \approx 1.1 + (-0.1) = 1$. A calculator gives $1.1e^{-0.11} \approx 0.98542$, so the estimate is about 0.015 too high: the point is a distance $\sqrt{0.1^2 + 0.1^2} \approx 0.14$ from $(1, 0)$, not very close.
+**(b)** $f(1.1, -0.1) \approx 1.1 + (-0.1) = 1$. A calculator gives $1.1e^{-0.11} \approx 0.98542$, so the signed error, exact value minus approximation, is $1.1e^{-0.11} - 1 \approx -0.015$: the estimate is too high. The distance from $(1, 0)$ is $\sqrt{0.1^2 + 0.1^2} \approx 0.14$. Distance alone does not say how accurate a linear approximation will be; here the comparison with the calculated value shows its accuracy.
 
 ```check
 f_e6 = x*exp(x*y)
@@ -1468,7 +1497,7 @@ same(diff(f_e6, x), (1 + x*y)*exp(x*y)); same(diff(f_e6, y), x**2*exp(x*y))
 same([f_e6.subs({x: 1, y: 0}), diff(f_e6, x).subs({x: 1, y: 0}), diff(f_e6, y).subs({x: 1, y: 0})], [1, 1, 1])
 same(expand(1 + (x - 1) + (y - 0)), x + y); same((x + y).subs({x: Rational(11, 10), y: -Rational(1, 10)}), 1)
 same(f_e6.subs({x: Rational(11, 10), y: -Rational(1, 10)}), Rational(11, 10)*exp(-Rational(11, 100)))
-rounds(f_e6.subs({x: Rational(11, 10), y: -Rational(1, 10)}), '0.98542'); rounds(1 - Rational(11, 10)*exp(-Rational(11, 100)), '0.015')
+rounds(f_e6.subs({x: Rational(11, 10), y: -Rational(1, 10)}), '0.98542'); rounds(Rational(11, 10)*exp(-Rational(11, 100)) - 1, '-0.015')
 rounds(sqrt(Rational(2, 100)), '0.14')
 ```
 :::
@@ -1580,7 +1609,7 @@ and $f_y(0, 0) = 0$ because $f(0, h) = 0$. So $f_y(x, 0) = x$ for every $x$.
 
 $$f_{xy} = \frac{x^6 + 9x^4y^2 - 9x^2y^4 - y^6}{(x^2 + y^2)^3},$$
 
-which is 1 on the $x$-axis and $-1$ on the $y$-axis, so it has no limit at the origin. The function itself is continuous (it is squeezed by $\abs{f} \le \abs{xy}$) and has both first partial derivatives everywhere: only the continuity of the mixed partial derivatives fails.
+which is 1 on the $x$-axis and $-1$ on the $y$-axis away from the origin, so it has no limit there. The function itself is continuous: since $\abs{x^2 - y^2} \le x^2 + y^2$, it is squeezed by $\abs{f} \le \abs{xy} \to 0$ at the origin. It has both first partial derivatives everywhere; the continuity of the mixed partial derivatives is the hypothesis that fails.
 
 ```check
 fC = x*y*(x**2 - y**2)/(x**2 + y**2)
@@ -1591,6 +1620,8 @@ same(diff(-y, y), -1); same(diff(x, x), 1)
 same(diff(fC, x, y), (x**6 + 9*x**4*y**2 - 9*x**2*y**4 - y**6)/(x**2 + y**2)**3)
 same(diff(fC, x, y).subs(y, 0), 1); same(diff(fC, x, y).subs(x, 0), -1)
 same(Abs(xr*yr) - Abs(fC.subs({x: xr, y: yr})), Abs(xr*yr)*(1 - Abs(xr**2 - yr**2)/(xr**2 + yr**2)))
+same(expand((xr**2 + yr**2)**2 - (xr**2 - yr**2)**2), 4*xr**2*yr**2)
+holds(4*xr**2*yr**2 >= 0)                                              # |x^2 - y^2| <= x^2 + y^2 for all real x, y
 holds(all(abs(fC.subs({x: p_, y: q_})) <= abs(p_*q_) for p_ in (Rational(1, 2), -3, 2) for q_ in (Rational(1, 3), 1, -4)))
 ```
 :::
@@ -1639,12 +1670,12 @@ same(w1*xv + b1, Rational(268, 100)); same(w1*(w1*xv + b1) + b1, Rational(5704, 
 ## Check yourself {#quiz}
 
 ```quiz
-? The level curves of $f(x, y) = x^2 + 4y^2$ are
+? The level sets of $f(x, y) = x^2 + 4y^2$, for values in its range, are
 - [ ] circles centred at the origin
 - [ ] parabolas
 - [x] ellipses centred at the origin, and the single point $(0, 0)$
 - [ ] straight lines through the origin
-> For $k > 0$, $x^2 + 4y^2 = k$ is an ellipse that reaches $\sqrt k$ along the $x$-axis but only $\sqrt k/2$ along the $y$-axis; for $k = 0$ it is the origin alone. They are not circles, because the coefficients of $x^2$ and $y^2$ differ. Parabolas and lines would need $x$ or $y$ to appear without a square.
+> For $k > 0$, $x^2 + 4y^2 = k$ is an ellipse that reaches $\sqrt k$ along the $x$-axis but only $\sqrt k/2$ along the $y$-axis; for $k = 0$ it is the origin alone. They are not circles, because the two semi-axes differ. Both squared terms have positive coefficients, giving these ellipses rather than parabolas or lines.
 
 ? For $f(x, y) = x^2y^3$, $f_x$ is
 - [x] $2xy^3$
@@ -1667,7 +1698,7 @@ same(w1*xv + b1, Rational(268, 100)); same(w1*(w1*xv + b1) + b1, Rational(5704, 
 - [x] $z = 5 + 2(x - 1) + 4(y - 2)$
 > $f_x = 2x$ and $f_y = 2y$ are 2 and 4 at $(1, 2)$, so the plane is $z = f(1, 2) + 2(x - 1) + 4(y - 2)$. $z = 2x + 4y$ has the right slopes but the height 10 at $(1, 2)$, not 5; $z = 5 + 2x + 4y$ forgets to subtract $a$ and $b$; the third keeps $f_x = 2x$ and $f_y = 2y$ without evaluating them at the point, and is not a plane.
 
-? At a point, $\nabla f = \langle 3, -4\rangle$. Which statement is true?
+? $f$ is differentiable at a point where $\nabla f = \langle 3, -4\rangle$. Which statement is true?
 - [ ] The largest directional derivative there is 7.
 - [ ] $f$ increases fastest in the direction $\langle -3, 4\rangle/5$.
 - [x] The largest directional derivative there is 5, in the direction $\langle 3, -4\rangle/5$.
@@ -1675,7 +1706,7 @@ same(w1*xv + b1, Rational(268, 100)); same(w1*(w1*xv + b1) + b1, Rational(5704, 
 > The largest rate is $\norm{\nabla f} = \sqrt{9 + 16} = 5$, in the direction of $\nabla f$ (Theorem 17.10). 7 adds the sizes of the components instead of taking the length; $\langle -3, 4\rangle/5$ is the direction of fastest decrease; and the rate is 0 in the directions $\pm\langle 4, 3\rangle/5$, perpendicular to $\nabla f$, not along it.
 
 ? Clairaut's theorem says that $f_{xy}(a, b) = f_{yx}(a, b)$ if
-- [x] $f_{xy}$ and $f_{yx}$ are continuous on a disc containing $(a, b)$
+- [x] $f_{xy}$ and $f_{yx}$ are continuous on an open disc centred at $(a, b)$
 - [ ] $f_x$ and $f_y$ exist at $(a, b)$
 - [ ] $f$ is continuous at $(a, b)$
 - [ ] nothing more: it holds for every function

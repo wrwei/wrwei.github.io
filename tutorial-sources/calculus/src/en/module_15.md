@@ -85,7 +85,7 @@ $$\abs{c_n (x - a)^n} = \abs{c_n (x_1 - a)^n}\, q^n \le M q^n.$$
 
 The geometric series $\sum Mq^n$ converges, so by the comparison test $\sum \abs{c_n (x - a)^n}$ converges: the series converges absolutely at $x$. Turned round, if the series diverges at some $x_2$, it diverges at every $x$ farther from $a$ than $x_2$, since convergence there would force convergence at $x_2$.
 
-Now consider the distances $\abs{x_1 - a}$ of all the points $x_1$ at which the series converges. If 0 is the only one, case 1 holds. If they include numbers as large as you please, then every $x$ is closer to $a$ than some point of convergence, and case 2 holds. Otherwise these distances are bounded, and they have a **least upper bound** $R$: the smallest number that is at least as large as each of them. That such a number exists is the completeness of the real numbers, the property behind the monotone convergence theorem of Module 14. $R > 0$, because the series converges at some $x_1 \ne a$. If $\abs{x - a} < R$, then $\abs{x - a}$ is not an upper bound, so there is a point of convergence $x_1$ with $\abs{x - a} < \abs{x_1 - a}$, and the series converges absolutely at $x$. If $\abs{x - a} > R$, the series diverges at $x$, because $\abs{x - a}$ is larger than every distance at which it converges.
+Now consider the distances $\abs{x_1 - a}$ of all the points $x_1$ at which the series converges. If 0 is the only one, case 1 holds. If they include numbers as large as you please, then every $x$ is closer to $a$ than some point of convergence, and case 2 holds. Otherwise these distances are bounded, and they have a **least upper bound** $R$: the smallest number that is at least as large as each of them. That such a number exists is the completeness of the real numbers, the property behind the Monotone Convergence Theorem of Module 14. $R > 0$, because the series converges at some $x_1 \ne a$. If $\abs{x - a} < R$, then $\abs{x - a}$ is not an upper bound, so there is a point of convergence $x_1$ with $\abs{x - a} < \abs{x_1 - a}$, and the series converges absolutely at $x$. If $\abs{x - a} > R$, the series diverges at $x$, because $\abs{x - a}$ is larger than every distance at which it converges.
 :::
 
 ```check
@@ -294,7 +294,7 @@ Take $a = 0$; for another centre, write $x - a$ for $x$ throughout.
 
 $$\abs{n c_n x^{n-1}} = \frac{n\,\abs{c_n} r^n\, q^{n-1}}{r} \le \frac{M}{r}\, n q^{n-1},$$
 
-and $\sum n q^{n-1}$ converges by the ratio test: $(n + 1)q^n/(n q^{n-1}) \to q < 1$. So the derived series converges absolutely for $\abs{x} < R$. It diverges for $\abs{x} > R$: otherwise, by Theorem 15.1, it would converge absolutely at some $y$ with $R < \abs{y} < \abs{x}$, and since $\abs{c_n y^n} \le \abs{y}\,\abs{n c_n y^{n-1}}$ for $n \ge 1$, so would the original series, which is impossible beyond its radius. The same argument, applied to the derived series, shows that the twice-derived series $\sum n(n - 1)c_n x^{n-2}$ has radius $R$ too.
+and $\sum n q^{n-1}$ converges by the ratio test when $q > 0$: $(n + 1)q^n/(n q^{n-1}) \to q < 1$. When $q = 0$, only its first term is nonzero, so it converges too. Thus the derived series converges absolutely for $\abs{x} < R$. It diverges for $\abs{x} > R$: otherwise, by Theorem 15.1, it would converge absolutely at some $y$ with $R < \abs{y} < \abs{x}$, and since $\abs{c_n y^n} \le \abs{y}\,\abs{n c_n y^{n-1}}$ for $n \ge 1$, so would the original series, which is impossible beyond its radius. The same argument, applied to the derived series, shows that the twice-derived series $\sum n(n - 1)c_n x^{n-2}$ has radius $R$ too.
 
 **The derivative.** Let $g(x) = \sum n c_n x^{n-1}$, fix $x$ with $\abs{x} < r < R$, and let $h \ne 0$ be so small that $\abs{x + h} < r$. For $n \ge 2$, the Mean Value Theorem gives $(x + h)^n - x^n = n\xi^{n-1}h$ for some $\xi$ between $x$ and $x + h$, and, applied again, $n\xi^{n-1} - nx^{n-1} = n(n - 1)\eta^{n-2}(\xi - x)$ for some $\eta$ between $x$ and $\xi$. Since $\abs{\xi}$ and $\abs{\eta}$ are less than $r$ and $\abs{\xi - x} \le \abs{h}$,
 
@@ -335,11 +335,11 @@ In the same way, $\arctan x$ is an antiderivative of $\dfrac{1}{1 + x^2}$ (Modul
 
 $$\begin{aligned} \arctan x &= \int_0^x \frac{dt}{1 + t^2} \\ &= \sum_{n=0}^\infty (-1)^n\frac{x^{2n+1}}{2n + 1} \\ &= x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots \end{aligned}$$
 
-Both series have radius 1, like the series that were integrated. At $x = 0.1$, four terms give
+Both series have radius 1, like the series that were integrated. At $x = 0.1$, four terms of the logarithm series give the partial sum
 
-$$\begin{aligned} \ln 1.1 &\approx 0.1 - 0.005 \\ &\quad + 0.000333 - 0.000025 \\ &= 0.095308, \end{aligned}$$
+$$\begin{aligned} S_4 &= 0.1 - 0.005 \\ &\quad + \frac{1}{3000} - 0.000025 \\ &= \frac{11437}{120000} \approx 0.0953083. \end{aligned}$$
 
-while a calculator gives $\ln 1.1 \approx 0.0953102$: both round to 0.09531. The terms alternate in sign and decrease in size, so by the alternating series bound of Module 14 the error is less than the first term left out, $0.1^5/5 = 0.000002$. At $x = \tfrac12$ the same series gives $\ln\tfrac32 = \tfrac12 - \tfrac18 + \tfrac{1}{24} - \cdots$, the sum of Exercise 14.9.
+A calculator gives $\ln 1.1 \approx 0.0953102$: both $S_4$ and $\ln 1.1$ round to 0.09531. The terms alternate in sign and decrease in size, so by the alternating series bound of Module 14 the error $\ln 1.1 - S_4$ is positive and less than the first term left out, $0.1^5/5 = 0.000002$. This bound applies to the exact partial sum, before rounding it. At $x = \tfrac12$ the same series gives $\ln\tfrac32 = \tfrac12 - \tfrac18 + \tfrac{1}{24} - \cdots$, the sum of Exercise 14.9.
 
 ```check
 tt = symbols('t')
@@ -349,10 +349,10 @@ same(series(log(1 + x), x, 0, 10).removeO(), sum((-1)**j*x**(j + 1)/(j + 1) for 
 same(diff(atan(x), x), 1/(1 + x**2)); same(atan(0), 0)
 same(series(atan(x), x, 0, 14).removeO(), sum((-1)**j*x**(2*j + 1)/(2*j + 1) for j in range(7)))
 xv_ = Rational(1, 10); terms = [(-1)**(j - 1)*xv_**j/j for j in range(1, 5)]
-same(terms, [Rational(1, 10), -Rational(5, 1000), Rational(1, 3000), -Rational(25, 1000000)]); rounds(Rational(1, 3000), '0.000333')
-rounds(sum(terms), '0.095308'); rounds(log(Rational(11, 10)), '0.0953102')
+same(terms, [Rational(1, 10), -Rational(5, 1000), Rational(1, 3000), -Rational(25, 1000000)])
+same(sum(terms), Rational(11437, 120000)); rounds(sum(terms), '0.0953083'); rounds(log(Rational(11, 10)), '0.0953102')
 rounds(sum(terms), '0.09531'); rounds(log(Rational(11, 10)), '0.09531')
-same(xv_**5/5, Rational(2, 1000000)); holds(Abs(log(Rational(11, 10)) - sum(terms)) < xv_**5/5)
+same(xv_**5/5, Rational(2, 1000000)); holds(0 < log(Rational(11, 10)) - sum(terms)); holds(log(Rational(11, 10)) - sum(terms) < xv_**5/5)
 same(summation((-1)**(n - 1)/(n*2**n), (n, 1, oo)), log(Rational(3, 2))); same([(-1)**(j - 1)*Rational(1, 2)**j/j for j in range(1, 4)], [Rational(1, 2), -Rational(1, 8), Rational(1, 24)])
 ```
 :::
@@ -425,7 +425,7 @@ for N_ in (1, 2, 5, 10, 20):
     holds(0 <= integrate(tt**N_/(1 + tt), (tt, 0, 1))); holds(integrate(tt**N_/(1 + tt), (tt, 0, 1)) <= Rational(1, N_ + 1))
 ```
 
-The bound also shows how slowly the alternating harmonic series converges. After 10, 100 and 1000 terms its partial sums are about 0.6456, 0.6882 and 0.6926, while $\ln 2 \approx 0.693147$: the errors are close to $1/(2n)$, so each extra correct decimal costs ten times as many terms. Section 15.6 finds much faster series for $\ln 2$ and $\pi$.
+The bound also shows how slowly the alternating harmonic series converges. After 10, 100 and 1000 terms its partial sums are about 0.6456, 0.6882 and 0.6926, while $\ln 2 \approx 0.693147$: the error magnitudes are close to $1/(2n)$, so each extra correct decimal costs ten times as many terms. Section 15.6 finds much faster series for $\ln 2$ and $\pi$.
 
 ```check
 alt = lambda N: harmonic(N) - harmonic(N // 2)               # 1 - 1/2 + ... - 1/N, for even N
@@ -711,7 +711,7 @@ The series of this section and the last make a short list worth knowing by heart
 | $\cos x$ | $\displaystyle\sum_{n=0}^\infty (-1)^n\frac{x^{2n}}{(2n)!} = 1 - \frac{x^2}{2!} + \cdots$ | every $x$ |
 | $(1 + x)^k$ | $\displaystyle\sum_{n=0}^\infty \binom{k}{n}x^n = 1 + kx + \cdots$ | $-1 < x < 1$, and for some $k$ also at $\pm1$ |
 
-The last column for $e^x$, $\sin x$ and $\cos x$ is proved in Section 15.5 (Theorem 15.9).
+When $k$ is a nonnegative integer, the binomial series stops and equals $(1 + x)^k$ for every real $x$, not only inside $(-1, 1)$. For every other $k$, the radius is 1 and the endpoints need separate tests. The last column for $e^x$, $\sin x$ and $\cos x$ is proved in Section 15.5 (Theorem 15.9).
 
 ```check
 for f_, ser_ in ((1/(1 - x), sum(x**j for j in range(12))), (log(1 + x), sum((-1)**(j - 1)*x**j/j for j in range(1, 12))),
@@ -722,6 +722,8 @@ inside = lambda cond, pts: [bool(cond.subs(x, p_)) for p_ in pts]
 pts_ = (-2, -1, 0, 1, 2)
 g1_ = summation(x**n, (n, 0, oo)); same(g1_.args[0][0], 1/(1 - x)); same(inside(g1_.args[0][1], pts_), [False, False, True, False, False])
 g3_ = summation((-1)**n*x**(2*n + 1)/(2*n + 1), (n, 0, oo)); same(g3_.args[0][0], atan(x)); same(inside(g3_.args[0][1], pts_), [False, True, True, True, False])
+for k_ in (0, 1, 3):
+    same(sum(binomial(k_, j)*x**j for j in range(k_ + 1)), (1 + x)**k_)   # polynomial case: every real x
 ```
 
 ::: keyidea
@@ -732,7 +734,7 @@ A handful of series generate almost all the others: the geometric series, the se
 A Taylor series needs every derivative at its centre. $\sqrt x$ has no Maclaurin series, because $\sqrt x$ has no derivative at 0, and $\ln x$ has none either, because it is not defined at 0. Use another centre ($\sqrt x$ about 4, $\ln x$ about 1), or shift the function ($\sqrt{1 + x}$, $\ln(1 + x)$).
 :::
 
-Series give values of integrals that no antiderivative can: Module 11 met functions such as $e^{-x^2}$, whose antiderivatives are not elementary.
+Series give numerical values for integrals whose antiderivatives are not elementary, such as those of $e^{-x^2}$ from Module 11.
 
 ::: example An integral with no elementary antiderivative
 Find $\displaystyle\int_0^1 e^{-x^2}\,dx$ to three decimal places.
@@ -752,7 +754,7 @@ same(series(exp(-x**2), x, 0, 12).removeO(), sum((-x**2)**j/factorial(j) for j i
 same(integrate(sum((-x**2)**j/factorial(j) for j in range(8)), (x, 0, 1)), sum(Rational((-1)**j, (2*j + 1)*factorial(j)) for j in range(8)))
 same([Rational(1, (2*j + 1)*factorial(j)) for j in range(7)], [1, Rational(1, 3), Rational(1, 10), Rational(1, 42), Rational(1, 216), Rational(1, 1320), Rational(1, 9360)])
 s6 = sum(Rational((-1)**j, (2*j + 1)*factorial(j)) for j in range(6)); rounds(s6, '0.746729')
-I01 = integrate(exp(-x**2), (x, 0, 1)); holds(Abs(I01 - s6) < Rational(1, 9360)); holds(Rational(1, 9360) < Rational(11, 100000))
+I01 = integrate(exp(-x**2), (x, 0, 1)); holds(s6 < I01); holds(I01 < s6 + Rational(1, 9360)); holds(Rational(1, 9360) < Rational(11, 100000))
 holds(Rational(74672, 100000) < s6); holds(s6 + Rational(1, 9360) < Rational(74684, 100000)); rounds(I01, '0.747')
 holds(all(Rational(1, (2*j + 3)*factorial(j + 1)) < Rational(1, (2*j + 1)*factorial(j)) for j in range(20)))
 ```
@@ -860,8 +862,15 @@ same([diff(T3s, x, j).subs(x, 4) for j in range(4)], [diff(sqrt(x), x, j).subs(x
 ```
 
 ::: widget name=taylor-explorer
-Choose a function, then raise the degree $n$ from 0 and watch $T_n$ (orange) close in on $f$ (blue) over a wider and wider stretch around the centre $a$. The readout compares $T_n(x_0)$ with $f(x_0)$ at the probe point $x_0$. For $e^x$, $\sin x$ and $\cos x$ the error at any $x_0$ shrinks to 0 as $n$ grows; move the centre too. For the other four functions, the green band is the interval of convergence: put $x_0$ outside it (try $\ln(1 + x)$ with $x_0 = 1.5$) and raise $n$, and the error grows instead of shrinking. Move the centre of $\arctan x$ away from 0 and note the radius $\sqrt{1 + a^2}$; Section 15.7 explains it.
+Choose a function, then raise the degree $n$ from 0 and watch $T_n$ (orange) approximate $f$ (blue) around the centre $a$. The readout compares $T_n(x_0)$ with $f(x_0)$ at the probe point $x_0$. For $e^x$, $\sin x$ and $\cos x$ the error at any $x_0$ tends to 0 as $n$ grows; move the centre too. For the other four functions, the green band marks the radius of convergence: outside it, increasing the degree does not make the error tend to 0. Try $\ln(1 + x)$ about 0 with $x_0 = 1.5$: the error magnitude first decreases, then grows. Move the centre of $\arctan x$ away from 0 and note the radius $\sqrt{1 + a^2}$; Section 15.7 explains it.
 :::
+
+```check
+ln_probe = Rational(3, 2)
+ln_errors = [Abs(log(1 + ln_probe) - sum((-1)**(j - 1)*ln_probe**j/j for j in range(1, N_ + 1))) for N_ in range(5)]
+holds(ln_errors[0] > ln_errors[1]); holds(ln_errors[1] > ln_errors[2])
+holds(ln_errors[2] < ln_errors[3]); holds(ln_errors[3] < ln_errors[4])
+```
 
 ## Taylor's theorem {#taylor-theorem}
 
@@ -943,7 +952,7 @@ same(cancel((qq_.subs({dq[0]: 0, dq[1]: 0, dq[2]: 0}))/(x - a)**3), dq[3])
 
 $$\begin{aligned} &\abs{\sin 0.5 - T_5(0.5)} = \abs{R_6(0.5)} \\ &\quad\le \frac{0.5^7}{7!} = \frac{0.0078125}{5040} \\ &\quad\approx 1.55 \times 10^{-6}. \end{aligned}$$
 
-Indeed $T_5(0.5) = 0.5 - 0.0208333 + 0.0002604 = 0.4794271$, while $\sin 0.5 \approx 0.4794255$: the error is about $-1.54 \times 10^{-6}$, very close to the bound.
+Indeed $T_5(0.5) = \tfrac12 - \tfrac{1}{48} + \tfrac{1}{3840} \approx 0.4794271$, while $\sin 0.5 \approx 0.4794255$: the error is about $-1.54 \times 10^{-6}$, whose size is very close to the bound.
 
 **(b)** Here $n = 2$ and $f'''(t) = \tfrac38 t^{-5/2}$, which decreases as $t$ grows, so on $[4, 4.1]$ it is largest at $t = 4$: $M = \tfrac38\cdot 4^{-5/2} = \tfrac{3}{256}$. So
 
@@ -955,10 +964,12 @@ The actual error is about $1.92 \times 10^{-6}$. The Lagrange form also gives th
 rounds(Rational(1, 2)**6/factorial(6), '2.2e-5')
 same(series(sin(x), x, 0, 7).removeO(), x - x**3/6 + x**5/120)        # T_6 = T_5
 same(Rational(1, 2)**7, Rational(78125, 10**7)); same(factorial(7), 5040); rounds(Rational(1, 2)**7/factorial(7), '1.55e-6')
-rounds(Rational(1, 2)**3/6, '0.0208333'); rounds(Rational(1, 2)**5/120, '0.0002604'); rounds(T5_(Rational(1, 2)), '0.4794271')
+same(Rational(1, 2)**3/6, Rational(1, 48)); same(Rational(1, 2)**5/120, Rational(1, 3840))
+same(T5_(Rational(1, 2)), Rational(1, 2) - Rational(1, 48) + Rational(1, 3840)); rounds(T5_(Rational(1, 2)), '0.4794271')
 rounds(sin(Rational(1, 2)), '0.4794255'); rounds(sin(Rational(1, 2)) - T5_(Rational(1, 2)), '-1.54e-6')
 holds(Abs(sin(Rational(1, 2)) - T5_(Rational(1, 2))) <= Rational(1, 2)**7/factorial(7))
-f3 = diff(sqrt(x), x, 3); same(f3, Rational(3, 8)*x**Rational(-5, 2)); holds(diff(f3, x).subs(x, 4) < 0)
+f3 = diff(sqrt(x), x, 3); same(f3, Rational(3, 8)*x**Rational(-5, 2))
+tp = symbols('t_positive', positive=True); holds(diff(f3, x).subs(x, tp).is_negative)
 same(f3.subs(x, 4), Rational(3, 256))
 same(Rational(3, 256)/factorial(3)*Rational(1, 10)**3, Rational(1, 512000)); rounds(Rational(1, 512000), '1.95e-6')
 rounds(sqrt(v41) - T2s.subs(x, v41), '1.92e-6'); holds(sqrt(v41) - T2s.subs(x, v41) > 0)
@@ -995,20 +1006,20 @@ rounds(Rational(1, factorial(10)), '2.8e-7'); holds(E - sE(9) > Rational(1, fact
 
 ### Errors of earlier approximations {#earlier-errors}
 
-Modules 4 and 7 stated how large the errors of three approximations are, and left the proofs to this module.
+Modules 4 and 7 stated how large the errors of three approximations are, and left the proofs to this module. Here, as there, the error is the exact value minus the approximation.
 
 ::: theorem Errors of the linearisation and of difference quotients
-1. If $f''$ exists on an open interval containing $a$ and $x$, and $L$ is the linearisation of $f$ at $a$, then $f(x) - L(x) = \dfrac{f''(c)}{2}(x - a)^2$ for some $c$ between $a$ and $x$. If also $\abs{f''} \le M$ between $a$ and $x$, then $\abs{f(x) - L(x)} \le \dfrac{M}{2}(x - a)^2$.
+1. If $f''$ exists on an open interval containing $a$ and $x$, and $L$ is the linearisation of $f$ at $a$, then $f(x) - L(x) = \dfrac{f''(c)}{2}(x - a)^2$ for some $c$ between $a$ and $x$ (take $c = a$ when $x = a$). If also $\abs{f''} \le M$ between $a$ and $x$, then $\abs{f(x) - L(x)} \le \dfrac{M}{2}(x - a)^2$.
 2. Let $h > 0$. If $f''$ exists on an open interval containing $a$ and $a + h$, the error of the forward difference is
-   $$\frac{f(a + h) - f(a)}{h} - f'(a) = \frac{h}{2}f''(c)$$
+   $$f'(a) - \frac{f(a + h) - f(a)}{h} = -\frac{h}{2}f''(c)$$
    for some $c$ between $a$ and $a + h$.
-3. If $f'''$ exists and is continuous on an open interval containing $a - h$ and $a + h$, the error of the central difference is
-   $$\begin{aligned} &\frac{f(a + h) - f(a - h)}{2h} - f'(a) \\ &\quad= \frac{h^2}{6}f'''(c) \end{aligned}$$
+3. Let $h > 0$. If $f'''$ exists and is continuous on an open interval containing $a - h$ and $a + h$, the error of the central difference is
+   $$\begin{aligned} &f'(a) - \frac{f(a + h) - f(a - h)}{2h} \\ &\quad= -\frac{h^2}{6}f'''(c) \end{aligned}$$
    for some $c$ between $a - h$ and $a + h$.
 :::
 
 ::: proof
-Part 1 is Taylor's theorem with $n = 1$, since $T_1 = L$. For part 2, apply part 1 with $x = a + h$: $f(a + h) = f(a) + f'(a)h + \tfrac12 f''(c)h^2$; subtract $f(a)$, divide by $h$ and subtract $f'(a)$. For part 3, Taylor's theorem with $n = 2$ at $x = a + h$ and at $x = a - h$ gives
+Part 1 is Taylor's theorem with $n = 1$, since $T_1 = L$. For part 2, apply part 1 with $x = a + h$: $f(a + h) = f(a) + f'(a)h + \tfrac12 f''(c)h^2$. Subtract $f(a)$ and divide by $h$ to get the forward difference, then subtract this quotient from $f'(a)$. For part 3, Taylor's theorem with $n = 2$ at $x = a + h$ and at $x = a - h$ gives
 
 $$\begin{aligned} f(a \pm h) &= f(a) \pm f'(a)h + \frac{f''(a)}{2}h^2 \\ &\qquad \pm \frac{f'''(c_\pm)}{6}h^3, \end{aligned}$$
 
@@ -1016,7 +1027,7 @@ with $c_+$ between $a$ and $a + h$ and $c_-$ between $a - h$ and $a$. Subtract: 
 
 $$\begin{aligned} &f(a + h) - f(a - h) \\ &\quad= 2f'(a)h + \frac{f'''(c_+) + f'''(c_-)}{6}h^3. \end{aligned}$$
 
-Divide by $2h$ and subtract $f'(a)$: the error is $\dfrac{h^2}{6}$ times $\tfrac12\big(f'''(c_+) + f'''(c_-)\big)$, the average of two values of $f'''$. The average lies between the two values, so, $f'''$ being continuous, the Intermediate Value Theorem (Module 3) gives a $c$ between $c_-$ and $c_+$ at which $f'''(c)$ equals it.
+Divide by $2h$, then subtract the quotient from $f'(a)$: the error is $-\dfrac{h^2}{6}$ times $\tfrac12\big(f'''(c_+) + f'''(c_-)\big)$, the average of two values of $f'''$. The average lies between the two values, so, $f'''$ being continuous, the Intermediate Value Theorem (Module 3) gives a $c$ between $c_-$ and $c_+$ at which $f'''(c)$ equals it.
 :::
 
 ```check
@@ -1024,17 +1035,17 @@ fd = Function('f'); f2a, f3p, f3m, cc_ = symbols('f2a f3p f3m c')
 Tp = fd(a) + diff(fd(a), a)*h + f2a/2*h**2 + f3p/6*h**3          # f(a + h), Lagrange form, f''(a) = f2a, f'''(c+) = f3p
 Tm = fd(a) - diff(fd(a), a)*h + f2a/2*h**2 - f3m/6*h**3          # f(a - h)
 same(expand(Tp - Tm), expand(2*diff(fd(a), a)*h + (f3p + f3m)/6*h**3))
-same(expand((Tp - Tm)/(2*h) - diff(fd(a), a)), expand(h**2/6*(f3p + f3m)/2))
-same(expand(((fd(a) + diff(fd(a), a)*h + cc_/2*h**2) - fd(a))/h - diff(fd(a), a)), h/2*cc_)
+same(expand(diff(fd(a), a) - (Tp - Tm)/(2*h)), expand(-h**2/6*(f3p + f3m)/2))
+same(expand(diff(fd(a), a) - ((fd(a) + diff(fd(a), a)*h + cc_/2*h**2) - fd(a))/h), -h/2*cc_)
 a0 = Rational(1, 2)
-for fn_ in (exp(x), sin(x), x**4):                                 # instances at a = 1/2: the errors are about (h/2) f''(a) and (h^2/6) f'''(a)
-    limit_is(((fn_.subs(x, a0 + h) - fn_.subs(x, a0))/h - diff(fn_, x).subs(x, a0))/h, h, 0, diff(fn_, x, 2).subs(x, a0)/2)
-    limit_is(((fn_.subs(x, a0 + h) - fn_.subs(x, a0 - h))/(2*h) - diff(fn_, x).subs(x, a0))/h**2, h, 0, diff(fn_, x, 3).subs(x, a0)/6)
+for fn_ in (exp(x), sin(x), x**4):                                 # exact minus approximation: leading errors -h f''(a)/2 and -h^2 f'''(a)/6
+    limit_is((diff(fn_, x).subs(x, a0) - (fn_.subs(x, a0 + h) - fn_.subs(x, a0))/h)/h, h, 0, -diff(fn_, x, 2).subs(x, a0)/2)
+    limit_is((diff(fn_, x).subs(x, a0) - (fn_.subs(x, a0 + h) - fn_.subs(x, a0 - h))/(2*h))/h**2, h, 0, -diff(fn_, x, 3).subs(x, a0)/6)
 ```
 
-As $h \to 0$ in part 2, $c$ is squeezed towards $a$, so if $f''$ is continuous at $a$ the error is about $\tfrac{h}{2}f''(a)$; and if $\abs{f''} \le M$ near $a$, it is at most $\tfrac{M}{2}h$, so it is $O(h)$. In the same way the error in part 3 is about $\tfrac{h^2}{6}f'''(a)$, and it is $O(h^2)$. These are the claims of [Section 4.7](module_04_EN.html#truncation). Part 1 gives both claims of [Section 7.2](module_07_EN.html#how-good): the bound $\tfrac{M}{2}(x - a)^2$, and, when $f''$ is continuous at $a$, $f(x) - L(x) \approx \tfrac{f''(a)}{2}(x - a)^2$, because $\dfrac{f(x) - L(x)}{(x - a)^2} = \dfrac{f''(c)}{2} \to \dfrac{f''(a)}{2}$ as $x \to a$.
+As $h \to 0$ in part 2, $c$ is squeezed towards $a$, so if $f''$ is continuous at $a$ the error is about $-\tfrac{h}{2}f''(a)$; and if $\abs{f''} \le M$ near $a$, its absolute value is at most $\tfrac{M}{2}h$, so it is $O(h)$. In the same way the error in part 3 is about $-\tfrac{h^2}{6}f'''(a)$, and it is $O(h^2)$. These are the claims of [Section 4.7](module_04_EN.html#truncation). Part 1 gives both claims of [Section 7.2](module_07_EN.html#how-good): the bound $\tfrac{M}{2}(x - a)^2$, and, when $f''$ is continuous at $a$, $f(x) - L(x) \approx \tfrac{f''(a)}{2}(x - a)^2$, because $\dfrac{f(x) - L(x)}{(x - a)^2} = \dfrac{f''(c)}{2} \to \dfrac{f''(a)}{2}$ as $x \to a$.
 
-Newton's method of Module 7 is a third beneficiary. Let $f(r) = 0$, and let $e_n = x_n - r$ be the error of the $n$th iterate. Taylor's theorem of degree 1 about $x_n$, evaluated at $r$, gives
+Newton's method of Module 7 is a third beneficiary. Let $f(r) = 0$, suppose $f''$ exists on an open interval containing $x_n$ and $r$, and assume $f'(x_n) \ne 0$. Keep Module 7's convention $e_n = x_n - r$ for the signed error of an iterate: it is the reverse of the approximation-error convention above. If $x_n \ne r$, Taylor's theorem of degree 1 about $x_n$, evaluated at $r$, gives
 
 $$\begin{aligned} 0 = f(r) &= f(x_n) + f'(x_n)(r - x_n) \\ &\qquad + \frac{f''(c_n)}{2}(r - x_n)^2 \end{aligned}$$
 
@@ -1042,7 +1053,7 @@ for some $c_n$ between $x_n$ and $r$. Divide by $f'(x_n)$, and use $x_{n+1} = x_
 
 $$e_{n+1} = \frac{f''(c_n)}{2f'(x_n)}\,e_n^2.$$
 
-Module 7 found this relation approximately, with $x_n$ in place of $c_n$; here it is exact. Exercise 15.12 completes the proof of Theorem 7.3 from it.
+If $x_n = r$, Newton's next step stays at $r$, so both errors are 0 and the relation still holds with $c_n = r$. Module 7 found this relation approximately, with $x_n$ in place of $c_n$; here it is exact. Exercise 15.12 completes the proof of Theorem 7.3 from it.
 
 ```check
 fN, f1N, f2N, xN, rN = symbols('f_n f1_n f2_n x_n r')            # f(x_n), f'(x_n), f''(c_n)
@@ -1158,20 +1169,27 @@ The series of Theorem 15.3 for $\pi$, $\tfrac{\pi}{4} = 1 - \tfrac13 + \tfrac15 
 
 $$\frac{\pi}{4} = 4\arctan\frac15 - \arctan\frac{1}{239},$$
 
-which Exercise 15.11 proves, needs $\arctan$ only at $\tfrac15$ and $\tfrac{1}{239}$. Each term of the series of $\arctan\tfrac15$ is about 25 times smaller than the one before. The series alternate, with terms that decrease in size, so the error of each partial sum is less than the first term left out. Five terms of the first series and two of the second give
+which Exercise 15.11 proves, needs $\arctan$ only at $\tfrac15$ and $\tfrac{1}{239}$. Each term of the series of $\arctan\tfrac15$ is about 25 times smaller in size than the one before. The series alternate, with terms that decrease in size, so the absolute error of each partial sum is less than the size of the first term left out. Five terms of the first series and two of the second give
 
 $$\begin{aligned} \arctan\frac15 &\approx \frac15 - \frac{1}{3\cdot5^3} + \frac{1}{5\cdot5^5} \\ &\qquad - \frac{1}{7\cdot5^7} + \frac{1}{9\cdot5^9}, \\ \arctan\frac{1}{239} &\approx \frac{1}{239} - \frac{1}{3\cdot239^3}, \end{aligned}$$
 
-with errors less than $\tfrac{1}{11\cdot5^{11}} \approx 1.9 \times 10^{-9}$ and $\tfrac{1}{5\cdot239^5} \approx 2.6 \times 10^{-13}$, and so $\pi \approx 3.14159268$, with an error of at most $16 \times 1.9 \times 10^{-9} + 4 \times 2.6 \times 10^{-13}$, less than $3 \times 10^{-8}$. Formulas of this kind computed $\pi$ to hundreds of digits by hand, and to millions by computer.
+with absolute errors less than $\tfrac{1}{11\cdot5^{11}} \approx 1.9 \times 10^{-9}$ and $\tfrac{1}{5\cdot239^5} \approx 2.6 \times 10^{-13}$. The combined partial sums therefore have absolute error at most
+
+$$\frac{16}{11\cdot5^{11}} + \frac{4}{5\cdot239^5} \approx 2.98 \times 10^{-8} < 3 \times 10^{-8}.$$
+
+They give $\pi \approx 3.14159268$. Keep the bounds exact until the last step: rounding them first can change whether their sum meets a target. Formulas of this kind computed $\pi$ to hundreds of digits by hand, and to millions by computer.
 
 ```check
 holds(Rational(1, 2*500000 + 1) < Rational(1, 10**6)); holds(Rational(1, 2*499999 + 1) > Rational(1, 10**6))
 atn = lambda X, N: sum(Rational((-1)**j, 2*j + 1)*X**(2*j + 1) for j in range(N))
-holds(all(Rational(1, 5)**(2*j + 3)/(2*j + 3) < Rational(1, 25)*Rational(1, 5)**(2*j + 1)/(2*j + 1)*Rational(3, 1) for j in range(10)))
+for j in range(10):
+    same((Rational(1, 5)**(2*j + 3)/(2*j + 3))/(Rational(1, 5)**(2*j + 1)/(2*j + 1)), Rational(2*j + 1, 25*(2*j + 3)))
+limit_is((2*n + 1)/(25*(2*n + 3)), n, oo, Rational(1, 25))
 rounds(Rational(1, 11*5**11), '1.9e-9'); rounds(Rational(1, 5*239**5), '2.6e-13')
 holds(Abs(atan(Rational(1, 5)) - atn(Rational(1, 5), 5)) < Rational(1, 11*5**11)); holds(Abs(atan(Rational(1, 239)) - atn(Rational(1, 239), 2)) < Rational(1, 5*239**5))
 pM = 4*(4*atn(Rational(1, 5), 5) - atn(Rational(1, 239), 2)); rounds(pM, '3.14159268')
-bound = 16*Rational(1, 11*5**11) + 4*Rational(1, 5*239**5); holds(bound < Rational(3, 10**8)); holds(Abs(pM - pi) < bound)
+bound = 16*Rational(1, 11*5**11) + 4*Rational(1, 5*239**5); rounds(bound, '2.98e-8'); holds(bound < Rational(3, 10**8)); holds(Abs(pM - pi) < bound)
+holds(Abs(Rational(314159268, 10**8) - pi) < Rational(3, 10**8))
 near(4*(4*atan(Rational(1, 5)) - atan(Rational(1, 239))), pi, 1e-25)      # Machin's formula (proved in Exercise 15.11)
 ```
 
@@ -1192,25 +1210,26 @@ def machin(n):
     return sp.Rational(p.numerator, p.denominator)
 
 for n in (2, 5, 10, 20, 36):
-    print(f"{n:2d} terms: error {sp.N(machin(n) - sp.pi, 2)}")
+    print(f"{n:2d} terms: error {sp.N(sp.pi - machin(n), 2)}")
 print(sp.N(machin(36), 52))
 ```
 
 ```output
- 2 terms: error -0.0010
- 5 terms: error 2.9E-8
-10 terms: error -1.5E-15
-20 terms: error -8.3E-30
-36 terms: error -2.0E-52
+ 2 terms: error 0.0010
+ 5 terms: error -2.9E-8
+10 terms: error 1.5E-15
+20 terms: error 8.3E-30
+36 terms: error 2.0E-52
 3.141592653589793238462643383279502884197169399375106
 ```
 
-Each extra term of each series gains about 1.4 digits, because $\log_{10} 25 \approx 1.4$; 36 terms of each give an error of about $2 \times 10^{-52}$, so the 52 digits printed are those of $\pi$. SymPy writes the powers of ten with a capital `E`.
+The printed error is $\pi$ minus the approximation. Each extra term of each series gains about 1.4 digits, because $\log_{10} 25 \approx 1.4$; 36 terms of each give an error of about $2 \times 10^{-52}$, and the result rounds to the same 52 significant digits as $\pi$. SymPy writes the powers of ten with a capital `E`.
 :::
 
 ```check
 rounds(log(25, 10), '1.4')
 pF = 4*(4*atn(Rational(1, 5), 36) - atn(Rational(1, 239), 36)); holds(Abs(pF - pi) < Rational(3, 10**52)); holds(Abs(pF - pi) > Rational(1, 10**52))
+rounds(pi - pF, '2.0e-52'); same(str(N(pF, 52)), str(N(pi, 52)))
 ```
 
 For $\ln 2$ the alternating harmonic series is equally slow. A faster series comes from subtracting two logarithms. Replacing $x$ by $-x$ in the series of $\ln(1 + x)$ gives $\ln(1 - x) = -x - \tfrac{x^2}{2} - \tfrac{x^3}{3} - \cdots$ for $\abs{x} < 1$.
@@ -1234,7 +1253,7 @@ Each term is less than a ninth of the one before. If you stop after $n$ terms, t
 
 $$\frac{2x^{2n+1}}{2n + 1}\cdot\frac{1}{1 - x^2} = \frac{2}{(2n + 1)\,3^{2n+1}}\cdot\frac98.$$
 
-For $n = 5$ this is about $1.2 \times 10^{-6}$, not quite enough; for $n = 6$ it is about $1.1 \times 10^{-7}$. Six terms give $0.69314707$, and since the error is positive and less than $1.1 \times 10^{-7}$, $\ln 2$ lies between $0.69314707$ and $0.69314718$: to six decimal places, $\ln 2 = 0.693147$. The alternating harmonic series would need about a million terms for the same accuracy.
+For $n = 5$ this is about $1.2 \times 10^{-6}$, not quite enough; for $n = 6$ it is about $1.1 \times 10^{-7}$. Six terms give approximately $0.69314707$. Adding the exact error bound to the exact partial sum gives less than $0.69314719$, while the partial sum itself is greater than $0.69314707$. Thus $\ln 2$ lies between $0.69314707$ and $0.69314719$: both round to $0.693147$ to six decimal places, so $\ln 2 \approx 0.693147$. The alternating harmonic series would need about a million terms for the same accuracy.
 
 ```check
 same(series(log(1 - x), x, 0, 8).removeO(), -sum(x**j/j for j in range(1, 8)))
@@ -1246,9 +1265,11 @@ holds(all(Rational(1, (2*j + 3)*3**(2*j + 3)) < Rational(1, 9)*Rational(1, (2*j 
 bd = lambda N: Rational(2, (2*N + 1)*3**(2*N + 1))*Rational(9, 8)
 same(bd(5), 2*Rational(1, 3)**11/11/(1 - Rational(1, 9))); rounds(bd(5), '1.2e-6'); rounds(bd(6), '1.1e-7')
 rounds(l2(6), '0.69314707'); holds(log(2) - l2(6) > 0); holds(log(2) - l2(6) < bd(6))
-holds(l2(6) + Rational(11, 10**8) < Rational(69314719, 10**8)); rounds(log(2), '0.693147')
+holds(Rational(69314707, 10**8) < l2(6)); holds(l2(6) + bd(6) < Rational(69314719, 10**8))
+holds(Rational(69314707, 10**8) < log(2)); holds(log(2) < Rational(69314719, 10**8))
+rounds(Rational(69314707, 10**8), '0.693147'); rounds(Rational(69314719, 10**8), '0.693147'); rounds(log(2), '0.693147')
 holds(Abs(log(2) - l2(5)) > Rational(5, 10**7))                  # five terms are not enough for six decimals
-same(Rational(1, 2*10**6), Rational(5, 10**7))                    # the error 1/(2n) of the alternating harmonic series reaches 5e-7 at n = 10^6
+same(Rational(1, 2*10**6), Rational(5, 10**7))                    # its leading error estimate 1/(2n) reaches 5e-7 at n = 10^6
 ```
 :::
 
@@ -1292,7 +1313,7 @@ Keep enough terms. With $\sin x \approx x$ alone, the numerator of (a) becomes $
 Physicists replace functions by their first few Taylor terms all the time, and Taylor's theorem tells them what they lose.
 
 ::: example Kinetic energy at low speed
-In special relativity, a body of mass $m$ moving at speed $v$ has kinetic energy
+In special relativity, a body of rest mass $m > 0$ moving at speed $0 \le v < c$ has kinetic energy
 
 $$E_k = mc^2\Big(\frac{1}{\sqrt{1 - v^2/c^2}} - 1\Big),$$
 
@@ -1338,7 +1359,7 @@ rounds(100*(2/pi*elliptic_k(sin(Rational(1, 4))**2) - 1), '1.6')
 
 ### How computers evaluate functions {#libraries}
 
-A processor adds, subtracts, multiplies and divides; it has no circuit for $\sin x$ or $e^x$. Mathematics libraries, the code behind Python's `math.sin` and the sine of every programming language and spreadsheet, evaluate such functions with polynomials, in two steps.
+Mathematics libraries often evaluate functions such as $\sin x$ and $e^x$ using range reduction and polynomial approximations. Python's `math` functions mostly call the platform's C mathematics library, so the details depend on the system. Here is the idea in two steps.
 
 **Range reduction.** The Maclaurin series of $\sin$ converges for every $x$, but for large $x$ it is useless: at $x = 100$ its terms grow to about $10^{42}$ before they shrink, and in floating point their sum, a number between $-1$ and 1, is lost in the rounding. So the library first uses the symmetries of $\sin$ to make $x$ small. Write $x = k\cdot\tfrac{\pi}{2} + r$, with $k$ the whole number nearest to $x/(\pi/2)$, so that $\abs{r} \le \pi/4$. By the addition formulas of Module 1, $\sin x$ is $\sin r$, $\cos r$, $-\sin r$ or $-\cos r$, according as $k$ leaves the remainder 0, 1, 2 or 3 when divided by 4.
 
@@ -1346,7 +1367,7 @@ A processor adds, subtracts, multiplies and divides; it has no circuit for $\sin
 
 $$\abs{\sin r - T_{15}(r)} \le \frac{(\pi/4)^{17}}{17!} \approx 4.6 \times 10^{-17},$$
 
-below the precision of the computer's numbers, and $T_{16}$ does even better for $\cos r$. A polynomial is evaluated from the inside out, as $c_0 + u\big(c_1 + u(c_2 + \cdots)\big)$ with $u = r^2$, which takes one multiplication and one addition per coefficient: this is **Horner's rule**.
+and $T_{16}$ has an even smaller bound for $\cos r$. This bounds the polynomial's approximation error; evaluating it in floating point adds rounding error. The even polynomial for $\cos r$, and the polynomial factor of $r$ in the approximation to $\sin r$, can be evaluated from the inside out as $c_0 + u\big(c_1 + u(c_2 + \cdots)\big)$ with $u = r^2$. This is **Horner's rule**: starting from the highest coefficient, each remaining coefficient needs one multiplication and one addition.
 
 ```check
 mx = max(range(1, 300), key=lambda j: Rational(100)**j/factorial(j)); same(mx, 99)
@@ -1357,7 +1378,7 @@ same(series(sin(x), x, 0, 17).removeO(), series(sin(x), x, 0, 16).removeO())
 rounds((pi/4)**17/factorial(17), '4.6e-17'); holds((pi/4)**18/factorial(18) < (pi/4)**17/factorial(17))
 ```
 
-Real libraries refine both steps. Their polynomials are not Taylor polynomials but **minimax polynomials**, whose coefficients are tuned to spread the error evenly over the interval, so that a lower degree reaches full precision. And they carry out the range reduction with extra digits of $\pi$, because for large $x$ the subtraction $x - k\pi/2$ cancels leading digits, as in Module 2. The exponential is handled the same way: write $x = k\ln 2 + r$ with $\abs{r} \le \tfrac12\ln 2$; then $e^x = 2^ke^r$, where $e^r$ comes from a polynomial and multiplying by $2^k$ only changes the exponent of a floating-point number.
+Production libraries refine both steps. They often use coefficients tuned for the whole interval rather than Taylor coefficients. One approach uses **minimax polynomials**, which minimise the largest absolute error on the interval among polynomials of a chosen degree. Accurate range reduction also needs extra digits of $\pi$, because for large $x$ the subtraction $x - k\pi/2$ cancels leading digits, as in Module 2. The exponential can be handled similarly: write $x = k\ln 2 + r$ with $\abs{r} \le \tfrac12\ln 2$; then $e^x = 2^ke^r$. Approximate $e^r$ on this small interval and rescale by $2^k$.
 
 ::: compute A sine function of your own
 Range reduction and a Taylor polynomial of degree 15 already make a good sine:
@@ -1393,7 +1414,7 @@ x =    1000.0: my_sin = +0.8268795405320475, math.sin = +0.8268795405320025
 x = 1000000.0: my_sin = -0.3499935020939287, math.sin = -0.3499935021712929
 ```
 
-For $x = 0.5$ and 2 the two agree in every digit printed, and for $x = 10$ in all but the last. For larger $x$ they part company, more and more as $x$ grows: at $x = 10^6$ they differ by about $8 \times 10^{-11}$. The polynomial is not to blame; the reduction is. `math.pi/2` is $\pi/2$ rounded to about 16 digits, and $r = x - k\cdot\tfrac{\pi}{2}$ inherits $k$ times that rounding error, with $k$ about $x/1.57$, as well as the rounding of $k\cdot\tfrac{\pi}{2}$, a number almost as large as $x$. Python's `math.sin` reduces with many more digits of $\pi$.
+For $x = 0.5$ and 2 the two agree in every digit printed, and for $x = 10$ in all but the last. In these examples the discrepancy grows with $x$: at $x = 10^6$ it is about $8 \times 10^{-11}$. The range reduction dominates the error. `math.pi/2` is $\pi/2$ rounded to about 16 digits, and $r = x - k\cdot\tfrac{\pi}{2}$ inherits $k$ times that rounding error, with $k$ about $x/1.57$, as well as the rounding of $k\cdot\tfrac{\pi}{2}$, a number almost as large as $x$. A library can avoid this loss by reducing with more digits of $\pi$; the exact algorithm and final printed digits depend on the platform.
 :::
 
 ```check
@@ -1516,10 +1537,10 @@ Complex numbers also answer the question of Section 15.2: why does the series of
 ```check
 zc = symbols('z'); same_set(solve(1 + zc**2, zc), [I, -I]); same(Abs(I), 1); same(Abs(1 - I), sqrt(2))
 arl = symbols('a', real=True); same(Abs(arl - I), sqrt(1 + arl**2))
-cser = series(1/(1 + (1 + u)**2), u, 0, 16).removeO()          # about a = 1: |c_n| is at most 2^(-(n+1)/2), and equal to it for even n
+cser = series(1/(1 + (1 + u)**2), u, 0, 16).removeO()          # about a = 1: |c_n| <= 2^(-(n+1)/2); for even n it equals 2^(-n/2-1)
 for j in range(16):
     same(cser.coeff(u, j), (-1)**j*sin((j + 1)*pi/4)/2**(Rational(j + 1, 2)))
-limit_is((2**(-(2*n + 1)/Rational(2)))**(1/(2*n)), n, oo, 1/sqrt(2))   # so the root test gives the radius sqrt(2)
+limit_is((2**(-n - 1))**(1/(2*n)), n, oo, 1/sqrt(2))          # even coefficients have this root limit, so the radius is sqrt(2)
 ```
 
 ::: pitfall
@@ -1532,7 +1553,7 @@ same(exp(2*pi*I), 1); same(exp(0), 1); same(exp(zA + 2*pi*I), exp(zA))
 
 ### Oscillations {#oscillations}
 
-Module 13 solved the equation $y'' + py' + qy = 0$, with real constants $p$ and $q$, by trying $y = e^{rt}$, which leads to the characteristic equation $r^2 + pr + q = 0$. When $p^2 < 4q$ this equation has no real roots, and Module 13 gave the solutions $e^{at}\cos bt$ and $e^{at}\sin bt$, with $a = -\tfrac{p}{2}$ and $b = \tfrac12\sqrt{4q - p^2}$, checked by substitution. Euler's formula shows where they come from.
+Module 13 solved constant-coefficient equations such as $y'' + py' + qy = 0$, with real constants $p$ and $q$, by trying $y = e^{rt}$, which leads to the characteristic equation $r^2 + pr + q = 0$. When $p^2 < 4q$ this equation has no real roots. Its real solutions include $e^{at}\cos bt$ and $e^{at}\sin bt$, with $a = -\tfrac{p}{2}$ and $b = \tfrac12\sqrt{4q - p^2}$. Here $a$ and $b$ are the root's real and imaginary parts, called $\alpha$ and $\beta$ in Module 13; they are not that module's coefficients of $y''$ and $y'$. Module 13 checked these solutions by substitution. Euler's formula shows where they come from.
 
 By the quadratic formula the roots are $r = -\tfrac{p}{2} \pm \tfrac12\sqrt{p^2 - 4q}$. When $p^2 < 4q$, the number $p^2 - 4q$ is negative, and $\big(i\sqrt{4q - p^2}\big)^2 = -(4q - p^2) = p^2 - 4q$; so the roots are the complex numbers $r = a \pm bi$.
 
@@ -1570,7 +1591,7 @@ The characteristic equation $r^2 + 2r + 10 = 0$ has roots
 
 $$\begin{aligned} r &= \frac{-2 \pm \sqrt{4 - 40}}{2} \\ &= \frac{-2 \pm 6i}{2} = -1 \pm 3i, \end{aligned}$$
 
-since $\sqrt{-36} = 6i$ in the sense above: $(6i)^2 = -36$. So $e^{(-1+3i)t} = e^{-t}(\cos 3t + i\sin 3t)$ is a complex solution, and its real and imaginary parts give the real solutions $e^{-t}\cos 3t$ and $e^{-t}\sin 3t$; Module 13's general solution is $y = e^{-t}(C_1\cos 3t + C_2\sin 3t)$. The motion is an oscillation with period $2\pi/3 \approx 2.09$ seconds, whose size is multiplied by $e^{-t}$: it halves every $\ln 2 \approx 0.69$ seconds.
+since $\sqrt{-36} = 6i$ in the sense above: $(6i)^2 = -36$. So $e^{(-1+3i)t} = e^{-t}(\cos 3t + i\sin 3t)$ is a complex solution, and its real and imaginary parts give the real solutions $e^{-t}\cos 3t$ and $e^{-t}\sin 3t$; Module 13's general solution is $y = e^{-t}(C_1\cos 3t + C_2\sin 3t)$. The trigonometric factor has period $2\pi/3 \approx 2.09$ seconds. The displacement itself is not periodic: its amplitude envelope shrinks by the factor $e^{-t}$, halving every $\ln 2 \approx 0.69$ seconds.
 
 ```check
 same_set(solve(r**2 + 2*r + 10, r), [-1 + 3*I, -1 - 3*I]); same((6*I)**2, -36); same((-2 + 6*I)/2, -1 + 3*I)
@@ -1580,6 +1601,8 @@ for part in (exp(-tr)*cos(3*tr), exp(-tr)*sin(3*tr)):
 yf = Function('y'); C1, C2 = symbols('C1 C2')
 same(dsolve(yf(tr).diff(tr, 2) + 2*yf(tr).diff(tr) + 10*yf(tr)).rhs, (C1*sin(3*tr) + C2*cos(3*tr))*exp(-tr))
 rounds(2*pi/3, '2.09'); rounds(log(2), '0.69'); same(exp(-(tr + log(2)))/exp(-tr), Rational(1, 2))
+same(expand_trig(cos(3*(tr + 2*pi/3))), cos(3*tr)); same(expand_trig(sin(3*(tr + 2*pi/3))), sin(3*tr))
+same(exp(-(tr + 2*pi/3))/exp(-tr), exp(-2*pi/3)); holds(exp(-2*pi/3) < 1)
 ```
 :::
 
@@ -1803,13 +1826,13 @@ same((x*(1 + x)/(1 - x)**3).subs(x, Rational(1, 2)), 6); same(summation(n**2/2**
 
 $$\binom{1/2}{n+1}\Big/\binom{1/2}{n} = \frac{\tfrac12 - n}{n + 1},$$
 
-which for $n \ge 1$ is negative and has size $\dfrac{n - \tfrac12}{n + 1} < 1$. So for $0 < x < 1$, from the term in $x$ on, each term has the opposite sign to the one before and is smaller in size (its size is multiplied by $\tfrac{n - 1/2}{n + 1}\,x < 1$), and the terms tend to 0. By the alternating series bound of Module 14, applied to the series from its second term on, the error is less than the first term left out:
+which for $n \ge 1$ is negative and has size $\dfrac{n - \tfrac12}{n + 1} < 1$. So for $0 < x < 1$, from the term in $x$ on, each term has the opposite sign to the one before and is smaller in size (its size is multiplied by $\tfrac{n - 1/2}{n + 1}\,x < x < 1$). Comparing with a geometric sequence of ratio $x$ shows that the terms tend to 0. By the alternating series bound of Module 14, applied to the series from its second term on, the error is smaller in size than the first term left out. At $x = 0.1$ that size is
 
-$$\begin{aligned} \abs{\binom{1/2}{4}x^4} &= \frac{5}{128}(0.1)^4 \\ &\approx 3.9 \times 10^{-6}. \end{aligned}$$
+$$\begin{aligned} \abs{\binom{1/2}{4}(0.1)^4} &= \frac{5}{128}(0.1)^4 \\ &= 0.00000390625. \end{aligned}$$
 
 Indeed $\sqrt{1.1} \approx 1.0488088$, and the error of 1.0488125 is about $-3.7 \times 10^{-6}$.
 
-**(c)** $\sqrt{110} = \sqrt{100 \times 1.1} = 10\sqrt{1.1} \approx 10.488125$, with error less than $10 \times 3.9 \times 10^{-6} = 3.9 \times 10^{-5}$. So $\sqrt{110}$ lies between 10.488085 and 10.488125, and to four decimal places it is 10.4881 (a calculator gives 10.488088).
+**(c)** $\sqrt{110} = \sqrt{100 \times 1.1} = 10\sqrt{1.1} \approx 10.488125$, with an error of size less than $10 \times 0.00000390625 = 0.0000390625 < 0.00004$. The first omitted term is negative, so the estimate is too large. Thus $\sqrt{110}$ lies between 10.488085 and 10.488125, and to four decimal places it is 10.4881 (a calculator gives 10.488088).
 
 ```check
 v3 = Rational(1, 10); est = 1 + v3/2 - v3**2/8 + v3**3/16
@@ -1817,9 +1840,12 @@ same([v3/2, v3**2/8, v3**3/16], [Rational(5, 100), Rational(125, 100000), Ration
 for j in range(1, 30):
     same(binomial(Rational(1, 2), j + 1)/binomial(Rational(1, 2), j), (Rational(1, 2) - j)/(j + 1))
 holds(all((Rational(1, 2) - j)/(j + 1) < 0 and Abs((Rational(1, 2) - j)/(j + 1)) < 1 for j in range(1, 60)))
-same(binomial(Rational(1, 2), 4), -Rational(5, 128)); rounds(Rational(5, 128)*v3**4, '3.9e-6')
+same(binomial(Rational(1, 2), 4), -Rational(5, 128)); same(Rational(5, 128)*v3**4, Rational('0.00000390625'))
 rounds(sqrt(Rational(11, 10)), '1.0488088'); rounds(sqrt(Rational(11, 10)) - est, '-3.7e-6'); holds(Abs(sqrt(Rational(11, 10)) - est) < Rational(5, 128)*v3**4)
-same(sqrt(110), 10*sqrt(Rational(11, 10))); rounds(10*Rational(5, 128)*v3**4, '3.9e-5')
+same(sqrt(110), 10*sqrt(Rational(11, 10))); same(10*Rational(5, 128)*v3**4, Rational('0.0000390625'))
+holds(10*Rational(5, 128)*v3**4 < Rational('0.00004')); same(10*est, Rational('10.488125'))
+holds(sqrt(110) < 10*est); holds(sqrt(110) > Rational('10.488085'))
+same(10*est - Rational('0.00004'), Rational('10.488085'))
 holds(10*est - 10*Rational(5, 128)*v3**4 > Rational(10488085, 10**6)); rounds(Rational(10488085, 10**6), '10.4881'); rounds(10*est, '10.4881')
 rounds(sqrt(110), '10.488088')
 ```
@@ -1834,22 +1860,26 @@ rounds(sqrt(110), '10.488088')
 ::: solution
 **(a)** $T_3(x) = x - \dfrac{x^2}{2} + \dfrac{x^3}{3}$ and $0.8 = 1 + x$ with $x = -0.2$, so
 
-$$\begin{aligned} &\ln 0.8 \approx -0.2 - \frac{0.04}{2} - \frac{0.008}{3} \\ &\quad= -0.2 - 0.02 - 0.0026667 \\ &\quad= -0.2226667. \end{aligned}$$
+$$\begin{aligned} &T_3(-0.2) = -0.2 - \frac{0.04}{2} - \frac{0.008}{3} \\ &\quad= -\frac15 - \frac1{50} - \frac1{375} \\ &\quad= -\frac{167}{750} \approx -0.2226667. \end{aligned}$$
+
+So $\ln 0.8 \approx -0.2226667$. The bound below applies to the exact polynomial value $-167/750$ before rounding.
 
 **(b)** The derivatives of $f(x) = \ln(1 + x)$ are $\dfrac{1}{1 + x}$, $-\dfrac{1}{(1 + x)^2}$, $\dfrac{2}{(1 + x)^3}$ and $f^{(4)}(x) = -\dfrac{6}{(1 + x)^4}$. For $t$ between $-0.2$ and 0, $1 + t \ge 0.8$, so $\abs{f^{(4)}(t)} \le \dfrac{6}{0.8^4} = 14.6484375$, and
 
 $$\begin{aligned} &\abs{\ln 0.8 - T_3(-0.2)} \\ &\quad\le \frac{14.6484375}{4!}\,(0.2)^4 \\ &\quad\approx 0.00098. \end{aligned}$$
 
-**(c)** At $x = -0.2$ every term of the series, $-0.2 - 0.02 - 0.0026667 - 0.0004 - \cdots$, is negative: the series does not alternate, so the alternating series bound does not apply. It would have claimed an error less than the next term, 0.0004, which is false: $\ln 0.8 \approx -0.2231436$, and the error is about $-0.00048$. Taylor's inequality, which needs no alternating signs, gives the safe bound 0.00098. The Lagrange form even gives the sign: $f^{(4)} < 0$, so $R_3 < 0$ and $T_3$ overestimates.
+**(c)** At $x = -0.2$ every term of the series, $-\tfrac15 - \tfrac1{50} - \tfrac1{375} - \tfrac1{2500} - \cdots$, is negative: the series does not alternate, so the alternating series bound does not apply. It would have claimed an error of size less than the next term's size, 0.0004, which is false: $\ln 0.8 \approx -0.2231436$, and the error is about $-0.00048$. Taylor's inequality, which needs no alternating signs, gives the safe bound 0.00098. The Lagrange form even gives the sign: $f^{(4)} < 0$, so $R_3 < 0$ and $T_3$ overestimates.
 
 ```check
 fl = log(1 + x)
 same([diff(fl, x, j) for j in range(1, 5)], [1/(1 + x), -1/(1 + x)**2, 2/(1 + x)**3, -6/(1 + x)**4])
 T3l = x - x**2/2 + x**3/3; vm = -Rational(1, 5)
 same(T3l.subs(x, vm), -Rational(2, 10) - Rational(2, 100) - Rational(8, 3000)); rounds(T3l.subs(x, vm), '-0.2226667')
+steps(T3l.subs(x, vm), -Rational(1, 5) - Rational(1, 50) - Rational(1, 375), -Rational(167, 750))
 same(6/Rational(4, 5)**4, Rational(146484375, 10**7)); rounds(Rational(146484375, 10**7)/24*vm**4, '0.00098')
 rounds(log(Rational(4, 5)), '-0.2231436'); rounds(log(Rational(4, 5)) - T3l.subs(x, vm), '-0.00048')
 holds(Abs(log(Rational(4, 5)) - T3l.subs(x, vm)) <= Rational(146484375, 10**7)/24*vm**4)
+holds(Rational(146484375, 10**7)/24*vm**4 < Rational('0.00098'))
 holds(all((-1)**(j - 1)*vm**j/j < 0 for j in range(1, 12))); same(Abs(vm**4/4), Rational(4, 10000))
 holds(Abs(log(Rational(4, 5)) - T3l.subs(x, vm)) > Rational(4, 10000)); holds(log(Rational(4, 5)) - T3l.subs(x, vm) < 0)
 ```
@@ -1866,14 +1896,14 @@ Use series to find each limit.
 ::: solution
 **(a)** $e^x = 1 + x + \dfrac{x^2}{2} + \dfrac{x^3}{6} + O(x^4)$, so the numerator is $\dfrac{x^3}{6} + O(x^4)$, and the quotient is $\dfrac16 + O(x) \to \dfrac16$.
 
-**(b)** $\arctan x = x - \dfrac{x^3}{3} + O(x^5)$ (for $\abs{x} \le \tfrac12$, say, the alternating series bound makes the error at most $\abs{x}^5/5$). So $x - \arctan x = \dfrac{x^3}{3} + O(x^5)$, and the limit is $\dfrac13$.
+**(b)** $\arctan x = x - \dfrac{x^3}{3} + O(x^5)$ (for $\abs{x} \le \tfrac12$, say, the alternating series bound makes the error's size at most $\abs{x}^5/5$). So $x - \arctan x = \dfrac{x^3}{3} + O(x^5)$, and the limit is $\dfrac13$.
 
 **(c)** Substitute $x^2$ in $e^u = 1 + u + O(u^2)$: $e^{x^2} = 1 + x^2 + O(x^4)$. And $\cos x = 1 - \dfrac{x^2}{2} + O(x^4)$. So $e^{x^2} - \cos x = \dfrac32x^2 + O(x^4)$, and the limit is $\dfrac32$. Stopping at the first terms, $e^{x^2} \approx 1$ and $\cos x \approx 1$, would leave $0/x^2$ and the wrong answer 0: keep terms up to the order of the denominator.
 
 ```check
 same(series(exp(x) - 1 - x - x**2/2, x, 0, 4).removeO(), x**3/6); limit_is((exp(x) - 1 - x - x**2/2)/x**3, x, 0, Rational(1, 6))
 same(series(x - atan(x), x, 0, 5).removeO(), x**3/3); limit_is((x - atan(x))/x**3, x, 0, Rational(1, 3))
-holds(all(Abs(atan(Rational(k_, 10)) - (Rational(k_, 10) - Rational(k_, 10)**3/3)) <= Rational(k_, 10)**5/5 for k_ in range(1, 6)))
+holds(all(Abs(atan(Rational(k_, 10)) - (Rational(k_, 10) - Rational(k_, 10)**3/3)) <= Abs(Rational(k_, 10))**5/5 for k_ in range(-5, 6)))
 same(series(exp(x**2), x, 0, 4).removeO(), 1 + x**2); same(series(exp(x**2) - cos(x), x, 0, 4).removeO(), Rational(3, 2)*x**2)
 limit_is((exp(x**2) - cos(x))/x**2, x, 0, Rational(3, 2))
 ```
@@ -1947,7 +1977,7 @@ Let $\alpha = \arctan\tfrac15$. Use the formula $\tan(u + v) = \dfrac{\tan u + \
 
 - (a) Show that $\tan 2\alpha = \tfrac{5}{12}$ and $\tan 4\alpha = \tfrac{120}{119}$.
 - (b) Show that $\tan\big(4\alpha - \tfrac{\pi}{4}\big) = \tfrac{1}{239}$, and conclude that $\dfrac{\pi}{4} = 4\arctan\dfrac15 - \arctan\dfrac{1}{239}$.
-- (c) In Section 15.6, an error of less than $\tfrac{1}{11\cdot5^{11}}$ in $\arctan\tfrac15$ became an error 16 times as large in $\pi$. How many terms of the series of $\arctan\tfrac15$ guarantee an error below $10^{-12}$ in $\pi$ from that series?
+- (c) In Section 15.6, a bound of $\tfrac{1}{11\cdot5^{11}}$ on the error's size in $\arctan\tfrac15$ became a bound 16 times as large for its contribution to the error in $\pi$. How many terms of the series of $\arctan\tfrac15$ make that contribution smaller than $10^{-12}$ in size?
 
 ::: solution
 **(a)** With $u = v$, the formula gives $\tan 2u = \dfrac{2\tan u}{1 - \tan^2u}$. So
@@ -1960,7 +1990,7 @@ $$\begin{aligned} &\tan\Big(4\alpha - \frac{\pi}{4}\Big) \\ &\quad= \frac{120/11
 
 To conclude that $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, the angle must lie in $\big(-\tfrac{\pi}{2}, \tfrac{\pi}{2}\big)$, the range of $\arctan$ (Module 6). For $x > 0$, $\arctan x = \int_0^x \dfrac{dt}{1 + t^2} < \int_0^x dt = x$, so $0 < \alpha < \tfrac15$, and $-\tfrac{\pi}{4} < 4\alpha - \tfrac{\pi}{4} < \tfrac45 - \tfrac{\pi}{4} < \tfrac{\pi}{2}$. So $4\alpha - \tfrac{\pi}{4} = \arctan\tfrac{1}{239}$, which rearranges to Machin's formula.
 
-**(c)** With $n$ terms the error in $\arctan\tfrac15$ is less than the first term left out, $\dfrac{(1/5)^{2n+1}}{2n + 1}$, and the error in $\pi$ is less than 16 times that. For $n = 8$, $16\cdot\dfrac{5^{-17}}{17} \approx 1.2 \times 10^{-12}$, not enough; for $n = 9$, $16\cdot\dfrac{5^{-19}}{19} \approx 4.4 \times 10^{-14}$. So 9 terms suffice.
+**(c)** With $n$ terms the error in $\arctan\tfrac15$ is smaller in size than the first omitted term's size, $\dfrac{(1/5)^{2n+1}}{2n + 1}$. Its contribution to the error in $\pi$ is smaller in size than 16 times that; the $\arctan(1/239)$ approximation has its own error. For $n = 8$, $16\cdot\dfrac{5^{-17}}{17} \approx 1.2 \times 10^{-12}$, so this bound does not suffice; for $n = 9$, $16\cdot\dfrac{5^{-19}}{19} \approx 4.4 \times 10^{-14}$. So 9 terms suffice.
 
 ```check
 same(expand_trig(tan(2*theta)), 2*tan(theta)/(1 - tan(theta)**2)); same(tan(2*atan(Rational(1, 5))), Rational(5, 12)); same(tan(4*atan(Rational(1, 5))), Rational(120, 119))
@@ -1989,7 +2019,7 @@ $$\begin{aligned} \abs{\frac{f''(c)}{2f'(x)}} &\le \frac{B}{2\cdot\tfrac12\abs{f
 
 If $K = 0$, take $\delta = \delta_1$; otherwise take $\delta$ the smaller of $\delta_1$ and $\dfrac{1}{2K}$. A smaller interval keeps both properties, and $K\delta \le \tfrac12$.
 
-**(b)** By induction on $n$, show that $\abs{e_n} \le \delta$ and that $x_{n+1}$ is defined, with $\abs{e_{n+1}} \le \tfrac12\abs{e_n}$. Suppose $\abs{e_n} \le \delta$, as is true for $n = 0$. Then $x_n$ lies in $[r - \delta, r + \delta]$, so $f'(x_n) \ne 0$ and Newton's step gives $x_{n+1}$. The identity holds with $c_n$ between $x_n$ and $r$, hence also in the interval, so
+**(b)** Use Module 7's convention $e_n = x_n - r$, the reverse of exact value minus approximation. By induction on $n$, show that $\abs{e_n} \le \delta$ and that $x_{n+1}$ is defined, with $\abs{e_{n+1}} \le \tfrac12\abs{e_n}$. Suppose $\abs{e_n} \le \delta$, as is true for $n = 0$. Then $x_n$ lies in $[r - \delta, r + \delta]$, so $f'(x_n) \ne 0$ and Newton's step gives $x_{n+1}$. If $x_n = r$, every later iterate is $r$, and the bound holds with both sides 0. Otherwise the identity holds with $c_n$ between $x_n$ and $r$, hence also in the interval, so
 
 $$\begin{aligned} \abs{e_{n+1}} &\le K e_n^2 = (K\abs{e_n})\,\abs{e_n} \\ &\le K\delta\,\abs{e_n} \le \tfrac12\abs{e_n} \le \delta. \end{aligned}$$
 
@@ -2007,6 +2037,7 @@ for j in range(5):
     holds(Abs(es_[j + 1]) <= Abs(es_[j])/2)
 rounds(es_[4]/es_[3]**2, '0.354'); same((diff(fq_, x, 2)/(2*diff(fq_, x))).subs(x, r_), 1/(2*sqrt(2))); rounds(1/(2*sqrt(2)), '0.354')
 same(2/(4*sqrt(2)), 1/(2*sqrt(2)))
+same(r_ - fq_.subs(x, r_)/diff(fq_, x).subs(x, r_), r_)  # reaching the root keeps every later error at 0
 Bs, Fs = symbols('B F', positive=True); same(Bs/(2*Fs/2), Bs/Fs)
 ```
 :::
@@ -2050,7 +2081,7 @@ Bs, Fs = symbols('B F', positive=True); same(Bs/(2*Fs/2), Bs/Fs)
 - [ ] $2 + 3(x - 1) + 8(x - 1)^2$
 > $T_2(x) = f(1) + f'(1)(x - 1) + \dfrac{f''(1)}{2!}(x - 1)^2$, and $4/2! = 2$. Forgetting to divide by $2!$ gives $4(x - 1)^2$, multiplying instead gives $8(x - 1)^2$, and powers of $x$ instead of $x - 1$ give a polynomial about 0.
 
-? With $M = 1$, and using $T_3 = T_4$ for $\sin x$, Taylor's inequality guarantees that $\abs{\sin 0.1 - \big(0.1 - \dfrac{0.1^3}{6}\big)}$ is at most
+? Using $T_3 = T_4$ for $\sin x$, which bound does Taylor's inequality with $n = 4$ and $M = 1$ give for $\abs{\sin 0.1 - \big(0.1 - \dfrac{0.1^3}{6}\big)}$?
 - [ ] $\dfrac{0.1^4}{4!} \approx 4.2 \times 10^{-6}$
 - [x] $\dfrac{0.1^5}{5!} \approx 8.3 \times 10^{-8}$
 - [ ] $\dfrac{0.1^3}{3!} \approx 1.7 \times 10^{-4}$

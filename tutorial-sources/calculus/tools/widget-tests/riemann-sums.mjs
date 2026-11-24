@@ -89,6 +89,18 @@ export async function run(t) {
   await t.wait(400)
   t.check((await t.text('.rs-msg')).includes('vertical asymptote'), '1/(x − 0.3337) on [0, 1]: a vertical asymptote, so not integrable')
 
+  await t.type('.rs-field input', 'sin(100x)')
+  await t.type('.rs-b input', '6.5')
+  await t.wait(400)
+  const expected = (1 - Math.cos(650)) / 100
+  t.check(Math.abs(num(await val(t, 'rs-int')) - expected) < 1e-10 && await t.text('.rs-msg') === '',
+    'sin(100x) on [0, 6.5]: the reference integral agrees with (1 − cos(650))/100')
+  await t.type('.rs-field input', 'cos(1024pi*x)')
+  await t.type('.rs-b input', '1')
+  await t.wait(400)
+  t.check(await val(t, 'rs-int') === '—' && await val(t, 'rs-err') === '—' && (await t.text('.rs-msg')).includes('could not be computed accurately'),
+    'cos(1024πx) on [0, 1]: withhold the unresolved reference integral and error')
+
   // Double n stops at 200.
   await t.select('select >> nth=0', 'sq')
   await t.set('input[type=range]', 150)

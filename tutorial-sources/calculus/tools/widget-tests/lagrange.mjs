@@ -26,10 +26,12 @@ export async function run(t) {
   t.check(d && d.length > 50, 'draws the level curve of f through the point')
 
   // Example 18.5: the maximum of xy on the ellipse is at t = 45°, the point (√2, √2/2), with λ = 1 and f = 1.
-  await t.set('input[type=range]', 45)
+  await t.set('input[type=range]', 44.5)
+  await t.page.focus(t.root + ' input[type=range]')
+  await t.page.keyboard.press('ArrowRight')
   r = await readout(t)
   t.check(r.includes('Parallel: a candidate') && r.includes('λ = |∇f| / |∇g| = 1 ') && r.includes('xy = 1') && r.includes('(1.4142, 0.70711)'),
-    't = 45°: a candidate at (√2, √2/2) with f = 1 and λ = 1')
+    'the right arrow key moves t from 44.5° to 45°: a candidate at (√2, √2/2) with f = 1 and λ = 1')
   await t.shot()
 
   // At t = 135° the gradients point in opposite directions: λ = −1, f = −1 (a minimum).
@@ -46,12 +48,13 @@ export async function run(t) {
   r = await readout(t)
   t.check(r.includes('xy = 0.5') && r.includes('λ = |∇f| / |∇g| = 0.5'), 'xy on the circle at 45°: f = 1/2, λ = 1/2')
 
-  // 2x + y on the circle: the maximum √5 ≈ 2.2361 is at t ≈ 26.57°; the slider's 26.5° is within 0.1° of it.
+  // 2x + y on the circle: the maximum √5 ≈ 2.2361 is at t ≈ 26.57°; 26.5° is nearby but not stationary.
   await t.select('select >> nth=0', 'lin')
   await t.set('input[type=range]', 26.5)
   r = await readout(t)
-  t.check(r.includes('Parallel') && r.includes('2x + y ≈ 2.2361') && r.includes('λ = |∇f| / |∇g| ≈ 1.118') && r.includes('≈ 0.1°'),
-    '2x + y on the circle at 26.5°: a candidate with f ≈ 2.2361 = √5 and λ ≈ 1.118 = √5/2')
+  t.check(r.includes('Nearly parallel (within 0.5°)') && !r.includes('Parallel: a candidate') && r.includes('2x + y ≈ 2.2361') &&
+    r.includes('λ ≈ |∇f| / |∇g| ≈ 1.118') && r.includes('≈ 0.1°') && r.includes('f still increases as t increases'),
+    '2x + y on the circle at 26.5°: near a candidate, λ ≈ 1.118, but f is still increasing')
   await t.set('input[type=range]', 30)
   r = await readout(t)
   t.check(r.includes('Not parallel') && r.includes('f decreases as t increases'), '2x + y at 30°: past the maximum, f decreases')
@@ -89,6 +92,8 @@ export async function run(t) {
   t.check(r.includes('x² + 2y² = 1') && r.includes('λ = |∇f| / |∇g| = 1 '), 'x² + 2y² on the circle at 0°: f = 1, λ = 1')
   await t.set('input[type=range]', 90)
   r = await readout(t)
-  t.check(r.includes('x² + 2y² = 2') && r.includes('λ = |∇f| / |∇g| = 2 '), 'x² + 2y² on the circle at 90°: f = 2, λ = 2')
+  t.check(r.includes('the point (x, y) = (0, 1)') && r.includes('∇f = ⟨0, 4⟩,  ∇g = ⟨0, 2⟩') &&
+    r.includes('x² + 2y² = 2') && r.includes('λ = |∇f| / |∇g| = 2 '),
+    'x² + 2y² on the circle at 90°: exact point (0, 1), ∇f = ⟨0, 4⟩, ∇g = ⟨0, 2⟩, f = 2, λ = 2')
   await t.shot('quad')
 }

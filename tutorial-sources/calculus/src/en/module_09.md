@@ -862,7 +862,7 @@ $$\frac{e^{-1/4} + e^{-1}}{2} \le \int_0^1 e^{-x^2}\,dx \le \frac{1 + e^{-1/4}}{
 
 where the bounds are about $0.5733$ and $0.8894$: the integral lies between 0.57 and 0.89. These two bounds are $R_2$ and $L_2$. The same argument works for any continuous decreasing $f$ and any $n$: on each subinterval, $f$ lies between its values at the right end and at the left end, so Theorem 9.7(c) bounds the integral over each subinterval, and adding the $n$ results (additivity) gives $R_n \le \int_a^b f(x)\,dx \le L_n$. For a continuous increasing $f$, $L_n \le \int_a^b f(x)\,dx \le R_n$. The gap between the bounds, $\abs{L_n - R_n} = \Delta x\,\abs{f(a) - f(b)}$, shrinks as $n$ grows.
 
-(All these bounds are in fact strict, because the integrand equals each bound only at single points; Exercise 9.12 shows how to prove such strict inequalities.)
+(For this integrand the bounds are strict, because it equals each bound only at single points; Exercise 9.12 shows how to prove such strict inequalities.)
 
 ```check
 g99 = exp(-x9**2)
@@ -880,7 +880,7 @@ I99 = Integral(exp(-x**2), (x, 0, 1)).evalf(30); holds(lo99 < I99); holds(I99 < 
 :::
 
 ::: compute A number with no formula yet
-Midpoint sums pin the value down:
+Midpoint sums pin the value down. Print each sum to nine decimal places:
 
 ```python
 import math
@@ -893,20 +893,25 @@ def g(x):
     return math.exp(-x**2)
 
 for n in [2, 10, 100, 1000]:
-    print(n, midpoint(g, 0, 1, n))
+    print(f"{n} {midpoint(g, 0, 1, n):.9f}")
 ```
 
 ```output
-2 0.7545979437721995
-10 0.7471308777479975
-100 0.7468271984923199
-1000 0.746824163469049
+2 0.754597944
+10 0.747130878
+100 0.746827198
+1000 0.746824163
 ```
 
 The digits settle down: to six decimal places, $\int_0^1 e^{-x^2}\,dx \approx 0.746824$, inside the bounds of Example 9.9. Integrals of $e^{-x^2}$ are at the heart of probability: Module 12 meets them again with the normal distribution.
 :::
 
 ```check
+import mpmath
+with mpmath.workdps(30):
+    for n_, expected_ in ((2, '0.754597944'), (10, '0.747130878'), (100, '0.746827198'), (1000, '0.746824163')):
+        midpoints_ = ((2*i_ + 1)/mpmath.mpf(2*n_) for i_ in range(n_))
+        rounds(mpmath.fsum(mpmath.exp(-p_**2) for p_ in midpoints_)/n_, expected_)
 rounds(Integral(exp(-x**2), (x, 0, 1)).evalf(30), '0.746824')
 ```
 

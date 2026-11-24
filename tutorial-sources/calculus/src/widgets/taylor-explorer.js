@@ -296,7 +296,7 @@ CalcWidgets.register('taylor-explorer', function (root, api) {
       else if (w === 'inside') msg.textContent = t('x₀ is inside the interval of convergence: as n grows, the error tends to 0.', 'x₀ 在收敛区间之内：随着 n 增大，误差趋于 0。')
       else if (w === 'end-in') msg.textContent = t('x₀ is an end of the interval where the series converges, slowly, to f(x₀) (Abel\'s theorem).', 'x₀ 是收敛区间的端点，级数在这里缓慢地收敛到 f(x₀)（阿贝尔定理）。')
       else if (w === 'end-out') msg.textContent = t('x₀ is an end of the interval where the series diverges: its terms do not tend to 0.', 'x₀ 是收敛区间的端点，级数在这里发散：它的项不趋于 0。')
-      else { msg.textContent = t('x₀ is outside the interval of convergence: as n grows, the error grows.', 'x₀ 在收敛区间之外：随着 n 增大，误差越来越大。'); msg.classList.add('te-bad') }
+      else { msg.textContent = t('x₀ is outside the interval of convergence: the series diverges, so increasing n need not improve the approximation.', 'x₀ 在收敛区间之外：级数发散，所以增大 n 不一定能改善近似。'); msg.classList.add('te-bad') }
     }
     P.redraw()
   }

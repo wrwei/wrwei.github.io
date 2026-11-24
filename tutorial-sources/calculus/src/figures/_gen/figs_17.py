@@ -368,7 +368,7 @@ def fig_17_4(L):
 
 
 def fig_17_5(L):
-    """The computational graph of the loss L(w, b) = (w + b - 1)^2 + (2w + b - 3)^2 at w = b = 0, with the values of the forward pass and the adjoints of the backward pass."""
+    """The computational graph of the loss L(w, b) = (1 - w - b)^2 + (3 - 2w - b)^2 at w = b = 0, with the values of the forward pass and the adjoints of the backward pass."""
     from matplotlib.patches import FancyBboxPatch
     fig, ax = figure(7.6, 3.7)
     ax.set_xlim(0, 10)
@@ -377,8 +377,8 @@ def fig_17_5(L):
     boxes = {
         'w': ((1.0, 3.85), r'$w$', 0.9),
         'b': ((1.0, 1.15), r'$b$', 0.9),
-        'e1': ((4.9, 3.85), r'$e_1 = w\cdot 1 + b - 1$', 2.9),
-        'e2': ((4.9, 1.15), r'$e_2 = w\cdot 2 + b - 3$', 2.9),
+        'e1': ((4.9, 3.85), r'$e_1 = 1 - w - b$', 2.9),
+        'e2': ((4.9, 1.15), r'$e_2 = 3 - 2w - b$', 2.9),
         'L': ((8.6, 2.5), r'$L = e_1^2 + e_2^2$', 2.3),
     }
     hgt = 0.62
@@ -399,16 +399,16 @@ def fig_17_5(L):
         tt = ax.text(m[0], m[1] + dy, text, ha=ha, va='center', fontsize=11, color=C['slate'], zorder=5)
         tt.set_path_effects([pe.withStroke(linewidth=3, foreground='white')])
 
-    link('w', 'e1', r'$1$', dy=0.22)
-    link('b', 'e2', r'$1$', dy=-0.22)
-    link('w', 'e2', r'$2$', t=0.24, dy=-0.08, ha='right')
-    link('b', 'e1', r'$1$', t=0.24, dy=0.08, ha='right')
+    link('w', 'e1', r'$-1$', dy=0.22)
+    link('b', 'e2', r'$-1$', dy=-0.22)
+    link('w', 'e2', r'$-2$', t=0.24, dy=-0.08, ha='right')
+    link('b', 'e1', r'$-1$', t=0.24, dy=0.08, ha='right')
     link('e1', 'L', r'$2e_1$', t=0.45, dy=0.28)
     link('e2', 'L', r'$2e_2$', t=0.45, dy=-0.28)
 
     fwd, bwd = C['blue'], C['orange']
-    vals = {'w': ('0', r'$\bar w = -14$'), 'b': ('0', r'$\bar b = -8$'), 'e1': ('-1', r'$\bar e_1 = -2$'),
-            'e2': ('-3', r'$\bar e_2 = -6$'), 'L': ('10', r'$\bar L = 1$')}
+    vals = {'w': ('0', r'$\bar w = -14$'), 'b': ('0', r'$\bar b = -8$'), 'e1': ('1', r'$\bar e_1 = 2$'),
+            'e2': ('3', r'$\bar e_2 = 6$'), 'L': ('10', r'$\bar L = 1$')}
     for key, (fv, bv) in vals.items():
         (x, y), _, wd = boxes[key]
         up = 1

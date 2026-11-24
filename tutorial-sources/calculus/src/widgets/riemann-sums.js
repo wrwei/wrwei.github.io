@@ -85,12 +85,25 @@ CalcWidgets.register('riemann-sums', function (root, api) {
     return { lo: lo, hi: hi, top: top, pole: pole }
   }
 
-  // The integral, by adaptive Simpson quadrature with a tight tolerance and a budget of evaluations.
+  // Start on short, slightly unequal panels to reduce aliasing with periodic functions.
+  // Each panel uses adaptive Simpson, with a single evaluation budget shared by all panels.
   function integral(f, a, b, top) {
-    var count = 0, val
+    var panels = 128, width = b - a, count = 0, total = 0, lo = a
+    var tol = 1e-13 * Math.max(width * top, 1e-300) / panels
     var g = function (x) { if (++count > 400000) throw new Error('budget'); return f(x) }
-    try { val = api.num.integrate(g, a, b, 1e-13 * Math.max((b - a) * top, 1e-300)) } catch (e) { val = NaN }
-    return val
+    try {
+      for (var k = 1; k <= panels; k++) {
+        var u = k / panels
+        var hi = k === panels ? b : a + width * (u + u * (1 - u) / panels)
+        var piece = api.num.integrate(g, lo, hi, tol)
+        if (!isFinite(piece)) return NaN
+        total += piece
+        lo = hi
+      }
+      return total
+    } catch (e) {
+      return NaN
+    }
   }
   function analyse(f, a, b) {
     var key = fkey()

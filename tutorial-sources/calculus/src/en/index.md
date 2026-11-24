@@ -1,6 +1,6 @@
 ---
 title: Calculus
-lead: A complete course, from limits to vector calculus. Learn why calculus works and how to use it, through derivatives, integrals, differential equations, series and calculus in several variables, with every worked result checked by computer algebra.
+lead: A complete course from functions and limits to vector calculus. Learn how to use derivatives, integrals, differential equations and series, and see why the methods work.
 ---
 
 ## Who this series is for {#who}
@@ -14,8 +14,8 @@ start.
 
 ## What you will be able to do {#outcomes}
 
-- Explain what limits, derivatives and integrals mean, with pictures and with precise definitions, and
-  prove the main theorems that connect them.
+- Explain limits, derivatives and integrals using pictures and precise definitions, and follow proofs
+  of how they are connected.
 - Differentiate and integrate with confidence, and use derivatives to model rates of change, find
   maxima and minima, and approximate functions.
 - Set up and evaluate integrals for areas, volumes, lengths, work and probabilities, and solve the
@@ -26,31 +26,28 @@ start.
 
 ## How it works {#how}
 
-Twenty modules in five parts, about 75 hours in all. Each idea starts from a picture or a table of
-numbers, then gets a precise definition and worked examples; the main theorems are proved, with the
-harder proofs in optional "Going deeper" boxes. Every module has exercises at three levels with full
-worked solutions, a quiz, and an interactive demonstration to experiment with.
+Start with [Module 1](module_01_EN.html) and work through the five parts in order. New ideas start
+with a picture or an example before the precise definitions. The text gives proofs for many
+theorems, with some of the harder arguments in optional "Going deeper" boxes. Every module has a
+quiz and exercises at three levels, with worked solutions. Most modules have an interactive demonstration.
 
-**Every worked result is checked.** Each derivative, integral, limit, sum and number in the worked
-examples and solutions was verified with the SymPy computer algebra system; such boxes carry a
-"Checked" mark. Paper and pencil are enough to follow the series; if you program, the optional
-"Compute it" boxes show how to explore and check with Python, and every output shown there is what the
-code really prints.
+**What you need.** Have paper, a pencil and a scientific calculator set to radians. The "Checked"
+mark shows where worked calculations were verified with SymPy. Python is optional. The "Compute it"
+boxes show how to explore the maths with code, and the outputs come from running that code.
 
 <!-- modules -->
 
 ## Reference and downloads {#reference}
 
-The **formula sheet** collects the limits, derivatives, integrals, series and identities of the series;
-**common mistakes** shows the errors learners make most, with the fix for each; the **glossary** defines
-every term. All the Python of the series is in one download, [calculus-code.zip](calculus-code.zip), one
-script per module.
+Use the [formula sheet](formulas_EN.html) to look up formulas, their conditions and the modules
+that explain them. The [Python code ZIP](calculus-code.zip) contains the modules' computing examples
+and separate scripts for exercises that use Python.
 
 ## Going further {#further}
 
 On this site, [Mathematical Foundations for Computer Science and AI](../math/index.html) applies
 calculus with linear algebra, probability and optimisation, and
 [AI: From Machine Learning to Large Language Models](../ai/index.html) shows gradients at work in
-machine learning. Free textbooks such as OpenStax's *Calculus* volumes ([openstax.org](https://openstax.org))
-and the calculus courses of MIT OpenCourseWare ([ocw.mit.edu](https://ocw.mit.edu)) offer more
-exercises and another voice.
+machine learning. For more practice, try the free [OpenStax *Calculus* textbooks](https://openstax.org/new-subjects/math-books)
+or MIT OpenCourseWare's [Single Variable Calculus](https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/)
+and [Multivariable Calculus](https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/) courses.

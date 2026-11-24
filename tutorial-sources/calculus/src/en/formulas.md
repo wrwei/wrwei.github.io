@@ -17,7 +17,7 @@ logarithmic and trigonometric functions.
 
 | Name | Formula | Holds for |
 |---|---|---|
-| Quadratic formula | ${ax^2 + bx + c = 0 \iff x = \dfrac{-b \pm \sqrt{b^2 - 4ac}}{2a}}$ | ${a \ne 0;}$ real roots when ${b^2 - 4ac \ge 0}$ |
+| Quadratic formula | ${ax^2 + bx + c = 0 \iff x = \dfrac{-b \pm \sqrt{b^2 - 4ac}}{2a}}$ | real coefficients, ${a \ne 0}$ and ${b^2 - 4ac \ge 0}$. A negative discriminant gives no real roots |
 | Completing the square | ${ax^2 + bx + c = a\Big(x + \dfrac{b}{2a}\Big)^2 + c - \dfrac{b^2}{4a}}$ | ${a \ne 0}$ |
 | Difference of powers | ${x^n - a^n = (x - a)(x^{n-1} + x^{n-2}a + \cdots + a^{n-1})}$ | ${n = 1, 2, 3, \ldots}$ |
 | Distance on the line | ${\abs{x - a} < \delta \iff a - \delta < x < a + \delta}$ | ${\delta > 0}$ |
@@ -52,8 +52,8 @@ for p_, q_ in ((3, -5), (-2, -7), (4, 6), (0, -1), (Rational(1, 2), Rational(-3,
 | Zero and negative exponents | ${a^0 = 1,}$ ${\ a^{-x} = \dfrac{1}{a^x}}$ | ${a > 0}$ |
 | Roots | ${a^{m/n} = \sqrt[n]{a^m}}$ | ${a > 0;}$ ${m,}$ ${n}$ integers, ${n \ge 1}$ |
 
-For whole-number exponents the same laws hold for every $a \ne 0$ and $b \ne 0$. For other exponents a
-negative base breaks them: $\big((-1)^2\big)^{1/2} = 1$, but $(-1)^{2 \cdot 1/2} = -1$.
+The integer-exponent laws for products, quotients and powers also work with nonzero negative bases.
+For fractional powers the positive-base conditions matter: $\big((-1)^2\big)^{1/2} = 1$, but $(-1)^{2 \cdot 1/2} = -1$.
 
 | Law | Formula | Holds for | Module |
 |---|---|---|---|
@@ -191,9 +191,10 @@ $$\ln x \ll x^p \ll a^x, \qquad\text{and for whole numbers } n\text{:}\quad a^n 
 
 **L'Hôpital's rule** ([Module 7](module_07_EN.html), proved in [Module 8](module_08_EN.html)). Let $f$ and
 $g$ be differentiable on an open interval containing $a$, except perhaps at $a$, with $g'(x) \ne 0$ there.
-If $\dfrac{f(x)}{g(x)}$ has the form $\dfrac00$ or $\dfrac{\infty}{\infty}$ as $x \to a$, and
-$\dfrac{f'(x)}{g'(x)} \to L$, a real number, $\infty$ or $-\infty$, then $\dfrac{f(x)}{g(x)} \to L$. The same
-holds for one-sided limits and for $x \to \pm\infty$.
+Suppose $f$ and $g$ both tend to 0, or both grow without bound in magnitude. If
+$\dfrac{f'(x)}{g'(x)} \to L$ as $x \to a$, where $L$ may be real or $\pm\infty$, then
+$\dfrac{f(x)}{g(x)} \to L$. For a one-sided limit use the corresponding side of $a$. At $\pm\infty$
+the differentiability and nonzero-derivative conditions need only hold far enough along the relevant tail.
 
 ```check
 limit_is(sin(theta)/theta, theta, 0, 1)
@@ -220,8 +221,8 @@ limit_is(x**pp/(1 + qq)**x, x, oo, 0); limit_is((1 + qq)**n/factorial(n), n, oo,
 
 | Name | Formula | Module |
 |---|---|---|
-| Derivative at ${a}$ | ${f'(a) = \lim\limits_{h \to 0} \dfrac{f(a + h) - f(a)}{h},}$ when the limit exists | [4](module_04_EN.html) |
-| Tangent line at ${a}$ | ${y = f(a) + f'(a)(x - a)}$ | [4](module_04_EN.html) |
+| Derivative at ${a}$ | ${f'(a) = \lim\limits_{h \to 0} \dfrac{f(a + h) - f(a)}{h} = \lim\limits_{x \to a} \dfrac{f(x) - f(a)}{x-a},}$ when the limit exists | [4](module_04_EN.html) |
+| Tangent line at ${a}$ | ${y = f(a) + f'(a)(x - a),}$ if ${f}$ is differentiable at ${a}$ | [4](module_04_EN.html) |
 | Linear approximation | ${f(x) \approx f(a) + f'(a)(x - a)}$ for ${x}$ near ${a}$ | [7](module_07_EN.html) |
 | Differentials | ${dy = f'(x)\,dx;}$ ${\Delta y \approx dy}$ for small ${dx}$ | [7](module_07_EN.html) |
 | Newton's method | ${x_{n+1} = x_n - \dfrac{f(x_n)}{f'(x_n)},}$ while ${f'(x_n) \ne 0}$ | [7](module_07_EN.html) |
@@ -231,9 +232,12 @@ limit_is(x**pp/(1 + qq)**x, x, oo, 0); limit_is((1 + qq)**n/factorial(n), n, oo,
 As everywhere in the series, the error of an estimate is the exact value minus the estimate, here
 $f'(a)$ minus the difference. The two error estimates hold for small $h > 0$ when $f''$ (forward) or
 $f'''$ (central) is continuous near $a$. In floating point, rounding adds an error of size about
-$\varepsilon/h$, which is why steps of about $10^{-8}$ (forward) and $10^{-5}$ (central) work best.
+$\varepsilon/h$ for function values of order 1, where $\varepsilon$ is the scale of floating-point rounding.
+In double precision, steps of about $10^{-8}$ (forward) and $10^{-5}$ (central) can work well on that
+scale. The choice depends on the function values and derivatives.
 
 ```check
+same(limit((x**3 - a**3)/(x - a), x, a, '+-'), 3*a**2)
 same(limit(((a + h)**3 - a**3)/h, h, 0, '+-'), 3*a**2)          # the definition, for x^3
 same(expand(1 + 3*(x - 1)), 3*x - 2)                           # tangent line of x^3 at 1
 same(series(x**3, x, 1, 2).removeO(), 3*x - 2)                 # the same line is the linear approximation
@@ -250,7 +254,8 @@ for F_ in (sin(x), exp(2*x), log(1 + x**2)):                   # the leading ter
 
 ### Rules {#derivative-rules}
 
-In each rule $f$ and $g$ are differentiable at $x$, and $c$ is a constant.
+For the sum, product and quotient rules, $f$ and $g$ are differentiable at $x$.
+For the chain rule, $g$ is differentiable at $x$ and $f$ at $g(x)$. The letter $c$ is a constant.
 
 | Rule | Formula | Module |
 |---|---|---|
@@ -264,11 +269,10 @@ In each rule $f$ and $g$ are differentiable at $x$, and $c$ is a constant.
 | Implicit | for a curve ${F(x, y) = 0}$: ${\dfrac{dy}{dx} = -\dfrac{F_x}{F_y},}$ where ${F_y \ne 0}$ | [6](module_06_EN.html), [17](module_17_EN.html) |
 | Logarithmic | ${f'(x) = f(x)\,\dfrac{d}{dx}\ln\abs{f(x)},}$ where ${f(x) \ne 0}$ | [6](module_06_EN.html) |
 
-The inverse-function rule needs $f$ continuous and one-to-one on an open interval, and
-differentiable at $f^{-1}(x)$ with a nonzero derivative there. Implicit
-differentiation in practice: differentiate both sides of the equation with $y = y(x)$ (the chain
-rule turns $y^2$ into $2y\,y'$), then solve for $y'$; Module 17 explains the formula with $F_x$ and
-$F_y$.
+The inverse-function rule applies at $x$ in the range of $f$, for $f$ continuous and one-to-one
+on an open interval and differentiable at $f^{-1}(x)$ with a nonzero derivative there.
+For the implicit rule, a point on $F(x,y)=0$ with $F_y\ne 0$ and continuous first partial derivatives
+nearby has a local differentiable branch $y=y(x)$. Differentiate along that branch and solve for $y'$.
 
 ```check
 f, g = Function('f'), Function('g')
@@ -303,8 +307,8 @@ same(x**x*diff(x*log(x), x), diff(x**x, x))                   # an instance: x^x
 | ${\ln\abs{x}}$ | ${\dfrac{1}{x}}$ | ${x \ne 0}$ | [6](module_06_EN.html) |
 | ${\log_a x}$ | ${\dfrac{1}{x\ln a}}$ | ${a > 0,}$ ${a \ne 1,}$ ${x > 0}$ | [6](module_06_EN.html) |
 
-Module 4 proves the power rule for positive integers $n$, Module 5 for negative integers and Module 6
-for every real $n$.
+Module 4 proves the power rule for positive integers, Module 5 extends it to negative integers,
+and Module 6 extends it to real exponents on $x>0$.
 
 ```check
 nr = symbols('n_r', real=True)
@@ -353,8 +357,8 @@ same(diff(sin(pi*x/180), x), pi/180*cos(pi*x/180))           # sin of x degrees
 | ${\arctan x}$ | ${\dfrac{1}{1 + x^2}}$ | every ${x}$ | ${(-\pi/2, \pi/2)}$ |
 | ${\arcsec x}$ | ${\dfrac{1}{\abs{x}\sqrt{x^2 - 1}}}$ | ${\abs{x} > 1}$ | ${[0, \pi/2) \cup (\pi/2, \pi]}$ |
 
-The series takes $\arcsec x = \arccos(1/x)$; books that choose another range for $\arcsec$ get another
-sign in its derivative for $x < -1$.
+The series takes $\arcsec x = \arccos(1/x)$ for $\abs{x}\ge 1$. The derivative holds away
+from the endpoints. Some other branch choices reverse its sign for $x < -1$.
 
 ```check
 same(diff(asin(x), x), 1/sqrt(1 - x**2)); same(diff(acos(x), x), -1/sqrt(1 - x**2)); same(diff(atan(x), x), 1/(1 + x**2))
@@ -398,12 +402,15 @@ same(diff((exp(x) - exp(-x))/(exp(x) + exp(-x)), x), 4/(exp(x) + exp(-x))**2)   
 
 ### Properties of the definite integral {#integral-properties}
 
-[Module 9](module_09_EN.html) teaches these. In each, $f$ and $g$ are integrable on the intervals
-involved (continuous functions are) and $k$ is a constant.
+[Module 9](module_09_EN.html#definite-integral) defines the integral of a bounded function $f$ on
+$[a,b]$, for $a<b$. A partition $P$ has points $a=x_0<\dots<x_n=b$, widths $\Delta x_i=x_i-x_{i-1}$
+and largest width $\norm{P}$. The properties below assume the functions are integrable on the
+intervals involved. The letter $k$ is a constant.
 
 | Property | Formula | Holds for |
 |---|---|---|
-| Definition | ${\displaystyle\int_a^b f(x)\,dx = \lim_{n\to\infty}\sum_{i=1}^{n} f(x_i^*)\,\Delta x,}$ ${\ \Delta x = \dfrac{b - a}{n}}$ | any ${x_i^*}$ in the ${i}$th subinterval |
+| Definition | ${\displaystyle\int_a^b f(x)\,dx = \lim_{\norm{P}\to 0}\sum_{i=1}^{n} f(x_i^*)\,\Delta x_i}$ | the same limit for all partitions and choices of ${x_i^*\in[x_{i-1},x_i]}$ |
+| Equal widths | ${\displaystyle\int_a^b f(x)\,dx = \lim_{n\to\infty}\sum_{i=1}^{n} f(x_i^*)\,\Delta x}$ | for integrable ${f}$, with ${\Delta x=(b-a)/n}$ and any sample points |
 | Sum | ${\displaystyle\int_a^b \big(f(x) + g(x)\big)\,dx = \int_a^b f(x)\,dx + \int_a^b g(x)\,dx}$ | |
 | Constant multiple | ${\displaystyle\int_a^b k\,f(x)\,dx = k\int_a^b f(x)\,dx}$ | |
 | Reversed limits | ${\displaystyle\int_b^a f(x)\,dx = -\int_a^b f(x)\,dx,}$ ${\ \displaystyle\int_a^a f(x)\,dx = 0}$ | |
@@ -421,7 +428,14 @@ $$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}, \qquad \sum_{i=1}^{n} i^2 = \frac{n(n+1)(
 ```check
 f, g = Function('f'), Function('g')
 ii = symbols('i', integer=True, positive=True); nn = symbols('n', integer=True, positive=True)
-# definition: right, left and midpoint sums of x^2 on [0, b] all tend to b^3/3
+# Definition with unequal widths on [0, b], using x_i = b(i/n)^2 for b > 0.
+x_part = b*(ii/nn)**2
+dx_part = x_part - x_part.subs(ii, ii - 1)
+same(dx_part, b*(2*ii - 1)/nn**2)
+limit_is(dx_part.subs(ii, nn), nn, oo, 0)  # the largest width
+for tag in (x_part, x_part.subs(ii, ii - 1)):
+    limit_is(summation(expand(tag**2*dx_part), (ii, 1, nn)), nn, oo, b**3/3)
+# Equal widths: right, left and midpoint sums of x^2 on [0, b].
 for shift in (0, 1, Rational(1, 2)):
     limit_is(summation((b*(ii - shift)/nn)**2*(b/nn), (ii, 1, nn)), nn, oo, b**3/3)
 same(integrate(x**2, (x, 0, b)), b**3/3)
@@ -450,8 +464,8 @@ same(summation(ii**3, (ii, 1, nn)), (nn*(nn + 1)/2)**2)
 | Statement | Formula | Holds for |
 |---|---|---|
 | Part 1 | ${\dfrac{d}{dx}\displaystyle\int_a^x f(t)\,dt = f(x)}$ | ${f}$ continuous on ${[a, b],}$ ${x}$ in ${(a, b)}$ |
-| Part 1 with the chain rule | ${\dfrac{d}{dx}\displaystyle\int_a^{u(x)} f(t)\,dt = f\big(u(x)\big)\,u'(x)}$ | ${f}$ continuous, ${u}$ differentiable |
-| Variable lower limit | ${\dfrac{d}{dx}\displaystyle\int_x^b f(t)\,dt = -f(x)}$ | ${f}$ continuous |
+| Part 1 with the chain rule | ${\dfrac{d}{dx}\displaystyle\int_a^{u(x)} f(t)\,dt = f\big(u(x)\big)\,u'(x)}$ | ${f}$ continuous on an interval containing ${a}$ and the values of the differentiable function ${u}$, with ${u(x)}$ in its interior |
+| Variable lower limit | ${\dfrac{d}{dx}\displaystyle\int_x^b f(t)\,dt = -f(x)}$ | ${f}$ continuous on ${[a,b]}$, ${x}$ in ${(a,b)}$ |
 | Part 2 | ${\displaystyle\int_a^b f(x)\,dx = F(b) - F(a) = \big[F(x)\big]_a^b}$ | ${f}$ continuous on ${[a, b]}$ and ${F' = f}$ there |
 | Net change | ${\displaystyle\int_a^b F'(x)\,dx = F(b) - F(a)}$ | ${F'}$ continuous on ${[a, b]}$ |
 | Indefinite integral | ${\displaystyle\int f(x)\,dx = F(x) + C}$ | means ${F'(x) = f(x)}$ on an interval |
@@ -471,15 +485,17 @@ same(integrate(cos(x), (x, a, b)), sin(b) - sin(a))                   # Part 2 o
 
 | Technique | Formula | Module |
 |---|---|---|
-| Substitution | ${\displaystyle\int f\big(g(x)\big)\,g'(x)\,dx = \int f(u)\,du,}$ with ${u = g(x)}$ | [10](module_10_EN.html) |
+| Substitution | ${\displaystyle\int f\big(g(x)\big)\,g'(x)\,dx = \int f(u)\,du,}$ substitute ${u = g(x)}$ and write the result back in ${x}$ | [10](module_10_EN.html) |
 | Substitution, definite | ${\displaystyle\int_a^b f\big(g(x)\big)\,g'(x)\,dx = \int_{g(a)}^{g(b)} f(u)\,du}$ | [10](module_10_EN.html) |
 | By parts | ${\displaystyle\int u\,dv = uv - \int v\,du}$ | [11](module_11_EN.html) |
 | By parts, definite | ${\displaystyle\int_a^b f(x)\,g'(x)\,dx = \big[f(x)\,g(x)\big]_a^b - \int_a^b f'(x)\,g(x)\,dx}$ | [11](module_11_EN.html) |
-| Reduction formula | ${\displaystyle\int \sin^n x\,dx = -\frac{\sin^{n-1}x\cos x}{n} + \frac{n-1}{n}\int \sin^{n-2}x\,dx,}$ ${\ n \ge 2}$ | [11](module_11_EN.html) |
-| Partial fractions | ${\dfrac{1}{(x - p)(x - q)} = \dfrac{1}{p - q}\Big(\dfrac{1}{x - p} - \dfrac{1}{x - q}\Big),}$ ${\ p \ne q}$ | [11](module_11_EN.html) |
+| Reduction formula | ${\displaystyle\int \sin^n x\,dx = -\frac{\sin^{n-1}x\cos x}{n} + \frac{n-1}{n}\int \sin^{n-2}x\,dx,}$ ${\ n}$ an integer with ${n \ge 2}$ | [11](module_11_EN.html) |
+| Partial fractions | ${\dfrac{1}{(x - p)(x - q)} = \dfrac{1}{p - q}\Big(\dfrac{1}{x - p} - \dfrac{1}{x - q}\Big),}$ ${\ p \ne q}$, ${x\ne p,q}$ | [11](module_11_EN.html) |
 
-Substitution needs $g'$ continuous on $[a, b]$ and $f$ continuous on the values of $g$; integration by
-parts needs $f'$ and $g'$ continuous on $[a, b]$.
+For the definite rules, substitution uses $g'$ continuous on $[a,b]$ and $f$ continuous on an
+interval containing the range of $g$. Integration by parts uses $f'$ and $g'$ continuous on $[a,b]$.
+For indefinite substitution the chain rule applies wherever the antiderivative of $f$ is differentiable
+at $g(x)$ and $g$ is differentiable at $x$.
 
 ```check
 # substitution: if F' = f, then F(g(x)) is an antiderivative of f(g(x)) g'(x) (the chain rule)
@@ -504,7 +520,7 @@ $1/x$), the constant may differ from one interval to the next.
 
 | ${f(x)}$ | ${\displaystyle\int f(x)\,dx}$ | Holds for | Module |
 |---|---|---|---|
-| ${x^n}$ | ${\dfrac{x^{n+1}}{n + 1} + C}$ | ${n \ne -1;}$ ${x > 0}$ unless ${n}$ is an integer | [10](module_10_EN.html) |
+| ${x^n}$ | ${\dfrac{x^{n+1}}{n + 1} + C}$ | ${n \ne -1}$. Use ${x>0}$ for real ${n}$, all real ${x}$ for ${n=0,1,2,\ldots}$, and ${x\ne 0}$ for negative integer ${n}$ | [10](module_10_EN.html) |
 | ${\dfrac{1}{x}}$ | ${\ln\abs{x} + C}$ | ${x \ne 0}$ | [10](module_10_EN.html) |
 | ${e^x}$ | ${e^x + C}$ | | [10](module_10_EN.html) |
 | ${e^{kx}}$ | ${\dfrac{1}{k}e^{kx} + C}$ | ${k \ne 0}$ | [10](module_10_EN.html) |
@@ -516,7 +532,7 @@ $1/x$), the constant may differ from one interval to the next.
 | ${\sec x\tan x}$ | ${\sec x + C}$ | ${\cos x \ne 0}$ | [10](module_10_EN.html) |
 | ${\csc x\cot x}$ | ${-\csc x + C}$ | ${\sin x \ne 0}$ | [10](module_10_EN.html) |
 | ${\tan x}$ | ${\ln\abs{\sec x} + C}$ | ${\cos x \ne 0}$ | [10](module_10_EN.html) |
-| ${\cot x}$ | ${\ln\abs{\sin x} + C}$ | ${\sin x \ne 0}$ | [10](module_10_EN.html) |
+| ${\cot x}$ | ${\ln\abs{\sin x} + C}$ | ${\sin x \ne 0}$ | logarithmic derivative in [6](module_06_EN.html#log-differentiation) |
 | ${\sec x}$ | ${\ln\abs{\sec x + \tan x} + C}$ | ${\cos x \ne 0}$ | [11](module_11_EN.html) |
 | ${\csc x}$ | ${\ln\abs{\csc x - \cot x} + C}$ | ${\sin x \ne 0}$ | [11](module_11_EN.html) |
 | ${\sin^2 x}$ | ${\dfrac{x}{2} - \dfrac{\sin 2x}{4} + C}$ | | [11](module_11_EN.html) |
@@ -560,14 +576,15 @@ antideriv(cosh(x), sinh(x), x); antideriv(sinh(x), cosh(x), x)
 
 ### Trigonometric substitution {#trig-substitution}
 
-[Module 11](module_11_EN.html) teaches this. In each row $a > 0$; the range of $\theta$ makes the
-substitution one-to-one and the square root come out without a sign.
+[Module 11](module_11_EN.html) teaches this. In each row $a > 0$. The range of $\theta$ fixes the sign inside the absolute value when you simplify
+the square root. Use only points where your original integrand is defined.
 
 | Integrand contains | Substitute | Then |
 |---|---|---|
 | ${\sqrt{a^2 - x^2}}$ | ${x = a\sin\theta,}$ ${\ -\tfrac{\pi}{2} \le \theta \le \tfrac{\pi}{2}}$ | ${\sqrt{a^2 - x^2} = a\cos\theta,}$ ${\ dx = a\cos\theta\,d\theta}$ |
 | ${\sqrt{a^2 + x^2}}$ | ${x = a\tan\theta,}$ ${\ -\tfrac{\pi}{2} < \theta < \tfrac{\pi}{2}}$ | ${\sqrt{a^2 + x^2} = a\sec\theta,}$ ${\ dx = a\sec^2\theta\,d\theta}$ |
 | ${\sqrt{x^2 - a^2}}$ | ${x = a\sec\theta,}$ ${\ 0 \le \theta < \tfrac{\pi}{2}}$ (for ${x \ge a}$) | ${\sqrt{x^2 - a^2} = a\tan\theta,}$ ${\ dx = a\sec\theta\tan\theta\,d\theta}$ |
+| ${\sqrt{x^2 - a^2}}$ | ${x = a\sec\theta,}$ ${\ \tfrac{\pi}{2} < \theta \le \pi}$ (for ${x \le -a}$) | ${\sqrt{x^2 - a^2} = -a\tan\theta,}$ ${\ dx = a\sec\theta\tan\theta\,d\theta}$ |
 
 ```check
 same(ap**2 - (ap*sin(theta))**2, (ap*cos(theta))**2); same(diff(ap*sin(theta), theta), ap*cos(theta))
@@ -580,21 +597,29 @@ for th_ in (Rational(-3, 2), -1, 0, 1, Rational(3, 2), Rational(157, 100)):
     holds(sec(th_) > 0)
 for th_ in (0, Rational(1, 2), 1, Rational(3, 2), Rational(157, 100)):
     holds(tan(th_) >= 0)
-# an instance: the quarter disc, with x = a sin(theta)
+# The negative secant branch uses -a*tan(theta) on (pi/2, pi].
+same((ap*sec(pi))**2 - ap**2, 0)
+for th_ in (2*pi/3, 3*pi/4, 5*pi/6, pi):
+    holds(sec(th_) <= -1); holds(tan(th_) <= 0)
+    same(sqrt((ap*sec(th_))**2 - ap**2), -ap*tan(th_))
+    holds(ap*sec(th_)*tan(th_) >= 0)
+# An instance: the quarter disc, with x = a sin(theta).
 same(integrate(ap*cos(theta)*ap*cos(theta), (theta, 0, pi/2)), integrate(sqrt(ap**2 - x**2), (x, 0, ap)))
 same(integrate(sqrt(ap**2 - x**2), (x, 0, ap)), pi*ap**2/4)
 ```
 
 ### Numerical integration {#numerical-integration}
 
-[Module 11](module_11_EN.html) teaches these rules. Divide $[a, b]$ into $n$ subintervals of width
+[Module 11](module_11_EN.html) teaches these rules. For a continuous $f$ on $[a,b]$ with $a<b$,
+divide $[a,b]$ into $n\ge 1$ equal subintervals of width
 $\Delta x = (b - a)/n$, with endpoints $x_i = a + i\,\Delta x$ and midpoints
 $\bar{x}_i = \tfrac12(x_{i-1} + x_i)$.
 $$M_n = \Delta x\,\big[f(\bar{x}_1) + f(\bar{x}_2) + \cdots + f(\bar{x}_n)\big]$$
 $$T_n = \frac{\Delta x}{2}\big[f(x_0) + 2f(x_1) + 2f(x_2) + \cdots + 2f(x_{n-1}) + f(x_n)\big]$$
 $$S_n = \frac{\Delta x}{3}\big[f(x_0) + 4f(x_1) + 2f(x_2) + 4f(x_3) + \cdots + 2f(x_{n-2}) + 4f(x_{n-1}) + f(x_n)\big], \quad n \text{ even}$$
 
-The error $E$ is the integral minus the approximation.
+The error $E$ is the integral minus the approximation. For the bounds, assume the indicated
+derivative is continuous on $[a,b]$.
 
 | Rule | Error bound | Exact for |
 |---|---|---|
@@ -602,8 +627,8 @@ The error $E$ is the integral minus the approximation.
 | Trapezoidal ${T_n}$ | ${\abs{E_T} \le \dfrac{K(b - a)^3}{12n^2},}$ where ${\abs{f''(x)} \le K}$ on ${[a, b]}$ | polynomials of degree ${\le 1}$ |
 | Simpson ${S_n}$ | ${\abs{E_S} \le \dfrac{K(b - a)^5}{180n^4},}$ where ${\abs{f^{(4)}(x)} \le K}$ on ${[a, b]}$ | polynomials of degree ${\le 3}$ |
 
-The bounds cannot be improved: for $f(x) = x^2$ the midpoint and trapezoidal errors equal their bounds,
-and for $f(x) = x^4$ Simpson's error equals its bound.
+The bounds cannot be improved: for $f(x) = x^2$ the midpoint and trapezoidal errors attain their bounds in absolute value.
+The same holds for Simpson's error on $f(x)=x^4$.
 
 ```check
 def M_(f_, a_, b_, n_):
@@ -619,7 +644,7 @@ Tn = dn/2*(a**2 + 2*summation((a + ii*dn)**2, (ii, 1, nn - 1)) + b**2)
 same(integrate(x**2, (x, a, b)) - Mn, 2*(b - a)**3/(24*nn**2))
 same(Tn - integrate(x**2, (x, a, b)), 2*(b - a)**3/(12*nn**2))
 same(M_(lambda s: s**2, a, b, 5), Mn.subs(nn, 5)); same(T_(lambda s: s**2, a, b, 5), Tn.subs(nn, 5))
-# f = x^4 (f'''' = 24 = K), n = 2m: Simpson's error equals its bound
+# f = x^4 (f'''' = 24 = K), n = 2m: the absolute value of Simpson's error attains the bound
 mm = symbols('m', integer=True, positive=True); d2 = (b - a)/(2*mm)
 S2m = d2/3*summation((a + (2*ii - 2)*d2)**4 + 4*(a + (2*ii - 1)*d2)**4 + (a + 2*ii*d2)**4, (ii, 1, mm))
 same(S2m - integrate(x**4, (x, a, b)), 24*(b - a)**5/(180*(2*mm)**4))
@@ -643,7 +668,9 @@ for n_ in (2, 4, 10):
 [Module 12](module_12_EN.html) teaches these. An improper integral **converges** when the limit
 that defines it exists and is finite:
 $$\int_a^\infty f(x)\,dx = \lim_{t\to\infty}\int_a^t f(x)\,dx, \qquad \int_a^b f(x)\,dx = \lim_{t\to b^-}\int_a^t f(x)\,dx \ \text{ if } f \text{ is unbounded near } b,$$
-and $\int_{-\infty}^{\infty} f(x)\,dx = \int_{-\infty}^{c} f(x)\,dx + \int_{c}^{\infty} f(x)\,dx$ when both
+provided each truncated integral is proper. Use the corresponding one-sided limit for a singularity
+at the left end. Split at any interior singularity and require convergence on both sides.
+Also, $\int_{-\infty}^{\infty} f(x)\,dx = \int_{-\infty}^{c} f(x)\,dx + \int_{c}^{\infty} f(x)\,dx$ when both
 integrals on the right converge. (Both are needed: $\int_{-t}^{t} x\,dx = 0$ for every $t$, yet
 $\int_{-\infty}^{\infty} x\,dx$ diverges.)
 
@@ -655,7 +682,7 @@ $\int_{-\infty}^{\infty} x\,dx$ diverges.)
 | ${\displaystyle\int_{-\infty}^{\infty} \frac{dx}{1 + x^2}}$ | ${\pi}$ | |
 | ${\displaystyle\int_{-\infty}^{\infty} e^{-x^2}\,dx}$ | ${\sqrt{\pi}}$ | quoted in Module 12, proved in [Module 19](module_19_EN.html#gaussian) |
 
-**Comparison.** If $0 \le f(x) \le g(x)$ for $x \ge a$, then $\int_a^\infty f(x)\,dx$ converges when
+**Comparison.** For $f$ and $g$ continuous on $[a,\infty)$ with $0 \le f(x) \le g(x)$ there, $\int_a^\infty f(x)\,dx$ converges when
 $\int_a^\infty g(x)\,dx$ converges, and $\int_a^\infty g(x)\,dx$ diverges when $\int_a^\infty f(x)\,dx$
 diverges.
 
@@ -682,24 +709,25 @@ same(integrate(1/sqrt(x), (x, 1, oo)), oo)
 
 [Module 12](module_12_EN.html) teaches these, except the average value
 ([Module 9](module_09_EN.html)) and the arc length of a parametric curve ([Module 16](module_16_EN.html)).
+For the area and volume rules use continuous boundary functions or slice areas on the stated intervals.
 
 | Quantity | Formula | Use it when |
 |---|---|---|
-| Area between curves | ${A = \displaystyle\int_a^b \big(f(x) - g(x)\big)\,dx}$ | ${f(x) \ge g(x)}$ on ${[a, b]}$: vertical strips, top minus bottom. If the curves cross, integrate ${\abs{f(x) - g(x)},}$ splitting at the crossings |
-| Area, horizontal strips | ${A = \displaystyle\int_c^d \big(x_R(y) - x_L(y)\big)\,dy}$ | the region is easier to describe by its right and left boundaries ${x = x_R(y)}$ and ${x = x_L(y)}$ |
+| Area between curves | ${A = \displaystyle\int_a^b \big(f(x) - g(x)\big)\,dx}$ | ${f(x) \ge g(x)}$ on ${[a, b]}$: vertical strips, top minus bottom. If the curves cross, integrate ${\abs{f(x) - g(x)},}$ or split where the order of the curves changes |
+| Area, horizontal strips | ${A = \displaystyle\int_c^d \big(x_R(y) - x_L(y)\big)\,dy}$ | ${x_R(y)\ge x_L(y)}$ on ${[c,d]}$. Subtract the left boundary from the right |
 | Volume by slicing | ${V = \displaystyle\int_a^b A(x)\,dx}$ | the slice perpendicular to the ${x}$-axis at ${x}$ has a known area ${A(x)}$ |
 | Discs | ${V = \pi\displaystyle\int_a^b f(x)^2\,dx}$ | the region under ${y = f(x) \ge 0}$ turns about the ${x}$-axis: each slice is a disc of radius ${f(x)}$ |
 | Washers | ${V = \pi\displaystyle\int_a^b \big(R(x)^2 - r(x)^2\big)\,dx}$ | each slice is a ring with outer radius ${R(x)}$ and inner radius ${r(x),}$ ${0 \le r(x) \le R(x)}$ |
 | Shells | ${V = 2\pi\displaystyle\int_a^b x\,f(x)\,dx}$ | the region under ${y = f(x) \ge 0,}$ ${0 \le a \le x \le b,}$ turns about the ${y}$-axis; in general ${2\pi\int(\text{radius})(\text{height})}$ |
 | Arc length | ${L = \displaystyle\int_a^b \sqrt{1 + f'(x)^2}\,dx}$ | a curve ${y = f(x)}$ with ${f'}$ continuous on ${[a, b]}$ |
 | Arc length, parametric | ${L = \displaystyle\int_\alpha^\beta \sqrt{x'(t)^2 + y'(t)^2}\,dt}$ | a curve ${\big(x(t), y(t)\big)}$ traced once for ${\alpha \le t \le \beta,}$ with ${x',}$ ${y'}$ continuous |
-| Average value | ${f_{\text{avg}} = \dfrac{1}{b - a}\displaystyle\int_a^b f(x)\,dx}$ | ${f}$ integrable on ${[a, b]}$ |
-| Work | ${W = \displaystyle\int_a^b F(x)\,dx}$ | a force ${F(x)}$ acts along a line from ${x = a}$ to ${x = b;}$ a spring obeys ${F(x) = kx}$ (Hooke's law); to pump a liquid, add up (weight of a thin layer) ${\times}$ (distance it is lifted) |
-| Centre of mass of a rod | ${\bar{x} = \dfrac{\int_a^b x\,\rho(x)\,dx}{\int_a^b \rho(x)\,dx}}$ | a rod on ${[a, b]}$ with density ${\rho(x)}$ (mass per unit length) |
-| Centroid of a plate | ${\bar{x} = \dfrac{1}{A}\displaystyle\int_a^b x\big(f(x) - g(x)\big)\,dx}$ | a uniform plate ${g(x) \le y \le f(x),}$ ${a \le x \le b,}$ of area ${A}$ |
+| Average value | ${f_{\text{avg}} = \dfrac{1}{b - a}\displaystyle\int_a^b f(x)\,dx}$ | ${f}$ integrable on ${[a,b]}$, with ${a<b}$ |
+| Work | ${W = \displaystyle\int_a^b F(x)\,dx}$ | ${F(x)}$ is the signed force component along the line. The force required to stretch an ideal spring slowly is ${kx}$, opposite the spring's own force. For pumping, integrate each layer's weight times its lift distance |
+| Centre of mass of a rod | ${\bar{x} = \dfrac{\int_a^b x\,\rho(x)\,dx}{\int_a^b \rho(x)\,dx}}$ | a rod on ${[a,b]}$ with integrable nonnegative density ${\rho(x)}$ and positive total mass |
+| Centroid of a plate | ${\bar{x} = \dfrac{1}{A}\displaystyle\int_a^b x\big(f(x) - g(x)\big)\,dx}$ | a uniform plate ${g(x) \le y \le f(x),}$ ${a \le x \le b,}$ of positive area ${A}$ |
 | | ${\bar{y} = \dfrac{1}{A}\displaystyle\int_a^b \tfrac12\big(f(x)^2 - g(x)^2\big)\,dx}$ | the same plate |
 | Probability | ${P(a \le X \le b) = \displaystyle\int_a^b f(x)\,dx}$ | ${f}$ is a probability density: ${f \ge 0}$ and ${\int_{-\infty}^{\infty} f(x)\,dx = 1}$ |
-| Mean | ${\mu = \displaystyle\int_{-\infty}^{\infty} x\,f(x)\,dx}$ | ${X}$ has the density ${f}$ |
+| Mean | ${\mu = \displaystyle\int_{-\infty}^{\infty} x\,f(x)\,dx}$ | ${X}$ has density ${f}$ with ${\displaystyle\int_{-\infty}^{\infty}\abs{x}\,f(x)\,dx<\infty}$ |
 
 With the force in newtons and the distance in metres, the work is in joules.
 
@@ -756,29 +784,32 @@ $y' = ky$ by substitution.
 
 | Model | Equation | Solution | Holds for |
 |---|---|---|---|
-| Growth and decay | ${\dfrac{dy}{dt} = ky}$ | ${y = y_0e^{kt}}$ | ${y(0) = y_0;}$ growth if ${k > 0}$ (doubling time ${\ln 2/k}$), decay if ${k < 0}$ (half-life ${\ln 2/\abs{k}}$) |
+| Growth and decay | ${\dfrac{dy}{dt} = ky}$ | ${y = y_0e^{kt}}$ | ${y(0)=y_0>0}$. Growth if ${k > 0}$ (doubling time ${\ln 2/k}$), decay if ${k < 0}$ (half-life ${\ln 2/\abs{k}}$) |
 | Newton's law of cooling | ${\dfrac{dT}{dt} = -k(T - T_s)}$ | ${T = T_s + (T_0 - T_s)e^{-kt}}$ | ${k > 0,}$ ${T(0) = T_0,}$ surroundings at ${T_s}$ |
-| Logistic | ${\dfrac{dP}{dt} = kP\Big(1 - \dfrac{P}{M}\Big)}$ | ${P = \dfrac{M}{1 + Ae^{-kt}},}$ ${\ A = \dfrac{M - P_0}{P_0}}$ | ${k > 0,}$ ${M > 0,}$ ${P(0) = P_0 > 0;}$ ${P \to M}$ as ${t \to \infty}$ |
+| Logistic | ${\dfrac{dy}{dt} = ry\Big(1 - \dfrac{y}{K}\Big)}$ | ${y(t) = \dfrac{K}{1 + \dfrac{K-y_0}{y_0}e^{-rt}}}$ | ${r,K>0}$, ${y(0)=y_0>0}$, ${t\ge 0}$. Then ${y\to K}$ as ${t\to\infty}$. If ${y_0=0}$, the solution is ${y=0}$ |
 | Separable | ${\dfrac{dy}{dx} = g(x)\,h(y)}$ | ${\displaystyle\int \frac{dy}{h(y)} = \int g(x)\,dx}$ | where ${h(y) \ne 0;}$ each zero ${y_1}$ of ${h}$ gives the constant solution ${y = y_1}$ |
-| First-order linear | ${y' + P(x)\,y = Q(x)}$ | ${y = \dfrac{1}{I(x)}\Big(\displaystyle\int I(x)\,Q(x)\,dx + C\Big),}$ ${\ I(x) = e^{\int P(x)\,dx}}$ | ${P}$ and ${Q}$ continuous on an interval |
+| First-order linear | ${y' + p(t)y = q(t)}$ | ${y(t) = \dfrac{R(t)+C}{\mu(t)}}$, ${\mu(t) = e^{P(t)}}$ | continuous ${p,q}$ on an interval. Take ${P'=p}$ and ${R'=\mu q}$ |
 
-**Second-order linear equations with constant coefficients**, $ay'' + by' + cy = 0$ with $a \ne 0$:
-try $y = e^{rx}$, which gives the characteristic equation $ar^2 + br + c = 0$.
+**Second-order linear equations with constant coefficients.** For $ay''+by'+cy=0$ with real
+coefficients and $a\ne0$, try $y=e^{rt}$. This gives the characteristic equation $ar^2+br+c=0$.
+You can take $a>0$ by multiplying the whole equation by $-1$ when needed.
 
 | Roots of ${ar^2 + br + c = 0}$ | General solution | When |
 |---|---|---|
-| two real roots ${r_1 \ne r_2}$ | ${y = C_1e^{r_1x} + C_2e^{r_2x}}$ | ${b^2 - 4ac > 0}$ |
-| one double root ${r = -\dfrac{b}{2a}}$ | ${y = (C_1 + C_2x)\,e^{rx}}$ | ${b^2 - 4ac = 0}$ |
-| complex roots ${\alpha \pm i\beta}$ | ${y = e^{\alpha x}(C_1\cos\beta x + C_2\sin\beta x)}$ | ${b^2 - 4ac < 0;}$ ${\ \alpha = -\dfrac{b}{2a},}$ ${\ \beta = \dfrac{\sqrt{4ac - b^2}}{2\abs{a}}}$ |
+| two real roots ${r_1 \ne r_2}$ | ${y = C_1e^{r_1t} + C_2e^{r_2t}}$ | ${b^2 - 4ac > 0}$ |
+| one double root ${r = -\dfrac{b}{2a}}$ | ${y = (C_1 + C_2t)\,e^{rt}}$ | ${b^2 - 4ac = 0}$ |
+| complex roots ${\alpha \pm i\beta}$ | ${y = e^{\alpha t}(C_1\cos\beta t + C_2\sin\beta t)}$ | ${b^2 - 4ac < 0;}$ ${\ \alpha = -\dfrac{b}{2a},}$ ${\ \beta = \dfrac{\sqrt{4ac-b^2}}{2a}}$ |
 
-**Euler's method** for $y' = F(x, y)$ with $y(x_0) = y_0$ and step $h$:
-$$x_{n+1} = x_n + h, \qquad y_{n+1} = y_n + h\,F(x_n, y_n).$$
-The error at a fixed $x$ is roughly proportional to $h$: halving the step roughly halves the error.
-For $y' = y$ with $y(0) = 1$ the method gives $(1 + h)^{1/h}$ at $x = 1$ (when $1/h$ is a whole number),
+**Euler's method** for $y'=F(t,y)$ with $y(t_0)=y_0$ and step $h>0$:
+$$t_{n+1}=t_n+h,\qquad y_{n+1}=y_n+h\,F(t_n,y_n).$$
+If the exact solution has bounded second derivative and $F$ is Lipschitz in $y$ (for instance,
+$F_y$ is bounded), the error at a fixed grid time is $O(h)$. For $y'=y$ with $y(0)=1$ the method gives
+$(1+h)^{1/h}$ at $t=1$ (when $1/h$ is a whole number),
 and the error $e - (1 + h)^{1/h}$ is about $\tfrac{e}{2}\,h$ for small $h$.
 
 ```check
-y0_, T0, Ts = symbols('y_0 T_0 T_s'); kp, Mp, P0p = symbols('k_p M P_0', positive=True)
+y0_, T0, Ts = symbols('y_0 T_0 T_s')
+kp, rp, Kp, y0p = symbols('k_p r K y_0', positive=True)
 Yg = y0_*exp(k*t)
 same(diff(Yg, t), k*Yg); same(Yg.subs(t, 0), y0_)
 yf = Function('y')
@@ -786,22 +817,27 @@ same(dsolve(Eq(yf(t).diff(t), k*yf(t)), yf(t), ics={yf(0): y0_}).rhs, Yg)
 same(exp(kp*(log(2)/kp)), 2); same(exp(-kp*(log(2)/Abs(-kp))), Rational(1, 2))   # doubling time, half-life
 Tt = Ts + (T0 - Ts)*exp(-kp*t)
 same(diff(Tt, t), -kp*(Tt - Ts)); same(Tt.subs(t, 0), T0)
-Pt = Mp/(1 + (Mp - P0p)/P0p*exp(-kp*t))
-same(diff(Pt, t), kp*Pt*(1 - Pt/Mp)); same(Pt.subs(t, 0), P0p); limit_is(Pt, t, oo, Mp)
+Yt = Kp/(1 + (Kp - y0p)/y0p*exp(-rp*t))
+same(diff(Yt, t), rp*Yt*(1 - Yt/Kp)); same(Yt.subs(t, 0), y0p); limit_is(Yt, t, oo, Kp)
+same((rp*y*(1 - y/Kp)).subs(y, 0), 0)
+# The denominator is positive for t >= 0: after multiplying by y0 it is a weighted average of K and y0.
+et = exp(-rp*t)
+same(y0p*(1 + (Kp - y0p)*et/y0p), Kp*et + y0p*(1 - et))
 # separable, two instances: y' = x y^2 (int dy/y^2 = int x dx gives -1/y = x^2/2 + C1) and y' = y cos x
 C1, C2 = symbols('C1 C2')
 ys = -1/(x**2/2 + C1)
 same(-1/ys, x**2/2 + C1); same(diff(ys, x), x*ys**2); same(diff(0*x, x), x*0**2)   # and the constant solution y = 0
 yc = C1*exp(sin(x)); same(diff(yc, x), yc*cos(x))
-# first-order linear: the formula solves y' + P y = Q for any continuous P and Q
-Pf, Qf = Function('P'), Function('Q')
-I_ = exp(Integral(Pf(x), x))
-ylin = (Integral(I_*Qf(x), x) + C1)/I_
-holds(simplify(diff(ylin, x) + Pf(x)*ylin - Qf(x)) == 0)
-yl2 = exp(-2*x)*(integrate(exp(2*x)*exp(x), x) + C1)           # an instance: y' + 2y = e^x
-same(diff(yl2, x) + 2*yl2, exp(x)); same(yl2, exp(x)/3 + C1*exp(-2*x))
+# First-order linear: mu = exp(P) with P' = p, and R' = mu*q.
+pf, qf = Function('p'), Function('q')
+mu_f = exp(Integral(pf(t), t))
+ylin = (Integral(mu_f*qf(t), t) + C1)/mu_f
+same(diff(mu_f, t), pf(t)*mu_f)
+same(diff(ylin, t) + pf(t)*ylin, qf(t))
+yl2 = exp(-2*t)*(integrate(exp(2*t)*exp(t), t) + C1)
+same(diff(yl2, t) + 2*yl2, exp(t)); same(yl2, exp(t)/3 + C1*exp(-2*t))
 # second order: with given roots, b and c follow from the roots (Vieta); each solution satisfies the equation
-an = symbols('a_n', real=True, nonzero=True)
+an = symbols('a_n', positive=True)
 r1, r2, al_, be_ = symbols('r_1 r_2 alpha beta', real=True)
 Lop = lambda Y_, B_, C_: an*diff(Y_, x, 2) + B_*diff(Y_, x) + C_*Y_
 B1, Cq1 = -an*(r1 + r2), an*r1*r2
@@ -814,7 +850,7 @@ same(Lop(exp(al_*x)*(C1*cos(be_*x) + C2*sin(be_*x)), B3, Cq3), 0)
 same_set(solve(an*r**2 + B3*r + Cq3, r), [al_ + I*be_, al_ - I*be_])
 same(B3**2 - 4*an*Cq3, -4*an**2*be_**2)                       # < 0 when beta != 0
 bpos = symbols('beta_p', positive=True)
-same(-B3/(2*an), al_); same(sqrt(4*an*Cq3.subs(be_, bpos) - B3.subs(be_, bpos)**2)/(2*Abs(an)), bpos)
+same(-B3/(2*an), al_); same(sqrt(4*an*Cq3.subs(be_, bpos) - B3.subs(be_, bpos)**2)/(2*an), bpos)
 # Euler's method for y' = y, y(0) = 1: (1 + h)^(1/h) at x = 1, error about (e/2) h
 def euler(F_, x0, y0e, h_, n_):
     for _ in range(n_):
@@ -867,13 +903,13 @@ hold only from some $n$ on: the first terms of a series do not affect whether it
 | Test | If | Then |
 |---|---|---|
 | Divergence | ${\lim\limits_{n\to\infty} a_n \ne 0,}$ or the limit does not exist | ${\sum a_n}$ diverges. If ${a_n \to 0,}$ the test says nothing |
-| Integral | ${a_n = f(n),}$ with ${f}$ continuous, positive and decreasing on ${[1, \infty)}$ | ${\sum a_n}$ and ${\int_1^\infty f(x)\,dx}$ both converge or both diverge; the remainder ${R_N = \sum_{n=N+1}^{\infty} a_n}$ satisfies ${\int_{N+1}^{\infty} f(x)\,dx \le R_N \le \int_N^\infty f(x)\,dx}$ |
+| Integral | ${a_n = f(n),}$ with ${f}$ continuous, positive and decreasing on ${[1, \infty)}$ | ${\sum a_n}$ and ${\int_1^\infty f(x)\,dx}$ both converge or both diverge; the remainder ${R_N = \sum_{n=N+1}^{\infty} a_n}$ for a convergent series and ${N}$ in the decreasing tail satisfies ${\int_{N+1}^{\infty} f(x)\,dx \le R_N \le \int_N^\infty f(x)\,dx}$ |
 | Comparison | ${0 \le a_n \le b_n}$ | if ${\sum b_n}$ converges, so does ${\sum a_n;}$ if ${\sum a_n}$ diverges, so does ${\sum b_n}$ |
 | Limit comparison | ${a_n > 0,}$ ${b_n > 0}$ and ${\lim\limits_{n\to\infty} \dfrac{a_n}{b_n} = L}$ with ${0 < L < \infty}$ | ${\sum a_n}$ and ${\sum b_n}$ both converge or both diverge |
 | Alternating series | ${a_n = (-1)^{n-1}b_n}$ with ${b_n > 0,}$ ${b_{n+1} \le b_n}$ and ${b_n \to 0}$ | ${\sum a_n}$ converges, and its sum ${S}$ satisfies ${\abs{S - S_N} \le b_{N+1}}$ |
 | Absolute convergence | ${\sum \abs{a_n}}$ converges | ${\sum a_n}$ converges. The converse is false: ${\sum (-1)^{n-1}/n}$ converges, ${\sum 1/n}$ does not |
-| Ratio | ${\rho = \lim\limits_{n\to\infty} \abs{\dfrac{a_{n+1}}{a_n}}}$ | ${\rho < 1}$: ${\sum a_n}$ converges absolutely; ${\rho > 1}$ or ${\rho = \infty}$: it diverges; ${\rho = 1}$: no conclusion |
-| Root | ${\rho = \lim\limits_{n\to\infty} \abs{a_n}^{1/n}}$ | the same three conclusions as the ratio test |
+| Ratio | ${\rho = \lim\limits_{n\to\infty} \abs{\dfrac{a_{n+1}}{a_n}}}$ exists or is ${\infty}$, with ${a_n\ne0}$ eventually | ${\rho < 1}$: ${\sum a_n}$ converges absolutely; ${\rho > 1}$ or ${\rho = \infty}$: it diverges; ${\rho = 1}$: no conclusion |
+| Root | ${\rho = \lim\limits_{n\to\infty} \abs{a_n}^{1/n}}$ exists or is ${\infty}$ | the same three conclusions as the ratio test |
 
 ```check
 # divergence test, and a_n -> 0 is not enough
@@ -910,11 +946,11 @@ If $f$ has $n + 1$ derivatives on an open interval containing $a$ and $x$
 ([Module 15](module_15_EN.html)), then
 $$f(x) = \sum_{k=0}^{n} \frac{f^{(k)}(a)}{k!}(x - a)^k + R_n(x), \qquad R_n(x) = \frac{f^{(n+1)}(c)}{(n + 1)!}(x - a)^{n+1}$$
 for some $c$ between $a$ and $x$ (the Lagrange form of the remainder). The sum is the Taylor
-polynomial $T_n(x)$ of degree $n$ about $a$; with $a = 0$ it is a Maclaurin polynomial.
+polynomial $T_n(x)$ of degree at most $n$ about $a$. With $a=0$ it is a Maclaurin polynomial.
 
 **Taylor's inequality.** If $\abs{f^{(n+1)}(t)} \le M$ for every $t$ between $a$ and $x$, then
 $$\abs{R_n(x)} \le \frac{M}{(n + 1)!}\,\abs{x - a}^{n+1}.$$
-**Taylor series.** The series $\sum_{k=0}^{\infty} c_k(x - a)^k$ with $c_k = f^{(k)}(a)/k!$ equals
+**Taylor series.** If $f$ has derivatives of every order near $a$, the series $\sum_{k=0}^{\infty} c_k(x - a)^k$ with $c_k = f^{(k)}(a)/k!$ equals
 $f(x)$ exactly when $R_n(x) \to 0$ as $n \to \infty$.
 
 ```check
@@ -1004,20 +1040,19 @@ same(exp(I*th), cos(th) + I*sin(th)); same(exp(I*pi), -1)
 ### Vectors, lines and planes {#vectors}
 
 [Module 16](module_16_EN.html) teaches these. Here $\vb{a} = \langle a_1, a_2, a_3\rangle$,
-$\vb{b} = \langle b_1, b_2, b_3\rangle$, $\vb{c} = \langle c_1, c_2, c_3\rangle$, and $\theta$ is the
-angle between $\vb{a}$ and $\vb{b}$, $0 \le \theta \le \pi$.
+$\vb{b} = \langle b_1, b_2, b_3\rangle$, $\vb{c} = \langle c_1, c_2, c_3\rangle$, and for nonzero $\vb{a}$ and $\vb{b}$, $\theta$ is the angle between them, $0\le\theta\le\pi$.
 
 | Quantity | Formula | Notes |
 |---|---|---|
 | Length | ${\norm{\vb{a}} = \sqrt{a_1^2 + a_2^2 + a_3^2} = \sqrt{\vb{a}\cdot\vb{a}}}$ | |
-| Dot product | ${\vb{a}\cdot\vb{b} = a_1b_1 + a_2b_2 + a_3b_3 = \norm{\vb{a}}\norm{\vb{b}}\cos\theta}$ | ${\vb{a}}$ and ${\vb{b}}$ are perpendicular when ${\vb{a}\cdot\vb{b} = 0}$ |
+| Dot product | ${\vb{a}\cdot\vb{b} = a_1b_1 + a_2b_2 + a_3b_3 = \norm{\vb{a}}\norm{\vb{b}}\cos\theta}$ | The component formula also covers zero vectors. Nonzero vectors are perpendicular exactly when ${\vb{a}\cdot\vb{b}=0}$ |
 | Projection | ${\operatorname{proj}_{\vb{a}}\vb{b} = \dfrac{\vb{a}\cdot\vb{b}}{\norm{\vb{a}}^2}\,\vb{a}}$ | ${\vb{a} \ne \vb{0};}$ ${\vb{b} - \operatorname{proj}_{\vb{a}}\vb{b}}$ is perpendicular to ${\vb{a}}$ |
 | Cross product | ${\vb{a}\times\vb{b} = \langle a_2b_3 - a_3b_2,\ a_3b_1 - a_1b_3,\ a_1b_2 - a_2b_1\rangle}$ | perpendicular to ${\vb{a}}$ and ${\vb{b}}$ (right-hand rule: ${\vb{i}\times\vb{j} = \vb{k}}$); ${\vb{b}\times\vb{a} = -\vb{a}\times\vb{b}}$ |
 | Length of ${\vb{a}\times\vb{b}}$ | ${\norm{\vb{a}\times\vb{b}} = \norm{\vb{a}}\norm{\vb{b}}\sin\theta}$ | the area of the parallelogram with sides ${\vb{a}}$ and ${\vb{b}}$ |
 | Triple product | ${\vb{a}\cdot(\vb{b}\times\vb{c}) = \det\begin{pmatrix} a_1 & a_2 & a_3\\ b_1 & b_2 & b_3\\ c_1 & c_2 & c_3\end{pmatrix}}$ | its absolute value is the volume of the box (parallelepiped) on ${\vb{a},}$ ${\vb{b},}$ ${\vb{c}}$ |
 | Line | ${\vb{r}(t) = \vb{r}_0 + t\,\vb{v},}$ that is ${x = x_0 + v_1t,}$ ${y = y_0 + v_2t,}$ ${z = z_0 + v_3t}$ | through ${(x_0, y_0, z_0)}$ with direction ${\vb{v} = \langle v_1, v_2, v_3\rangle \ne \vb{0}}$ |
 | Plane | ${a(x - x_0) + b(y - y_0) + c(z - z_0) = 0}$ | through ${(x_0, y_0, z_0)}$ with normal ${\vb{n} = \langle a, b, c\rangle \ne \vb{0}}$ |
-| Distance from a point to a plane | ${D = \dfrac{\abs{ax_1 + by_1 + cz_1 + d}}{\sqrt{a^2 + b^2 + c^2}}}$ | the point ${(x_1, y_1, z_1),}$ the plane ${ax + by + cz + d = 0}$ |
+| Distance from a point to a plane | ${D = \dfrac{\abs{ax_1 + by_1 + cz_1 + d}}{\sqrt{a^2 + b^2 + c^2}}}$ | the point ${(x_1, y_1, z_1),}$ the plane ${ax+by+cz+d=0}$ with nonzero normal ${\langle a,b,c\rangle}$ |
 
 ```check
 a1, a2, a3, b1, b2, b3, c1, c2, c3 = symbols('a1:4 b1:4 c1:4', real=True)
@@ -1054,8 +1089,9 @@ same(Abs(1*1 + 2*2 + 2*3 - 2)/sqrt(1 + 4 + 4), 3)              # the point (1, 2
 
 ### Partial derivatives and the gradient {#partial-derivatives}
 
-[Module 17](module_17_EN.html) teaches these. The functions are differentiable where the formulas
-are used.
+[Module 17](module_17_EN.html) teaches these. Partial derivatives may exist without full
+differentiability. The chain rule, directional derivative formula and linear approximation below
+use differentiability.
 
 | Idea | Formula | Holds for |
 |---|---|---|
@@ -1069,7 +1105,7 @@ are used.
 | Chain rule, two parameters | ${\dfrac{\partial z}{\partial s} = \dfrac{\partial z}{\partial x}\dfrac{\partial x}{\partial s} + \dfrac{\partial z}{\partial y}\dfrac{\partial y}{\partial s},}$ and the same for ${t}$ | ${x = x(s, t),}$ ${y = y(s, t)}$ |
 | Tangent plane | ${z = f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b)}$ | the graph ${z = f(x, y)}$ at ${(a, b)}$ |
 | Linear approximation | ${f(x, y) \approx f(a, b) + f_x(a, b)(x - a) + f_y(a, b)(y - b)}$ | ${(x, y)}$ near ${(a, b)}$ |
-| Tangent plane to a level surface | ${\nabla F(P)\cdot\langle x - x_0,\ y - y_0,\ z - z_0\rangle = 0}$ | the surface ${F(x, y, z) = k}$ through ${P = (x_0, y_0, z_0),}$ ${\nabla F(P) \ne \vb{0}}$ |
+| Tangent plane to a level surface | ${\nabla F(P)\cdot\langle x - x_0,\ y - y_0,\ z - z_0\rangle = 0}$ | the level surface ${F(x,y,z)=k}$ through ${P=(x_0,y_0,z_0)}$, with ${F}$ having continuous first partials nearby and ${\nabla F(P)\ne\vb{0}}$ |
 
 Without continuity Clairaut's theorem can fail: for $f(x, y) = \dfrac{xy(x^2 - y^2)}{x^2 + y^2}$, with
 $f(0, 0) = 0$, the mixed partials at the origin are $f_{xy}(0, 0) = -1$ and $f_{yx}(0, 0) = 1$.
@@ -1113,8 +1149,8 @@ same_set(solve(nP.dot(Matrix([x - 1, y - 2, z - 3])), z), [3 + diff(zg, x).subs(
 
 [Module 18](module_18_EN.html) teaches these. A **critical point** of $f(x, y)$ is a point where
 $\nabla f = \vb{0}$ or a partial derivative does not exist; local maxima and minima inside the
-domain occur only at critical points. At a critical point $(a, b)$, with the second partials
-continuous near it, let
+domain occur only at critical points. At an interior critical point $(a,b)$ with both first partials zero and the second partials
+continuous nearby, let
 $$H = \begin{pmatrix} f_{xx} & f_{xy}\\ f_{yx} & f_{yy}\end{pmatrix}, \qquad D = \det H = f_{xx}f_{yy} - f_{xy}^2 \quad\text{at } (a, b).$$
 
 | ${D}$ | ${f_{xx}(a, b)}$ | ${(a, b)}$ is |
@@ -1124,11 +1160,11 @@ $$H = \begin{pmatrix} f_{xx} & f_{xy}\\ f_{yx} & f_{yy}\end{pmatrix}, \qquad D =
 | ${D < 0}$ | | a saddle point |
 | ${D = 0}$ | | not decided by the test |
 
-**Lagrange multipliers.** The extreme values of $f(x, y, z)$ subject to $g(x, y, z) = k$ occur at
-points where
-$$\nabla f = \lambda\,\nabla g, \qquad g(x, y, z) = k \qquad (\nabla g \ne \vb{0} \text{ there}),$$
-and with two constraints $g = k$ and $h = c$, where $\nabla f = \lambda\,\nabla g + \mu\,\nabla h$
-($\nabla g$ and $\nabla h$ not parallel there).
+**Lagrange multipliers.** Suppose $f$ and the constraint functions have continuous first partials
+near a constrained extremum. At a regular point of $g=k$, with $\nabla g\ne\vb{0}$, it must satisfy
+$\nabla f=\lambda\,\nabla g$. With two constraints $g=k$ and $h=c$ and linearly independent gradients,
+it must satisfy $\nabla f=\lambda\,\nabla g+\mu\,\nabla h$. Check singular points and any boundary
+restrictions separately.
 
 ```check
 O0 = {x: 0, y: 0}
@@ -1164,23 +1200,27 @@ same(solve(diff(2*s**2 + (1 - 2*s)**2, s), s), [Rational(1, 3)])   # along the l
 |---|---|---|
 | Polar | ${x = r\cos\theta,}$ ${\ y = r\sin\theta}$ | ${dA = r\,dr\,d\theta}$ |
 | Cylindrical | ${x = r\cos\theta,}$ ${\ y = r\sin\theta,}$ ${\ z = z}$ | ${dV = r\,dz\,dr\,d\theta}$ |
-| Spherical | ${x = \rho\sin\phi\cos\theta,}$ ${\ y = \rho\sin\phi\sin\theta,}$ ${\ z = \rho\cos\phi}$ | ${dV = \rho^2\sin\phi\,d\rho\,d\phi\,d\theta}$ |
+| Spherical | ${x = \rho\sin\varphi\cos\theta,}$ ${\ y = \rho\sin\varphi\sin\theta,}$ ${\ z = \rho\cos\varphi}$ | ${dV = \rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta}$ |
 
-Here $r \ge 0$, $\rho \ge 0$, and $\phi$ is the angle from the positive $z$-axis, $0 \le \phi \le \pi$
-(many physics books swap the names $\theta$ and $\phi$).
+Here $r \ge 0$, $\rho \ge 0$, and $\varphi$ is the angle from the positive $z$-axis, $0 \le \varphi \le \pi$
+(many physics books swap the names $\theta$ and $\varphi$). Choose angular bounds so the region is
+covered once, apart from seams, axes and collapsed boundary points of zero area or volume.
 
-- **Fubini's theorem.** If $f$ is continuous on the rectangle $R = [a, b] \times [c, d]$, then
+- **Fubini's theorem.** If $f$ is continuous on the rectangle $R = [a,b]\times[c,d]$ with $a<b$ and $c<d$, then
   $$\iint_R f(x, y)\,dA = \int_a^b\!\!\int_c^d f(x, y)\,dy\,dx = \int_c^d\!\!\int_a^b f(x, y)\,dx\,dy.$$
-- **Change of variables.** If $x = g(u, v)$, $y = h(u, v)$ maps a region $S$ one-to-one onto $R$
-  (except perhaps on the boundary), with continuous first partials and a non-zero Jacobian, then
+- **Change of variables.** Let $S$ and $R$ be bounded closed regions of type I or II, and $f$ continuous on $R$.
+  The map $x=g(u,v)$, $y=h(u,v)$ must send $S$ onto $R$ and have continuous first partials on a
+  neighbourhood of $S$. It must be one-to-one with nonzero Jacobian in the interior of $S$. Then
   $$\iint_R f(x, y)\,dA = \iint_S f\big(g(u, v), h(u, v)\big)\,\abs{\frac{\partial(x, y)}{\partial(u, v)}}\,du\,dv, \qquad \frac{\partial(x, y)}{\partial(u, v)} = \det\begin{pmatrix} x_u & x_v\\ y_u & y_v\end{pmatrix}.$$
-- **Mass and centre of mass** of a plate $D$ with density $\rho(x, y)$:
+- **Mass and centre of mass** of a bounded plate $D$ with continuous density $\rho(x,y)\ge0$ and positive total mass $m$:
   $$m = \iint_D \rho\,dA, \qquad \bar{x} = \frac{1}{m}\iint_D x\rho\,dA, \qquad \bar{y} = \frac{1}{m}\iint_D y\rho\,dA.$$
-- **The Gaussian integral.** In polar coordinates $\iint_{\R^2} e^{-(x^2 + y^2)}\,dA = \pi$, so
-  $\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}$.
+- **The Gaussian integral.** On a disc of radius $R$, the double integral of $e^{-(x^2+y^2)}$ is
+  $\pi(1-e^{-R^2})$ by polar coordinates. Compare discs and squares as $R\to\infty$ to obtain
+  $\int_{-\infty}^{\infty}e^{-x^2}\,dx=\sqrt{\pi}$ ([Module 19](module_19_EN.html#gaussian)).
 
 ```check
-rs, phs, ths, rhos, zs = symbols('r_s phi_s theta_s rho_s z_s', nonnegative=True)
+rs, rhos = symbols('r_s rho_s', nonnegative=True)
+phs, ths, zs = symbols('phi_s theta_s z_s', real=True)
 same(Matrix([rs*cos(ths), rs*sin(ths)]).jacobian([rs, ths]).det(), rs)
 same(Matrix([rs*cos(ths), rs*sin(ths), zs]).jacobian([rs, ths, zs]).det(), rs)
 sph = Matrix([rhos*sin(phs)*cos(ths), rhos*sin(phs)*sin(ths), rhos*cos(phs)])
@@ -1191,7 +1231,9 @@ Rq, hq = symbols('R_q h_q', positive=True)
 same(integrate(rs, (rs, 0, Rq), (ths, 0, 2*pi)), pi*Rq**2)                         # a disc
 same(integrate(rs, (zs, 0, hq), (rs, 0, Rq), (ths, 0, 2*pi)), pi*Rq**2*hq)          # a cylinder
 same(integrate(rhos**2*sin(phs), (rhos, 0, Rq), (phs, 0, pi), (ths, 0, 2*pi)), Rational(4, 3)*pi*Rq**3)   # a ball
-same(integrate(exp(-rs**2)*rs, (rs, 0, oo), (ths, 0, 2*pi)), pi); same(integrate(exp(-x**2), (x, -oo, oo))**2, pi)
+disc_gauss = integrate(exp(-rs**2)*rs, (rs, 0, Rq), (ths, 0, 2*pi))
+same(disc_gauss, pi*(1 - exp(-Rq**2))); limit_is(disc_gauss, Rq, oo, pi)
+same(integrate(exp(-x**2), (x, -oo, oo)), sqrt(pi))
 # x = u + v, y = u - v (Jacobian -2) maps the unit square onto the square with corners (0,0), (1,1), (2,0), (1,-1)
 uc, vc = symbols('u_c v_c')
 Jc = Matrix([uc + vc, uc - vc]).jacobian([uc, vc]).det(); same(Jc, -2)
@@ -1206,34 +1248,35 @@ same(integrate(rs*cos(ths)*rs, (rs, 0, Rq), (ths, 0, pi))/mh, 0)
 ### Vector calculus {#vector-calculus}
 
 [Module 20](module_20_EN.html) teaches these. $\vb{F} = \langle P, Q, R\rangle$ is a vector field and
-$C$ a curve traced once by $\vb{r}(t)$, $a \le t \le b$, with $\vb{r}'$ continuous.
+$C$ is an oriented smooth path traced by $\vb{r}(t)$ for $a\le t\le b$. For a piecewise smooth
+path, add the integrals over its pieces.
 
 | Idea | Formula | Holds for |
 |---|---|---|
-| Line integral of a function | ${\displaystyle\int_C f\,ds = \int_a^b f\big(\vb{r}(t)\big)\,\norm{\vb{r}'(t)}\,dt}$ | |
-| Line integral of a field (work) | ${\displaystyle\int_C \vb{F}\cdot d\vb{r} = \int_a^b \vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,dt}$ | also written ${\int_C P\,dx + Q\,dy + R\,dz;}$ reversing the direction changes the sign |
-| Fundamental theorem for line integrals | ${\displaystyle\int_C \nabla f\cdot d\vb{r} = f\big(\vb{r}(b)\big) - f\big(\vb{r}(a)\big)}$ | ${\nabla f}$ continuous on ${C}$ |
-| Conservative fields | ${\langle P, Q\rangle = \nabla f}$ for some ${f}$ exactly when ${P_y = Q_x;}$ in space, ${\vb{F} = \nabla f}$ exactly when ${\operatorname{curl}\vb{F} = \vb{0}}$ | continuous first partials on an open region with no holes (every closed curve in it can be shrunk to a point inside it) |
+| Line integral of a function | ${\displaystyle\int_C f\,ds = \int_a^b f\big(\vb{r}(t)\big)\,\norm{\vb{r}'(t)}\,dt}$ | ${f}$ continuous on ${C}$ |
+| Line integral of a field (work) | ${\displaystyle\int_C \vb{F}\cdot d\vb{r} = \int_a^b \vb{F}\big(\vb{r}(t)\big)\cdot\vb{r}'(t)\,dt}$ | ${\vb{F}}$ continuous on ${C}$. Reversing the path negates the integral |
+| Fundamental theorem for line integrals | ${\displaystyle\int_C \nabla f\cdot d\vb{r} = f\big(\vb{r}(b)\big) - f\big(\vb{r}(a)\big)}$ | ${f}$ differentiable with continuous gradient on a neighbourhood of ${C}$ |
+| Conservative fields | ${\langle P, Q\rangle = \nabla f}$ for some ${f}$ exactly when ${P_y = Q_x;}$ in space, ${\vb{F} = \nabla f}$ exactly when ${\operatorname{curl}\vb{F} = \vb{0}}$ | continuous first partials on an open, simply connected region (connected, with every closed path contractible to a point in the region) |
 | Curl | ${\operatorname{curl}\vb{F} = \nabla\times\vb{F} = \langle R_y - Q_z,\ P_z - R_x,\ Q_x - P_y\rangle}$ | subscripts are partial derivatives: ${R_y = \partial R/\partial y}$ |
 | Divergence | ${\operatorname{div}\vb{F} = \nabla\cdot\vb{F} = P_x + Q_y + R_z}$ | |
 | Identities | ${\operatorname{curl}(\nabla f) = \vb{0},}$ ${\ \operatorname{div}(\operatorname{curl}\vb{F}) = 0}$ | continuous second partials |
-| Surface integral | ${\displaystyle\iint_S f\,dS = \iint_D f\big(\vb{r}(u, v)\big)\,\norm{\vb{r}_u\times\vb{r}_v}\,du\,dv}$ | ${S}$ given by ${\vb{r}(u, v),}$ ${(u, v)}$ in ${D}$ |
-| Flux | ${\displaystyle\iint_S \vb{F}\cdot d\vb{S} = \iint_D \vb{F}\big(\vb{r}(u, v)\big)\cdot(\vb{r}_u\times\vb{r}_v)\,du\,dv}$ | ${\vb{r}_u\times\vb{r}_v}$ points to the chosen side of ${S}$ |
+| Surface integral | ${\displaystyle\iint_S f\,dS = \iint_D f\big(\vb{r}(u, v)\big)\,\norm{\vb{r}_u\times\vb{r}_v}\,du\,dv}$ | ${f}$ continuous on ${S}$, with a smooth parametrisation that covers ${S}$ once, apart from possible boundary repeats |
+| Flux | ${\displaystyle\iint_S \vb{F}\cdot d\vb{S} = \iint_D \vb{F}\big(\vb{r}(u, v)\big)\cdot(\vb{r}_u\times\vb{r}_v)\,du\,dv}$ | the same parametrisation, with ${\vb{F}}$ continuous and ${\vb{r}_u\times\vb{r}_v}$ pointing to the chosen side of ${S}$ |
 
-The region must have no holes: $\vb{F} = \dfrac{\langle -y, x\rangle}{x^2 + y^2}$ has
+Simple connectivity guarantees that the derivative test is sufficient. A field with a potential can
+also be conservative on a region with holes. For a case where the test fails to establish a potential, $\vb{F} = \dfrac{\langle -y, x\rangle}{x^2 + y^2}$ has
 $\partial P/\partial y = \partial Q/\partial x$ away from the origin, yet its line integral once
-anticlockwise round the unit circle is $2\pi$, so it is not conservative there.
+anticlockwise round the unit circle is $2\pi$, so it is not conservative on the punctured plane.
 
 | Theorem | Formula | Holds for |
 |---|---|---|
 | Green's theorem | ${\displaystyle\oint_C P\,dx + Q\,dy = \iint_D \Big(\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}\Big)\,dA}$ | ${C}$ a piecewise smooth simple closed curve traced anticlockwise, bounding ${D;}$ ${P,}$ ${Q}$ with continuous first partials on an open region containing ${D}$ |
 | Area from Green's theorem | ${A = \dfrac12\displaystyle\oint_C x\,dy - y\,dx}$ | the same ${C}$ and ${D}$ |
-| Stokes' theorem | ${\displaystyle\oint_C \vb{F}\cdot d\vb{r} = \iint_S \operatorname{curl}\vb{F}\cdot d\vb{S}}$ | ${S}$ an oriented piecewise smooth surface whose boundary ${C}$ is a simple closed curve, traced so that ${S}$ is on your left when you walk along ${C}$ with your head along the normal of ${S}$ (the right-hand rule); ${\vb{F}}$ with continuous first partials |
-| Divergence theorem | ${\displaystyle\iint_S \vb{F}\cdot d\vb{S} = \iiint_E \operatorname{div}\vb{F}\,dV}$ | ${S}$ the closed surface bounding the solid ${E,}$ oriented outwards; ${\vb{F}}$ with continuous first partials |
+| Stokes' theorem | ${\displaystyle\oint_C \vb{F}\cdot d\vb{r} = \iint_S \operatorname{curl}\vb{F}\cdot d\vb{S}}$ | ${S}$ oriented and piecewise smooth, with piecewise smooth simple closed boundary ${C}$ oriented by ${S}$. The field has continuous first partials on a neighbourhood of ${S}$ |
+| Divergence theorem | ${\displaystyle\iint_S \vb{F}\cdot d\vb{S} = \iiint_E \operatorname{div}\vb{F}\,dV}$ | ${S}$ is the outward-oriented, piecewise smooth boundary of a bounded solid ${E}$. The field has continuous first partials on a neighbourhood of ${E}$ |
 
 All five fundamental theorems (of calculus, for line integrals, Green's, Stokes' and the divergence
-theorem) have the same shape: integrating a derivative over a region gives the function on the
-region's boundary (the two ends of an interval or a curve, the edge of a surface, the surface of a
+theorem) have the same shape: integrating a derivative over a region gives the corresponding boundary expression (the two ends of an interval or a curve, the edge of a surface, the surface of a
 solid).
 
 ```check
@@ -1278,7 +1321,7 @@ same(integrate((ell[0]*ell.diff(t)[1] - ell[1]*ell.diff(t)[0])/2, (t, 0, 2*pi)),
 Sr = Matrix([sin(phs)*cos(ths), sin(phs)*sin(ths), cos(phs)]); Nr = Sr.diff(phs).cross(Sr.diff(ths))
 same(Nr, sin(phs)*Sr); same(Nr.dot(Nr), sin(phs)**2)
 same(integrate(sin(phs), (phs, 0, pi), (ths, 0, 2*pi)), 4*pi)  # the area of the unit sphere
-# Stokes: F = <z, x, y> on the upper unit hemisphere (normal upwards) and its boundary circle (anticlockwise)
+# Stokes: F = <z, x, y> on the upper unit hemisphere (normal outwards) and its boundary circle (anticlockwise)
 Fs = Matrix([z, x, y])
 flux_curl = integrate(at(curl_(Fs), Sr).dot(Nr), (phs, 0, pi/2), (ths, 0, 2*pi))
 same(flux_curl, integrate(at(Fs, circ).dot(circ.diff(t)), (t, 0, 2*pi))); same(flux_curl, pi)
@@ -1292,7 +1335,7 @@ same(flux_d, vol_d); same(vol_d, Rational(12, 5)*pi)
 ## SymPy commands {#sympy}
 
 The commands the series uses, written as in its "Compute it" boxes, after `import sympy as sp`. The
-module column says where each is introduced.
+module column points to explanations and examples.
 
 | Command | What it does | Module |
 |---|---|---|
@@ -1301,18 +1344,18 @@ module column says where each is introduced.
 | `sp.expand(f)` | expands products and powers | [1](module_01_EN.html) |
 | `sp.factor(f)` | factorises | [1](module_01_EN.html) |
 | `sp.simplify(f)` | simplifies | [1](module_01_EN.html) |
-| `sp.N(f, 10)` | the value of `f` to 10 significant digits | [1](module_01_EN.html) |
-| `sp.lambdify(x, f)` | turns `f` into a fast Python function | [1](module_01_EN.html) |
+| `sp.N(f, 10)` | a numerical approximation to `f` at 10 significant digits of precision | [1](module_01_EN.html) |
+| `sp.lambdify(x, f)` | turns `f` into a callable for numerical evaluation | [1](module_01_EN.html) |
 | `sp.log(x)` | ${\ln x,}$ as is `math.log(x)`; `sp.log(x, 10)` is ${\log_{10} x}$ | [1](module_01_EN.html) |
 | `sp.limit(f, x, a, '+-')` | the limit as ${x \to a;}$ without `'+-'` SymPy gives the limit from the right (`'+'`, its default); `'-'` gives the limit from the left | [2](module_02_EN.html) |
 | `sp.oo` | ${\infty,}$ as in `sp.limit(f, x, sp.oo)` | [2](module_02_EN.html), [3](module_03_EN.html) |
 | `sp.diff(f, x)` | the derivative; `sp.diff(f, x, 2)` is the second derivative | [4](module_04_EN.html) |
-| `sp.solve(f, x)` | a list of the solutions of ${f = 0}$ | [8](module_08_EN.html) |
+| `sp.solve(f, x)` | tries to solve ${f=0}$ for `x`. It returns a list when it solves a single equation for one symbol | [8](module_08_EN.html) |
 | `sp.summation(a, (n, 1, N))` | the sum ${\sum_{n=1}^{N} a;}$ ${N}$ may be `sp.oo` | [9](module_09_EN.html), [14](module_14_EN.html) |
-| `sp.integrate(f, x)` | an antiderivative, without ${+\,C}$ | [10](module_10_EN.html) |
-| `sp.integrate(f, (x, a, b))` | the definite integral ${\int_a^b f\,dx}$ | [10](module_10_EN.html) |
-| `sp.dsolve(eq, y(x))` | solves a differential equation; first `y = sp.Function('y')` | [13](module_13_EN.html) |
-| `sp.series(f, x, a, n)` | the Taylor series about ${a}$ up to ${(x - a)^{n-1},}$ then ${O\big((x - a)^n\big)}$ | [15](module_15_EN.html) |
+| `sp.integrate(f, x)` | tries to find an antiderivative, without ${+\,C}$ | [10](module_10_EN.html) |
+| `sp.integrate(f, (x, a, b))` | tries to evaluate the definite integral ${\int_a^b f\,dx}$ | [10](module_10_EN.html) |
+| `sp.dsolve(eq, y(x))` | tries to solve a differential equation; first `y = sp.Function('y')` | [13](module_13_EN.html) |
+| `sp.series(f, x, a, n)` | expands near ${a}$ to order ${n}$, usually with an ${O\big((x-a)^n\big)}$ remainder. A Taylor expansion is the case with ordinary nonnegative integer powers | [15](module_15_EN.html) |
 
 ::: compute Eleven commands in one session
 
@@ -1324,7 +1367,7 @@ f = x**2 * sp.exp(x)
 print("diff:     ", sp.diff(f, x))
 print("integrate:", sp.integrate(f, x))
 print("definite: ", sp.integrate(f, (x, 0, 1)))
-print("limit:    ", sp.limit(sp.sin(x)/x, x, 0))
+print("limit:    ", sp.limit(sp.sin(x)/x, x, 0, '+-'))
 print("series:   ", sp.series(sp.cos(x), x, 0, 6))
 print("solve:    ", sp.solve(x**2 - 5*x + 6, x))
 print("summation:", sp.summation(1/n**2, (n, 1, sp.oo)))
@@ -1363,5 +1406,6 @@ same(integrate(f_s, (x, 0, 1)), E - 2); limit_is(sin(x)/x, x, 0, 1)
 same(series(cos(x), x, 0, 6).removeO(), 1 - x**2/2 + x**4/24)
 same_set(solve(x**2 - 5*x + 6, x), [2, 3]); same(summation(1/n**2, (n, 1, oo)), pi**2/6)
 C1s = symbols('C1'); yC = C1s*exp(2*x); same(diff(yC, x) - 2*yC, 0)
+same(dsolve(Eq(yf(x).diff(x), 2*yf(x)), yf(x)), Eq(yf(x), yC))
 same(sin(x)**2 + cos(x)**2, 1); rounds(pi, '3.141592654'); rounds(E, '2.718281828459045')
 ```

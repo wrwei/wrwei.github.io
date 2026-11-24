@@ -8,8 +8,8 @@
  *  - the double integrals: polar coordinates about the centre, dA = ρ dρ dθ, with Gauss–Legendre nodes in ρ and the
  *    trapezoidal rule in θ (very accurate for a smooth periodic integrand), at two resolutions (and a third if they
  *    disagree), so that a result that has not settled can be reported;
- *  - the partial derivatives: central differences with steps h and h/2; where the two disagree, F is not smooth there
- *    (for example, it blows up), and the double integrals are reported as not existing as ordinary integrals. */
+ *  - the partial derivatives: central differences with steps h and h/2. If the estimates disagree or are nonfinite,
+ *    the disc estimates are withheld. Numerical checks cannot establish the hypotheses of Green's theorem. */
 CalcWidgets.register('vector-field', function (root, api) {
   var t = api.t, h = api.h
   function minus(s) { return String(s).replace(/-/g, '−') }
@@ -60,7 +60,7 @@ CalcWidgets.register('vector-field', function (root, api) {
     '.vf-fields{display:flex;flex-wrap:wrap;gap:.35rem 1rem;margin:.3rem 0 .5rem}',
     '.vf-key{font-size:.8rem;color:var(--slate);margin:.3rem 0 .2rem}',
     '.vf-sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.35rem 1rem;margin:.45rem 0}',
-    '.vf-readout div{white-space:pre-wrap}',
+    '.vf-readout div{white-space:pre-wrap;overflow-wrap:anywhere}',
     '.vf-readout .vf-head{font-weight:700;margin-top:.35rem}',
     '.vf-readout .vf-head:first-child{margin-top:0}',
     '.vf-readout .vf-yes{color:#166534;margin-top:.35rem}',
@@ -98,16 +98,33 @@ CalcWidgets.register('vector-field', function (root, api) {
   // The circulation and the outward flux round the circle: r(θ) = c + r⟨cos θ, sin θ⟩, so F · r′ dθ = r(−P sin θ + Q cos θ) dθ
   // and F · n ds = r(P cos θ + Q sin θ) dθ; each integral is split into 16 arcs.
   function lineIntegrals(F, x0, y0, R) {
-    var circ = 0, flux = 0
-    for (var k = 0; k < ARCS; k++) {
-      var a = 2 * Math.PI * k / ARCS, b = 2 * Math.PI * (k + 1) / ARCS
-      circ += api.num.integrate(function (th) { var c = Math.cos(th), s = Math.sin(th), w = F(x0 + R * c, y0 + R * s); return R * (-w[0] * s + w[1] * c) }, a, b, 1e-11, 20000)
-      flux += api.num.integrate(function (th) { var c = Math.cos(th), s = Math.sin(th), w = F(x0 + R * c, y0 + R * s); return R * (w[0] * c + w[1] * s) }, a, b, 1e-11, 20000)
+    var nonfinite = {}
+    function aroundCircle(project) {
+      function integrand(th) {
+        var c = Math.cos(th), s = Math.sin(th), w = F(x0 + R * c, y0 + R * s)
+        if (!isFinite(w[0]) || !isFinite(w[1])) throw nonfinite
+        return R * project(w, c, s)
+      }
+      var sum = 0
+      for (var k = 0; k < ARCS; k++) {
+        var a = 2 * Math.PI * k / ARCS, b = 2 * Math.PI * (k + 1) / ARCS
+        var arc = api.num.integrate(integrand, a, b, 1e-11, 20000)
+        if (!isFinite(arc)) return NaN
+        sum += arc
+      }
+      return sum
     }
-    return [circ, flux]
+    try {
+      var circ = aroundCircle(function (w, c, s) { return -w[0] * s + w[1] * c })
+      var flux = aroundCircle(function (w, c, s) { return w[0] * c + w[1] * s })
+      return { circ: circ, flux: flux, nonfinite: false }
+    } catch (err) {
+      if (err !== nonfinite) throw err
+      return { circ: NaN, flux: NaN, nonfinite: true }
+    }
   }
-  // ∂Q/∂x − ∂P/∂y and ∂P/∂x + ∂Q/∂y at (x, y), from central differences with steps h and h/2; null where they disagree
-  // (F is not smooth there) or are not numbers.
+  // ∂Q/∂x − ∂P/∂y and ∂P/∂x + ∂Q/∂y from central differences with steps h and h/2.
+  // Return null where the estimates disagree or are nonfinite.
   function diffs(F, x, y, hx, hy) {
     var e = F(x + hx, y), w = F(x - hx, y), n = F(x, y + hy), s = F(x, y - hy)
     return [(e[0] - w[0]) / (2 * hx), (n[0] - s[0]) / (2 * hy), (e[1] - w[1]) / (2 * hx), (n[1] - s[1]) / (2 * hy)]   // Px, Py, Qx, Qy
@@ -145,12 +162,17 @@ CalcWidgets.register('vector-field', function (root, api) {
       if (isFinite(w[0]) && isFinite(w[1])) big = Math.max(big, Math.hypot(w[0], w[1]))
     }
     var scale = Math.max(big * 2 * Math.PI * R, 1e-300)
-    var res = { circ: li[0], flux: li[1], curl: NaN, div: NaN, scale: scale, singular: false, settled: true }
+    var res = { circ: li.circ, flux: li.flux, boundaryNonfinite: li.nonfinite, curl: NaN, div: NaN,
+      scale: scale, derivativesUnreliable: false, settled: true }
     var prev = discIntegrals(F, x0, y0, R, 0)
-    if (!prev) { res.singular = true; return res }
+    if (!prev) { res.derivativesUnreliable = true; return res }
     for (var lev = 1; lev < LEVELS.length; lev++) {
       var next = discIntegrals(F, x0, y0, R, lev)
-      if (!next) { res.singular = true; return res }
+      if (!next) {
+        res.curl = res.div = NaN
+        res.derivativesUnreliable = true
+        return res
+      }
       var tol = 1e-7 * Math.max(1, Math.abs(next[0]), Math.abs(next[1]), scale)
       res.curl = next[0]; res.div = next[1]
       if (Math.abs(next[0] - prev[0]) <= tol && Math.abs(next[1] - prev[1]) <= tol) return res
@@ -224,26 +246,32 @@ CalcWidgets.register('vector-field', function (root, api) {
     out.appendChild(line('vf-flux', '∮ F · n ds' + f(r.flux)))
     out.appendChild(line('vf-div', '∬ (∂P/∂x + ∂Q/∂y) dA' + f(r.div)))
     var verdict, cls = 'vf-warn vf-verdict'
-    if (!isFinite(r.circ) || !isFinite(r.flux)) {
-      verdict = t('F is not defined at some point of the circle, so the line integrals do not exist.', 'F 在圆周的某些点上没有定义，因此线积分不存在。')
-    } else if (r.singular) {
-      verdict = t('F is not defined, or not differentiable, at some point inside the circle: the double integrals do not exist as ordinary integrals, and Green’s theorem does not apply.',
-        'F 在圆内某点没有定义或不可微：这两个二重积分不是普通意义下的积分，格林定理不适用。')
+    if (r.boundaryNonfinite) {
+      verdict = t('A sampled value of F on the circle is not finite. Check where your formulas are defined.',
+        '圆周上采样得到的 F 有非有限值。请检查公式的定义域。')
+    } else if (!isFinite(r.circ) || !isFinite(r.flux)) {
+      verdict = t('The numerical method could not estimate one or both line integrals reliably.',
+        '数值方法无法可靠地估算至少一个线积分。')
+    } else if (r.derivativesUnreliable) {
+      verdict = t('The numerical partial derivatives could not be estimated reliably. Check that P and Q have continuous first partial derivatives on a neighbourhood of the whole disc.',
+        '无法可靠地估算偏导数。请检查 P 和 Q 在整个圆盘的一个邻域内是否具有连续的一阶偏导数。')
+    } else if (!r.settled) {
+      verdict = t('The double integral estimates did not settle as the sampling became finer.',
+        '加密采样后，二重积分的估算值仍未稳定。')
     } else {
       var tol = 1e-6 * Math.max(1, r.scale, Math.abs(r.circ), Math.abs(r.flux))
       var okC = Math.abs(r.circ - r.curl) <= tol, okD = Math.abs(r.flux - r.div) <= tol
       if (okC && okD) {
-        verdict = t('Both pairs agree, as Green’s theorem says: each line integral round the circle equals the double integral over the disc.',
-          '两组数值都相等，正如格林定理所说：沿圆周的线积分等于圆盘上的二重积分。')
+        verdict = state.preset
+          ? t('Both pairs agree numerically, as Green’s theorem predicts.', '两组估算值均吻合，与格林定理的预测一致。')
+          : t('Both pairs agree numerically. To apply Green’s theorem, check that P and Q have continuous first partial derivatives on a neighbourhood of the whole disc.',
+            '两组估算值均吻合。要应用格林定理，请检查 P 和 Q 在整个圆盘的一个邻域内是否具有连续的一阶偏导数。')
         cls = 'vf-yes vf-verdict'
-      } else if (!r.settled) {
-        verdict = t('The double integrals did not settle: F changes very fast, or blows up, somewhere in the disc, so their last digits may be wrong.',
-          '二重积分的数值没有稳定下来：F 在圆盘内某处变化极快或趋于无穷，因此末几位数字可能不对。')
       } else {
         verdict = (okC ? '' : t('The circulation and the integral of ∂Q/∂x − ∂P/∂y differ. ', '环量与 ∂Q/∂x − ∂P/∂y 的积分不相等。')) +
           (okD ? '' : t('The flux and the integral of ∂P/∂x + ∂Q/∂y differ. ', '通量与 ∂P/∂x + ∂Q/∂y 的积分不相等。')) +
-          t('Green’s theorem needs P and Q to have continuous partial derivatives on the whole disc: is F undefined somewhere inside the circle?',
-            '格林定理要求 P 和 Q 在整个圆盘上有连续的偏导数：F 是否在圆内某处没有定义？')
+          t('Check whether the field satisfies the hypotheses of Green’s theorem on a neighbourhood of the whole disc. Numerical error can also cause a mismatch.',
+            '请检查向量场在整个圆盘的一个邻域内是否满足格林定理的条件。数值误差也可能造成差异。')
       }
     }
     out.appendChild(line(cls, verdict))

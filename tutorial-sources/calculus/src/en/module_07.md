@@ -204,7 +204,7 @@ print(dydt)
 -x(t)*Derivative(x(t), t)/y(t)
 ```
 
-SymPy writes $dx/dt$ as `Derivative(x(t), t)`. Now substitute the values at the instant, the rate first:
+SymPy writes $dx/dt$ as `Derivative(x(t), t)`. The call `sp.solve` treats `dlink` as an expression equal to 0. Here it returns a list with one solution for $dy/dt$, and `[0]` takes that first entry. Now substitute the values at the instant, the rate first:
 
 ```python
 print(dydt.subs(sp.Derivative(x, t), sp.Rational(1, 2)).subs({x: 3, y: 4}))

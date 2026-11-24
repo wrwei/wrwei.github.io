@@ -3,6 +3,7 @@
  * values, the constraint curve, the level curve of f through the point, and the gradients ∇f and ∇g at the point,
  * drawn at one common scale (so when ∇f = λ∇g the arrow of ∇f is |λ| times as long). The readout gives the point,
  * f there, the angle between the gradients and, when they are parallel, the candidate's λ = ±|∇f|/|∇g|.
+ * Directions within 0.5° of parallel are marked as nearby candidates, with an approximate multiplier.
  * Gradients are computed from their formulas, not numerically. */
 CalcWidgets.register('lagrange', function (root, api) {
   var t = api.t, h = api.h
@@ -29,7 +30,7 @@ CalcWidgets.register('lagrange', function (root, api) {
       r: function (s) { return [s, 1 - s] }, dr: function () { return [1, -1] }, grad: function () { return [1, 1] } },
   ]
   var VIEW = [-3.2, 3.2, -2.2, 2.2]
-  var PARALLEL = 0.5                     // degrees: "parallel" means an angle within 0.5° of 0° or 180°
+  var NEAR_PARALLEL = 0.5                // degrees: close enough to flag a nearby candidate
   var state = { obj: OBJ[1], con: CON[1], s: 20, note: '' }
 
   function byValue(list, v) { return list.filter(function (o) { return o.value === v })[0] }
@@ -75,14 +76,18 @@ CalcWidgets.register('lagrange', function (root, api) {
   // ------------------------------------------------------------------ numbers at the point
   function compute() {
     var c = state.con, o = state.obj, s = c.angle ? state.s * Math.PI / 180 : state.s
-    var p = c.r(s), x = p[0], y = p[1]
+    var p = c.r(s)
+    // At the four axis intersections these coordinates are integers; remove trigonometric rounding residue.
+    if (c.angle && state.s % 90 === 0) p = p.map(Math.round)
+    var x = p[0], y = p[1]
     var gf = o.grad(x, y), gg = c.grad(x, y), d = c.dr(s)
     var nf = Math.hypot(gf[0], gf[1]), ng = Math.hypot(gg[0], gg[1])
     var dot = gf[0] * gg[0] + gf[1] * gg[1], cross = gf[0] * gg[1] - gf[1] * gg[0]
     var angle = Math.atan2(Math.abs(cross), dot) * 180 / Math.PI           // between 0° and 180°
     var along = gf[0] * d[0] + gf[1] * d[1]                                // d/ds of f along the curve
     return { x: x, y: y, f: o.f(x, y), gf: gf, gg: gg, nf: nf, ng: ng, angle: angle, along: along,
-      parallel: angle < PARALLEL || angle > 180 - PARALLEL, same: dot > 0 }
+      parallel: angle < 1e-9 || angle > 180 - 1e-9,
+      nearParallel: angle < NEAR_PARALLEL || angle > 180 - NEAR_PARALLEL, same: dot > 0 }
   }
 
   // ------------------------------------------------------------------ the picture
@@ -174,14 +179,21 @@ CalcWidgets.register('lagrange', function (root, api) {
     var a1 = Math.round(r.angle * 10) / 10                                  // " = " when the angle is exact to 0.1°
     var ang = Math.abs(a1 - r.angle) < 1e-9 ? ' = ' + a1 + '°' : ' ≈ ' + r.angle.toFixed(1) + '°'
     lines.push([t('angle between ∇f and ∇g', '∇f 与 ∇g 的夹角') + ang])
-    if (r.parallel) {
+    var dir = r.along > 0 ? t('increases', '增大') : t('decreases', '减小')
+    var what = c.angle ? 't' : 'x'
+    if (r.nearParallel) {
       var lam = (r.same ? 1 : -1) * r.nf / r.ng
-      lines.push([t('Parallel: a candidate for an extremum. ', '平行：这是极值的候选点。') +
-        (r.same ? 'λ = |∇f| / |∇g|' : 'λ = −|∇f| / |∇g|') + num(lam) +
-        (r.same ? t(' (∇f and ∇g point the same way)', '（∇f 与 ∇g 同向）') : t(' (∇f and ∇g point in opposite directions)', '（∇f 与 ∇g 反向）')), 'lg-yes'])
+      if (r.parallel) {
+        lines.push([t('Parallel: a candidate for an extremum. ', '平行：这是极值的候选点。') +
+          (r.same ? 'λ = |∇f| / |∇g|' : 'λ = −|∇f| / |∇g|') + num(lam) +
+          (r.same ? t(' (∇f and ∇g point the same way)', '（∇f 与 ∇g 同向）') : t(' (∇f and ∇g point in opposite directions)', '（∇f 与 ∇g 反向）')), 'lg-yes'])
+      } else {
+        lines.push([t('Nearly parallel (within 0.5°): near a candidate for an extremum. ', '接近平行（误差在 0.5° 以内）：附近有极值的候选点。') +
+          (r.same ? 'λ ≈ |∇f| / |∇g| ≈ ' : 'λ ≈ −|∇f| / |∇g| ≈ ') + fmt(lam), 'lg-yes'])
+        lines.push([t('No extremum at this point: f still ' + dir + ' as ' + what + ' increases.',
+          '该点不是极值点：' + what + ' 增大时 f 仍然' + dir + '。'), 'lg-no'])
+      }
     } else {
-      var dir = r.along > 0 ? t('increases', '增大') : t('decreases', '减小')
-      var what = c.angle ? 't' : 'x'
       lines.push([t('Not parallel: ∇f has a part along the curve, so f ' + dir + ' as ' + what + ' increases. No extremum here.',
         '不平行：∇f 有沿曲线方向的分量，所以 ' + what + ' 增大时 f ' + dir + '。这里不是极值点。'), 'lg-no'])
     }

@@ -111,7 +111,7 @@ def fig_18_2(L):
     label(ax, 2.08, 2.12, '4', size=10.5, ha='left', va='bottom', color=C['slate'])
     from matplotlib.lines import Line2D
     keys = [Line2D([], [], marker='s', ls='none', color=C['slate'], markersize=7, label='critical point'),
-            Line2D([], [], marker='o', ls='none', color=C['slate'], markersize=6, label='critical point\nof a side'),
+            Line2D([], [], marker='o', ls='none', color=C['slate'], markersize=6, label='boundary\ncandidate'),
             Line2D([], [], color=C['navy'], lw=1.6, ls=(0, (5, 3)), label='the square'),
             Line2D([], [], color=C['purple'], lw=2.0, label=r'level curve $f = 0$'),
             Line2D([], [], color=C['blue'], lw=1.3, label=r'$f = -0.8$, $-0.4$')]

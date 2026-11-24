@@ -462,12 +462,12 @@ rounds(2*sinh(1), '2.350'); rounds(cosh(1), '1.543'); same(cosh(0), 1)
 ```
 :::
 
-The square root in the arc length formula usually has no elementary antiderivative, and then the length must be computed numerically.
+When the square root in the arc length formula has no elementary antiderivative, numerical integration can approximate the length.
 
 ::: example One arch of a sine wave
 Find the length of $y = \sin x$, $0 \le x \le \pi$.
 
-Here $f'(x) = \cos x$, so $L = \int_0^\pi \sqrt{1 + \cos^2 x}\,dx$. This integrand has no elementary antiderivative (the integral belongs to the family of elliptic integrals), so evaluate it with Simpson's rule (Module 11). With $n = 4$ and $\Delta x = \pi/4$ you need $g(x) = \sqrt{1 + \cos^2 x}$ at five points: $g(0) = g(\pi) = \sqrt2$, $g(\pi/4) = g(3\pi/4) = \sqrt{3/2}$ and $g(\pi/2) = 1$. So
+Here $f'(x) = \cos x$, so $L = \int_0^\pi \sqrt{1 + \cos^2 x}\,dx$. This is an elliptic integral. Its integrand has no elementary antiderivative, a fact we use without proof. [Module 11](module_11_EN.html#nonelementary) explains what this means. Use Simpson's rule to approximate the length. With $n = 4$ and $\Delta x = \pi/4$ you need $g(x) = \sqrt{1 + \cos^2 x}$ at five points: $g(0) = g(\pi) = \sqrt2$, $g(\pi/4) = g(3\pi/4) = \sqrt{3/2}$ and $g(\pi/2) = 1$. So
 
 $$\begin{aligned} S_4 &= \frac{\pi/4}{3}\Big[\sqrt2 + 4\sqrt{\tfrac32} + 2 \cdot 1 \\ &\qquad + 4\sqrt{\tfrac32} + \sqrt2\Big] \\ &= \frac{\pi}{12}\Big(2\sqrt2 + 8\sqrt{\tfrac32} + 2\Big) \\ &\approx 3.8292. \end{aligned}$$
 
@@ -696,7 +696,7 @@ same(6/Rational(14, 3), Rational(9, 7)); rounds(Rational(9, 7), '1.29'); holds(R
 **A thin plate.** A thin flat plate is called a **lamina**. Here its density (mass per unit area) is uniform, the same at every point; Module 19 lets it vary. The centre of mass of a plate is a point $(\bar x, \bar y)$ in its plane. Let the plate occupy the region between $y = g(x)$ and $y = f(x)$, $a \le x \le b$, and slice it into vertical strips. The strip at $x$ is nearly a rectangle of width $\Delta x$ and height $f(x) - g(x)$, which balances at its centre, $\big(x, \tfrac12(f(x) + g(x))\big)$, by symmetry; its mass is the density times its area. Weighting each strip's coordinates by its mass and taking limits gives the formulas below. The density cancels, so the centre of mass depends only on the shape. For $\bar y$, the height of a strip's centre times its area is $\tfrac12(f + g)(f - g)\,\Delta x = \tfrac12\big(f^2 - g^2\big)\,\Delta x$.
 
 ::: definition Centroid of a plate
-Let $f$ and $g$ be continuous on $[a, b]$ with $g \le f$, and let $A$ be the area of the region between their graphs. The **centroid** of the region is the point $(\bar x, \bar y)$ with
+Let $f$ and $g$ be continuous on $[a, b]$ with $g \le f$. Suppose the region between their graphs has area $A > 0$. Its **centroid** is the point $(\bar x, \bar y)$ with
 
 $$\begin{aligned} \bar x &= \frac1A\int_a^b x\big(f(x) - g(x)\big)\,dx, \\ \bar y &= \frac1A\int_a^b \frac12\big(f(x)^2 - g(x)^2\big)\,dx. \end{aligned}$$
 
@@ -706,7 +706,7 @@ A plate of uniform density occupying the region balances at its centroid.
 **Symmetry.** If a region is symmetric about a line, its centroid lies on that line: the moments of mirror-image strips about the line cancel.
 
 ::: example A half disc
-Find the centroid of the half disc $x^2 + y^2 \le a^2$, $y \ge 0$.
+Find the centroid of the half disc $x^2 + y^2 \le a^2$, $y \ge 0$, with radius $a > 0$.
 
 The half disc is symmetric about the $y$-axis, so $\bar x = 0$. Its area is $A = \tfrac12\pi a^2$, and with $f(x) = \sqrt{a^2 - x^2}$ and $g(x) = 0$,
 
@@ -1517,7 +1517,7 @@ For $x > 0$ the bracket is positive, so the square root is $\dfrac{x}{2} + \dfra
 
 $$\begin{aligned} L &= \int_1^e \Big(\frac{x}{2} + \frac{1}{2x}\Big)\,dx \\ &= \Big[\frac{x^2}{4} + \frac{\ln x}{2}\Big]_1^e \\ &= \frac{e^2}{4} + \frac12 - \frac14 \\ &= \frac{e^2 + 1}{4} \approx 2.097. \end{aligned}$$
 
-**(b)** $f'(x) = 3x^2$, so $L = \int_0^1 \sqrt{1 + 9x^4}\,dx$, which has no elementary antiderivative. With $n = 4$, $\Delta x = 0.25$, and $g(x) = \sqrt{1 + 9x^4}$: $g(0) = 1$, $g(0.25) \approx 1.01743$, $g(0.5) = 1.25$, $g(0.75) \approx 1.96154$ and $g(1) = \sqrt{10} \approx 3.16228$. Simpson's rule gives
+**(b)** $f'(x) = 3x^2$, so $L = \int_0^1 \sqrt{1 + 9x^4}\,dx$. Use Simpson's rule with $n = 4$ and $\Delta x = 0.25$. For $g(x) = \sqrt{1 + 9x^4}$, the values are $g(0) = 1$, $g(0.25) \approx 1.01743$, $g(0.5) = 1.25$, $g(0.75) \approx 1.96154$ and $g(1) = \sqrt{10} \approx 3.16228$. Simpson's rule gives
 
 $$\begin{aligned} S_4 &= \frac{0.25}{3}\big[1 + 4(1.01743) \\ &\qquad + 2(1.25) + 4(1.96154) \\ &\qquad + 3.16228\big] \approx 1.5482. \end{aligned}$$
 

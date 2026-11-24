@@ -71,13 +71,26 @@ export async function run(t) {
   await t.set('input[type=range] >> nth=0', 2)
   await t.set('input[type=range] >> nth=1', 1)
   ;[c, cu] = await four(t)
-  t.check(c === 0 && cu === 0 && (await t.count('.vf-yes')) === 1, 'vortex, origin outside the circle: both sides ≈ 0, and they agree')
+  t.check(c === 0 && cu === 0 && (await t.count('.vf-yes')) === 1 && (await t.text('.vf-verdict')).includes('check that P and Q'),
+    'vortex, origin outside the circle: both sides ≈ 0, and the readout distinguishes agreement from checking the hypotheses')
   await t.set('input[type=range] >> nth=0', 0)
   await t.set('input[type=range] >> nth=1', 0)
   verdict = await t.text('.vf-verdict')
-  t.check((await t.text('.vf-curl')).includes('—') && near(num(await t.text('.vf-circ')), TWO_PI) && verdict.includes('not defined'),
-    'vortex, circle centred at the origin: the double integrals are reported as not existing (—)')
+  t.check((await t.text('.vf-curl')).includes('—') && near(num(await t.text('.vf-circ')), TWO_PI) && verdict.includes('could not be estimated reliably'),
+    'vortex, circle centred at the origin: the unreliable double integral estimates are withheld (—)')
   await t.shot('vortex')
+
+  await t.type('.vf-fields .cw-field:nth-child(1) input', 'sqrt(x)')
+  await t.type('.vf-fields .cw-field:nth-child(2) input', '0')
+  await t.wait(400)
+  const boundaryIssue = (await four(t)).every(Number.isNaN) && (await t.text('.vf-verdict')).includes('sampled value')
+
+  await t.type('.vf-fields .cw-field:nth-child(1) input', 'sin(12345*x)')
+  await t.wait(400)
+  const integrationIssue = Number.isNaN((await four(t))[0]) &&
+    (await t.text('.vf-verdict')).includes('could not estimate one or both line integrals')
+  t.check(boundaryIssue && integrationIssue,
+    'distinguishes a nonfinite boundary sample from running out of integration budget for a smooth field')
 
   // A formula that does not parse: a message, no arrows, no error.
   await t.type('.vf-fields .cw-field:nth-child(1) input', 'x^^2')

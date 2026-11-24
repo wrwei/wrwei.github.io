@@ -1,7 +1,7 @@
 ---
 title: Techniques of integration
 part: 3
-lead: Integrate products, powers of trigonometric functions, square roots of quadratics and rational functions, by parts, with identities, with trigonometric substitutions and with partial fractions. You will also learn to choose a method, to check a computer's answer, to recognise integrals that no formula can express, and to compute any integral numerically with a guaranteed accuracy.
+lead: Integrate products, powers of trigonometric functions, square roots of quadratics and rational functions, by parts, with identities, with trigonometric substitutions and with partial fractions. You will also learn to choose a method, to check a computer's answer, to recognise integrands with no elementary antiderivative, and to bound the error of a numerical approximation when the integrand has the required derivatives.
 minutes: 270
 needs: Modules 1 to 10, especially the product and chain rules (Module 5), the derivatives of Modules 5 and 6, and antiderivatives and substitution (Module 10)
 goals:

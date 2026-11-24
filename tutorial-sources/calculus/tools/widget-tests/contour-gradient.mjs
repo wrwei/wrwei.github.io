@@ -14,17 +14,19 @@ export async function run(t) {
 
   // Contours: one coloured path per level, the same levels in the legend, increasing; and both arrows.
   const levels = (await t.texts('.cg-lev')).map(s => Number(s.replace('−', '-')))
-  t.check(levels.length >= 6 && (await t.count('g.cg-contours path')) === levels.length && levels.every((v, i) => i === 0 || v > levels[i - 1]),
-    `the contour map has one path per level, and the legend lists the ${levels.length} levels in increasing order`)
-  t.check((await t.count('g.cg-grad')) === 1 && (await t.count('g.cg-u')) === 1 && (await t.count('g.cg-level path')) === 1, 'draws ∇f, u and the dashed level curve through the point')
+  t.check(levels.length >= 6 && (await t.count('g.cg-contours path')) === levels.length && levels.every((v, i) => i === 0 || v > levels[i - 1]) &&
+    (await t.count('g.cg-grad')) === 1 && (await t.count('g.cg-u')) === 1 && (await t.count('g.cg-level path')) === 1,
+    `draws ∇f, u, the purple level curve and one contour path for each of the ${levels.length} increasing legend levels`)
 
   // Turning u: the direction of ∇f = ⟨2, 1⟩ is 26.57°, so 27° is along it, 207° against it, 117° along the level curve.
   await t.set('input[type=range] >> nth=2', 27)
   r = await readout(t)
-  t.check(r.includes('along ∇f') && after(r, 'Dᵤf = ∇f · u ≈') === 2.236, 'u at 27°: along ∇f, Dᵤf ≈ 2.236 = ‖∇f‖ (the largest)')
+  t.check(r.includes('nearly along ∇f') && r.includes('close to its largest value') && after(r, 'Dᵤf = ∇f · u ≈') === 2.236,
+    'u at 27°: nearly along ∇f, Dᵤf ≈ 2.236, close to its largest value')
   await t.set('input[type=range] >> nth=2', 207)
   r = await readout(t)
-  t.check(r.includes('against ∇f') && after(r, 'Dᵤf = ∇f · u ≈') === -2.236, 'u at 207°: against ∇f, Dᵤf ≈ −2.236 (the smallest)')
+  t.check(r.includes('nearly against ∇f') && r.includes('close to its smallest value') && after(r, 'Dᵤf = ∇f · u ≈') === -2.236,
+    'u at 207°: nearly against ∇f, Dᵤf ≈ −2.236, close to its smallest value')
   await t.set('input[type=range] >> nth=2', 117)
   r = await readout(t)
   t.check(r.includes('along the level curve') && Math.abs(after(r, 'Dᵤf = ∇f · u ≈')) < 0.02, 'u at 117°: along the level curve, Dᵤf ≈ 0')
@@ -64,6 +66,28 @@ export async function run(t) {
   r = await readout(t)
   t.check((await live(t, 'select'))[0] === 'own' && r.includes('f(x, y) = 2') && r.includes('∇f ≈ ⟨1, 2⟩') && after(r, 'Dᵤf = ∇f · u ≈') === 2.199,
     "a typed x e^y at (2, 0): the menu shows 'your own', ∇f ≈ ⟨1, 2⟩, and Dᵤf ≈ 2.199 at 53°")
+
+  // A small component is not numerical noise merely because the other partial derivative is large.
+  await t.type('input.cw-input', '100000000*x+y')
+  await t.wait(400)
+  await t.set('input[type=range] >> nth=0', 0)
+  await t.set('input[type=range] >> nth=2', 90)
+  r = await readout(t)
+  t.check(after(r, 'Dᵤf = ∇f · u ≈') === 1 && r.includes('small compared with ‖∇f‖'),
+    '100000000x + y at the origin retains f_y = 1: Dᵤf = 1 for u = ⟨0, 1⟩')
+
+  // Rescaling a plane must not make its contour map disappear.
+  await t.type('input.cw-input', '0.0000000001*x')
+  await t.wait(400)
+  t.check((await t.count('g.cg-contours path')) >= 6 && (await t.count('.cg-lev')) === (await t.count('g.cg-contours path')),
+    'a small nonconstant function, 10⁻¹⁰x, still has a contour map and its level legend')
+
+  // Central differences cancel at the corner of |x|, although f_x does not exist there.
+  await t.type('input.cw-input', 'abs(x)')
+  await t.wait(400)
+  r = await readout(t)
+  t.check(r.includes('∇f ≈ ⟨0, 0⟩') && r.includes('do not establish differentiability') && r.includes('does not establish a critical point') && !r.includes('level to first order'),
+    'a zero central difference at the corner of |x| does not establish differentiability or a critical point')
 
   // A formula that does not parse: a message, no contours, no error.
   await t.type('input.cw-input', 'x^^2')
