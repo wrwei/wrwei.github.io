@@ -383,7 +383,7 @@ function figureSize(id, figDirs) {
     if (!fs.existsSync(p)) continue
     const head = fs.readFileSync(p, 'utf8').slice(0, 2000)
     const w = head.match(/<svg[^>]*\swidth="([\d.]+)(px)?"/), h = head.match(/<svg[^>]*\sheight="([\d.]+)(px)?"/)
-    return { file: p, w: w ? Math.round(Number(w[1])) : null, h: h ? Math.round(Number(h[1])) : null }
+    return { lang: path.basename(d), w: w ? Math.round(Number(w[1])) : null, h: h ? Math.round(Number(h[1])) : null }
   }
   return null
 }
@@ -456,7 +456,7 @@ function openContainer(md, kind, a, L, env, figDirs, toks, i, entry) {
       else {
         const s = figureSize(a.id, figDirs)
         if (!s) { env.missingFigures.push(a.id); body = `<div class="fig-missing">[figure ${escapeHtml(a.id)} not drawn yet]</div>` }
-        else body = `<div class="fig-img"><img src="figures/${escapeHtml(a.id)}.svg" alt="${escapeHtml(alt)}"${s.w ? ` width="${s.w}" height="${s.h}"` : ''} loading="lazy"></div>`
+        else body = `<div class="fig-img"><img src="figures/${s.lang === 'zh' ? 'zh/' : ''}${escapeHtml(a.id)}.svg" alt="${escapeHtml(alt)}"${s.w ? ` width="${s.w}" height="${s.h}"` : ''} loading="lazy"></div>`
       }
       return `<figure class="fig"${a.id ? ` id="${escapeHtml(a.id)}"` : ''}>${body}<figcaption><span class="fig-num">${L.figure} ${no(num)}</span> `
     }

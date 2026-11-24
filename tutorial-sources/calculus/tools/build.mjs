@@ -266,8 +266,14 @@ function copyAssets() {
   const fd = path.join(OUT, 'figures')
   fs.rmSync(fd, { recursive: true, force: true })
   fs.mkdirSync(fd, { recursive: true })
-  const figSrc = path.join(ROOT, 'src', 'figures', 'en')
-  if (fs.existsSync(figSrc)) for (const f of fs.readdirSync(figSrc).filter(f => f.endsWith('.svg') && !(PUBLISH && f.startsWith('fig-99-')))) fs.copyFileSync(path.join(figSrc, f), path.join(fd, f))
+  for (const lang of LANGS.includes('zh') ? ['en', 'zh'] : ['en']) {
+    const source = path.join(ROOT, 'src', 'figures', lang)
+    if (!fs.existsSync(source)) continue
+    const destination = lang === 'en' ? fd : path.join(fd, lang)
+    fs.mkdirSync(destination, { recursive: true })
+    for (const f of fs.readdirSync(source).filter(f => f.endsWith('.svg') && !(PUBLISH && f.startsWith('fig-99-'))))
+      fs.copyFileSync(path.join(source, f), path.join(destination, f))
+  }
   const zip = path.join(ROOT, 'out', ZIP)
   if (fs.existsSync(zip)) fs.copyFileSync(zip, path.join(OUT, ZIP))
   else if (PUBLISH) problems.push(`${ZIP} is missing: run python3 -I tools/calc.py (a full run) first`)
@@ -276,6 +282,11 @@ function copyAssets() {
 
 // ---------- CLI ----------
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (BILINGUAL) {
+    const en = fs.readdirSync(path.join(ROOT, 'src', 'en')).filter(f => f.endsWith('.md') && !f.startsWith('zz_'))
+    const missing = en.filter(f => !fs.existsSync(path.join(ROOT, 'src', 'zh', f)))
+    if (missing.length) throw new Error(`Missing Chinese pages: ${missing.join(', ')}`)
+  }
   fs.mkdirSync(OUT, { recursive: true })
   copyAssets()
   for (const lang of LANGS) {

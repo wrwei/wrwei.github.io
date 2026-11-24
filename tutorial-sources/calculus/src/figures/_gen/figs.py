@@ -3,11 +3,13 @@
     $CALC_PYTHON -I src/figures/_gen/figs.py                 every figure
     $CALC_PYTHON -I src/figures/_gen/figs.py 05              the figures of Module 5 (figs_05.py)
     $CALC_PYTHON -I src/figures/_gen/figs.py fig-05-2 --png  one figure, and a PNG preview to look at
+    $CALC_PYTHON -I src/figures/_gen/figs.py --lang zh       draw figures with Chinese labels
 
-Each figs_NN.py defines FIGURES = {'fig-NN-k': function}; a function takes the language ('en') and
+Each figs_NN.py defines FIGURES = {'fig-NN-k': function}; a function takes the language and
 returns a matplotlib figure drawn with the helpers of figstyle.py. Its docstring's first line is the
 figure's accessible title. The SVG is cleaned (no metadata, coordinates rounded, size in px).
 """
+import argparse
 import glob
 import importlib
 import os
@@ -22,6 +24,8 @@ OUT_PNG = os.path.join(ROOT, 'out', 'figs')
 
 import figstyle  # noqa: E402,F401  (sets the house style before any figure module is imported)
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib import font_manager  # noqa: E402
+from matplotlib.text import Text  # noqa: E402
 
 
 def clean(svg, title):
@@ -67,30 +71,67 @@ def targets(args):
     return sorted(want_mods), want_ids or None
 
 
+def chinese_labels():
+    # SVGs embed glyph outlines, so readers can see the Chinese labels without installing a font.
+    names = {font.name for font in font_manager.fontManager.ttflist}
+    for family in ('Noto Sans CJK SC', 'Hiragino Sans GB', 'Heiti SC', 'Microsoft YaHei', 'Arial Unicode MS'):
+        if family in names:
+            with open(os.path.join(HERE, 'labels_zh.tsv'), encoding='utf-8') as source:
+                labels = dict(line.rstrip('\n').split('\t', 1) for line in source if line.strip())
+            return labels, family
+    sys.exit('To draw Chinese figures, install a supported font such as Noto Sans CJK SC.')
+
+
+def translate_labels(figure, labels, font):
+    changed = False
+    for text in figure.findobj(Text):
+        original = text.get_text()
+        translated = '\n'.join(labels.get(line, line) for line in original.split('\n'))
+        if translated != original:
+            text.set_text(translated)
+            text.set_fontfamily([font, *text.get_fontfamily()])
+            changed = True
+    return changed
+
+
 def main():
-    argv = [a for a in sys.argv[1:] if a != '--png']
-    png = '--png' in sys.argv
-    mods, ids = targets(argv)
-    os.makedirs(OUT_SVG, exist_ok=True)
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument('targets', nargs='*')
+    parser.add_argument('--png', action='store_true')
+    parser.add_argument('--lang', choices=('en', 'zh'), default='en')
+    args = parser.parse_args()
+    mods, ids = targets(args.targets)
+    svg_dir = OUT_SVG if args.lang == 'en' else os.path.join(ROOT, 'src', 'figures', 'zh')
+    png_dir = OUT_PNG if args.lang == 'en' else os.path.join(OUT_PNG, 'zh')
+    os.makedirs(svg_dir, exist_ok=True)
+    if args.lang == 'zh':
+        labels, font = chinese_labels()
     count = 0
     for m in mods:
         mod = importlib.import_module(f'figs_{m}')
         for fid, fn in mod.FIGURES.items():
             if ids and fid not in ids:
                 continue
-            fig = fn('en')
+            fig = fn(args.lang)
             title = (fn.__doc__ or fid).strip().split('\n')[0]
-            path = os.path.join(OUT_SVG, f'{fid}.svg')
+            if args.lang == 'zh':
+                if not translate_labels(fig, labels, font):
+                    plt.close(fig)
+                    continue
+                _, mod_no, figure_no = fid.split('-')
+                title = f'微积分图 {int(mod_no)}.{figure_no}'
+            path = os.path.join(svg_dir, f'{fid}.svg')
             fig.savefig(path, format='svg', bbox_inches='tight', pad_inches=0.06, metadata={'Date': None})
             with open(path, encoding='utf-8') as f:
                 svg = clean(f.read(), title)
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(svg)
-            msg = f'wrote src/figures/en/{fid}.svg ({len(svg) // 1024} KB)'
-            if png:
-                os.makedirs(OUT_PNG, exist_ok=True)
-                fig.savefig(os.path.join(OUT_PNG, f'{fid}.png'), format='png', dpi=200, bbox_inches='tight', pad_inches=0.06)
-                msg += f' and out/figs/{fid}.png'
+            msg = f'wrote {os.path.relpath(path, ROOT)} ({len(svg) // 1024} KB)'
+            if args.png:
+                os.makedirs(png_dir, exist_ok=True)
+                preview = os.path.join(png_dir, f'{fid}.png')
+                fig.savefig(preview, format='png', dpi=200, bbox_inches='tight', pad_inches=0.06)
+                msg += f' and {os.path.relpath(preview, ROOT)}'
             plt.close(fig)
             print(msg)
             count += 1

@@ -4,6 +4,7 @@
     python3 -I tools/calc.py                   every page; also writes out/code/ and out/calculus-code.zip
     python3 -I tools/calc.py --module 05       one module page (src/en/module_05.md)
     python3 -I tools/calc.py --page formulas   one other page (src/en/formulas.md)
+    python3 -I tools/calc.py --lang zh         check src/zh; write downloads and run files under out/zh
     python3 -I tools/calc.py --update          write the real outputs and computed tables into the pages
 
 What it does (PLAN.md section 7):
@@ -308,7 +309,18 @@ def module_title(page):
 
 
 def main():
+    global SRC, OUT
     argv = sys.argv[1:]
+    if '--lang' in argv:
+        values = argv[argv.index('--lang') + 1:]
+        if not values or values[0] not in ('en', 'zh'):
+            sys.exit('use --lang en or --lang zh')
+        lang = values[0]
+        SRC = os.path.join(ROOT, 'src', lang)
+        if not os.path.isdir(SRC):
+            sys.exit(f'no source directory: {os.path.relpath(SRC, ROOT)}')
+        if lang == 'zh':
+            OUT = os.path.join(ROOT, 'out', 'zh')
     update = '--update' in argv
     only = None
     if '--module' in argv:
@@ -319,7 +331,7 @@ def main():
     if only:
         missing = [n for n in only if n not in names]
         if missing:
-            sys.exit(f'no such page: src/en/{missing[0]}.md')
+            sys.exit(f'no such page: {os.path.relpath(SRC, ROOT)}/{missing[0]}.md')
         names = only
     pages = [Page(n) for n in names]
     todo = []
@@ -412,7 +424,7 @@ def export_code(pages):
         z.writestr('calculus-code/README.txt', readme)
         for name in sorted(written):
             z.write(os.path.join(code_dir, name), f'calculus-code/{name}')
-    print(f'wrote out/{ZIP} ({len(written)} scripts)')
+    print(f'wrote {os.path.relpath(os.path.join(OUT, ZIP), ROOT)} ({len(written)} scripts)')
     return problems
 
 

@@ -113,6 +113,12 @@ function dollarCheck(lang, f, src) {
 
 const pages = fs.readdirSync(path.join(ROOT, 'src', 'en')).filter(f => f.endsWith('.md') && !f.startsWith('zz_')).sort()
 const names = new Set(pages.map(f => f.replace(/\.md$/, '')))
+const chinese = path.join(ROOT, 'src', 'zh')
+if (only !== 'en' && fs.existsSync(chinese) && fs.readdirSync(chinese).some(f => f.endsWith('.md') && !f.startsWith('zz_'))) {
+  for (const f of pages) {
+    if (!fs.existsSync(path.join(chinese, f))) err(`zh/${f}`, 'missing Chinese page')
+  }
+}
 const skels = {}
 for (const f of pages) skels[f] = skeleton(read('en', f))
 

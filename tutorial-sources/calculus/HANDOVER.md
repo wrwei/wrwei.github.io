@@ -3,6 +3,33 @@
 The sources of the series published at `docs/tutorials/calculus/`. Everything on the published pages is
 generated from this folder; never edit the published HTML by hand.
 
+## Maintaining the Chinese edition
+
+Edit the Chinese prose in `src/zh/`. Keep section, figure and exercise IDs, quiz answer positions,
+Python, outputs and mathematical notation aligned with `src/en/`. The glossary keeps English terms
+alongside Chinese terms so the A–Z links work in both editions. The Chinese pages have their own
+figure labels, captions and interactive controls. Both editions share the Python download.
+
+From this directory, with the Python and Node dependencies installed, run the following checks.
+
+```sh
+python3 -I tools/calc.py
+python3 -I tools/calc.py --lang zh
+node tools/check.mjs
+node tools/build.mjs
+node tools/widget-test.mjs --lang en
+node tools/widget-parity.mjs
+```
+
+The English calculation run writes the shared ZIP. The Chinese run writes its check outputs under
+`out/zh/`. The site build emits both editions. Open `out/site/index_ZH.html` to preview the Chinese
+index. To generate both editions into the site checkout, run
+`node tools/build.mjs --out ../../docs/tutorials/calculus`.
+
+If figure wording changes, update `src/figures/_gen/labels_zh.tsv` and regenerate the Chinese SVGs
+with `python3 -I src/figures/_gen/figs.py --lang zh`. Regeneration uses a Chinese font such as
+Noto Sans CJK SC. The SVG embeds its glyph outlines.
+
 ## English release
 
 The release includes 20 modules, the formula sheet, the glossary, Common mistakes and the code ZIP.

@@ -15,20 +15,31 @@ A complete 32-module series covering mathematical reasoning, discrete mathematic
 ## Calculus
 
 A 20-module course from functions, limits and derivatives to integrals, series and vector calculus.
-Work through examples, exercises with solutions, self-check quizzes and interactive diagrams. A
-formula sheet, glossary, guide to common mistakes and downloadable Python examples accompany the modules.
+The English and Chinese editions include worked examples, exercises with solutions, self-check
+quizzes, interactive diagrams, a formula sheet, a glossary and a guide to common mistakes.
+Download the Python examples to run the calculations yourself.
 
-[:octicons-arrow-right-24: Go to Calculus Tutorials](calculus/index.html)
+[:octicons-arrow-right-24: Calculus in English](calculus/index.html) · [微积分（中文）](calculus/index_ZH.html)
 
 ---
 
 ## Linear Algebra
 
 A 12-module course in vectors, linear systems, orthogonality, least squares, eigenvalues, singular
-values and PCA. Includes worked solutions, self-check quizzes, interactive demonstrations and
-downloadable Python examples.
+values and PCA. The English and Chinese editions include worked solutions, self-check quizzes,
+interactive demonstrations and downloadable Python examples.
 
-[:octicons-arrow-right-24: Go to Linear Algebra Tutorials](linear-algebra/index.html)
+[:octicons-arrow-right-24: Linear Algebra in English](linear-algebra/index.html) · [线性代数（中文）](linear-algebra/index_ZH.html)
+
+---
+
+## Maths for AI and LLMs
+
+Eight modules in English and Chinese on probability and statistics, information theory, optimisation
+and numerical computing. Work through token probabilities, perplexity, gradient updates, stable
+softmax and quantisation with worked exercises and runnable Python examples.
+
+[:octicons-arrow-right-24: Maths for AI and LLMs in English](ai-maths/index.html) · [AI 与大语言模型的数学基础（中文）](ai-maths/index_ZH.html)
 
 ---
 
