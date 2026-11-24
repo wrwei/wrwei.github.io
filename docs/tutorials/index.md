@@ -22,6 +22,16 @@ formula sheet, glossary, guide to common mistakes and downloadable Python exampl
 
 ---
 
+## Linear Algebra
+
+A 12-module course in vectors, linear systems, orthogonality, least squares, eigenvalues, singular
+values and PCA. Includes worked solutions, self-check quizzes, interactive demonstrations and
+downloadable Python examples.
+
+[:octicons-arrow-right-24: Go to Linear Algebra Tutorials](linear-algebra/index.html)
+
+---
+
 ## Computer Science Fundamentals
 
 A complete 14-module beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with 29 runnable Python labs, 112 exercises with worked solutions, self-check quizzes, and a persistent local catalogue capstone.
