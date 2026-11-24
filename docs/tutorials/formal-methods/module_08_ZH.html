@@ -1,0 +1,1388 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 8：HOL 中的函数式编程 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="把 Isabelle/HOL 用作带类型的函数式编程语言。定义数据类型和函数并用它们求值，读懂 Isabelle 输出的类型和消息，证明递归定义的终止性，再把可执行的定义导出为 Haskell 代码。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="8" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 8</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 8 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html" class="active"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_08_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#hol"><span class="num">1</span><span class="side-t">逻辑中的程序</span></a><a href="#functions"><span class="num">2</span><span class="side-t">函数也是值</span></a><a href="#datatypes"><span class="num">3</span><span class="side-t">数据类型</span></a><a href="#definitions"><span class="num">4</span><span class="side-t">定义函数的三种方式</span></a><a href="#lists"><span class="num">5</span><span class="side-t">实践中的列表</span></a><a href="#numbers"><span class="num">6</span><span class="side-t">数字与类型类</span></a><a href="#termination"><span class="num">7</span><span class="side-t">为什么 fun 需要终止性</span></a><a href="#codegen"><span class="num">8</span><span class="side-t">从 HOL 到可运行代码</span></a><a href="#summary"><span class="num">9</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第三部分 · Isabelle/HOL 实践</div>
+      <h1 class="module-title"><span class="title-n">模块 8</span>HOL 中的函数式编程</h1>
+      <p class="module-lead">把 Isabelle/HOL 用作带类型的函数式编程语言。定义数据类型和函数并用它们求值，读懂 Isabelle 输出的类型和消息，证明递归定义的终止性，再把可执行的定义导出为 Haskell 代码。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 210 分钟</span><span class="chip chip-needs">开始之前：模块 1–7</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>读写 HOL 的类型和项，并用 <code>typ</code>、<code>term</code> 和 <code>value</code> 查看它们</li><li>使用 λ 抽象、柯里化和部分应用</li><li>定义数据类型，并用 <code>definition</code>、<code>fun</code> 和 <code>primrec</code> 定义其上的函数</li><li>用列表和数进行计算，并用类型类解释重载的记号</li><li>解释为什么<code>fun</code>需要终止性，阅读Isabelle的终止性消息，并在Isabelle无法找到时提供一个度量</li><li>用 <code>export_code</code> 从你的定义生成 Haskell 代码</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="hol"></span>
+<div class="section-header"><span class="section-num">1</span><h2>逻辑中的程序</h2></div>
+<p>在第二部分中，你使用 Isabelle 检查关于公式的证明。第三部分转向 Isabelle/HOL 的另一半：其可执行定义构成一种编程语言。HOL 包含一种类型化的 <strong>函数式编程语言</strong>，与 Haskell、OCaml 和 Standard ML（Isabelle 核心部分的编程语言）相近。你将程序写为等式，Isabelle 运行它们，并且由于程序是逻辑的一部分，你可以证明关于它们的性质。模块 9 至 11 涉及证明；本模块涉及编程。</p>
+<p>HOL 中的程序与 Python、Java 或 C 中的程序有三点不同。</p>
+<ul>
+<li><strong>无副作用。</strong> HOL 函数不修改变量、打印或读取文件。其参数
+确定其数学值。状态变化可以通过显式传递输入和输出状态来建模。</li>
+<li><strong>重复的递归。</strong> 此处函数使用递归，如 Module 5 所示。循环也可
+在 HOL 中建模；它们在这些函数定义中不是原始构造。</li>
+<li><strong>每个函数都是全函数。</strong>它表示其类型中每个参数对应的值。这并不意味着
+即每个 HOL 函数都具有可执行代码，或每次求值均成功。第 8.7 节解释了为何 <code>fun</code> 接受的递归方程需要终止性证明。</li>
+</ul>
+<p>本模块一步一步地构建一个例子：一个英国交通灯的控制器。这种交通灯先亮红灯，接着红灯和黄灯一起亮，然后亮绿灯，再亮黄灯，最后又回到红灯。你将把它的状态描述为一个数据类型（datatype），用列表和数计算它的状态序列以及各个状态持续的时间，检查一个路口的安全规则，最后为它生成 Haskell 代码。一路上，你会遇到初学者常犯的错误，并看到 Isabelle 给出的真实消息。</p>
+<p>像模块 1 中那样，为本模块新建一个理论（例如在文件 <code>Traffic.thy</code> 中写 <code>theory Traffic</code>），一边阅读，一边把各个代码块输入进去。</p>
+<h3 id="types">类型</h3>
+<p>HOL 中的每个项都有一个<strong>类型</strong>（type），Isabelle 在做任何其他事情之前都会先检查类型。类型能排除把数加到列表上之类的无意义的东西：无法赋予类型的项会立即被拒绝。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>它的值</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bool</code></td>
+<td>真值</td>
+<td><code>True</code>、<code>False</code></td>
+</tr>
+<tr>
+<td><code>nat</code></td>
+<td>自然数 0、1、2……</td>
+<td><code>0</code>、<code>Suc 0</code>、<code>42</code></td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td>整数……、−1、0、1……</td>
+<td><code>-3</code>、<code>7</code></td>
+</tr>
+<tr>
+<td><code>'a list</code></td>
+<td>元素类型为 <code>'a</code> 的有限列表</td>
+<td><code>[]</code>、<code>[1, 2, 3]</code></td>
+</tr>
+<tr>
+<td><code>'a × 'b</code></td>
+<td>由一个 <code>'a</code> 和一个 <code>'b</code> 组成的有序对</td>
+<td><code>(3, True)</code></td>
+</tr>
+<tr>
+<td><code>'a option</code></td>
+<td>没有值，或者一个类型为 <code>'a</code> 的值</td>
+<td><code>None</code>、<code>Some 5</code></td>
+</tr>
+<tr>
+<td><code>'a ⇒ 'b</code></td>
+<td>从 <code>'a</code> 到 <code>'b</code> 的函数</td>
+<td><code>Suc</code>、<code>rev</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="box box-definition"><div class="box-label">定义 8.1<span class="box-title">HOL 中的类型</span></div>
+<p>像 <code>bool</code>、<code>nat</code> 或 <code>int</code> 这样的<strong>基本类型</strong>（base type）就是一个名字。像 <code>list</code> 或 <code>option</code> 这样的<strong>类型构造子</strong>（type constructor）由其他类型构造出新的类型，它写在参数的<strong>后面</strong>：<code>nat list</code> 是自然数列表的类型，<code>nat list list</code> 是由这种列表组成的列表的类型。<code>'a × 'b</code> 是有序对的类型，<code>'a ⇒ 'b</code> 是函数的类型。<strong>类型变元</strong>（type variable）<code>'a</code>、<code>'b</code>……代表任意类型；如果一个函数的类型中含有类型变元，例如 <code>rev :: 'a list ⇒ 'a list</code>，那么它对这个类型的每个实例都适用，这样的函数称为<strong>多态的</strong>（polymorphic）。</p>
+</div>
+<p><code>t :: τ</code> 读作“t 的类型是 τ”。函数箭头 ⇒ 用 <code>=&gt;</code> 输入，乘积符号 × 用 <code>&lt;*&gt;</code> 输入（也可以直接写 <code>*</code> 来代替 ×）。箭头的优先级比任何类型构造子都低，所以 <code>nat ⇒ bool list</code> 的意思是 <code>nat ⇒ (bool list)</code>。</p>
+<p>命令 <code>typ</code> 检查一个类型是否合法，并把它打印出来：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="typ &quot;nat × bool&quot;
+typ &quot;nat ⇒ bool list&quot;
+typ &quot;(nat ⇒ bool) list&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">typ</span> <span class="isa-inner">&quot;nat × bool&quot;</span>
+<span class="isa-cmd">typ</span> <span class="isa-inner">&quot;nat ⇒ bool list&quot;</span>
+<span class="isa-cmd">typ</span> <span class="isa-inner">&quot;(nat ⇒ bool) list&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;nat × bool&quot;
+
+&quot;nat ⇒ bool list&quot;
+
+&quot;(nat ⇒ bool) list&quot;</code></pre></div>
+<p>Isabelle 打印类型时会尽量少用括号。第二个类型不需要括号，因为 ⇒ 的优先级最低；第三个类型需要括号，因为它是由函数组成的列表，而不是一个返回列表的函数。</p>
+<h3 id="terms">项与类型推断</h3>
+<p><strong>项</strong>是 HOL 的表达式，可以是 <code>True</code>、<code>0</code> 或 <code>rev</code> 这样的常量，<code>x</code> 这样的变量，<code>rev xs</code> 这样的函数应用，或本模块介绍的其他形式。命令 <code>term</code> 读入项、推断其类型，并打印项及其类型，但不将它作为程序来执行：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Suc 0&quot;
+term &quot;[Suc 0, 5]&quot;
+term &quot;(Suc 0, [True])&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Suc 0&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;[Suc 0, 5]&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;(Suc 0, [True])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Suc 0&quot;
+  :: &quot;nat&quot;
+
+&quot;[Suc 0, 5]&quot;
+  :: &quot;nat list&quot;
+
+&quot;(Suc 0, [True])&quot;
+  :: &quot;nat × bool list&quot;</code></pre></div>
+<p>你从来没有说过 <code>5</code> 是自然数，这是 Isabelle 自己推算出来的：一个列表的所有元素都具有同一个类型，<code>Suc 0</code> 是一个 <code>nat</code>，所以 <code>5</code> 也必须是 <code>nat</code>。在最后一个项中，有序对的左边是一个 <code>nat</code>，右边是一个 <code>bool list</code>，所以它的类型是 <code>nat × bool list</code>。</p>
+<div class="box box-definition"><div class="box-label">定义 8.2<span class="box-title">类型推断与类型标注</span></div>
+<p><strong>类型推断</strong>根据常量与变量的类型以及应用与绑定施加的约束，计算项中每个部分的类型。当常量使类型保持开放时，结果包含类型变元。<strong>类型注解</strong> <code>t :: τ</code>（或在较大项内的 <code>(t::τ)</code>）告知 Isabelle <code>t</code> 具有类型 τ。</p>
+</div>
+<p>在下面这个项中，常量没有确定类型：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;x + 1&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;x + 1&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;x + 1&quot;
+  :: &quot;'a&quot;</code></pre></div>
+<p>变量 <code>x</code> 和数 <code>1</code> 可以是自然数、整数或实数：它们都有 <code>+</code> 和 <code>1</code>。Isabelle 的回答是类型变元 <code>'a</code>，意思是“某个类型”。加一个标注就能确定下来：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;x + (1::nat)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;x + (1::nat)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;x + 1&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>由于 <code>+</code> 的两个参数类型相同，现在 <code>x</code> 也是 <code>nat</code> 了。第 8.6 节会解释 Isabelle 对 <code>x + 1</code> 中的 <code>'a</code> 知道些什么。</p>
+<p><code>x</code> 是一个 <strong>自由变元</strong>：它既不是已声明的常量，也不是由量词或 λ 绑定的。Isabelle/jEdit 将自由变元显示为蓝色，而如 <code>Suc</code> 这样的常量显示为黑色。</p>
+<h3 id="value">用 value 计算</h3>
+<p>和模块 1 中一样，<code>value</code> 对一个项求值，并打印结果及其类型。它也能处理自由变元，把它们当作未知的值：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;rev [a, b, c]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;rev [a, b, c]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[c, b, a]&quot;
+  :: &quot;'a list&quot;</code></pre></div>
+<p>Isabelle 把一个它一无所知的三元素列表反转了过来。要用符号输入测试一个函数，这很有用。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>拼错的名字也是自由变元。Isabelle 中没有名为 <code>lenght</code> 的常量，所以它在这里把 <code>lenght</code> 当作一个未知的函数，把项原封不动地交还给你，类型也是未知的：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;lenght [1, 2::nat]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;lenght [1, 2::nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;lenght [1, 2]&quot;
+  :: &quot;'a&quot;</code></pre></div>
+<p>这里没有任何错误消息。如果 <code>value</code> 把你的项原样返回，而类型是 <code>'a</code> 这样的类型变元，就找一找有没有拼错的名字：Isabelle/jEdit 会像显示其他变量一样，用蓝色显示它。</p>
+</div>
+<h3 id="type-errors">类型对不上时</h3>
+<p>无法确定类型的项会被拒绝，并附带一条消息。<code>Suc</code> 接受一个自然数，而 <code>True</code> 不是自然数：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;Suc True&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Clash of types &quot;bool&quot; and &quot;nat&quot;
+
+Type error in application: incompatible operand type
+
+Operator:  Suc :: nat ⇒ nat
+Operand:   True :: bool
+</span></code></pre></div>
+<p>从上往下读这条消息：</p>
+<ul>
+<li><strong>Type unification failed</strong>（类型合一失败）。要确定 <code>f a</code>（把 <code>f</code> 应用于 <code>a</code>）的类型，Isabelle 必须使 <code>f</code> 的参数类型与 <code>a</code> 的类型相等。寻找使两个类型相等的类型，称为<strong>类型合一</strong>（type unification）：它和模块 7 中公式的合一（unification）是同一个思想，只是用在了类型上。在这里，类型合一失败了。</li>
+<li><strong>Clash of types “bool” and “nat”</strong>（类型“bool”和“nat”冲突）指出了无法变得相等的两个类型。</li>
+<li><strong>Operator</strong>（运算符）是函数 <code>Suc :: nat ⇒ nat</code>；<strong>Operand</strong>（操作数）是参数 <code>True :: bool</code>。</li>
+</ul>
+<p>给函数太多的参数，会得到另一条消息。<code>rev</code> 只接受一个列表：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;rev [1, 2::nat] [3]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Clash of types &quot;_ ⇒ _&quot; and &quot;_ list&quot;
+
+Type error in application: operator not of function type
+
+Operator:  rev [1, 2] :: nat list
+Operand:   [3::??'a] :: ??'a list
+</span></code></pre></div>
+<p>Isabelle 把 <code>rev [1, 2] [3]</code> 读作把列表 <code>rev [1, 2]</code> 应用于 <code>[3]</code>。列表不是函数，所以<strong>运算符</strong> <code>rev [1, 2]</code> 是“not of function type”（不是函数类型）。在冲突的两个类型中，<code>_ ⇒ _</code> 代表“某个函数类型”，<code>_ list</code> 代表“某个列表类型”。<code>[3]</code> 的类型 <code>??'a</code> 是 Isabelle 在处理这个项时临时引入的一个类型变元，它始终不需要被确定下来。</p>
+<span class="section-anchor" id="functions"></span>
+<div class="section-header"><span class="section-num">2</span><h2>函数也是值</h2></div>
+<p>在 HOL 中，函数和数、列表一样是值。你可以把函数传给另一个函数，把它作为结果返回，也可以把它放在列表里。本节说明怎样写出不需要名字的函数，以及多参数函数是怎样工作的。</p>
+<h3 id="lambda">λ 抽象</h3>
+<p>要写一个函数而不给它起名字，就使用 <strong>λ 抽象</strong>（λ-abstraction）：<code>λx. x + 1</code> 是把 <code>x</code> 映射为 <code>x + 1</code> 的函数，读作“lambda x，x 加 1”。λ 用 <code>%</code> 或 <code>\lambda</code> 输入。</p>
+<div class="box box-definition"><div class="box-label">定义 8.3<span class="box-title">λ 抽象与函数应用</span></div>
+<p>若<code>t</code>是类型为τ₂的项，其中可能包含类型为τ₁的变量<code>x</code>，则<code>λx. t</code>是类型为τ₁ ⇒ τ₂的函数，它将每个值<code>x</code>映射为<code>t</code>。函数<code>f</code>对参数<code>a</code>的<strong>Application</strong>记作<code>f a</code>，无需括号或逗号。将<code>λx. t</code>应用于<code>a</code>会将<code>t</code>中<code>x</code>的自由出现替换为<code>a</code>，并在必要时重命名绑定变量以避免捕获<code>a</code>中的变量（Module 3）。此步骤称为<strong>β-reduction</strong>。</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;λx::nat. x + 1&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;λx::nat. x + 1&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;λx. x + 1&quot;
+  :: &quot;nat ⇒ nat&quot;</code></pre></div>
+<p>λ 后面的标注 <code>x::nat</code> 确定了约束变元（bound variable）的类型，所以这个函数的类型是 <code>nat ⇒ nat</code>。现在把一个函数应用于一个参数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(λx::nat. x * x) 7&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(λx::nat. x * x) 7&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;49&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p><code>term</code> 和 <code>value</code> 的区别在这里也看得出来。<code>term</code> 显示的是做完 β 归约这一步之后的项，但它不做算术运算：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;(λx::nat. x * x) 7&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;(λx::nat. x * x) 7&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;7 * 7&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<h3 id="currying">多参数函数</h3>
+<p>HOL 中的每个函数都恰好接受一个参数。一个以两个数为参数的函数，先接受第一个数，然后返回一个等待第二个数的函数。它的类型是 <code>nat ⇒ nat ⇒ nat</code>，意思是 <code>nat ⇒ (nat ⇒ nat)</code>，因为 ⇒ 向右结合。函数应用则向左结合：<code>f x y</code> 的意思是 <code>(f x) y</code>。图 8.1 展示了这两个步骤。</p>
+<figure class="fig" id="fig-08-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>柯里化函数的类型</title><defs><marker id="fig-08-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="24" width="180" height="140" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="110" y="60" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#2563EB" text-anchor="middle">(+)</text><text x="110" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">:: nat ⇒ (nat ⇒ nat)</text><text x="110" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">一个有两个数参数的函数</text><text x="110" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">先接受第一个数……</text><rect x="290" y="24" width="180" height="140" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="380" y="60" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#6D28D9" text-anchor="middle">(+) 3</text><text x="380" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">:: nat ⇒ nat</text><text x="380" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">……返回一个函数</text><text x="380" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">它等待第二个数</text><rect x="560" y="24" width="180" height="140" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="650" y="60" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#15803D" text-anchor="middle">(+) 3 4</text><text x="650" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">:: nat</text><text x="650" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">一个数</text><text x="650" y="140" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">= 7</text><line x1="204" y1="94" x2="282" y2="94" stroke="#475569" stroke-width="2" marker-end="url(#fig-08-1__ah-475569)"/><text x="244" y="84" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">应用于 3</text><line x1="474" y1="94" x2="552" y2="94" stroke="#475569" stroke-width="2" marker-end="url(#fig-08-1__ah-475569)"/><text x="514" y="84" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">应用于 4</text><rect x="20" y="190" width="720" height="92" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="44" y="224" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">nat ⇒ nat ⇒ nat</text><text x="206" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">即</text><text x="250" y="224" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">nat ⇒ (nat ⇒ nat)</text><text x="716" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="end" font-style="italic">⇒ 向右结合</text><text x="44" y="260" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">(+) 3 4</text><text x="206" y="260" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">即</text><text x="250" y="260" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">((+) 3) 4</text><text x="716" y="260" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="end" font-style="italic">函数应用向左结合</text></svg>
+</div><figcaption><span class="fig-num">图 8.1</span> <p>有两个参数的函数一次接受一个参数。把 <code>(+)</code> 应用于 3，得到一个函数 <code>(+) 3</code>，它把自己的参数加上 3；再把这个函数应用于 4，就得到数 7。</p>
+</figcaption></figure>
+<div class="box box-definition"><div class="box-label">定义 8.4<span class="box-title">柯里化与部分应用</span></div>
+<p>把一个多参数函数写成这样的形式：它接受第一个参数，并返回一个接受其余参数的函数。这种写法称为<strong>柯里化</strong>（currying），得名于逻辑学家哈斯凯尔·柯里（Haskell Curry）。把这样的函数应用于比它所能接受的个数更少的参数，称为<strong>部分应用</strong>（partial application），结果是一个函数。</p>
+</div>
+<p>中缀的 <code>+</code> 是一个名为 <code>(+)</code> 的柯里化函数的记号：<code>x + y</code> 是 <code>(+) x y</code> 的简写。用 λ 写一个有两个参数的函数时，就能看到这一点：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;λx y. x + (y::nat)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;λx y. x + (y::nat)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;(+)&quot;
+  :: &quot;nat ⇒ nat ⇒ nat&quot;</code></pre></div>
+<p>Isabelle 打印的是 <code>(+)</code>，而不是你写的 λ 项。两者是同一个函数：<code>λx y. x + y</code> 接受 <code>x</code> 和 <code>y</code> 并把它们相加，这正是 <code>(+)</code> 所做的事，而 Isabelle 打印的是较短的形式。<code>(+)</code> 的部分应用是一个单参数函数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;(+) (3::nat)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;(+) (3::nat)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;(+) 3&quot;
+  :: &quot;nat ⇒ nat&quot;</code></pre></div>
+<p>以函数为参数的函数称为<strong>高阶</strong>（higher-order）函数。最常用的高阶函数是 <code>map</code>，它把一个函数应用到列表的每个元素上：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;map&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;map&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;map&quot;
+  :: &quot;('a ⇒ 'b) ⇒ 'a list ⇒ 'b list&quot;</code></pre></div>
+<p>类型说明了一切：<code>map</code> 接受一个从 <code>'a</code> 到 <code>'b</code> 的函数和一个元素类型为 <code>'a</code> 的列表，返回一个元素类型为 <code>'b</code> 的列表。把上面的部分应用交给它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map ((+) (3::nat)) [1, 2, 3]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map ((+) (3::nat)) [1, 2, 3]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[4, 5, 6]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>HOL 之所以叫做<strong>高阶</strong>逻辑（higher-order logic），也是出于同样的原因：它的变元也可以代表函数，它的量词也可以取遍函数。</p>
+<div class="callout note"><div class="callout-label">须知</div>
+<p>以两个数为参数的函数也可以写成有序对上的函数，类型为 <code>nat × nat ⇒ nat</code>。它只接受一个参数，即一个有序对。Isabelle 的库几乎总是改用柯里化的形式，因为柯里化的形式允许部分应用，例如 <code>map ((+) 3)</code>。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>函数应用向左结合，所以 <code>Suc Suc 0</code> 的意思是 <code>(Suc Suc) 0</code>：把 <code>Suc</code> 应用于函数 <code>Suc</code>。</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;Suc Suc 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Clash of types &quot;_ ⇒ _&quot; and &quot;nat&quot;
+
+Type error in application: incompatible operand type
+
+Operator:  Suc :: nat ⇒ nat
+Operand:   Suc :: nat ⇒ nat
+</span></code></pre></div>
+<p><code>Suc</code>的操作数是函数<code>Suc :: nat ⇒ nat</code>，其中需要<code>nat</code>。写出<code>Suc (Suc 0)</code>。缺失括号是类型错误的常见原因。</p>
+</div>
+<span class="section-anchor" id="datatypes"></span>
+<div class="section-header"><span class="section-num">3</span><h2>数据类型</h2></div>
+<p>现在来看交通灯。在任何时刻，它都处于四种状态之一。HOL 允许你定义一个新类型，它的值恰好就是这些状态。</p>
+<h3 id="enumerations">枚举类型</h3>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype light = Red | RedAmber | Green | Amber">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> light = Red | RedAmber | Green | Amber</code></pre></div>
+<p>这条命令引入了类型 <code>light</code>（灯）和四个<strong>构造子</strong>（constructor）<code>Red</code>、<code>RedAmber</code>、<code>Green</code> 和 <code>Amber</code>，它们就是这个类型的值：<code>Red</code> 是只亮红灯，<code>RedAmber</code> 是红灯和黄灯同时亮，<code>Green</code> 是绿灯，<code>Amber</code> 是黄灯（英国英语把交通灯的黄灯叫做 amber，即琥珀色）。按照惯例，构造子的名字以大写字母开头。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Green&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Green&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Green&quot;
+  :: &quot;light&quot;</code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 8.5<span class="box-title">数据类型</span></div>
+<p>声明 <code>datatype t = C₁ τ… | … | Cₙ τ…</code> 引入一个新类型 <code>t</code>，它的值由<strong>构造子</strong>C₁, …, Cₙ 构造。每个构造子接受的参数的类型列在它的后面（也可以没有参数）。用不同构造子构造的值互不相同；用同一个构造子构造的值，只有当它们的参数相等时才相等；并且 <code>t</code> 的每个值都是用这些构造子构造的。构造子都不带参数的数据类型称为<strong>枚举类型</strong>（enumeration）。</p>
+</div>
+<p><code>light</code> 上的函数要说明对每个构造子做什么。下面是交通灯的下一个状态 <code>next_light</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun next_light :: &quot;light ⇒ light&quot; where
+  &quot;next_light Red = RedAmber&quot;
+| &quot;next_light RedAmber = Green&quot;
+| &quot;next_light Green = Amber&quot;
+| &quot;next_light Amber = Red&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> next_light :: <span class="isa-inner">&quot;light ⇒ light&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;next_light Red = RedAmber&quot;</span>
+| <span class="isa-inner">&quot;next_light RedAmber = Green&quot;</span>
+| <span class="isa-inner">&quot;next_light Green = Amber&quot;</span>
+| <span class="isa-inner">&quot;next_light Amber = Red&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  next_light :: &quot;light ⇒ light&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<p>这就是<strong>模式匹配</strong>（pattern matching）：每个等式的左边都含有一个<strong>模式</strong>（pattern），这里是一个构造子，它说明这个等式适用于哪些参数。等式之间用 <code>|</code> 分隔。Isabelle 报告了新常量及其类型，以及一个终止序（termination order）<code>&quot;{}&quot;</code>；它是空的，因为 <code>next_light</code> 没有调用自身。第 8.7 节会解释这些报告。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;next_light (next_light Red)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;next_light (next_light Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Green&quot;
+  :: &quot;light&quot;</code></pre></div>
+<p>数据类型提供了定义8.5的构造子性质。<code>simp</code>中可用区分性与单射性；<code>cases</code>方法下方的穷尽性支持。<code>simp</code>立即证明两个构造子不同：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;Red ≠ Green&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;Red ≠ Green&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>类型 <code>light</code> 的每个值都是这四个构造子之一，所以要证明一个关于所有值的断言，可以依次检查每个构造子。证明方法（proof method）<code>cases l</code> 把一个目标（goal）拆分成若干情形，每个构造子一个：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;next_light (next_light (next_light (next_light l))) = l&quot;
+  apply (cases l)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;next_light (next_light (next_light (next_light l))) = l&quot;</span>
+  <span class="isa-proof">apply</span> (cases l)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (4 subgoals):
+ 1. l = Red ⟹ next_light (next_light (next_light (next_light l))) = l
+ 2. l = RedAmber ⟹ next_light (next_light (next_light (next_light l))) = l
+ 3. l = Green ⟹ next_light (next_light (next_light (next_light l))) = l
+ 4. l = Amber ⟹ next_light (next_light (next_light (next_light l))) = l</code></pre></div>
+<p>每个子目标（subgoal）都为 <code>l</code> 假设了一个不同的值。<code>simp</code> 利用这个假设替换 <code>l</code>，然后进行计算：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp_all
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp_all
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>simp_all</code> 将 <code>simp</code> 应用于所有子目标。在单一光源处求值方程可验证该实例；该引理覆盖全部四个实例。由于此类型有限，穷举计算亦可验证全部四个实例。</p>
+<p>最后是交通灯的时间安排。每个状态持续固定的秒数，由函数 <code>duration</code>（时长）给出：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun duration :: &quot;light ⇒ nat&quot; where
+  &quot;duration Red = 30&quot;
+| &quot;duration RedAmber = 2&quot;
+| &quot;duration Green = 25&quot;
+| &quot;duration Amber = 3&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> duration :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;duration Red = 30&quot;</span>
+| <span class="isa-inner">&quot;duration RedAmber = 2&quot;</span>
+| <span class="isa-inner">&quot;duration Green = 25&quot;</span>
+| <span class="isa-inner">&quot;duration Amber = 3&quot;</span></code></pre></div>
+<h3 id="recursive">递归数据类型</h3>
+<p>列表可以任意长，所以任何枚举类型都无法描述所有的列表。<strong>递归数据类型</strong>（recursive datatype）在自己的定义中引用自身。下面把栈（stack）定义成你自己的数据类型；栈就是每门编程课程都会讲到的那种后进先出的存储结构：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype 'a stack = Empty | Push 'a &quot;'a stack&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> 'a stack = Empty | Push 'a <span class="isa-inner">&quot;'a stack&quot;</span></code></pre></div>
+<p>这样读：元素类型为 <code>'a</code> 的栈，要么是空栈 <code>Empty</code>，要么是 <code>Push x s</code>，即把元素 <code>x</code> 压入（push）栈 <code>s</code> 的顶部所得的栈。类型变元使这个类型成为多态的：<code>nat stack</code>、<code>light stack</code>，等等。不只是单个名字的参数类型，例如 <code>'a stack</code>，要放在引号里。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Push (1::nat) (Push 2 (Push 3 Empty))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Push (1::nat) (Push 2 (Push 3 Empty))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Push 1 (Push 2 (Push 3 Empty))&quot;
+  :: &quot;nat stack&quot;</code></pre></div>
+<p>图 8.2 把这个值画成了一棵树。每个 <code>Push</code> 有两个分支，即元素和栈的其余部分，而树以 <code>Empty</code> 结束。</p>
+<figure class="fig" id="fig-08-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>把数据类型的值画成一棵树</title><defs></defs><rect x="20" y="16" width="350" height="280" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="40" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">一个栈</text><text x="40" y="64" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">Push 1 (Push 2 (Push 3 Empty))</text><rect x="390" y="16" width="350" height="280" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="410" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#15803D" text-anchor="start">一个列表</text><text x="410" y="64" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">1 # 2 # 3 # []   =   [1, 2, 3]</text><rect x="90" y="88" width="60" height="28" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="120" y="107" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Push</text><line x1="110" y1="116" x2="90" y2="139" stroke="#475569" stroke-width="1.6"/><circle cx="86" cy="150" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="86" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">1</text><line x1="130" y1="116" x2="174" y2="138" stroke="#475569" stroke-width="1.6"/><rect x="152" y="138" width="60" height="28" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="182" y="157" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Push</text><line x1="172" y1="166" x2="152" y2="189" stroke="#475569" stroke-width="1.6"/><circle cx="148" cy="200" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="148" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">2</text><line x1="192" y1="166" x2="236" y2="188" stroke="#475569" stroke-width="1.6"/><rect x="214" y="188" width="60" height="28" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="244" y="207" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Push</text><line x1="234" y1="216" x2="214" y2="239" stroke="#475569" stroke-width="1.6"/><circle cx="210" cy="250" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="210" y="255" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">3</text><line x1="254" y1="216" x2="298" y2="238" stroke="#475569" stroke-width="1.6"/><rect x="273.5" y="238" width="65" height="28" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="306" y="257" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#475569" text-anchor="middle">Empty</text><rect x="460" y="88" width="60" height="28" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="490" y="107" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">#</text><line x1="480" y1="116" x2="460" y2="139" stroke="#475569" stroke-width="1.6"/><circle cx="456" cy="150" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="456" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">1</text><line x1="500" y1="116" x2="544" y2="138" stroke="#475569" stroke-width="1.6"/><rect x="522" y="138" width="60" height="28" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="552" y="157" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">#</text><line x1="542" y1="166" x2="522" y2="189" stroke="#475569" stroke-width="1.6"/><circle cx="518" cy="200" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="518" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">2</text><line x1="562" y1="166" x2="606" y2="188" stroke="#475569" stroke-width="1.6"/><rect x="584" y="188" width="60" height="28" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="614" y="207" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">#</text><line x1="604" y1="216" x2="584" y2="239" stroke="#475569" stroke-width="1.6"/><circle cx="580" cy="250" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="580" y="255" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">3</text><line x1="624" y1="216" x2="668" y2="238" stroke="#475569" stroke-width="1.6"/><rect x="646.0" y="238" width="60" height="28" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="676" y="257" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#475569" text-anchor="middle">[]</text><text x="380" y="322" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle">形状相同：每个构造子带一个元素和其余部分，</text><text x="380" y="341" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle">直到遇到不带参数的构造子为止。</text></svg>
+</div><figcaption><span class="fig-num">图 8.2</span> <p>递归数据类型的值是一棵由构造子组成的树。左边的栈和右边的列表形状相同。</p>
+</figcaption></figure>
+<p>Isabelle 自己的列表正是这种形状的数据类型。库理论 <code>List</code> 实质上把它们定义为 <code>datatype 'a list = Nil | Cons 'a &quot;'a list&quot;</code>，并用记号 <code>[]</code> 表示 <code>Nil</code>，用中缀的 <code>x # xs</code> 表示 <code>Cons x xs</code>。列表 <code>[1, 2, 3]</code> 是 <code>1 # 2 # 3 # []</code> 的记号，其中 <code>#</code> 向右结合。到目前为止，你用过的每个列表都是用这两个构造子构造的。</p>
+<p>递归数据类型上的函数通常也是递归的：每个构造子一个等式，并在内层的栈上做递归调用。下面的 <code>height</code> 计算栈的高度，即栈中元素的个数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="primrec height :: &quot;'a stack ⇒ nat&quot; where
+  &quot;height Empty = 0&quot;
+| &quot;height (Push x s) = Suc (height s)&quot;
+
+primrec to_list :: &quot;'a stack ⇒ 'a list&quot; where
+  &quot;to_list Empty = []&quot;
+| &quot;to_list (Push x s) = x # to_list s&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">primrec</span> height :: <span class="isa-inner">&quot;'a stack ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;height Empty = 0&quot;</span>
+| <span class="isa-inner">&quot;height (Push x s) = Suc (height s)&quot;</span>
+
+<span class="isa-cmd">primrec</span> to_list :: <span class="isa-inner">&quot;'a stack ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;to_list Empty = []&quot;</span>
+| <span class="isa-inner">&quot;to_list (Push x s) = x # to_list s&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  height :: &quot;'a stack ⇒ nat&quot;
+
+consts
+  to_list :: &quot;'a stack ⇒ 'a list&quot;</code></pre></div>
+<p><code>primrec</code> 是 <code>fun</code> 的一个变体，用于这种简单的递归；第 8.4 节会比较两者。<code>to_list</code> 把栈变成列表，栈顶元素排在最前面：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;to_list (Push (1::nat) (Push 2 (Push 3 Empty)))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;to_list (Push (1::nat) (Push 2 (Push 3 Empty)))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[1, 2, 3]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<h3 id="options">选项与有序对</h3>
+<p>空栈的栈顶元素是什么？实现可能会抛出异常；C 语言中无效的内存访问可能具有未定义行为。类型为 <code>'a stack ⇒ 'a</code> 的 HOL 函数即使对于 <code>Empty</code> 也表示<em>某个</em>元素，而不一定提供计算它的代码。为了明确表示缺失的结果，更改结果类型。HOL 库本质上定义了</p>
+<p><code>datatype 'a option = None | Some 'a</code></p>
+<p>类型为 <code>'a option</code> 的值要么是 <code>None</code>，表示“没有结果”，要么是 <code>Some x</code>，表示结果为 <code>x</code>。可能失败的函数返回一个选项值。下面的 <code>top</code> 返回栈顶元素，<code>pop</code> 把栈顶元素弹出（pop）：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun top :: &quot;'a stack ⇒ 'a option&quot; where
+  &quot;top Empty = None&quot;
+| &quot;top (Push x s) = Some x&quot;
+
+fun pop :: &quot;'a stack ⇒ ('a × 'a stack) option&quot; where
+  &quot;pop Empty = None&quot;
+| &quot;pop (Push x s) = Some (x, s)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> top :: <span class="isa-inner">&quot;'a stack ⇒ 'a option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;top Empty = None&quot;</span>
+| <span class="isa-inner">&quot;top (Push x s) = Some x&quot;</span>
+
+<span class="isa-cmd">fun</span> pop :: <span class="isa-inner">&quot;'a stack ⇒ ('a × 'a stack) option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;pop Empty = None&quot;</span>
+| <span class="isa-inner">&quot;pop (Push x s) = Some (x, s)&quot;</span></code></pre></div>
+<p><code>pop</code> 一次返回两样东西，即栈顶元素和栈的其余部分，它们组成一个类型为 <code>'a × 'a stack</code> 的<strong>有序对</strong>（pair）<code>(x, s)</code>。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;pop (Push Red (Push Green Empty))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;pop (Push Red (Push Green Empty))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Some (Red, Push Green Empty)&quot;
+  :: &quot;(light × light stack) option&quot;</code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 8.6<span class="box-title">有序对与选项</span></div>
+<p>当 <code>a :: τ₁</code> 且 <code>b :: τ₂</code> 时，<strong>有序对</strong><code>(a, b)</code> 的类型是 <code>τ₁ × τ₂</code>；函数 <code>fst</code> 和 <code>snd</code> 分别返回它的第一个和第二个分量。三元组 <code>(a, b, c)</code> 是 <code>(a, (b, c))</code> 的简写。<strong>选项类型</strong>（option type）<code>'a option</code> 的值是 <code>None</code>，以及对每个 <code>x :: 'a</code> 而言的 <code>Some x</code>；它是可能缺失的结果的类型。</p>
+</div>
+<h3 id="case">用 case 拆开值</h3>
+<p>接收选项值的函数必须处理两种可能。除了在等式中做模式匹配之外，HOL 还有 <strong>case 表达式</strong>（case expression），它在一个项的内部把一个值与若干模式进行匹配：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun top_or :: &quot;'a ⇒ 'a stack ⇒ 'a&quot; where
+  &quot;top_or d s = (case top s of None ⇒ d | Some x ⇒ x)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> top_or :: <span class="isa-inner">&quot;'a ⇒ 'a stack ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;top_or d s = (case top s of None ⇒ d | Some x ⇒ x)&quot;</span></code></pre></div>
+<p><code>top_or d s</code> 是 <code>s</code> 的顶层元素，或当 <code>s</code> 为空时的默认值 <code>d</code>。将 <code>case t of p₁ ⇒ e₁ | p₂ ⇒ e₂</code> 读作：计算 <code>t</code>，找到匹配其值的第一个模式 pᵢ，并返回 eᵢ，其中模式的变量代表匹配部分。箭头与函数类型中的 ⇒ 相同。较大项中的 <code>case</code> 表达式通常需要括号来标记其范围，如 <code>if … then … else …</code>。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;top_or Red (Push Green Empty)&quot;
+value &quot;top_or Red Empty&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_or Red (Push Green Empty)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_or Red Empty&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Green&quot;
+  :: &quot;light&quot;
+
+&quot;Red&quot;
+  :: &quot;light&quot;</code></pre></div>
+<p>模式可以嵌套。<code>Some (x, s)</code> 匹配一个包含有序对的选项值，并给有序对的两个部分都起了名字：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;case pop (Push Green (Push Red Empty)) of None ⇒ [] | Some (x, s) ⇒ [x, x]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;case pop (Push Green (Push Red Empty)) of None ⇒ [] | Some (x, s) ⇒ [x, x]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[Green, Green]&quot;
+  :: &quot;light list&quot;</code></pre></div>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p><code>fun</code> 的等式和 <code>case</code> 表达式是同一件事的两种写法。如果函数的行为取决于参数的形状，就用等式；如果需要拆开的是一个中间结果，例如上面的 <code>top s</code>，就用 <code>case</code>。</p>
+</div>
+<span class="section-anchor" id="definitions"></span>
+<div class="section-header"><span class="section-num">4</span><h2>定义函数的三种方式</h2></div>
+<p>你已经用过 <code>fun</code> 和 <code>primrec</code> 了。HOL 还有第三个命令：<code>definition</code>。三者的区别在于：接受什么样的定义，替你证明什么，以及证明怎样使用它们。</p>
+<h3 id="definition">非递归函数：definition</h3>
+<p>这个交通灯立在一个十字路口，路口的两个灯分别控制南北和东西两个方向。一条简单而严格的安全规则规定：在每个时刻，两个灯中至少有一个处于状态 <code>Red</code>（只亮红灯，而不是红灯和黄灯同时亮）。路口的状态是由两个灯组成的有序对，而这条规则是这种有序对上的函数 <code>safe</code>（安全）：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition safe :: &quot;light × light ⇒ bool&quot; where
+  &quot;safe p = (fst p = Red ∨ snd p = Red)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe :: <span class="isa-inner">&quot;light × light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe p = (fst p = Red ∨ snd p = Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  safe :: &quot;light × light ⇒ bool&quot;</code></pre></div>
+<p><code>definition</code> 用单个等式 <code>f x₁ … xₙ = t</code> 引入一个常量，其中右边的 <code>t</code> 不能提到 <code>f</code>：既不能递归，也不能做模式匹配。Isabelle 把这个等式存为一个名为 <code>safe_def</code> 的定理：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm safe_def">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> safe_def</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>safe ?p = (fst ?p = Red ∨ snd ?p = Red)</code></pre></div>
+<p>问号标出的是模块 7 中的图式变量（schematic variable）：这个等式对每个 <code>p</code> 都成立。现在证明某个特定的状态是安全的：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (Red, Green)&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. safe (Red, Green)</span></code></pre></div>
+<p><code>simp</code> 根本没能开始：消息“Failed to apply initial proof method”的意思是“未能应用初始证明方法”。与 <code>fun</code> 和 <code>primrec</code> 的等式不同，<code>definition</code> 的等式不会交给化简器（simplifier），所以对 <code>simp</code> 来说，<code>safe</code> 是一个未知的函数。指明这个定义，<code>simp</code> 就会使用它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;safe (Red, Green)&quot;
+  by (simp add: safe_def)
+
+lemma &quot;¬ safe (Green, Amber)&quot;
+  by (simp add: safe_def)
+
+lemma safe_Red: &quot;safe (Red, l)&quot;
+  by (simp add: safe_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (Red, Green)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: safe_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ safe (Green, Amber)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: safe_def)
+
+<span class="isa-cmd">lemma</span> safe_Red: <span class="isa-inner">&quot;safe (Red, l)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: safe_def)</code></pre></div>
+<p>最后一条引理对东西方向的灯的每个状态 <code>l</code> 都成立：只要南北方向的灯是红灯，无论东西方向的灯显示什么，路口都是安全的。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>默认情况下，<code>definition</code> 不将其等式注册为化简规则。你可以使用 <code>simp add: f_def</code> 或将其注册以供后续使用（Module 9）。这是有意的。定义引入一个概念；一旦你证明了其重要性质，如 <code>safe_Red</code>，后续证明应使用这些性质而非定义。这样证明保持简短，且若定义更改，仅需修复性质证明。Module 9 展示了更多控制化简器的方法。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p><code>definition</code> 不接受模式。如果在左边为有序对写一个模式，定义就会被拒绝：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe2 :: <span class="isa-inner">&quot;light × light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe2 (a, b) = (a = Red ∨ b = Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Bad arguments on lhs: &quot;(a, b)&quot;
+The error(s) above occurred in definition:
+&quot;safe2 (a, b) ≡
+ a = Red ∨
+ b =
+ Red&quot;</span></code></pre></div>
+<p>消息“Bad arguments on lhs”的意思是“左边（lhs）的参数不合法”。像上面那样使用 <code>fst</code> 和 <code>snd</code>，或者使用 <code>case</code> 表达式，或者改用接受模式的 <code>fun</code>。</p>
+</div>
+<h3 id="fun-primrec">递归函数：fun 与 primrec</h3>
+<p>对于此处简单的数据类型，<code>primrec</code>使用<strong>原始递归</strong>：包含构造函数参数变量的构造函数模式，且递归调用仅针对参数的直接递归部分，例如<code>height s</code>在<code>Push x s</code>的方程中。此类函数总是终止，因此<code>primrec</code>无需终止性证明；它仅报告新常量，正如你在<code>height</code>中所见。</p>
+<p><code>fun</code> 接受更广泛的内容：嵌套模式、多参数模式、重叠方程以及一大类 Isabelle 自动证明终止的递归定义。该函数将列表元素逐个压入栈中；其递归调用同时改变两个参数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun push_all :: &quot;'a list ⇒ 'a stack ⇒ 'a stack&quot; where
+  &quot;push_all [] s = s&quot;
+| &quot;push_all (x # xs) s = push_all xs (Push x s)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> push_all :: <span class="isa-inner">&quot;'a list ⇒ 'a stack ⇒ 'a stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;push_all [] s = s&quot;</span>
+| <span class="isa-inner">&quot;push_all (x # xs) s = push_all xs (Push x s)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  push_all :: &quot;'a list ⇒ 'a stack ⇒ 'a stack&quot;
+
+Found termination order: &quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p><code>fun</code> 报告了它是怎样证明终止性的：第一个参数（即由参数组成的有序对 <code>p</code> 中的 <code>fst p</code>）的长度在每次递归调用中都变小。最后压入的元素位于栈顶：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;to_list (push_all [1, 2, 3::nat] Empty)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;to_list (push_all [1, 2, 3::nat] Empty)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[3, 2, 1]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>两个命令均将定义方程以名称 <code>f.simps</code> 提供给化简器：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm height.simps">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> height.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  height Empty = 0
+  height (Push ?x ?s) = Suc (height ?s)</code></pre></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th><code>definition</code></th>
+<th><code>primrec</code></th>
+<th><code>fun</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>递归</td>
+<td>none</td>
+<td>原始定义：关于直接部分</td>
+<td>一般地，一旦终止性得证</td>
+</tr>
+<tr>
+<td>模式</td>
+<td>none: <code>f x₁ … xₙ = t</code></td>
+<td>构造器模式带有变量参数</td>
+<td>构造子模式，包括嵌套和重叠的</td>
+</tr>
+<tr>
+<td>由 <code>simp</code> 使用</td>
+<td>默认未注册；添加 <code>f_def</code></td>
+<td><code>f.simps</code> 默认注册</td>
+<td><code>f.simps</code> 默认注册</td>
+</tr>
+<tr>
+<td>终止性</td>
+<td>no question</td>
+<td>由形式保证</td>
+<td>自动证明。若证明失败，则拒绝该定义</td>
+</tr>
+</tbody>
+</table></div>
+<p>如何选择？使用 <code>definition</code> 对希望抽象推理的非递归概念进行形式化规约，使用 <code>fun</code> 处理递归函数及任何需要模式匹配的情况，并在函数完全遵循数据类型结构且希望确保不涉及终止性证明时使用 <code>primrec</code>。许多用户几乎在所有地方都使用 <code>fun</code>，正如 Module 1 对 <code>double</code> 所做的那样。</p>
+<h3 id="patterns">缺失与重叠的模式</h3>
+<p>如果方程未覆盖所有构造子，此函数会忽略空栈：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun top_value :: &quot;'a stack ⇒ 'a&quot; where
+  &quot;top_value (Push x s) = x&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> top_value :: <span class="isa-inner">&quot;'a stack ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;top_value (Push x s) = x&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-warning">Missing patterns in function definition:
+top_value Empty = undefined</span>
+
+consts
+  top_value :: &quot;'a stack ⇒ 'a&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<p>Isabelle 接受该定义并给出警告，使用等式 <code>top_value Empty = undefined</code> 完成它。它利用该等式构造函数，但未将其添加到 <code>top_value.simps</code>，因此 <code>simp</code> 不会自动使用它。此处 <code>undefined</code> 是一个多态常量，其值除类型外未指定：<code>top_value Empty</code> 是 <em>某个</em> 元素，定义未选定特定元素。该函数是全函数，如同所有 HOL 函数一样，但在 <code>Empty</code> 上它是 <strong>unspecified</strong>。当你尝试计算该值时，<code>value</code> 背后的代码没有可用的等式，并以异常停止（第 8.8 节解释了该代码的来源）：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_value (Empty :: nat stack)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">exception Match raised⌂</span></code></pre></div>
+<p>⌂ 指向生成的程序，而非你的理论。库的 <code>hd</code>（列表的第一个元素）对于 <code>[]</code> 未指定，方式相同，且 <code>value &quot;hd ([] :: light list)&quot;</code> 以相同的异常失败。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>缺失的模式通常表明思维中遗漏了某个情况。优先使用选项结果，如 <code>top</code> 所示，以便调用者必须处理空情况。<code>primrec</code> 也会警告缺失的构造子，并附带消息 <code>No equation for constructor &quot;Empty&quot;</code>。</p>
+</div>
+<p>方程也可能<strong>重叠</strong>：一个参数可能匹配多个模式。<code>fun</code> 然后使用第一个匹配的方程，正如 Haskell 和 ML 所做的那样：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun is_red :: &quot;light ⇒ bool&quot; where
+  &quot;is_red Red = True&quot;
+| &quot;is_red l = False&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> is_red :: <span class="isa-inner">&quot;light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;is_red Red = True&quot;</span>
+| <span class="isa-inner">&quot;is_red l = False&quot;</span></code></pre></div>
+<p>变量<code>l</code>匹配所有灯，<code>Red</code>包含在内。<code>fun</code>通过将第二个方程转化为每个剩余构造器的一个方程来解决重叠，如<code>thm</code>所示：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm is_red.simps">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> is_red.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  is_red Red = True
+  is_red RedAmber = False
+  is_red Green = False
+  is_red Amber = False</code></pre></div>
+<p>因此方程的顺序至关重要。将一般方程置于前面，则具体方程将永远无法被使用。Isabelle 会拒绝此类定义：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> is_red2 :: <span class="isa-inner">&quot;light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;is_red2 l = False&quot;</span>
+| <span class="isa-inner">&quot;is_red2 Red = True&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Equation is redundant (covered by preceding clauses):
+is_red2 Red =
+True</span></code></pre></div>
+<p><code>primrec</code> 完全不接受重叠方程：其模式必须是应用于变量的构造函数，而普通变量 <code>l</code> 不是此类模式：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">primrec</span> is_red3 :: <span class="isa-inner">&quot;light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;is_red3 Red = True&quot;</span>
+| <span class="isa-inner">&quot;is_red3 l = False&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Constructor pattern missing in left-hand side at
+  is_red3 l =
+  False</span></code></pre></div>
+<h3 id="names">当名称拼写错误时</h3>
+<p>第 8.1 节表明，项中拼写错误的名称会成为自由变元。在定义中，右侧的自由变元不由参数确定，因此 Isabelle 会拒绝它：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cycle_time :: <span class="isa-inner">&quot;light list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;cycle_time [] = 0&quot;</span>
+| <span class="isa-inner">&quot;cycle_time (l # ls) = duraton l + cycle_time ls&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Variable &quot;duraton&quot; occurs on right hand side only:
+⋀l ls duraton.
+   cycle_time (l # ls) =
+   duraton l +
+   cycle_time
+    ls</span></code></pre></div>
+<p>消息列表 <code>duraton</code> 在等式的变量中（在 ⋀，“对于所有”之后）：Isabelle 将拼写错误的 <code>duration</code> 视为变量。类型和定理的拼写错误会给出“Undefined”错误，因为 Isabelle 会查找它们：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> duraton.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Undefined fact: &quot;duraton.simps&quot;⌂</span></code></pre></div>
+<p>签名中拼写错误的类型也会发生同样的情况，例如 <code>lights</code> 对应于 <code>light</code>：消息为 <code>Undefined type name: &quot;lights&quot;</code>。</p>
+<span class="section-anchor" id="lists"></span>
+<div class="section-header"><span class="section-num">5</span><h2>实践中的列表</h2></div>
+<p>回到交通灯。状态列表描述了灯光随时间的行为。<code>trace n l</code> 是前 <code>n</code> 个状态的列表，从 <code>l</code> 开始：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun trace :: &quot;nat ⇒ light ⇒ light list&quot; where
+  &quot;trace 0 l = []&quot;
+| &quot;trace (Suc n) l = l # trace n (next_light l)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> trace :: <span class="isa-inner">&quot;nat ⇒ light ⇒ light list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;trace 0 l = []&quot;</span>
+| <span class="isa-inner">&quot;trace (Suc n) l = l # trace n (next_light l)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  trace :: &quot;nat ⇒ light ⇒ light list&quot;
+
+Found termination order: &quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;trace 6 Red&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;trace 6 Red&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[Red, RedAmber, Green, Amber, Red, RedAmber]&quot;
+  :: &quot;light list&quot;</code></pre></div>
+<div class="box box-example"><div class="box-label">例 8.1<span class="box-title">通过手工评估轨迹</span></div>
+<p><code>value</code> 执行的计算遵循定义方程，你可以在纸上做同样的操作。将 <code>3</code> 写为 <code>Suc (Suc (Suc 0))</code>：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>3</mn><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>2</mn><mtext>  </mtext><mo stretchy="false">(</mo><mrow><mi>n</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>_</mi><mi>l</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi></mrow><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>2</mn><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>1</mn><mtext>  </mtext><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>0</mn><mtext>  </mtext><mrow><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">[</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo separator="true">,</mo><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow><mo stretchy="false">]</mo></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\mathit{trace}\;3\;\mathit{Red} &amp;= \mathit{Red} \mathbin{\#} \mathit{trace}\;2\;(\mathit{next\_light}\;\mathit{Red}) = \mathit{Red} \mathbin{\#} \mathit{trace}\;2\;\mathit{RedAmber}\\
+&amp;= \mathit{Red} \mathbin{\#} \mathit{RedAmber} \mathbin{\#} \mathit{trace}\;1\;\mathit{Green}\\
+&amp;= \mathit{Red} \mathbin{\#} \mathit{RedAmber} \mathbin{\#} \mathit{Green} \mathbin{\#} \mathit{trace}\;0\;\mathit{Amber}\\
+&amp;= [\mathit{Red}, \mathit{RedAmber}, \mathit{Green}]
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:5.7em;vertical-align:-2.6em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.1em;"><span style="top:-5.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span></span></span><span style="top:-3.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-2.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-0.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.6em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.1em;"><span style="top:-5.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">next_light</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span></span></span><span style="top:-3.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Green</span></span></span></span><span style="top:-2.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">Green</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Amber</span></span></span></span><span style="top:-0.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">[</span><span class="mord"><span class="mord mathit">Red</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathit">Green</span></span><span class="mclose">]</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.6em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+<p>每一步使用<code>trace</code>或<code>next_light</code>的等式。每个递归调用具有更小的第一个参数，因此计算到达<code>trace 0</code>并停止。</p>
+</div>
+<h3 id="library">列表库</h3>
+<p>理论<code>List</code>，作为<code>Main</code>的一部分，定义了约一百个列表函数，并证明了关于它们的一千多个引理。这些是你将最常使用的：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>函数</th>
+<th>它计算什么</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>length xs</code></td>
+<td>元素的数量</td>
+<td><code>length [a, b] = 2</code></td>
+</tr>
+<tr>
+<td><code>xs @ ys</code></td>
+<td><code>xs</code> 后接 <code>ys</code></td>
+<td><code>[a] @ [b, c] = [a, b, c]</code></td>
+</tr>
+<tr>
+<td><code>map f xs</code></td>
+<td><code>f</code> 应用于每个元素</td>
+<td><code>map f [a, b] = [f a, f b]</code></td>
+</tr>
+<tr>
+<td><code>filter P xs</code></td>
+<td>满足<code>P</code>的元素</td>
+<td><code>filter P [a, b] = [a]</code> 如果 <code>P a</code> 且 <code>¬ P b</code></td>
+</tr>
+<tr>
+<td><code>foldr f xs e</code></td>
+<td>与 <code>f</code> 结合的元素，从右侧</td>
+<td><code>foldr f [a, b] e = f a (f b e)</code></td>
+</tr>
+<tr>
+<td><code>zip xs ys</code></td>
+<td>对应元素对</td>
+<td><code>zip [a, b] [c, d] = [(a, c), (b, d)]</code></td>
+</tr>
+<tr>
+<td><code>take n xs</code>, <code>drop n xs</code></td>
+<td>前 <code>n</code> 个元素；其余</td>
+<td><code>take 1 [a, b] = [a]</code></td>
+</tr>
+<tr>
+<td><code>xs ! n</code></td>
+<td>元素编号 <code>n</code>，从 0 开始计数</td>
+<td><code>[a, b] ! 1 = b</code></td>
+</tr>
+<tr>
+<td><code>[m..&lt;n]</code></td>
+<td>从 <code>m</code> 到 <code>n − 1</code> 的数字</td>
+<td><code>[2..&lt;5] = [2, 3, 4]</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>将它们应用于轨迹。一个周期中每个状态持续多长时间，整个周期持续多长时间？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map duration (trace 4 Red)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map duration (trace 4 Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[30, 2, 25, 3]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;sum_list (map duration (trace 4 Red))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;sum_list (map duration (trace 4 Red))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;60&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>一个完整周期耗时一分钟。<code>sum_list</code> 对数字列表求和。在更长的轨迹中，哪些状态是绿色的？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;filter (λl. l = Green) (trace 9 Red)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;filter (λl. l = Green) (trace 9 Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[Green, Green]&quot;
+  :: &quot;light list&quot;</code></pre></div>
+<p><code>foldr</code> 是将列表所有元素合并为单个值的通用方式。<code>foldr f [x₁, x₂, x₃] e</code> 是 <code>f x₁ (f x₂ (f x₃ e))</code>：从右侧的 <code>e</code> 开始，将每个元素与迄今为止的结果进行合并。通过 <code>f</code> 将状态持续时间累加到运行总计中，它重新计算了周期时间：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;foldr (λl t. duration l + t) (trace 4 Red) 0&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;foldr (λl t. duration l + t) (trace 4 Red) 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;60&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>图 8.3 展示了 <code>map</code>、<code>filter</code> 和 <code>foldr</code> 在单个周期中的并排情况。</p>
+<figure class="fig" id="fig-08-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" role="img"><title>map、filter 与 foldr 如何变换列表</title><defs><marker id="fig-08-3__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-08-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker></defs><text x="268" y="50" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="30" font-weight="400" fill="#475569" text-anchor="start">[</text><circle cx="320" cy="40" r="11" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><text x="320" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Red</text><circle cx="421" cy="40" r="9" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><circle cx="439" cy="40" r="9" fill="#B45309" stroke="#B45309" stroke-width="1"/><text x="430" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">RedAmber</text><circle cx="540" cy="40" r="11" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="540" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Green</text><circle cx="650" cy="40" r="11" fill="#B45309" stroke="#B45309" stroke-width="1"/><text x="650" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Amber</text><text x="730" y="50" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="30" font-weight="400" fill="#475569" text-anchor="end">]</text><line x1="320" y1="80" x2="320" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><line x1="430" y1="80" x2="430" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><line x1="540" y1="80" x2="540" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><line x1="650" y1="80" x2="650" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><rect x="20" y="96" width="105" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="72.5" y="113" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">map duration</text><text x="22" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">把函数作用到每个元素上</text><rect x="296" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="320" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">30</text><rect x="406" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="430" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">2</text><rect x="516" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="540" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">25</text><rect x="626" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="650" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">3</text><line x1="311" y1="168" x2="329" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="329" y1="168" x2="311" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="430" y1="156" x2="430" y2="196" stroke="#15803D" stroke-width="1.8" marker-end="url(#fig-08-3__ah-15803D)"/><line x1="531" y1="168" x2="549" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="549" y1="168" x2="531" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="650" y1="156" x2="650" y2="196" stroke="#15803D" stroke-width="1.8" marker-end="url(#fig-08-3__ah-15803D)"/><rect x="20" y="180" width="157" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="98.5" y="197" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">filter (λd. d &lt; 10)</text><text x="22" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">保留通过检验的元素</text><rect x="406" y="204" width="48" height="30" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/><text x="430" y="225" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">2</text><rect x="626" y="204" width="48" height="30" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/><text x="650" y="225" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">3</text><text x="485" y="258" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="600" fill="#15803D" text-anchor="middle">[2, 3]</text><rect x="20" y="280" width="720" height="124" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><rect x="40" y="296" width="113" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="96.5" y="313" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">foldr (+) … 0</text><text x="716" y="311" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="end" font-style="italic">从右向左合并各元素</text><text x="380" y="352" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">foldr (+) [30, 2, 25, 3] 0 = 30 + (2 + (25 + (3 + 0)))</text><text x="380" y="384" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="middle">= 60</text></svg>
+</div><figcaption><span class="fig-num">图 8.3</span> <p><code>map</code> 变换每个元素，<code>filter</code> 保留其中部分元素，<code>foldr</code> 将它们组合为一个值。<code>sum_list</code> 是带有初始值 0 的 <code>foldr (+)</code>。</p>
+</figcaption></figure>
+<p><code>zip</code> 按元素对两个列表进行配对，<code>[0..&lt;4]</code> 是数字 0、1、2 和 3 的列表，因此它们共同对状态进行编号：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;zip [0..&lt;4] (trace 4 Red)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;zip [0..&lt;4] (trace 4 Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[(0, Red), (1, RedAmber), (2, Green), (3, Amber)]&quot;
+  :: &quot;(nat × light) list&quot;</code></pre></div>
+<p><code>length</code> 统计元素，<code>take</code>、<code>drop</code> 和 <code>!</code> 截断列表并选取元素。位置从 0 开始计数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;length (trace 6 Red)&quot;
+value &quot;take 2 (trace 6 Red)&quot;
+value &quot;drop 4 (trace 6 Red)&quot;
+value &quot;trace 6 Red ! 2&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;length (trace 6 Red)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;take 2 (trace 6 Red)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;drop 4 (trace 6 Red)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;trace 6 Red ! 2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;6&quot;
+  :: &quot;nat&quot;
+
+&quot;[Red, RedAmber]&quot;
+  :: &quot;light list&quot;
+
+&quot;[Red, RedAmber]&quot;
+  :: &quot;light list&quot;
+
+&quot;Green&quot;
+  :: &quot;light&quot;</code></pre></div>
+<h3 id="comprehension">列表推导</h3>
+<p><code>map</code> 与 <code>filter</code> 的组合也可写成 <strong>list comprehension</strong>，如 Haskell 和 Python 中所示。<code>[e. x ← xs, P x]</code> 是满足 <code>P x</code> 的 <code>xs</code> 的元素 <code>x</code> 对应的 <code>e</code> 值的列表。键入 <code>&lt;-</code> 以表示 ←。以下是周期的短状态及其持续时间：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;[(l, duration l). l ← trace 4 Red, duration l &lt; 10]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;[(l, duration l). l ← trace 4 Red, duration l &lt; 10]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[(RedAmber, 2), (Amber, 3)]&quot;
+  :: &quot;(light × nat) list&quot;</code></pre></div>
+<p>表达式<code>(l, duration l)</code>为每个元素构建一对；<code>l ← trace 4 Red</code>是<strong>生成器</strong>，它依次取列表的<code>l</code>元素；<code>duration l &lt; 10</code>是条件。可以有多个生成器和条件，用逗号分隔。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>某些列表函数对部分参数未指定：<code>hd []</code>（空列表的首元素）以及当<code>n</code>不是<code>xs</code>的位置时的<code>xs ! n</code>。它们表示右侧类型的<em>某个</em>值，而不指定具体是哪一个，使用<code>value</code>计算时会抛出异常，如第8.4节中的<code>top_value</code>所示。在定义中使用<code>hd xs</code>或<code>xs ! n</code>之前，请确保<code>xs</code>非空或满足<code>n &lt; length xs</code>。</p>
+</div>
+<span class="section-anchor" id="numbers"></span>
+<div class="section-header"><span class="section-num">6</span><h2>数字与类型类</h2></div>
+<p>HOL 拥有多种数字类型：<code>nat</code>、<code>int</code>，以及通过理论 <code>Complex_Main</code> 引入的 <code>real</code> 和 <code>complex</code>。本系列仅需 <code>nat</code> 和 <code>int</code>。</p>
+<h3 id="nat-int">自然数与整数</h3>
+<p>类型<code>nat</code>的行为类似于具有两个构造子<code>0</code>和<code>Suc</code>的数据类型：每个自然数要么是<code>0</code>，要么是<code>Suc n</code>，其中<code>n</code>是较小的自然数。这就是为什么你可以通过对<code>0</code>和<code>Suc n</code>进行模式匹配来定义<code>nat</code>上的函数，正如<code>trace</code>所做的那样。像<code>3</code>这样的数字表示与<code>Suc (Suc (Suc 0))</code>相同的数（尽管两者的写法不同，这对<code>simp</code>很重要，正如本节末尾的陷阱所示），而<code>value</code>将自然数打印为数字：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;Suc (Suc 0)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;Suc (Suc 0)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;2&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>类型<code>int</code>包含负数。两种类型在减法上的差异最为显著：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(2::nat) - 3&quot;
+value &quot;(2::int) - 3&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(2::nat) - 3&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(2::int) - 3&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;0&quot;
+  :: &quot;nat&quot;
+
+&quot;- 1&quot;
+  :: &quot;int&quot;</code></pre></div>
+<p>Isabelle 打印负数时，在减号后保留一个空格。</p>
+<div class="box box-definition"><div class="box-label">定义 8.7<span class="box-title">截断减法</span></div>
+<p>在<code>nat</code>上，减法被<strong>截断</strong>：当<code>m ≤ n</code>时<code>m - n</code>为<code>0</code>，因为没有小于0的自然数。在<code>int</code>上，减法是通常的减法。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>截断减法破坏了熟悉的定律。在<code>nat</code>上，<code>(m - n) + n = m</code>仅在<code>n ≤ m</code>时成立：给定<code>m = 5</code>和<code>n = 7</code>，左侧为<code>0 + 7 = 7</code>。余额为<code>nat</code>的银行账户不能透支：提取过多会静默地留下恰好0，而非债务。当负值有意义时使用<code>int</code>；当无意义时，在减法前检查<code>n ≤ m</code>。</p>
+</div>
+<p><code>nat</code> 除以 <code>int</code> 得 <code>div</code>，余数为 <code>mod</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(17::nat) div 5&quot;
+value &quot;(17::nat) mod 5&quot;
+value &quot;(-17::int) div 5&quot;
+value &quot;(-17::int) mod 5&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(17::nat) div 5&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(17::nat) mod 5&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-17::int) div 5&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-17::int) mod 5&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;3&quot;
+  :: &quot;nat&quot;
+
+&quot;2&quot;
+  :: &quot;nat&quot;
+
+&quot;- 4&quot;
+  :: &quot;int&quot;
+
+&quot;3&quot;
+  :: &quot;int&quot;</code></pre></div>
+<p>在<code>int</code>上，<code>div</code>向下舍入（朝向负无穷），因此<code>-17 div 5</code>为−4，且选择<code>mod</code>以使<code>(a div b) * b + a mod b = a</code>成立：(−4) · 5 + 3 = −17。那除以零呢？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(17::nat) div 0&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(17::nat) div 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;0&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<div class="box box-fact"><div class="box-label">事实 8.1<span class="box-title">零除法</span></div>
+<p>在 HOL 中，<code>a div 0 = 0</code> 和 <code>a mod 0 = a</code> 对于每个 <code>a</code>（库的引理 <code>div_by_0</code> 和 <code>mod_by_0</code>）。</p>
+</div>
+<p>这不是错误。每个 HOL 函数都是全函数，因此 <code>17 div 0</code> 必须是某个数。库选择 0，该值使许多定律在无需附加条件的情况下成立。被要求拒绝除以零的程序需要显式检查；逻辑不会对该操作抛出错误。当除以零至关重要时，在引理中将 <code>b ≠ 0</code> 声明为假设。</p>
+<p>函数 <code>int :: nat ⇒ int</code> 和 <code>nat :: int ⇒ nat</code> 在两种类型之间进行转换；<code>nat</code> 将负整数映射为 0。运算符 <code>/</code> 是实数域等域上的除法，而非在 <code>nat</code> 或 <code>int</code> 上，<code>x ^ n</code> 是幂 xⁿ，其中 <code>n</code> 为自然数。</p>
+<h3 id="classes">重载与类型类</h3>
+<p>你已在<code>nat</code>和<code>int</code>上使用了<code>+</code>、<code>0</code>及数字。此类名称是<strong>overloaded</strong>：一个名称具有多个含义，由类型决定。然而它们并非对每种类型都存在。光不是数字：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;next_light 3&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: No type arity light :: numeral
+
+Type error in application: incompatible operand type
+
+Operator:  next_light :: light ⇒ light
+Operand:   3::??'a :: ??'a
+</span></code></pre></div>
+<p>“No type arity light :: numeral”表示类型 <code>light</code> 不属于支持数值字面量的类 <code>numeral</code>，因此 <code>3</code> 不能是该灯色类型的值。Isabelle 用 arity 记录类型属于某个类的信息，并用<strong>类型类</strong>管理重载。</p>
+<div class="box box-definition"><div class="box-label">定义 8.8<span class="box-title">类型类与排序</span></div>
+<p><strong>类型类</strong>是一个有名称的类型集合，所含类型提供指定的运算，有时还要满足某些定律。例如，<code>plus</code> 所含的类型有运算 <code>+</code>，<code>zero</code> 要求有 <code>0</code>，<code>numeral</code> 要求有数值字面量 1、2、3 等，并且 <code>+</code> 满足结合律，<code>ord</code> 要求有 <code>≤</code> 和 <code>&lt;</code>。属于一个类的类型称为该类的<strong>实例</strong>。<code>nat</code> 和 <code>int</code> 都是上述四个类的实例。<strong>类型类约束（sort）</strong>是一组类型类，记作 <code>{c₁, …, cₙ}</code>，单个类可以写成 <code>c</code>。给类型变元加上这样的约束时，<code>'a::{one, plus}</code> 表示同时是 <code>one</code> 和 <code>plus</code> 实例的任意类型。</p>
+</div>
+<div class="callout analogy"><div class="callout-label">打个比方</div>
+<p>类型类扮演 Java 中接口或 Rust 中特征的角色，Haskell 的类型类也是相同的理念。排序规定了未知类型必须实现的接口。</p>
+</div>
+<p>除非显式请求，否则 Isabelle 会隐藏类型类（sorts）。选项 <code>show_sorts</code> 使其可见：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="declare [[show_sorts]]
+term &quot;x + 1&quot;
+term &quot;2 + 2&quot;
+declare [[show_sorts = false]]">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">declare</span> [[show_sorts]]
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;x + 1&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;2 + 2&quot;</span>
+<span class="isa-cmd">declare</span> [[show_sorts = false]]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;(x::'a::{one,plus}) + 1&quot;
+  :: &quot;'a::{one,plus}&quot;
+
+&quot;(2::'a::numeral) + (2::'a::numeral)&quot;
+  :: &quot;'a::numeral&quot;</code></pre></div>
+<p>现在你可以看到 Isabelle 对第 8.1 节中 <code>'a</code> 的了解：<code>x + 1</code> 具有 <code>1</code> 和 <code>+</code> 的<em>某些</em>类型。且 <code>2 + 2</code> 具有类 <code>numeral</code> 的某些类型。这就是来自 Module 1 消息的关键，该消息承诺你将在此处学会阅读它：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;2 + 2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Wellsortedness error:
+Type 'a not of sort term_of
+Cannot derive subsort relation numeral &lt; term_of</span></code></pre></div>
+<p>要打印结果，<code>value</code>必须将计算出的值转换回项。它通过类<code>term_of</code>中存在的重载函数<code>term_of</code>来实现，该函数适用于<code>nat</code>、<code>int</code>、列表以及您定义的数据类型等类型。现在逐行阅读消息。</p>
+<ul>
+<li><strong>排序良好性错误</strong>：某些类型被要求属于其未被确知所属的类。</li>
+<li><strong>类型 'a 不属于 sort term_of</strong>：<code>2 + 2</code> 的类型为未知 <code>'a</code>，且 <code>value</code> 需要其属于
+类 <code>term_of</code>。</li>
+<li><strong>无法推导出子类型关系 numeral &lt; term_of</strong>：Isabelle 对<code>'a</code>所知仅限于其属于
+<code>numeral</code>. 那将仅在 <code>numeral</code> 中的每个类型也属于 <code>term_of</code> 时成立，即若 <code>numeral</code> 是 <code>term_of</code> 的子类，记作 <code>numeral &lt; term_of</code>。事实并非如此。</li>
+</ul>
+<p>解决方案来自 Module 1：指明你意指的类型，如 <code>value &quot;2 + 2 :: nat&quot;</code> 所示。同样的缺失信息会导致证明失败：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;x + 0 = x&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. x + 0 = x</span></code></pre></div>
+<p>目标是关于一个类型为 <code>{plus, zero}</code> 的排序：一个具有某些 <code>+</code> 和某些 <code>0</code> 的类型。这些类中没有任何内容表明 <code>0</code> 对 <code>+</code> 是中性的，因此该声明不能对每个这样的类型进行证明。对于自然数，它是算术定律：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;x + 0 = (x::nat)&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;x + 0 = (x::nat)&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p><code>value</code> 对数值进行计算，但 <code>simp</code> 不会将数值与 <code>Suc</code> 模式进行匹配。<code>trace</code> 的方程涉及 <code>0</code> 和 <code>Suc n</code>，而 <code>2</code> 在语法上均非如此：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;trace 2 Red = [Red, RedAmber]&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. trace 2 Red = [Red, RedAmber]</span></code></pre></div>
+<p>库引理 <code>numeral_eq_Suc</code> 将数字重写为更小的数字 <code>Suc</code>，随后 <code>trace</code> 的等式适用：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;trace 2 Red = [Red, RedAmber]&quot;
+  by (simp add: numeral_eq_Suc)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;trace 2 Red = [Red, RedAmber]&quot;</span>
+  <span class="isa-proof">by</span> (simp add: numeral_eq_Suc)</code></pre></div>
+</div>
+<span class="section-anchor" id="termination"></span>
+<div class="section-header"><span class="section-num">7</span><h2>为什么 fun 需要终止性</h2></div>
+<p>此前每次使用 <code>fun</code>，你都见到过“Found termination order”（已找到终止序）。第 5.7 节解释了 Isabelle 为什么要求终止性、什么是度量，以及 <code>fun</code> 拒绝定义时如何读报错。模块 1 提过这个问题。本节先复习终止性的理由，并说明它与第 8.4 节三种定义函数的方法的关系，然后逐项读懂 Isabelle 的终止性报告，看看已知函数终止而 Isabelle 未能证明时该怎么做。</p>
+<h3 id="total">总函数与一致性</h3>
+<p>当使用<code>fun</code>定义函数时，Isabelle 会将你的方程转化为定理：在<code>fun next_light</code>之后，方程<code>next_light Red = RedAmber</code>成为可在任何证明中使用的定理。仅当确实存在满足这些方程的函数时，这才是安全的。模块 5 展示了否则会发生的问题，即函数<code>bad :: nat ⇒ nat</code>的“定义”<code>bad n = bad n + 1</code>。假设 Isabelle 接受了它：</p>
+<ol>
+<li>该方程对于每个<code>n</code>都是定理。取<code>n = 0</code>并令<code>k</code>为数值<code>bad 0</code>：
+该定理表明 <code>k = k + 1</code>。</li>
+<li>从两边减去 <code>k</code>。即使使用截断减法也成立：<code>k - k = 0</code> 和
+<code>(k + 1) - k = 1</code>. 因此，<code>0 = 1</code> 将是一个定理。</li>
+<li>但 <code>0 ≠ 1</code> 也是一个定理：<code>1</code> 是 <code>Suc 0</code>，且由不同构造器构建的值
+不同（定义 8.5；<code>nat</code> 表现如数据类型，第 8.6 节）。</li>
+<li>一个命题与其否定共同构成矛盾，且从矛盾中可以推导出任何命题
+遵循 Module 2 的爆炸原理与 Module 6 的 (⊥E) 规则。</li>
+</ol>
+<p>一个错误的等式会使每个陈述成为定理，且每个证明都毫无价值。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>A <code>definition</code> 如第 8.4 节所述，无需任何证明即安全：其右侧未提及所定义的常量，因此不会循环，且绝不会使逻辑不一致。<code>fun</code> 并不盲目信任你的递归方程。它首先通过 Isabelle 为你执行的构造，以这种安全类型的非递归定义定义函数，然后<em>证明</em>你的方程作为定理。该证明需要终止论证。如果 Isabelle 无法找到，<code>fun</code> 失败：它不提供作为定理的无限制定义方程。底层 <code>function</code> 包可以保留部分定义和条件事实，这超出了本介绍的范围。</p>
+</div>
+<p>如果每个递归调用链都终止于不含递归调用的方程，则方程逐步确定每个参数的函数值，如例8.1所示，证明即可成立。并非所有非终止方程都是矛盾的：模块5指出每个函数都满足<code>f n = f n</code>。但<code>fun</code>并未尝试区分无害方程与有害方程；它仅在提供终止证明时才接受递归。缺失模式（第8.4节）则是另一回事：它使某个值未指定，这永远不与任何内容矛盾，因此<code>fun</code>仅对此发出警告。</p>
+<h3 id="termination-messages">阅读终止消息</h3>
+<p>为证明终止性，Isabelle 寻找一个度量，如 Module 5 中所示：一个从参数到自然数的函数，在每次递归调用时都会变小。它尝试的度量由参数的大小构建。</p>
+<div class="box box-definition"><div class="box-label">定义 8.9<span class="box-title">Size</span></div>
+<p>对于此处定义的数据类型，Isabelle 提供了 <strong>size</strong>，即一个自然数，记作 <code>size x</code>。对于自然数 <code>n</code>，其大小为 <code>n</code> 本身；对于列表，其大小为长度。对于我们的栈，<code>Empty</code> 的大小为 0，且每个 <code>Push</code> 将内部栈的大小加 1：<code>size (Push 1 (Push 2 Empty))</code> 的大小为 2。每个 <code>light</code> 都有大小
+0. 其他数据类型可能具有不同的大小方程；检查其生成的 <code>t.size</code> 事实
+因此，与其假设 <code>size</code> 计算每个构造子或每个存储元素，</p>
+</div>
+<p>当搜索成功时，<code>fun</code> 打印它找到的度量。你在此模块中见过三种报告：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>报告</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;{}&quot;</code></td>
+<td>无递归调用，无需证明 (<code>next_light</code>, <code>top</code>)</td>
+</tr>
+<tr>
+<td><code>&quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code></td>
+<td>第一个参数的大小减小（<code>trace</code>）</td>
+</tr>
+<tr>
+<td><code>&quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</code></td>
+<td>第一个参数（一个列表）的长度递减（<code>push_all</code>）</td>
+</tr>
+</tbody>
+</table></div>
+<p>与 Module 5 类似，具有多个参数的函数的参数构成一个元组 <code>p</code>，因此 <code>fst p</code> 是第一个参数。<code>&lt;*mlex*&gt;</code> 对度量进行字典序链接，如同 Module 5 中 Ackermann 函数的情况：如果第一个度量保持不变，则下一个度量必须减小。最终的 <code>{}</code> 结束该链。</p>
+<p>当搜索失败时，Isabelle 会打印它尝试过的内容。Module 5 读取了 <code>bad</code> 的消息，其中包含一次调用和一次度量。一般而言，该消息由四个部分组成：</p>
+<ul>
+<li><strong>Calls</strong> 列出递归调用，命名为 a)、b)、…，每个调用均包含调用前后的参数：
+<code>a) n ~&gt; n div 2</code> 表示带有参数 <code>n</code> 的调用会导致带有参数 <code>n div 2</code> 的调用。</li>
+<li><strong>Measures</strong> 列出了 Isabelle 尝试的度量，编号为 1)、2)、… 。</li>
+<li><strong>结果矩阵</strong>的每行对应一次调用，每列对应一个度量。每个单元格说明
+Isabelle 可证明该调用处的度量：<code>&lt;</code> 表示其递减，<code>&lt;=</code> 表示其不增长（但可能保持不变），<code>?</code> 表示 Isabelle 无法证明任何情况，<code>F</code> 表示其递增，因此在该处永远无法递减。</li>
+<li><strong>未完成子目标</strong>是 Isabelle 无法证明的命题，每个均带有调用、一个
+度量与关系：<code>(b, 1, &lt;)</code> 是断言在调用 b) 时度量 1 减小。</li>
+</ul>
+<p>当 Isabelle 能够依次选取度量，使得每次调用在其中一个选取的度量下满足 <code>&lt;</code>，并在所有之前选取的度量下满足 <code>&lt;=</code> 时，存在字典序。当无选择可行时，消息以 <strong>Could not find lexicographic termination order</strong> 结尾。练习 8.8 提供了另外三个报告供预测和阅读。</p>
+<div class="box box-example"><div class="box-label">例 8.2<span class="box-title">一个无人证明终止的函数</span></div>
+<p>模块 5 以 Collatz 函数结束其关于终止性的章节，该函数计算著名的“3n + 1”过程从 <code>n</code> 到 1 所需的步数：对偶数减半，对奇数乘三加一。以下是 Isabelle 对此的说明：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> collatz :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;collatz n = (if n ≤ 1 then 0
+                else if n mod 2 = 0 then collatz (n div 2) + 1
+                else collatz (3 * n + 1) + 1)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  collatz :: &quot;nat ⇒ nat&quot;
+
+<span class="isa-error">Unfinished subgoals:
+(b, 1, &lt;):
+ 1. ⋀n. ⟦¬ n ≤ Suc 0; n mod 2 = Suc 0⟧ ⟹ False
+(b, 1, &lt;=):
+ 1. ⋀n. ⟦¬ n ≤ Suc 0; n mod 2 = Suc 0⟧ ⟹ False
+Calls:
+  a) n ~&gt; n div 2
+  b) n ~&gt; 3 * n + 1
+Measures:
+  1) size
+Result matrix:
+    1
+a:  &lt;
+b:  ?
+
+Could not find lexicographic termination order.</span></code></pre></div>
+<p>存在两次调用和一个度量，即<code>n</code>的大小。调用a)使用<code>n div 2</code>使其减小：条目为<code>&lt;</code>。对于调用b)，使用<code>3 * n + 1</code>，两个未完成的子目标展示了Isabelle在尝试证明大小减小（<code>&lt;</code>）或至少不增长（<code>&lt;=</code>）时留下的内容：在调用条件下，<code>False</code>表明<code>n</code>大于1且为奇数。由于<code>3 * n + 1</code>大于<code>n</code>，无法进行证明。（Isabelle仅在目标变为无条件的<code>False</code>时才写入<code>F</code>；此处条件仍然存在，因此条目为<code>?</code>。）调用b)的行没有<code>&lt;</code>，因此不存在终止序。也没有其他已知的度量：正如模块5所述，终止证明将解决科拉茨猜想，该猜想目前仍是开放的。</p>
+</div>
+<h3 id="termination-help">当 Isabelle 需要帮助时</h3>
+<p>某些函数终止，但并非通过 Isabelle 尝试的度量。司机等待绿灯需多长时间？从每个状态起，累加至灯变绿的时间段：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> wait :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;wait l = (if l = Green then 0 else duration l + wait (next_light l))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  wait :: &quot;light ⇒ nat&quot;
+
+<span class="isa-error">Unfinished subgoals:
+(a, 1, &lt;):
+ 1. ⋀l. l ≠ Green ⟹ size (next_light l) &lt; size l
+(a, 1, &lt;=):
+ 1. ⋀l. l ≠ Green ⟹ size (next_light l) ≤ size l
+Calls:
+  a) l ~&gt; next_light l
+Measures:
+  1) size
+Result matrix:
+    1
+a:  ?
+
+Could not find lexicographic termination order.</span></code></pre></div>
+<p>这个函数确实会终止。从任意状态出发，最多三步后灯就变绿。但是 Isabelle 唯一尝试的度量是 <code>l</code> 的大小。按定义 8.9，每种灯色的大小都是 0。恒为 0 的度量无法减小，所以 <code>&lt;</code> 的子目标为假。<code>&lt;=</code> 的子目标为真，但证明需要把 <code>l</code> 分为四种情形，Isabelle 并未尝试这样做，所以矩阵中的条目为 <code>?</code>。</p>
+<p>一种修复方案是编写函数使得终止性显而易见。此处由库完成工作：取前四个状态，保留第一个绿色状态 <code>takeWhile</code> 之前的状态，并累加它们的持续时间。<code>takeWhile P xs</code> 是 <code>xs</code> 的最长初始部分，其所有元素均满足 <code>P</code>。该定义完全不递归：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition wait :: &quot;light ⇒ nat&quot; where
+  &quot;wait l = sum_list (map duration (takeWhile (λx. x ≠ Green) (trace 4 l)))&quot;
+
+value &quot;map wait [Red, RedAmber, Green, Amber]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> wait :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;wait l = sum_list (map duration (takeWhile (λx. x ≠ Green) (trace 4 l)))&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;map wait [Red, RedAmber, Green, Amber]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[32, 2, 0, 35]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>到达琥珀色交通灯的驾驶员需等待 3 + 30 + 2 = 35 秒。</p>
+<p>当没有自然的公式化约时，你可以自行提供测度。模块 5 遇到了一个例子：<code>sum_from i n = (if n &lt; i then 0 else i + sum_from (i + 1) n)</code> 将数字从 <code>i</code> 累加到 <code>n</code>。它终止是因为距离 <code>n + 1 - i</code> 在每次调用时都减小，但两个参数都没有变小，因此 <code>fun</code> 放弃。命令 <code>function</code> 将定义与其终止性证明分离：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="function sum_from :: &quot;nat ⇒ nat ⇒ nat&quot; where
+  &quot;sum_from i n = (if n &lt; i then 0 else i + sum_from (i + 1) n)&quot;
+  by pat_completeness auto
+termination
+  by (relation &quot;measure (λ(i, n). n + 1 - i)&quot;) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">function</span> sum_from :: <span class="isa-inner">&quot;nat ⇒ nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sum_from i n = (if n &lt; i then 0 else i + sum_from (i + 1) n)&quot;</span>
+  <span class="isa-proof">by</span> pat_completeness auto
+<span class="isa-cmd">termination</span>
+  <span class="isa-proof">by</span> (relation <span class="isa-inner">&quot;measure (λ(i, n). n + 1 - i)&quot;</span>) auto</code></pre></div>
+<p><code>function</code> 接受与 <code>fun</code> 相同的方程，但将证明义务留给你。<code>by pat_completeness auto</code> 行证明模式覆盖所有情况且互不矛盾；对于单个方程，这仅是形式上的。<code>termination</code> 随后要求终止证明，你命名了度量。<code>λ(i, n). n + 1 - i</code> 是将参数对 <code>(i, n)</code> 映射到 <code>n + 1 - i</code> 的函数；<code>measure</code> 将其转化为“具有更小度量”的关系，<code>relation</code> 方法使 Isabelle 使用该关系。<code>auto</code> 证明其余部分：该关系是良基的，因为每个自然数度量都是良基的（第 5 模块），且调用使度量从 <code>n + 1 - i</code> 减小到 <code>n + 1 - (i + 1)</code>，因为调用仅发生在 <code>¬ n &lt; i</code> 时。现在定义了 <code>sum_from</code>，它进行计算：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;sum_from 3 5&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;sum_from 3 5&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;12&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>手册《在 Isabelle/HOL 中定义递归函数》在 Documentation 面板的 <strong>functions</strong> 下深入解释了 <code>function</code>。在证明终止性后，这些定义还提供了遵循递归的归纳规则 <code>f.induct</code>；Module 11 使用了它。</p>
+<span class="section-anchor" id="codegen"></span>
+<div class="section-header"><span class="section-num">8</span><h2>从 HOL 到可运行代码</h2></div>
+<p>您定义的可执行函数是程序，Isabelle 可将它们翻译为其他编程语言：Standard ML、OCaml、Haskell 和 Scala。这就是您证明正确的函数成为真实软件一部分的方式，Modules 12 和 14 利用它进行验证程序。生成交通灯的 Haskell 代码：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="export_code next_light duration trace in Haskell module_name Traffic">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">export_code</span> next_light duration trace <span class="isa-minor">in</span> Haskell module_name Traffic</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>See theory exports</code></pre></div>
+<p><code>export_code</code> 接受要翻译的函数名称，并添加它们所需的一切：此处为数据类型 <code>light</code> 与自然数。<code>module_name</code> 命名 Haskell 模块。对其它语言使用 <code>in SML</code>、<code>in OCaml</code> 或 <code>in Scala</code>。翻译需要所涉及操作的可执行代码方程。例如，导出原始定义 <code>all_small k = (∀n::nat. n &lt; k)</code> 会因良构性错误而失败：<code>∀</code> 的默认代码枚举类 <code>enum</code> 中的类型，而 <code>nat</code> 不在该类中。这并不意味着 <code>all_small</code> 不可计算：它始终为 <code>False</code>（取 <code>n = k</code>），因此已证明的代码方程 <code>all_small k = False</code> 可使其可执行。在将规范转化为运行代码时（如 Module 12），这种区分至关重要。</p>
+<p>代码未出现在 Output 面板中。在 Isabelle/jEdit 中，消息中的 <em>theory exports</em> 一词是一个链接：点击它，jEdit 的 File Browser 会在名称以 <code>isabelle-export:</code> 开头的虚拟文件夹中打开生成的文件。Haskell 模块是文件 <code>Traffic.hs</code>，位于文件夹 <code>export1</code> 中（<code>export_code</code> 对理论 <code>export1</code> 的导出进行编号，<code>export2</code>，…）。此处为去除首行、Haskell 编译器选项以及 <code>module</code> 行之后的 <code>import</code> 声明后的内容：</p>
+<pre class="code"><code class="language-text">module Traffic(Nat, Num, Light, next_light, trace, duration) where {
+
+data Nat = Zero_nat | Suc Nat;
+
+data Num = One | Bit0 Num | Bit1 Num;
+
+data Light = Red | RedAmber | Green | Amber;
+
+plus_nat :: Nat -&gt; Nat -&gt; Nat;
+plus_nat Zero_nat n = n;
+plus_nat (Suc m) n = plus_nat m (Suc n);
+
+one_nat :: Nat;
+one_nat = Suc Zero_nat;
+
+nat_of_num :: Num -&gt; Nat;
+nat_of_num One = one_nat;
+nat_of_num (Bit0 n) = let {
+                        m = nat_of_num n;
+                      } in plus_nat m m;
+nat_of_num (Bit1 n) = let {
+                        m = nat_of_num n;
+                      } in Suc (plus_nat m m);
+
+next_light :: Light -&gt; Light;
+next_light Red = RedAmber;
+next_light RedAmber = Green;
+next_light Green = Amber;
+next_light Amber = Red;
+
+trace :: Nat -&gt; Light -&gt; [Light];
+trace Zero_nat l = [];
+trace (Suc n) l = l : trace n (next_light l);
+
+duration :: Light -&gt; Nat;
+duration Red = nat_of_num (Bit0 (Bit1 (Bit1 (Bit1 One))));
+duration RedAmber = nat_of_num (Bit0 One);
+duration Green = nat_of_num (Bit1 (Bit0 (Bit0 (Bit1 One))));
+duration Amber = nat_of_num (Bit1 One);
+
+}
+</code></pre>
+<p>该翻译紧密遵循您的方程。<code>module</code>行命名了模块<code>Traffic</code>，如<code>module_name</code>所要求，并列出其导出内容。数据类型<code>light</code>成为具有相同构造器的Haskell<code>data</code>类型，且<code>next_light</code>和<code>trace</code>拥有与Isabelle中相同的方程。其余部分为自然数，随逻辑构建方式翻译为：具有构造器<code>Zero_nat</code>和<code>Suc</code>的数据类型<code>Nat</code>，以及基于<code>One</code>使用<code>Bit0</code>（追加二进制位0）和<code>Bit1</code>（追加1）构建的二进制数字。因此30为<code>Bit0 (Bit1 (Bit1 (Bit1 One)))</code>（二进制11110），且<code>nat_of_num</code>将其转换为<code>Suc</code>形式。此表示法忠实但缓慢。为获得高效代码，需在理论头（<code>imports Main &quot;HOL-Library.Code_Target_Nat&quot;</code>）中导入库理论<code>HOL-Library.Code_Target_Nat</code>：代码生成器随后使用Haskell内置整数表示<code>nat</code>。</p>
+<div class="callout note"><div class="callout-label">须知</div>
+<p>代码生成器不属于 Isabelle 内核，因此生成的代码不由内核检查：代码生成器属于可信基础（模块 1）。其设计使得生成程序的每个计算步骤都对应于使用逻辑中定理的等式进行化简。假设生成器、其配置和目标运行时保持这种对应关系，则返回结果与逻辑定义一致；这提供了部分正确性保证。它不保证生成的代码在每个目标语言输入上终止或避免资源错误。命令 <code>value</code> 使用相同的机制。对于不含变量的项，它将该项翻译为 ML，运行它，并通过 <code>term_of</code> 将结果转换回项；这就是它需要类 <code>term_of</code>（第 8.6 节）的原因，以及为什么它在 <code>top_value Empty</code> 处因异常而停止（第 8.4 节）。对于包含变量的项，如 <code>rev [a, b, c]</code>，它使用相同翻译的符号变体。</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">9</span><h2>小结</h2></div>
+<ul>
+<li>HOL 支持在逻辑内部进行类型化的函数式编程。函数表示全数学
+映射；此处可执行定义使用递归且无副作用。<code>typ</code> 打印类型，<code>term</code> 打印项及其类型，<code>value</code> 求值项。</li>
+<li>类型由基类型（<code>bool</code>, <code>nat</code>, <code>int</code>）和紧随其后的类型构造器构建
+参数（<code>'a list</code>, <code>'a option</code>）、对 <code>'a × 'b</code>、函数 <code>'a ⇒ 'b</code> 及类型变元。Isabelle 推断类型；注解 <code>t :: τ</code> 固定其一。在项中，未声明的名称可能成为自由变元。</li>
+<li><code>λx. t</code> 是一个无名函数。多参数函数采用柯里化：<code>nat ⇒ nat ⇒ nat</code>
+<code>nat ⇒ (nat ⇒ nat)</code> 表示含义，<code>f x y</code> 表示 <code>(f x) y</code>，且部分应用是一个函数。</li>
+<li><code>datatype</code> 定义了枚举和递归类型（如栈和列表）。函数取值
+通过方程中的模式匹配或<code>case</code>进行分离。选项表示可能缺失的结果。</li>
+<li><code>definition</code> 定义非递归函数；<code>f_def</code> 默认情况下不是化简规则。<code>primrec</code> 允许
+原始递归；<code>fun</code> 允许通用模式与递归，警告缺失模式，并按顺序解决重叠模式。</li>
+<li>列表库提供了<code>map</code>、<code>filter</code>、<code>foldr</code>、<code>zip</code>、<code>take</code>、<code>drop</code>、<code>!</code>、<code>[m..&lt;n]</code>和list
+理解。<code>nat</code>上的减法为截断式，<code>div</code>与<code>mod</code>为全函数，重载操作按类型类与种类组织。</li>
+<li><code>fun</code> 要求在提供无限制定义方程之前终止：接受任意
+递归方程可证明<code>0 = 1</code>。Isabelle 搜索递减度量，报告其结果，并通过调用与度量矩阵解释其失败。借助<code>function</code>与<code>termination</code>，你可自行提供度量。</li>
+<li><code>export_code</code> 将定义规约为 Haskell、SML、OCaml 或 Scala。</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">10</span><h2>练习</h2></div>
+<div class="exercise" id="ex-8-1"><div class="ex-label"><span class="ex-num">练习 8.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">手工定义类型</span></div>
+<p>通过手工推导每个项的类型，然后在包含 <code>Red</code> 和 <code>next_light</code> 定义的本模块理论中，利用 <code>term</code> 验证你的答案。</p>
+<ol>
+<li><code>[Some True, None]</code></li>
+<li><code>(Suc, [0::nat])</code></li>
+<li><code>λxs. Red # xs</code></li>
+<li><code>map next_light</code></li>
+<li><code>λf x. f (f x)</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;[Some True, None]&quot;
+term &quot;(Suc, [0::nat])&quot;
+term &quot;λxs. Red # xs&quot;
+term &quot;map next_light&quot;
+term &quot;λf x. f (f x)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;[Some True, None]&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;(Suc, [0::nat])&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;λxs. Red # xs&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;map next_light&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;λf x. f (f x)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[Some True, None]&quot;
+  :: &quot;bool option list&quot;
+
+&quot;(Suc, [0])&quot;
+  :: &quot;(nat ⇒ nat) × nat list&quot;
+
+&quot;(#) Red&quot;
+  :: &quot;light list ⇒ light list&quot;
+
+&quot;map next_light&quot;
+  :: &quot;light list ⇒ light list&quot;
+
+&quot;λf x. f (f x)&quot;
+  :: &quot;('a ⇒ 'a) ⇒ 'a ⇒ 'a&quot;</code></pre></div>
+<ol>
+<li><code>None</code> 对于每个 <code>'a</code> 具有类型 <code>'a option</code>；在 <code>Some True</code> 旁边它必须是一个 <code>bool option</code>。</li>
+<li>函数 <code>nat ⇒ nat</code> 与 <code>nat list</code> 的配对。</li>
+<li><code>#</code> 在 <code>xs</code> 前方放置一盏灯，因此 <code>xs</code> 是一个灯列表，且结果亦然。Isabelle
+打印 λ-项为 <code>(#) Red</code>，<code>#</code> 的部分应用，原因与在 Section 8.2 中打印 <code>(+)</code> 相同。</li>
+<li>偏应用：<code>map</code> 已接收其函数 <code>light ⇒ light</code>，并等待列表。</li>
+<li><code>f</code> 应用于 <code>x</code> 并应用于结果 <code>f x</code>，因此其参数类型和结果类型必须
+相同，<code>'a</code>。该术语将函数应用两次。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-2"><div class="ex-label"><span class="ex-num">练习 8.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">手工定义列表</span></div>
+<p>在纸上计算每个项的值，然后使用<code>value</code>进行验证。</p>
+<ol>
+<li><code>take 3 (drop 2 [0..&lt;10])</code></li>
+<li><code>zip [Red, Green] [1, 2, 3::nat]</code></li>
+<li><code>filter (λn. n mod 3 = 0) [0..&lt;10]</code></li>
+<li><code>foldr (λx xs. xs @ [x]) [1, 2, 3::nat] []</code></li>
+<li><code>[n * n. n ← [1..&lt;5]]</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;take 3 (drop 2 [0..&lt;10])&quot;
+value &quot;zip [Red, Green] [1, 2, 3::nat]&quot;
+value &quot;filter (λn. n mod 3 = 0) [0..&lt;10]&quot;
+value &quot;foldr (λx xs. xs @ [x]) [1, 2, 3::nat] []&quot;
+value &quot;[n * n. n ← [1..&lt;5]]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;take 3 (drop 2 [0..&lt;10])&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;zip [Red, Green] [1, 2, 3::nat]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;filter (λn. n mod 3 = 0) [0..&lt;10]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;foldr (λx xs. xs @ [x]) [1, 2, 3::nat] []&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;[n * n. n ← [1..&lt;5]]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[2, 3, 4]&quot;
+  :: &quot;nat list&quot;
+
+&quot;[(Red, 1), (Green, 2)]&quot;
+  :: &quot;(light × nat) list&quot;
+
+&quot;[0, 3, 6, 9]&quot;
+  :: &quot;nat list&quot;
+
+&quot;[3, 2, 1]&quot;
+  :: &quot;nat list&quot;
+
+&quot;[1, 4, 9, 16]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<ol>
+<li><code>drop 2</code> 移除 0 和 1；<code>take 3</code> 保留接下来的三个数字。</li>
+<li><code>zip</code> 在较短列表的末尾停止，因此 3 没有配对。</li>
+<li>3 的倍数，小于 10，包含 0。</li>
+<li><code>foldr f [1, 2, 3] []</code> 是 <code>f 1 (f 2 (f 3 []))</code>。每一步将元素追加到列表末尾
+到目前为止构建的：首先是 <code>[3]</code>，然后是 <code>[3, 2]</code>，接着是 <code>[3, 2, 1]</code>。这个 <code>foldr</code> 反转列表。</li>
+<li>1 到 4 的平方：<code>[1..&lt;5]</code> 在 5 之前停止。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-3"><div class="ex-label"><span class="ex-num">练习 8.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">自然数与整数</span></div>
+<p>预测每个值，然后验证。解释每个令你惊讶的结果。</p>
+<ol>
+<li><code>(5::nat) - 7 + 7</code> 与 <code>(5::int) - 7 + 7</code></li>
+<li><code>(7::nat) div 2 * 2</code></li>
+<li><code>(-7::int) div 2</code> 与 <code>(-7::int) mod 2</code></li>
+<li><code>(7::nat) mod 0</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(5::nat) - 7 + 7&quot;
+value &quot;(5::int) - 7 + 7&quot;
+value &quot;(7::nat) div 2 * 2&quot;
+value &quot;(-7::int) div 2&quot;
+value &quot;(-7::int) mod 2&quot;
+value &quot;(7::nat) mod 0&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(5::nat) - 7 + 7&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(5::int) - 7 + 7&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(7::nat) div 2 * 2&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-7::int) div 2&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-7::int) mod 2&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(7::nat) mod 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;7&quot;
+  :: &quot;nat&quot;
+
+&quot;5&quot;
+  :: &quot;int&quot;
+
+&quot;6&quot;
+  :: &quot;nat&quot;
+
+&quot;- 4&quot;
+  :: &quot;int&quot;
+
+&quot;1&quot;
+  :: &quot;int&quot;
+
+&quot;7&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<ol>
+<li>在<code>nat</code>上，<code>5 - 7</code>被截断为0，且<code>0 + 7 = 7</code>。在<code>int</code>上，结果是预期的5。</li>
+<li><code>7 div 2 = 3</code>, 且 <code>3 * 2 = 6</code>: 整数除法丢弃余数。</li>
+<li><code>div</code> on <code>int</code> 向下取整，因此 <code>-7 div 2 = -4</code> (not −3)，然后 <code>-7 mod 2 = 1</code>，因为
+<code>(-4) * 2 + 1 = -7</code>.</li>
+<li><code>a mod 0 = a</code>: <code>mod</code> 是全的，如同每个 HOL 函数，这是库选择的值
+对于余数除以 0（Fact 8.1）。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-4"><div class="ex-label"><span class="ex-num">练习 8.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">交叉路口的安全性如何？</span></div>
+<p>设计者通过此函数利用南北方向交通灯控制东西方向交通灯：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun cross :: &quot;light ⇒ light&quot; where
+  &quot;cross Red = Green&quot;
+| &quot;cross RedAmber = Amber&quot;
+| &quot;cross Green = Red&quot;
+| &quot;cross Amber = RedAmber&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cross :: <span class="isa-inner">&quot;light ⇒ light&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;cross Red = Green&quot;</span>
+| <span class="isa-inner">&quot;cross RedAmber = Amber&quot;</span>
+| <span class="isa-inner">&quot;cross Green = Red&quot;</span>
+| <span class="isa-inner">&quot;cross Amber = RedAmber&quot;</span></code></pre></div>
+<p>交叉路口的状态为<code>(l, cross l)</code>。使用<code>value</code>和<code>map</code>对全部四种状态<code>l</code>检查<code>safe</code>。哪些状态违反了第8.4节的规则？随后，将安全控制器的循环表示为包含所有全红状态的路径状态列表，并使用<code>value</code>验证其中的每个状态均安全。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map (λl. safe (l, cross l)) [Red, RedAmber, Green, Amber]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map (λl. safe (l, cross l)) [Red, RedAmber, Green, Amber]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[True, False, True, False]&quot;
+  :: &quot;bool list&quot;</code></pre></div>
+<p>状态包含<code>l = RedAmber</code>和<code>l = Amber</code>是不安全的：此时两个灯均不处于状态<code>Red</code>，因为一个显示红灯和琥珀灯，另一个显示琥珀灯。安全循环允许每个方向运行其序列，而另一个方向为红灯，中间状态均为红灯：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition safe_cycle :: &quot;(light × light) list&quot; where
+  &quot;safe_cycle = [(Green, Red), (Amber, Red), (Red, Red), (Red, RedAmber),
+                 (Red, Green), (Red, Amber), (Red, Red), (RedAmber, Red)]&quot;
+
+value &quot;filter (λp. ¬ safe p) safe_cycle&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe_cycle :: <span class="isa-inner">&quot;(light × light) list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe_cycle = [(Green, Red), (Amber, Red), (Red, Red), (Red, RedAmber),
+                 (Red, Green), (Red, Amber), (Red, Red), (RedAmber, Red)]&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;filter (λp. ¬ safe p) safe_cycle&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[]&quot;
+  :: &quot;(light × light) list&quot;</code></pre></div>
+<p>没有状态是不安全的。<code>value</code> 可以使用 <code>safe</code> 和 <code>safe_cycle</code> 而无需被告知：代码生成器始终使用定义方程，不同于 <code>simp</code>。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-5"><div class="ex-label"><span class="ex-num">练习 8.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">从列表到栈</span></div>
+<p>用 <code>primrec</code> 定义 <code>from_list :: 'a list ⇒ 'a stack</code>，使得列表的第一个元素位于栈顶。用 <code>value</code> 测试它。然后像 Module 5 中那样，通过归纳法证明 <code>to_list (from_list xs) = xs</code> 和 <code>height (from_list xs) = length xs</code>。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="primrec from_list :: &quot;'a list ⇒ 'a stack&quot; where
+  &quot;from_list [] = Empty&quot;
+| &quot;from_list (x # xs) = Push x (from_list xs)&quot;
+
+value &quot;from_list [Red, Green]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">primrec</span> from_list :: <span class="isa-inner">&quot;'a list ⇒ 'a stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;from_list [] = Empty&quot;</span>
+| <span class="isa-inner">&quot;from_list (x # xs) = Push x (from_list xs)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;from_list [Red, Green]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Push Red (Push Green Empty)&quot;
+  :: &quot;light stack&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;to_list (from_list xs) = xs&quot;
+  by (induction xs) auto
+
+lemma &quot;height (from_list xs) = length xs&quot;
+  by (induction xs) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;to_list (from_list xs) = xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;height (from_list xs) = length xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto</code></pre></div>
+<p>两个证明均遵循对列表中 <code>from_list</code> 的递归：基本情况 <code>[]</code> 和归纳步骤 <code>x # xs</code> 由 <code>from_list</code>、<code>to_list</code> 和 <code>height</code> 的方程计算得出，且归纳步骤使用了归纳假设。将 <code>from_list</code> 与第 8.4 节中的 <code>push_all</code> 进行比较，后者将最后一个元素置于顶部。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-6"><div class="ex-label"><span class="ex-num">练习 8.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">一个平均</span></div>
+<p>用 <code>definition</code> 定义 <code>average :: nat list ⇒ nat</code>，即列表之和除以其长度。计算一个周期内状态的平均持续时间，以及 <code>average []</code>。为什么 <code>average []</code> 不会失败？然后证明 <code>average [] = 0</code>，并且对于每个 <code>n</code>，证明 <code>average [n] = n</code>。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition average :: &quot;nat list ⇒ nat&quot; where
+  &quot;average xs = sum_list xs div length xs&quot;
+
+value &quot;average (map duration (trace 4 Red))&quot;
+value &quot;average []&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> average :: <span class="isa-inner">&quot;nat list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;average xs = sum_list xs div length xs&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;average (map duration (trace 4 Red))&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;average []&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  average :: &quot;nat list ⇒ nat&quot;
+
+&quot;15&quot;
+  :: &quot;nat&quot;
+
+&quot;0&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>四个持续时间之和为 60，且 <code>60 div 4 = 15</code>。对于空列表，其和与长度均为 0，且 <code>0 div 0 = 0</code>（Fact 8.1），因此 <code>average []</code> 为 0 而非错误。0 是否是“无”的合理平均值是规范层面的问题，而非 Isabelle 的问题。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;average [] = 0&quot;
+  by (simp add: average_def)
+
+lemma &quot;average [n] = n&quot;
+  by (simp add: average_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;average [] = 0&quot;</span>
+  <span class="isa-proof">by</span> (simp add: average_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;average [n] = n&quot;</span>
+  <span class="isa-proof">by</span> (simp add: average_def)</code></pre></div>
+<p>没有<code>add: average_def</code>，<code>simp</code>会失败，正如第8.4节中<code>safe</code>的情况一样。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-7"><div class="ex-label"><span class="ex-num">练习 8.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">传感器代码</span></div>
+<p>传感器将灯光状态报告为一个数字：0 代表红色，1 代表红黄灯，2 代表绿灯，3 代表黄灯。定义 <code>code_of :: light ⇒ nat</code> 和解码器 <code>light_of :: nat ⇒ light option</code>，使用模式 <code>fun</code>，并采用模式 <code>0</code>、<code>Suc 0</code> 等以及一个返回 <code>None</code> 的通配方程处理其他所有数字。使用 <code>thm light_of.simps</code> 检查 <code>fun</code> 如何处理重叠的最后一个方程。在 <code>[0, 2, 7]</code> 上测试解码器。然后证明解码逆转编码：<code>light_of (code_of l) = Some l</code>。（提示：第 8.6 节末尾的陷阱。）</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun code_of :: &quot;light ⇒ nat&quot; where
+  &quot;code_of Red = 0&quot;
+| &quot;code_of RedAmber = 1&quot;
+| &quot;code_of Green = 2&quot;
+| &quot;code_of Amber = 3&quot;
+
+fun light_of :: &quot;nat ⇒ light option&quot; where
+  &quot;light_of 0 = Some Red&quot;
+| &quot;light_of (Suc 0) = Some RedAmber&quot;
+| &quot;light_of (Suc (Suc 0)) = Some Green&quot;
+| &quot;light_of (Suc (Suc (Suc 0))) = Some Amber&quot;
+| &quot;light_of n = None&quot;
+
+thm light_of.simps">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> code_of :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;code_of Red = 0&quot;</span>
+| <span class="isa-inner">&quot;code_of RedAmber = 1&quot;</span>
+| <span class="isa-inner">&quot;code_of Green = 2&quot;</span>
+| <span class="isa-inner">&quot;code_of Amber = 3&quot;</span>
+
+<span class="isa-cmd">fun</span> light_of :: <span class="isa-inner">&quot;nat ⇒ light option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;light_of 0 = Some Red&quot;</span>
+| <span class="isa-inner">&quot;light_of (Suc 0) = Some RedAmber&quot;</span>
+| <span class="isa-inner">&quot;light_of (Suc (Suc 0)) = Some Green&quot;</span>
+| <span class="isa-inner">&quot;light_of (Suc (Suc (Suc 0))) = Some Amber&quot;</span>
+| <span class="isa-inner">&quot;light_of n = None&quot;</span>
+
+<span class="isa-cmd">thm</span> light_of.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  light_of 0 = Some Red
+  light_of (Suc 0) = Some RedAmber
+  light_of (Suc (Suc 0)) = Some Green
+  light_of (Suc (Suc (Suc 0))) = Some Amber
+  light_of (Suc (Suc (Suc (Suc ?va)))) = None</code></pre></div>
+<p><code>fun</code> 用针对前序方程未覆盖的数字（即形如 <code>Suc (Suc (Suc (Suc ?va)))</code>，也就是 4 及以上的数）的方程替换了通配方程。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map light_of [0, 2, 7]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map light_of [0, 2, 7]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[Some Red, Some Green, None]&quot;
+  :: &quot;light option list&quot;</code></pre></div>
+<p>对于证明，对<code>l</code>进行<code>cases</code>拆分。在每种情况下，目标都关于一个数字，如<code>light_of 2 = Some Green</code>，而<code>light_of</code>的方程关于<code>Suc</code>模式。<code>numeral_eq_Suc</code>将数字转换为<code>Suc</code>形式：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;light_of (code_of l) = Some l&quot;
+  by (cases l) (simp_all add: numeral_eq_Suc)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;light_of (code_of l) = Some l&quot;</span>
+  <span class="isa-proof">by</span> (cases l) (simp_all add: numeral_eq_Suc)</code></pre></div>
+<p>没有<code>numeral_eq_Suc</code>，<code>simp</code>证明了<code>Red</code>和<code>RedAmber</code>的情况，但在<code>light_of 2 = Some Green</code>和<code>light_of 3 = Some Amber</code>上卡住了，正如陷阱所预测的那样。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-8"><div class="ex-label"><span class="ex-num">练习 8.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Isabelle 中的终止性</span></div>
+<p>对于每个定义，预测 <code>fun</code> 是否接受它，以及它报告的是终止序还是结果矩阵的条目。然后尝试执行。</p>
+<ol>
+<li><code>merge</code>，它将两个有序列表合并为一个有序列表，具有类型
+<code>'a::linorder list ⇒ 'a list ⇒ 'a list</code> 以及方程 <code>merge [] ys = ys</code>、<code>merge xs [] = xs</code> 和 <code>merge (x # xs) (y # ys) = (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)</code>。类 <code>linorder</code> 包含具有线性序 <code>≤</code> 的类型，例如 <code>nat</code> 和 <code>int</code>。</li>
+<li><code>forever n = forever (n + 1)</code>，类型为<code>nat ⇒ nat</code>。它是否如第8.7节中的<code>bad</code>那样危险？</li>
+<li><code>count_up i n = (if i &lt; n then count_up (i + 1) n + 1 else 0)</code>，类型为<code>nat ⇒ nat ⇒ nat</code>，来自
+练习 5.8，其 <code>fun</code> 被拒绝。使用 <code>function</code> 定义它，如第 8.7 节中的 <code>sum_from</code>，并计算 <code>count_up 3 10</code>。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>
+<p>已接受：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun merge :: &quot;'a::linorder list ⇒ 'a list ⇒ 'a list&quot; where
+  &quot;merge [] ys = ys&quot;
+| &quot;merge xs [] = xs&quot;
+| &quot;merge (x # xs) (y # ys) =
+     (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)&quot;
+
+value &quot;merge [1, 4, 6] [2, 3, 7::nat]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> merge :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;merge [] ys = ys&quot;</span>
+| <span class="isa-inner">&quot;merge xs [] = xs&quot;</span>
+| <span class="isa-inner">&quot;merge (x # xs) (y # ys) =
+     (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;merge [1, 4, 6] [2, 3, 7::nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  merge :: &quot;'a list ⇒ 'a list ⇒ 'a list&quot;
+
+Found termination order:
+  &quot;(λp. length (snd p)) &lt;*mlex*&gt; (λp. length (fst p)) &lt;*mlex*&gt; {}&quot;
+
+&quot;[1, 2, 3, 4, 6, 7]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>存在两个递归调用。第一个调用使第一个列表变短而保持第二个列表不变；第二个调用则相反。因此，仅凭任一参数的长度在两个调用中都不会同时减小。它们的总和可作为合适的单一度量；Isabelle 改为找到字典序，如 Module 5 中 Ackermann 函数所示。它首先选取第二个列表的长度：在第二个调用中它减小 (<code>&lt;</code>)，在第一个调用中保持不变 (<code>&lt;=</code>)，此时第一个列表的长度减小。优先比较第一个列表同样可行。</p>
+</li>
+<li>
+<p>被拒绝</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> forever :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;forever n = forever (n + 1)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  forever :: &quot;nat ⇒ nat&quot;
+
+<span class="isa-error">Unfinished subgoals:
+(a, 1, &lt;):
+ 1. False
+Calls:
+  a) n ~&gt; n + 1
+Measures:
+  1) size
+Result matrix:
+    1
+a:  F
+
+Could not find lexicographic termination order.</span></code></pre></div>
+<p>调用从<code>n</code>到<code>n + 1</code>，因此规模增大，且矩阵条目为<code>F</code>：规模不增的断言<code>n + 1 ≤ n</code>变为显然的<code>False</code>。任何度量均无法工作：它必须从<code>n</code>递减至<code>n + 1</code>再至<code>n + 2</code>等，构成自然数的无限下降链。但<code>forever</code>不像<code>bad</code>那样危险：每个常数函数均满足<code>forever n = forever (n + 1)</code>，因此方程并不矛盾。它仅仅不是定义：它未确定函数<code>forever</code>具体为何，且作为程序它将无限运行。如同Module 5中的<code>f n = f n</code>所示，它表明<code>fun</code>拒绝所有其终止性无法证明的递归，无论方程是否矛盾。</p>
+</li>
+<li>
+<p>度量为<code>n - i</code>。调用仅在<code>i &lt; n</code>时发生，随后为<code>n - (i + 1) &lt; n - i</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="function count_up :: &quot;nat ⇒ nat ⇒ nat&quot; where
+  &quot;count_up i n = (if i &lt; n then count_up (i + 1) n + 1 else 0)&quot;
+  by pat_completeness auto
+termination
+  by (relation &quot;measure (λ(i, n). n - i)&quot;) auto
+
+value &quot;count_up 3 10&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">function</span> count_up :: <span class="isa-inner">&quot;nat ⇒ nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;count_up i n = (if i &lt; n then count_up (i + 1) n + 1 else 0)&quot;</span>
+  <span class="isa-proof">by</span> pat_completeness auto
+<span class="isa-cmd">termination</span>
+  <span class="isa-proof">by</span> (relation <span class="isa-inner">&quot;measure (λ(i, n). n - i)&quot;</span>) auto
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;count_up 3 10&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;7&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p><code>count_up i n</code> 计算从 <code>i</code> 到 <code>n</code> 的步骤数，因此等于 <code>n - i</code>，此处为 7。</p>
+</li>
+</ol>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">11</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div><code>term</code>与<code>value</code>命令的区别是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>term</code> 仅适用于不含变量的项</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>term</code> 打印一个项及其类型而不对其进行求值；<code>value</code> 对其求值</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>value</code> 仅打印类型，<code>term</code> 仅打印值</button></li><li><button type="button" class="quiz-opt" data-i="3">没有；它们是同一命令的两个名称</button></li></ol><div class="quiz-expl" hidden><code>term &quot;(λx::nat. x * x) 7&quot;</code> 打印 <code>7 * 7</code>，在 β-规约之后但不进行算术运算；<code>value</code> 打印 <code>49</code>。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>map Suc</code> 的类型是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>nat ⇒ nat</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>(nat ⇒ nat) ⇒ nat list ⇒ nat list</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>nat list ⇒ nat list</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>nat list</code></button></li></ol><div class="quiz-expl" hidden><code>map :: ('a ⇒ 'b) ⇒ 'a list ⇒ 'b list</code> 已接收其第一个参数 <code>Suc :: nat ⇒ nat</code>。部分应用等待一个自然数列表。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div><code>value &quot;(3::nat) - 5&quot;</code> 打印什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>- 2</code></button></li><li><button type="button" class="quiz-opt" data-i="1">一个错误，因为结果是负数</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>2</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>0</code></button></li></ol><div class="quiz-expl" hidden><code>nat</code> 上的减法被截断：当 <code>m ≤ n</code> 时结果为 <code>m - n = 0</code>。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>你使用 <code>definition</code> 定义了 <code>safe</code>，但 <code>lemma &quot;safe (Red, Green)&quot; by simp</code> 失败了。为什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>simp</code> 不使用 <code>definition</code> 的等式，除非你像 <code>simp add: safe_def</code> 那样添加它</button></li><li><button type="button" class="quiz-opt" data-i="1">该引理为假</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>definition</code> 无法在二元组上定义函数</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> 无法证明关于数据类型（datatypes）的语句</button></li></ol><div class="quiz-expl" hidden><code>definition</code> 默认不通过 <code>simp</code> 注册其方程。当展开（unfolding）有用时，你可以提供或注册它。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>为什么<code>fun</code>拒绝其无法证明终止的递归定义？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">因为非终止函数会使 <code>value</code> 变慢</button></li><li><button type="button" class="quiz-opt" data-i="1">因为 HOL 没有表示无限计算的数据类型</button></li><li><button type="button" class="quiz-opt" data-i="2">由于非终止“定义”的方程可能矛盾，如<code>f x = f x + 1</code>蕴含<code>0 = 1</code></button></li><li><button type="button" class="quiz-opt" data-i="3">由于代码生成器无法翻译此类函数</button></li></ol><div class="quiz-expl" hidden><code>fun</code> 从需要终止论证的构造中证明你的方程。若无终止论证，接受这些方程可能导致逻辑不一致。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>value &quot;2 + 2&quot;</code> 报告“无法推导子类型关系 numeral &lt; term_of”。原因是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">数字 2 对于 <code>value</code> 来说太小了</button></li><li><button type="button" class="quiz-opt" data-i="1">自然数无法与 <code>value</code> 相加</button></li><li><button type="button" class="quiz-opt" data-i="2">类<code>numeral</code>未在<code>Main</code>中定义</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>2 + 2</code> 的类型未知；Isabelle 仅知它包含数字，这不足以打印结果</button></li></ol><div class="quiz-expl" hidden><code>value</code> 需要类 <code>term_of</code> 才能打印结果。形如 <code>:: nat</code> 的类型注解可固定类型并消除错误。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="8"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_07_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 7：在 Isabelle 中使用自然演绎</span></a><a class="mnav next" href="module_09_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 9：证明自动化</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

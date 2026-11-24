@@ -1,0 +1,1293 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 9：证明自动化 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="理解 Isabelle 的自动化工具如何工作。引导化简器，为逻辑、集合或算术选择证明方法，查找引理与反例，使用 Sledgehammer，并在自动化失败后继续推导。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="9" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 9</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 9 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html" class="active"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_09_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#toolbox"><span class="num">1</span><span class="side-t">自动化工具箱</span></a><a href="#simp"><span class="num">2</span><span class="side-t">用化简器重写</span></a><a href="#steering"><span class="num">3</span><span class="side-t">引导化简器</span></a><a href="#classical"><span class="num">4</span><span class="side-t">逻辑与集合：blast、auto 及其相关工具</span></a><a href="#arith"><span class="num">5</span><span class="side-t">算术</span></a><a href="#find"><span class="num">6</span><span class="side-t">搜索库</span></a><a href="#refute"><span class="num">7</span><span class="side-t">反例：Quickcheck 与 Nitpick</span></a><a href="#sledgehammer"><span class="num">8</span><span class="side-t">Sledgehammer</span></a><a href="#strategy"><span class="num">9</span><span class="side-t">当自动化失败时</span></a><a href="#summary"><span class="num">10</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第三部分 · Isabelle/HOL 实践</div>
+      <h1 class="module-title"><span class="title-n">模块 9</span>证明自动化</h1>
+      <p class="module-lead">理解 Isabelle 的自动化工具如何工作。引导化简器，为逻辑、集合或算术选择证明方法，查找引理与反例，使用 Sledgehammer，并在自动化失败后继续推导。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 210 分钟</span><span class="chip chip-needs">开始之前：模块 1–8，尤其是归纳（模块 5）、规则（模块 7）和定义（模块 8）</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>解释化简器怎样重写目标，并用化简规则以及 <code>add:</code>、<code>del:</code>、<code>only:</code> 和 <code>split:</code> 引导它</li><li>认出条件规则、情形拆分和会导致循环的规则，并读懂化简器的跟踪信息</li><li>在 <code>simp</code>、<code>auto</code>、<code>blast</code>、<code>force</code>、<code>fastforce</code> 和各种算术方法之间做出选择，并认出每种方法失败时的表现</li><li>用 <code>find_theorems</code> 搜索库，并在证明断言之前先用 Quickcheck 和 Nitpick 检验它们</li><li>运行 Sledgehammer，使用它建议的证明，并解释为什么可以信任这些证明</li><li>自动化失败时，按照一套步骤找出原因</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="toolbox"></span>
+<div class="section-header"><span class="section-num">1</span><h2>自动化工具箱</h2></div>
+<p>从模块 1 开始，你就一直在用一个词结束证明：<code>by simp</code>、<code>by auto</code>、<code>by blast</code>。每个这样的词都会启动一个搜索证明的程序。它成功时，能为你省下几十次规则应用；它失败时，又可能让你摸不着头脑：目标（goal）看起来很简单，Isabelle 却只说这个方法失败了。本模块就来打开这个工具箱。你将了解这些工具是怎样工作的，每个工具擅长什么，怎样引导它们，以及当它们都不管用时该怎么办。</p>
+<p>首先，回顾为何安全使用内部机制细节未知的工具：在 Section 1.4 中介绍了 LCF 架构：普通完成的证明由内核推理构建。此处使用的证明方法遵循此路径。搜索可能失败或运行很长时间，但其结果仅通过从给定假设和公理出发的已检查推理成为定理。Admissions 和 oracle 配置绕过此保证。<code>find_theorems</code>、Quickcheck 和 Nitpick 等搜索工具本身并不证明目标。Sledgehammer 重构的证明也经过检查，尽管它调用了 Isabelle 外部的程序；Section 9.8 展示了具体方法。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>它做什么</th>
+<th>适用于</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simp</code></td>
+<td>用等式从左往右重写目标</td>
+<td>等式、定义、列表和数上的函数</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td><code>simp</code> 加上逻辑推理，作用于每个子目标</td>
+<td>一次处理许多简单的子目标</td>
+</tr>
+<tr>
+<td><code>blast</code></td>
+<td>用逻辑规则搜索证明</td>
+<td>逻辑、集合和关系</td>
+</tr>
+<tr>
+<td><code>force</code>、<code>fastforce</code></td>
+<td>逻辑与重写相结合，作用于第一个子目标</td>
+<td>量词与等式交织在一起的目标</td>
+</tr>
+<tr>
+<td><code>linarith</code>、<code>arith</code>、<code>presburger</code></td>
+<td>证明线性算术中的事实</td>
+<td>不等式；奇数和偶数；除以常数的 <code>div</code> 和 <code>mod</code></td>
+</tr>
+<tr>
+<td><code>find_theorems</code></td>
+<td>搜索库</td>
+<td>找到你需要的引理</td>
+</tr>
+<tr>
+<td><code>quickcheck</code>、<code>nitpick</code></td>
+<td>搜索反例</td>
+<td>在试图证明一个断言之前先检验它</td>
+</tr>
+<tr>
+<td><code>sledgehammer</code></td>
+<td>求助于外部证明器，返回一个由 Isabelle 检查的证明</td>
+<td>能由几条库引理推出的目标</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="acl">贯穿本模块的例子：访问控制</h3>
+<p>为了让每个工具都有实实在在的工作可做，本模块自始至终使用同一个例子。一个文档共享服务要决定谁可以对每个文档做什么。它为每个文档保存一张<strong>访问控制列表</strong>（access-control list，ACL）：这是一个由条目组成的列表，每个条目给予一个用户一项权限。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype perm = Read | Write | Admin
+
+type_synonym 'u acl = &quot;('u × perm) list&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> perm = Read | Write | Admin
+
+<span class="isa-cmd">type_synonym</span> 'u acl = <span class="isa-inner">&quot;('u × perm) list&quot;</span></code></pre></div>
+<p>数据类型（datatype）<code>perm</code> 有三个值：<code>Read</code>（读）、<code>Write</code>（写）和 <code>Admin</code>（管理）。<code>type_synonym</code> 给一个类型起一个更短的名字：<code>'u acl</code> 就是类型 <code>('u × perm) list</code>，即由“用户和权限”组成的有序对（pair）的列表。类型变元（type variable）<code>'u</code> 是用户的类型。下面的例子使用 <code>''ann''</code> 这样的字符串；在 Isabelle 中，字符串的两边各写两个单引号。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun allows :: &quot;'u acl ⇒ 'u ⇒ perm ⇒ bool&quot; where
+  &quot;allows [] u p = False&quot;
+| &quot;allows (e # es) u p = (e = (u, p) ∨ allows es u p)&quot;
+
+definition grant :: &quot;'u ⇒ perm ⇒ 'u acl ⇒ 'u acl&quot; where
+  &quot;grant u p es = (u, p) # es&quot;
+
+fun revoke :: &quot;'u ⇒ 'u acl ⇒ 'u acl&quot; where
+  &quot;revoke u [] = []&quot;
+| &quot;revoke u (e # es) = (if fst e = u then revoke u es else e # revoke u es)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> allows :: <span class="isa-inner">&quot;'u acl ⇒ 'u ⇒ perm ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;allows [] u p = False&quot;</span>
+| <span class="isa-inner">&quot;allows (e # es) u p = (e = (u, p) ∨ allows es u p)&quot;</span>
+
+<span class="isa-cmd">definition</span> grant :: <span class="isa-inner">&quot;'u ⇒ perm ⇒ 'u acl ⇒ 'u acl&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;grant u p es = (u, p) # es&quot;</span>
+
+<span class="isa-cmd">fun</span> revoke :: <span class="isa-inner">&quot;'u ⇒ 'u acl ⇒ 'u acl&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;revoke u [] = []&quot;</span>
+| <span class="isa-inner">&quot;revoke u (e # es) = (if fst e = u then revoke u es else e # revoke u es)&quot;</span></code></pre></div>
+<p>函数名 <code>allows</code>、<code>grant</code> 和 <code>revoke</code> 的意思分别是“允许”“授予”和“撤销”。当列表 <code>es</code> 给予用户 <code>u</code> 权限 <code>p</code> 时，也就是当某个条目恰好是有序对 <code>(u, p)</code> 时，<code>allows es u p</code> 成立。<code>grant u p es</code> 把条目 <code>(u, p)</code> 加在列表的最前面。<code>revoke u es</code> 删除用户 <code>u</code> 的所有条目：<code>fst e</code> 是有序对 <code>e</code> 的第一个分量，也就是它的用户。注意，<code>grant</code> 是用 <code>definition</code> 定义的，另外两个函数则是用 <code>fun</code> 定义的。你会在第 9.2 节看到，这个区别对化简器很重要。简单测试一下：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;allows [(''ann'', Read), (''bob'', Write)] ''bob'' Write&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;allows [(''ann'', Read), (''bob'', Write)] ''bob'' Write&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;True&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[(''bob'', Write)]&quot;
+  :: &quot;(char list × perm) list&quot;</code></pre></div>
+<p>第二个结果中的类型表明，字符串是由字符组成的列表，即 <code>char list</code>。</p>
+<span class="section-anchor" id="simp"></span>
+<div class="section-header"><span class="section-num">2</span><h2>用化简器重写</h2></div>
+<h3 id="rewriting">纸上的重写</h3>
+<p>化简器（simplifier）只做一件事：<strong>重写</strong>（rewrite）。给定一个等式 <code>l = r</code>，它在目标中寻找具有 <code>l</code> 的形状的部分，并把这部分替换为 <code>r</code> 的相应实例。它不断重复这一步，直到再也没有等式可用。如果目标变成了 <code>True</code>，它就得证了。</p>
+<p>下面是一个用到四个等式的例子。前两个是 <code>grant</code> 的定义和 <code>allows</code> 的第二个等式；另外两个是逻辑定律。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>等式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(1)</td>
+<td><code>grant u p es = (u, p) # es</code></td>
+</tr>
+<tr>
+<td>(2)</td>
+<td><code>allows (e # es) u p = (e = (u, p) ∨ allows es u p)</code></td>
+</tr>
+<tr>
+<td>(3)</td>
+<td><code>(x = x) = True</code></td>
+</tr>
+<tr>
+<td>(4)</td>
+<td><code>(True ∨ P) = True</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="box box-example"><div class="box-label">例 9.1<span class="box-title">把目标重写成 True</span></div>
+<p>考虑目标 <code>allows (grant u Read es) u Read</code>：用户 <code>u</code> 被授予读权限之后，就可以读。</p>
+<ol>
+<li>子项 <code>grant u Read es</code> 具有 (1) 左边的形状，其中 <code>u</code> 取 <code>u</code>，<code>p</code> 取 <code>Read</code>，<code>es</code> 取 <code>es</code>。替换它，目标变成 <code>allows ((u, Read) # es) u Read</code>。</li>
+<li>现在整个目标具有 (2) 左边的形状，其中 <code>e</code> 取 <code>(u, Read)</code>。替换它，得到 <code>(u, Read) = (u, Read) ∨ allows es u Read</code>。</li>
+<li>子项 <code>(u, Read) = (u, Read)</code> 与 (3) 匹配，其中 <code>x</code> 取 <code>(u, Read)</code>，于是得到 <code>True ∨ allows es u Read</code>。</li>
+<li>这与 (4) 匹配：目标变成了 <code>True</code>，证明完成。</li>
+</ol>
+<p>等式 (2) 始终不会重写 <code>allows es u Read</code>，因为 <code>es</code> 不具有 <code>e # es</code> 的形式。目标的这一部分保持原样，不过到第 4 步之后，它已经无关紧要了。</p>
+</div>
+<p>等式中的变量是占位符。在 Isabelle 显示的定理中，它们带有问号，例如 <code>?u</code>，就像模块 7 中的图式变量（schematic variable）一样。要使用一个等式，化简器就要为等式中的变量找到一些项，使等式的左边与目标的某一部分完全相同。这叫做<strong>匹配</strong>（matching）。它就是模块 7 中的合一（unification），只不过只朝一个方向进行：等式中的变量可以被实例化，目标中的变量则不可以。</p>
+<div class="box box-definition"><div class="box-label">定义 9.1<span class="box-title">重写</span></div>
+<p><strong>重写规则</strong>（rewrite rule）是只从左往右使用的等式 <code>l = r</code>。用一组规则<strong>重写</strong>一个项，就是一次又一次地找出一个子项，它是某个左边 <code>l</code> 的实例，然后把它替换为右边 <code>r</code> 的相同实例。任何规则都无法再重写的项叫做<strong>范式</strong>（normal form）。化简器通过把目标重写成 <code>True</code> 来证明它。</p>
+</div>
+<p>在逻辑中，<code>l = r</code> 和 <code>r = l</code> 表达相同含义。化简器仍仅沿单一方向使用每个等式，从而避免双向搜索。普通重写由内向外进行，如图 9.1 所示。同余规则可控制简化部分及其假设条件：例如，<code>if</code> 的条件可先被简化，其分支在该条件下被简化。</p>
+<figure class="fig" id="fig-09-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 432" width="760" height="432" role="img"><title>逐步重写一个目标</title><defs><marker id="fig-09-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="16" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="42" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A">allows (<tspan fill="#2563EB" font-weight="700">grant u Read es</tspan>) u Read</text><line x1="60" y1="60" x2="60" y2="96" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="84" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(1)  grant u p es = (u, p) # es</text><rect x="20" y="102" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#2563EB" font-weight="700">allows ((u, Read) # es) u Read</tspan></text><line x1="60" y1="146" x2="60" y2="182" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="170" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(2)  allows (e # es) u p = (e = (u, p) ∨ allows es u p)</text><rect x="20" y="188" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="214" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#2563EB" font-weight="700">(u, Read) = (u, Read)</tspan> ∨ allows es u Read</text><line x1="60" y1="232" x2="60" y2="268" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="256" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(3)  (x = x) = True</text><rect x="20" y="274" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="300" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#2563EB" font-weight="700">True ∨ allows es u Read</tspan></text><line x1="60" y1="318" x2="60" y2="354" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="342" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(4)  (True ∨ P) = True</text><rect x="20" y="360" width="120" height="40" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/><text x="34" y="386" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#15803D" font-weight="700">True</tspan></text><rect x="197.0" y="369" width="46" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="220.0" y="386" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ 得证</text><circle cx="532" cy="35" r="11" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="532" y="40" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="552" y="40" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">蓝色粗体部分是</text><text x="552" y="58" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">下一步要重写的部分。</text><circle cx="532" cy="135" r="11" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="532" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="552" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">先内后外：先重写</text><text x="552" y="158" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">grant u Read es，</text><text x="552" y="176" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">再重写包含它的项。</text><circle cx="532" cy="235" r="11" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="532" y="240" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="552" y="240" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">每一步把规则左边的一个实例</text><text x="552" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">替换为右边的相同实例。</text></svg>
+</div><figcaption><span class="fig-num">图 9.1</span> <p>化简器处理 <code>allows (grant u Read es) u Read</code> 的过程。每一步都用箭头旁标出的规则重写高亮的部分。内部的部分先于包含它们的项被重写。</p>
+</figcaption></figure>
+<h3 id="simp-only">在 Isabelle 中观察</h3>
+<p>你可以让 Isabelle 逐步执行示例中的步骤。<code>simp only: r₁ r₂</code> 清除普通重写规则，并使用 <code>r₁ r₂</code>，结合第 9.2.4 节中描述的假设和内置支持：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read es) u Read&quot;
+  apply (simp only: grant_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">apply</span> (simp only: grant_def)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. allows ((u, Read) # es) u Read</code></pre></div>
+<p><code>grant_def</code> 是 <code>definition</code> 命令生成的定理：<code>grant ?u ?p ?es = (?u, ?p) # ?es</code>。它就是规则 (1)。规则 (2) 属于 <code>allows.simps</code>，即 <code>fun</code> 为 <code>allows</code> 证明的那些等式：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (simp only: allows.simps)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (simp only: allows.simps)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. (u, Read) = (u, Read) ∨ allows es u Read</code></pre></div>
+<p>就连 <code>(u, Read) = (u, Read)</code> 也原封未动，因为你没有允许任何适用于它的规则。规则 (3) 和 (4) 属于 <code>simp_thms</code>，这是一组基本的逻辑定律：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (simp only: simp_thms)
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (simp only: simp_thms)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal:
+No subgoals!</code></pre></div>
+<h3 id="simp-rules">化简规则从哪里来</h3>
+<p>不带任何修饰的 <code>simp</code> 不需要你给出规则列表。它使用<strong>化简规则集</strong>（simp set），这是一个随着理论的加载而不断增长的庞大规则集合，其中包括：</p>
+<ul>
+<li>每个用 <code>fun</code> 或 <code>primrec</code> 定义的函数的等式，例如 <code>allows.simps</code> 和 <code>revoke.simps</code>；</li>
+<li><code>datatype</code> 证明的事实：各个构造子（constructor）互不相同（<code>Read ≠ Write</code>），而且同一个构造子作用于不同的参数会得到不同的值，所以 <code>(x # xs = y # ys) = (x = y ∧ xs = ys)</code>；</li>
+<li>库中成千上万条带有属性（attribute）<code>[simp]</code> 的引理，例如 <code>rev (rev xs) = xs</code>；</li>
+<li>你自己的引理，只要你给它们加上 <code>[simp]</code>。</li>
+</ul>
+<div class="box box-definition"><div class="box-label">定义 9.2<span class="box-title">化简规则与化简规则集</span></div>
+<p><strong>化简规则</strong>（simp rule）是化简器无需告知就会使用的定理。<strong>化简规则集</strong>是理论中某一处的全部化简规则。在引理的名字后面写上 <code>[simp]</code>，或者之后用 <code>declare name [simp]</code> 声明，就能使它成为化简规则；<code>declare name [simp del]</code> 则把它重新移除。</p>
+</div>
+<p>列表缺少一项：由<code>definition</code>引入的等式默认不是 simp 规则，因此<code>simp</code>将<code>grant</code>视为未知函数：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (grant u Read es) u Read</span></code></pre></div>
+<p>此处“Failed to apply initial proof method”表示<code>simp</code>对目标未产生进展：没有适用的规则展开<code>grant</code>或证明周围的主张。指示<code>simp</code>使用带有<code>add:</code>的定义</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read es) u Read&quot;
+  by (simp add: grant_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)</code></pre></div>
+<p>为什么定义不是化简规则？一个定义引入一个新概念，例如“授予一项权限”。一旦你证明了这个概念的那些你需要的性质，以后的证明就应该使用这些性质，而不是定义本身。这样，如果以后修改了定义，只有这些性质的证明需要跟着修改。所以通常的做法是：为定义出来的函数证明几条定律，并让这些定律成为化简规则：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma allows_grant [simp]:
+  &quot;allows (grant u p es) v q = ((u, p) = (v, q) ∨ allows es v q)&quot;
+  by (simp add: grant_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> allows_grant [simp]:
+  <span class="isa-inner">&quot;allows (grant u p es) v q = ((u, p) = (v, q) ∨ allows es v q)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)</code></pre></div>
+<p>从现在起，<code>simp</code> 知道 <code>allows</code> 和 <code>grant</code> 是怎样配合工作的，而不必去看 <code>grant</code> 的内部：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read (grant v Write es)) v Write&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read (grant v Write es)) v Write&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>对化简器来说，<code>u = v</code> 和 <code>v = u</code> 是不同的项，化简规则集中也没有哪条规则能把其中一个变成另一个。所以，等式的书写顺序可能决定 <code>simp</code> 能否成功。陈述 <code>allows_grant</code> 时把其中那个等式的两边对调，同样的证明就会失败：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. (u = v ∧ p = q ∨ allows es v q) = (v = u ∧ q = p ∨ allows es v q)</span></code></pre></div>
+<p>化简器把两边都尽可能地重写了，最后左边剩下 <code>u = v ∧ p = q</code>，右边剩下 <code>v = u ∧ q = p</code>。陈述引理时，要采用定义展开后自然得到的那个方向。</p>
+</div>
+<h3 id="modifiers"><code>add:</code>、<code>del:</code>、<code>only:</code> 和 <code>simp_all</code></h3>
+<p>现在你已经见过改变化简器所用规则的大部分办法了。下面把它们放在一起。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>使用的规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simp</code></td>
+<td>化简规则集，以及第一个子目标的假设</td>
+</tr>
+<tr>
+<td><code>simp add: a b</code></td>
+<td>化简规则集，再加上定理 <code>a</code> 和 <code>b</code></td>
+</tr>
+<tr>
+<td><code>simp del: a</code></td>
+<td>去掉 <code>a</code> 之后的化简规则集</td>
+</tr>
+<tr>
+<td><code>simp only: a b</code></td>
+<td>只用 <code>a</code> 和 <code>b</code>，再加上假设</td>
+</tr>
+<tr>
+<td><code>simp_all</code></td>
+<td>与 <code>simp</code> 相同，但作用于每个子目标</td>
+</tr>
+</tbody>
+</table></div>
+<p>即使用了 <code>only:</code>，也还有几个内置的辅助功能会保留下来：化简器仍然会了结已经变得平凡的目标，例如 <code>t = t</code>，而且仍然可能调用线性算术（第 9.5 节）来完成目标。</p>
+<p><code>del:</code> 在一次调用中去掉一条规则，例如一条会把项重写成你不想要的形式的化简规则。没有了 <code>allows_grant</code>，化简器又回到了起点：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read (grant v Write es)) v Write&quot;</span>
+  <span class="isa-proof">by</span> (simp del: allows_grant)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (grant u Read (grant v Write es)) v Write</span></code></pre></div>
+<p><code>simp</code> 只作用于第一个子目标（subgoal）。<code>induction</code> 之后通常有好几个子目标，<code>simp_all</code> 会把它们全部化简。下面是后面几节要用到的一条定律：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma allows_append [simp]:
+  &quot;allows (es @ fs) u p = (allows es u p ∨ allows fs u p)&quot;
+  apply (induction es)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> allows_append [simp]:
+  <span class="isa-inner">&quot;allows (es @ fs) u p = (allows es u p ∨ allows fs u p)&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. allows ([] @ fs) u p = (allows [] u p ∨ allows fs u p)
+ 2. ⋀a es.
+       allows (es @ fs) u p = (allows es u p ∨ allows fs u p) ⟹
+       allows ((a # es) @ fs) u p = (allows (a # es) u p ∨ allows fs u p)</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp_all
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp_all
+  <span class="isa-proof">done</span></code></pre></div>
+<p>在第二个子目标中，化简器把归纳假设（induction hypothesis）——这个子目标的一个假设（assumption）——用作了重写规则。第 9.3 节会解释 simp 怎样使用假设。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>为理解 simplifier，需从 simp set 中的定向规则、用户添加的规则以及假设入手，内置求解器与 case-splitting 规则亦会参与贡献；当 <code>simp</code> 失败时，应追问其所需的方程或 split 规则为何，以及是否已提供该规则。</p>
+</div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p><code>by</code> 失败时会给出两种消息，它们的含义不同：</p>
+<ul>
+<li><strong>“初始证明方法应用失败”</strong>：该方法未产生任何成功的初始结果。对于
+<code>simp</code>，它通常意味着没有进展。往往是因为定义未被展开，或者所需的引理未被设为 simp 规则。</li>
+<li><strong>“Failed to finish proof”</strong>（未能完成证明）：方法有所进展，但没有证明目标。消息会显示剩下的部分。读一读它：它告诉你化简器做不到的是什么。</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="steering"></span>
+<div class="section-header"><span class="section-num">3</span><h2>引导化简器</h2></div>
+<h3 id="conditional">条件重写规则</h3>
+<p>许多有用的等式只在某个条件下成立。撤销 <code>u</code> 的条目不会改变另一个用户 <code>v</code> 能做的事，但前提是 <code>v</code> 确实是另一个用户：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma revoke_other [simp]: &quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;
+  by (induction es) auto
+
+lemma revoke_self [simp]: &quot;allows (revoke u es) u p = False&quot;
+  by (induction es) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> revoke_other [simp]: <span class="isa-inner">&quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto
+
+<span class="isa-cmd">lemma</span> revoke_self [simp]: <span class="isa-inner">&quot;allows (revoke u es) u p = False&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto</code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 9.3<span class="box-title">条件重写规则</span></div>
+<p><strong>条件重写规则</strong>（conditional rewrite rule）的形式是 <code>H ⟹ l = r</code>，有多个条件时是 <code>⟦H₁; …; Hₙ⟧ ⟹ l = r</code>。在把 <code>l</code> 的一个实例替换为 <code>r</code> 的相同实例之前，化简器会尝试通过化简来证明每个条件 <code>Hᵢ</code> 的相同实例。如果证明不了，它就不使用这条规则。</p>
+</div>
+<p>两个具体的用户是不同的，化简器能证明这一点：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (revoke ''ann'' es) ''bob'' Read = allows es ''bob'' Read&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke ''ann'' es) ''bob'' Read = allows es ''bob'' Read&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>为了在这里使用 <code>revoke_other</code>，化简器必须证明条件 <code>''bob'' ≠ ''ann''</code>。它做到了：它把这个条件化简成了 <code>True</code>，因为这两个字符串的第一个字符不同。如果用变量代替这两个名字，条件就无法证明，这条规则也就不会被使用：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke u es) v p = allows es v p&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (revoke u es) v p = allows es v p</span></code></pre></div>
+<p>化简器停下来是对的：当 <code>v = u</code> 时，这个断言是错的。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>规则的条件必须比它的左边简单，否则化简器可能会兜圈子。规则 <code>Suc n &lt; m ⟹ (n &lt; m) = True</code> 本身是对的，但作为化简规则它毫无用处：要重写 <code>n &lt; m</code>，化简器必须先证明 <code>Suc n &lt; m</code>；而只要能证明 <code>Suc (Suc n) &lt; m</code>，同一条规则又会去重写 <code>Suc n &lt; m</code>，依此类推。化简器要嵌套尝试 40 次才会放弃（40 是它的选项 <code>simp_depth_limit</code> 的默认值），然后让 <code>n &lt; m</code> 保持原样。</p>
+</div>
+<h3 id="assumptions">simp 怎样使用假设</h3>
+<p>默认情况下，化简器会把子目标的假设，也就是 ⟹ 之前的那些公式，用作额外的重写规则，而且也会化简这些假设。它把每个假设变成一条规则：</p>
+<ul>
+<li>等式 <code>t = s</code> 通常用来把 <code>t</code> 重写成 <code>s</code>；</li>
+<li>否定式 <code>¬ P</code> 变成 <code>P = False</code>，所以 <code>v ≠ u</code> 变成 <code>(v = u) = False</code>；</li>
+<li>其他任何公式 <code>P</code> 都变成 <code>P = True</code>；</li>
+<li><code>∀x. P x ⟶ Q x</code> 变成条件规则 <code>P ?x ⟹ Q ?x = True</code>。</li>
+</ul>
+<p>所以，只要加上它所需要的假设，上面那个错误的断言就变成正确的，并且可以用 <code>simp</code> 证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>这个假设给出了规则 <code>(v = u) = False</code>，它证明了 <code>revoke_other</code> 的条件 <code>v ≠ u</code>。列表中的最后一种假设，则说明了 simp 怎样使用关于所有用户的一般事实。假设每个可以写的用户也都可以读，并且 <code>u</code> 可以写：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀w. allows es w Write ⟶ allows es w Read; allows es u Write⟧
+       ⟹ allows es u Read&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀w. allows es w Write ⟶ allows es w Read; allows es u Write⟧
+       ⟹ allows es u Read&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>第一个假设变成了条件规则 <code>allows es ?w Write ⟹ allows es ?w Read = True</code>。为了用它重写目标 <code>allows es u Read</code>，化简器必须证明 <code>allows es u Write</code>，而第二个假设（现在是规则 <code>allows es u Write = True</code>）做到了这一点。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>假设也可能让化简器陷入循环。像 <code>∀x. f x = g (f (g x))</code> 这样的假设会变成一条规则，它把 <code>f x</code> 重写成一个含有 <code>f (g x)</code> 的项，而同一条规则又会重写这个 <code>f (g x)</code>，如此永无止境。（对于较简单的情况，例如 <code>∀x. f x = g (f x)</code>，Isabelle 会察觉并把规则反过来用，但对这个例子不会。）如果目标中有这样一个证明用不到的假设，可以改用 <code>simp (no_asm)</code>，它会忽略子目标的假设。第 9.8 节展示了一个目标，它自己的假设就让化简器不停地兜圈子。</p>
+</div>
+<h3 id="splits">情形拆分</h3>
+<p>包含<code>if c then a else b</code>的目标在化简器无法确定<code>c</code>或将两个分支归约到同一项时可能陷入停滞，此时它可使用此库规则<strong>split</strong>将目标拆分为<code>c</code>成立与不成立两种情况</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm if_split">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> if_split</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>?P (if ?Q then ?x else ?y) = ((?Q ⟶ ?P ?x) ∧ (¬ ?Q ⟶ ?P ?y))</code></pre></div>
+<p>把 <code>?P</code> 读作“目标中包围着这个 <code>if</code> 的其余部分”。化简器会自动拆分 <code>if</code>。在证明一条关于 <code>revoke</code> 的定律时，你可以观察到这一点，因为 <code>revoke</code> 的定义中含有一个 <code>if</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma allows_revoke: &quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;
+  apply (induction es)
+  apply simp_all">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> allows_revoke: <span class="isa-inner">&quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)
+  <span class="isa-proof">apply</span> simp_all</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀a es.
+       allows (revoke u es) v p = (v ≠ u ∧ allows es v p) ⟹
+       (fst a = u ⟶
+        (v ≠ u ∧ allows es v p) = (v ≠ u ∧ (a = (v, p) ∨ allows es v p))) ∧
+       (fst a ≠ u ⟶
+        (a = (v, p) ∨ v ≠ u ∧ allows es v p) =
+        (v ≠ u ∧ (a = (v, p) ∨ allows es v p)))</code></pre></div>
+<p>基础情形（base case）已经证明了。在归纳步骤（induction step）中，化简器展开了 <code>revoke u (a # es)</code>，把以 <code>fst a = u</code> 为条件的 <code>if</code> 拆分成你看到的两个蕴涵式，并使用了归纳假设。然后它就卡住了。要继续下去，它必须从 <code>a = (v, p)</code> 推出 <code>fst a = v</code>，而化简器不会深入 <code>a</code> 这样的有序对变量的内部。你将在第 9.4 节遇到的 <code>auto</code> 会先把有序对变量替换成由两个变量组成的有序对，然后完成证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply auto
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>case</code> 表达式就不同了：化简器不会自动拆分它，因为对递归的数据类型来说，拆分可能会永远进行下去。下面是一个含有 <code>case</code> 的函数。第一个带有权限 <code>Admin</code> 的条目指明了文档的所有者（<code>owner</code>），而只有所有者才可以删除文档（<code>may_delete</code>）：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun owner :: &quot;'u acl ⇒ 'u option&quot; where
+  &quot;owner [] = None&quot;
+| &quot;owner (e # es) = (if snd e = Admin then Some (fst e) else owner es)&quot;
+
+definition may_delete :: &quot;'u ⇒ 'u acl ⇒ bool&quot; where
+  &quot;may_delete u es = (case owner es of None ⇒ False | Some v ⇒ v = u)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> owner :: <span class="isa-inner">&quot;'u acl ⇒ 'u option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;owner [] = None&quot;</span>
+| <span class="isa-inner">&quot;owner (e # es) = (if snd e = Admin then Some (fst e) else owner es)&quot;</span>
+
+<span class="isa-cmd">definition</span> may_delete :: <span class="isa-inner">&quot;'u ⇒ 'u acl ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;may_delete u es = (case owner es of None ⇒ False | Some v ⇒ v = u)&quot;</span></code></pre></div>
+<p>类型 <code>'u option</code> 的值有 <code>None</code>（表示没有结果）和 <code>Some v</code>（表示结果为 <code>v</code>）。<code>snd e</code> 是 <code>e</code> 的第二个分量，也就是它的权限。展开定义之后，化简器卡在了 <code>case</code> 上：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;may_delete u es = (owner es = Some u)&quot;
+  apply (simp add: may_delete_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es = (owner es = Some u)&quot;</span>
+  <span class="isa-proof">apply</span> (simp add: may_delete_def)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. (case owner es of None ⇒ False | Some v ⇒ v = u) = (owner es = Some u)</code></pre></div>
+<p>修饰符（modifier）<code>split:</code> 指定一条拆分 <code>case</code> 的规则。对数据类型 <code>t</code>，这条规则叫做 <code>t.split</code>，所以对 <code>option</code> 来说就是 <code>option.split</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm option.split">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> option.split</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>?P (case ?option of None ⇒ ?f1.0 | Some x ⇒ ?f2.0 x) =
+((?option = None ⟶ ?P ?f1.0) ∧ (∀x2. ?option = Some x2 ⟶ ?P (?f2.0 x2)))</code></pre></div>
+<p>这条规则把 <code>case</code> 变成两个蕴涵式，每个构造子一个，就像 <code>if_split</code> 对 <code>if</code> 所做的那样。把 <code>?f1.0</code> 读作名字为 <code>f1</code>、索引（index）为 0 的图式变量（模块 7 用 <code>?P5</code> 解释过索引）：当名字以数字结尾时，Isabelle 会在索引前加一个点，以免名字和索引连在一起。有了这条规则，化简器就能完成证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (simp split: option.split)
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (simp split: option.split)
+  <span class="isa-proof">done</span></code></pre></div>
+<p>对列表用 <code>list.split</code>、对自然数用 <code>nat.split</code>，做法也一样。这些规则拆分的是目标的结论中的 <code>case</code>。假设中的 <code>case</code> 或 <code>if</code> 需要用变体 <code>option.splits</code> 和 <code>if_splits</code>，也就是末尾多一个 <code>s</code>。如果用 <code>option.split</code>，假设中的 <code>case</code> 会原样保留下来：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ owner es = Some u&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def split: option.split)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. case owner es of None ⇒ False | Some v ⇒ v = u ⟹ owner es = Some u</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;may_delete u es ⟹ owner es = Some u&quot;
+  by (simp add: may_delete_def split: option.splits)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ owner es = Some u&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def split: option.splits)</code></pre></div>
+<h3 id="loops">会循环的规则</h3>
+<p>没有什么能保证重写一定会停下来。库中有化简规则 <code>append_assoc</code>：<code>(xs @ ys) @ zs = xs @ (ys @ zs)</code>。假设你把它的镜像 <code>xs @ (ys @ zs) = (xs @ ys) @ zs</code> 也添加为化简规则，那么一个含有 <code>es @ (fs @ gs)</code> 的目标就会这样被重写：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mtext mathvariant="monospace">es</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">(fs</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">gs)</mtext></mrow><mtext>  </mtext><mo>→</mo><mtext>  </mtext><mrow><mtext mathvariant="monospace">(es</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">fs)</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">gs</mtext></mrow><mtext>  </mtext><mo>→</mo><mtext>  </mtext><mrow><mtext mathvariant="monospace">es</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">(fs</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">gs)</mtext></mrow><mtext>  </mtext><mo>→</mo><mtext>  </mtext><mo>⋯</mo></mrow><annotation encoding="application/x-tex">\texttt{es @ (fs @ gs)} \;\to\; \texttt{(es @ fs) @ gs} \;\to\; \texttt{es @ (fs @ gs)} \;\to\; \cdots
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9167em;vertical-align:-0.2222em;"></span><span class="mord text"><span class="mord texttt">es @ (fs @ gs)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9167em;vertical-align:-0.2222em;"></span><span class="mord text"><span class="mord texttt">(es @ fs) @ gs</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9167em;vertical-align:-0.2222em;"></span><span class="mord text"><span class="mord texttt">es @ (fs @ gs)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.313em;"></span><span class="minner">⋯</span></span></span></span></span></div>
+<p>化简器永远不会停下来。在 Isabelle/jEdit 中，这个证明会一直运行，永远完成不了。把这条规则从文本中删掉，Isabelle 就会重新检查修改后的文本。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>保证化简规则集会终止，是你的责任。一条经验法则是：化简规则的右边应当比左边简单，条件规则的条件也应当比它的左边简单。绝不要同时添加一个等式和它的镜像。如果在某一次调用中需要一条方向相反的化简规则，就写 <code>simp flip: name</code>：它去掉这条规则，并加入它的镜像，只对这一次调用有效。</p>
+</div>
+<p>有些有用的等式看起来似乎必然会循环。以任意顺序授予两项权限，得到的条目集合都相同，这是下面这条库规则的一个实例：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm insert_commute">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> insert_commute</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>insert ?x (insert ?y ?A) = insert ?y (insert ?x ?A)</code></pre></div>
+<p>如果一再使用，这条规则会把 <code>x</code> 和 <code>y</code> 换过来又换过去。Isabelle 能认出这样的<strong>置换规则</strong>（permutative rule），即两边除了变量的顺序以外完全相同的规则，并且只在结果按照项上的某个固定顺序变得更小时才使用它们。所以，这条规则把两个元素交换成有序的排列，然后就停下来：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;insert b (insert a A) = X&quot;
+  apply (simp only: insert_commute)
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;insert b (insert a A) = X&quot;</span>
+  <span class="isa-proof">apply</span> (simp only: insert_commute)
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. insert a (insert b A) = X</code></pre></div>
+<p>目标 <code>insert a (insert b A) = X</code> 已经是有序的，所以这条规则不会再作用于它。把这种<strong>有序重写</strong>（ordered rewriting）应用到等式的两边，就会把两边排成相同的顺序：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;set (grant u p (grant v q es)) = set (grant v q (grant u p es))&quot;
+  by (simp add: grant_def insert_commute)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;set (grant u p (grant v q es)) = set (grant v q (grant u p es))&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def insert_commute)</code></pre></div>
+<p>同样的思路也能处理满足结合律和交换律的运算符，例如 <code>+</code>、<code>*</code>、<code>∪</code> 和 <code>∩</code>。把结合律定向为从左往右，再加上两条置换规则，化简器就能把运算对象排成固定的顺序。对 <code>∪</code> 来说，这三条规则再加上另外一条，被汇集在名字 <code>Un_ac</code> 之下：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm Un_ac">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> Un_ac</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  ?A ∪ ?B ∪ ?C = ?A ∪ (?B ∪ ?C)
+  ?A ∪ (?A ∪ ?B) = ?A ∪ ?B
+  ?A ∪ ?B = ?B ∪ ?A
+  ?A ∪ (?B ∪ ?C) = ?B ∪ (?A ∪ ?C)</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;C ∪ B ∪ A = X&quot;
+  apply (simp only: Un_ac)
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;C ∪ B ∪ A = X&quot;</span>
+  <span class="isa-proof">apply</span> (simp only: Un_ac)
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∪ (B ∪ C) = X</code></pre></div>
+<p>两个并集只要运算对象相同，无论顺序和分组如何，都会到达同一个范式，所以它们的相等可以用 <code>simp only: Un_ac</code> 证明。名字 <code>ac_simps</code> 一次汇集了许多运算符的这类规则。</p>
+<h3 id="tracing">跟踪</h3>
+<p>当化简器做了出乎意料的事情时，你可以让它报告每一步。在方法前面加上 <code>using [[simp_trace]]</code>。双重方括号用来设置一个配置选项，这里只对这个证明有效：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read es) u Read&quot;
+  using [[simp_trace]] by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">using</span> [[simp_trace]] <span class="isa-proof">by</span> simp</code></pre></div>
+<p><strong>跟踪信息</strong>（trace）出现在 <strong>Output</strong>（输出）面板中，位于证明状态（proof state）的下方。检查这些页面上的输出的构建过程不会记录跟踪信息，所以下面这段是从 Isabelle2026 的一次运行中复制过来的。这个证明的跟踪信息如下：</p>
+<pre class="code"><code class="language-text">[1]SIMPLIFIER INVOKED ON THE FOLLOWING TERM:
+allows (grant u Read es) u Read
+[1]Applying instance of rewrite rule &quot;allows_grant&quot;:
+allows (grant ?u1 ?p1 ?es1) ?v1 ?q1 ≡
+(?u1, ?p1) = (?v1, ?q1) ∨ allows ?es1 ?v1 ?q1
+[1]Rewriting:
+allows (grant u Read es) u Read ≡ (u, Read) = (u, Read) ∨ allows es u Read
+[1]Applying instance of rewrite rule &quot;simp_thms(6)&quot;:
+?x1 = ?x1 ≡ True
+[1]Rewriting:
+(u, Read) = (u, Read) ≡ True
+[1]Applying instance of rewrite rule &quot;simp_thms(30)&quot;:
+True ∨ ?P1 ≡ True
+[1]Rewriting:
+True ∨ allows es u Read ≡ True
+</code></pre>
+<p>这些步骤对应第 9.2 节的例子，但这里化简器用了引理 <code>allows_grant</code>，没有展开 <code>grant</code>。“Applying instance of rewrite rule”指明应用的规则。例如，<code>simp_thms(6)</code> 是 <code>simp_thms</code> 中的第六条定律。重写规则用 Isabelle 元逻辑的等式 <code>≡</code> 陈述，变元带下标（<code>?u1</code>）。“Rewriting:”显示此次应用的实例，说明目标中的哪一部分被改写成什么。<code>[1]</code> 表示深度。化简器递归地证明条件规则的前提时，这些步骤标为 <code>[2]</code>。要显示它们，可把选项 <code>simp_trace_depth_limit</code> 调大，默认值为 1，例如使用 <code>using [[simp_trace, simp_trace_depth_limit = 3]]</code>。</p>
+<p>轨迹可能很长。Isabelle/jEdit 对每个命令最多显示 1000 条轨迹消息，随后暂停并提示“Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?”。若在小目标上出现此情况，应怀疑存在循环规则。完成后移除 <code>using [[simp_trace]]</code>。</p>
+<span class="section-anchor" id="classical"></span>
+<div class="section-header"><span class="section-num">4</span><h2>逻辑与集合：blast、auto 及其相关工具</h2></div>
+<p>化简器进行重写，它从不搜索：它不会尝试一步后发现无果而返回尝试其他路径。许多目标需要此类搜索。应使用哪个假设？<code>∃</code> 应获得何值？Isabelle 的 <strong>classical reasoner</strong>（你在 Module 7 中已接触过 <code>blast</code>）通过搜索回答这些问题。它应用 Modules 6 和 7 中自然演绎的引入与消除规则，以及为集合和关系声明的规则，并在选择失败时回溯。</p>
+<div class="box box-definition"><div class="box-label">定义 9.4<span class="box-title">安全与不安全规则</span></div>
+<p>若将<strong>安全</strong>规则应用于可证明的目标时总能得到可证明的子目标，则该规则是<code>conjI</code>和<code>impI</code>所演示的：它们是第6.7节中的安全步骤。若某规则可能将可证明的目标转化为不可证明的目标，则该规则是<strong>不安全</strong>的：<code>disjI1</code>将<code>P ∨ Q</code>归约为<code>P</code>，这可能是错误的选择，且<code>allE</code>必须为变量猜测项。经典推理器自由地应用安全规则，并仅在回溯时应用不安全规则。</p>
+</div>
+<p>为了使经典推理器有实际工作可做，在运行示例中扩展角色。在更大的服务中，权限属于角色，用户拥有角色。两个关系（如 Module 4 中的有序对集合）描述了这一点。当用户 <code>u</code> 拥有角色 <code>r</code> 时，<code>UR</code> 包含 <code>(u, r)</code>；当角色 <code>r</code> 授予权限 <code>p</code> 时，<code>RP</code> 包含 <code>(r, p)</code>。当用户的某个角色授予权限时，该用户就拥有此权限。Isabelle 将此关系组合写为 <code>UR O RP</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm relcomp_unfold">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> relcomp_unfold</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>?r O ?s = {(x, z). ∃y. (x, y) ∈ ?r ∧ (y, z) ∈ ?s}</code></pre></div>
+<h3 id="blast">blast</h3>
+<p><code>blast</code> 是用于一阶逻辑的搜索过程，该逻辑包含 Module 3 中的 ∀、∃ 及连接词，并内置了集合与关系的规则。此处存在一条策略事实：如果每个授予 <code>Write</code> 的角色也授予 <code>Read</code>，那么每个可能写入的用户均可读取。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀r. (r, Write) ∈ RP ⟶ (r, Read) ∈ RP; (u, Write) ∈ UR O RP⟧
+       ⟹ (u, Read) ∈ UR O RP&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀r. (r, Write) ∈ RP ⟶ (r, Read) ∈ RP; (u, Write) ∈ UR O RP⟧
+       ⟹ (u, Read) ∈ UR O RP&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>在纸面上，证明需要一个角色 <code>r</code> 与 <code>(u, r) ∈ UR</code> 和 <code>(r, Write) ∈ RP</code> 配合，这是 <code>∀</code> 针对 <code>r</code> 的一个实例，并且角色 <code>r</code> 再次作为 <code>O</code> 中隐藏的 <code>∃</code> 的见证者。<code>blast</code> 找到了全部三个。给予用户更多角色绝不会剥夺任何权限：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>原则上<code>blast</code>是一个<strong>完备</strong>的一阶逻辑方法：如果其搜索没有限制，它将找到每个有效一阶公式的证明。在实践中，其搜索是有界的，如第6.9节所述。它不调用化简器且等式推理能力有限，因此经常无法处理需要展开定义、计算函数或算术的目标：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (grant u Read es) u Read</span></code></pre></div>
+<p><code>blast</code> 要么证明目标，要么以该消息失败。它从不留下部分证明的目标，因此当它失败时，它不提供任何失败原因的提示。</p>
+<h3 id="auto">auto</h3>
+<p><code>auto</code> 结合了两个世界。它在每个子目标上执行化简、应用安全规则，并尝试使用不安全规则进行有界搜索。它证明能够处理的子目标，并将其余部分化简后保留在证明状态中。这使得它在处理包含许多简单部分的子目标时表现良好，并能清晰告知其无法处理的内容。以下是关于权限的一个错误声明：从 <code>RP</code> 中移除对 <code>(r, p)</code> 的引用并不会剥夺任何人的权限 <code>p</code>。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;
+  apply auto
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;</span>
+  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y. ⟦(u, y) ∈ UR; (y, p) ∈ RP⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})</code></pre></div>
+<p><code>auto</code> 将组合分解，留下一个子目标，你可以将其读作关于角色的陈述。它不可证明，因为赋予 <code>u</code> 权限的角色 <code>y</code> 可能是 <code>r</code> 本身。当 <code>auto</code> 留下一个你认为简单的子目标时，请仔细阅读：它可能像这里一样为假，或者可能需要一个 <code>auto</code> 不知道的引理。第 9.7 节展示了如何自动区分这两种情况。</p>
+<h3 id="force">force 与 fastforce</h3>
+<p>某些目标需要同时进行搜索和重写。存储服务将每条日志连续存储两次，因此集合 <code>A</code> 中的每条日志都是某个列表 <code>ys</code> 与其自身的拼接。于是 <code>A</code> 中的每条日志都具有偶数长度：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n&quot;</span>
+  <span class="isa-proof">by</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. ⟦∀xs∈A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n</span></code></pre></div>
+<p><code>auto</code> 对此目标无法处理，<code>blast</code> 也失败，因为证明需要在搜索中间使用等式 <code>length (ys @ ys) = length ys + length ys</code>。<code>fastforce</code> 在每一步将经典推理器的搜索与化简器结合：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n&quot;
+  by fastforce">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n&quot;</span>
+  <span class="isa-proof">by</span> fastforce</code></pre></div>
+<p><code>force</code> 采用相同的方法，但搜索更彻底。有时 <code>fastforce</code> 失败时它仍能成功，代价可能是花费更长的时间。两种方法都只对第一个子目标起作用，并且都像 <code>blast</code> 一样，要么证明它，要么失败。</p>
+<h3 id="clarsimp">clarsimp</h3>
+<p><code>clarsimp</code> 应用安全规则与化简器。与 <code>auto</code> 不同，它不使用逻辑将目标拆分为多个子目标，并避免不安全搜索。它可以完成一个目标，否则整理目标以显示剩余部分。化简器拆分器仍可创建多个子目标，特别是在配置为拆分前提时：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP&quot;
+  apply clarsimp
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP&quot;</span>
+  <span class="isa-proof">apply</span> clarsimp
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀x y. ⟦(x, y) ∈ UR; (y, Write) ∈ RP⟧ ⟹ (x, Read) ∈ UR O RP</code></pre></div>
+<p><code>clarsimp</code> 移除了 <code>∀</code> 和 <code>⟶</code>，并将假设 <code>(x, Write) ∈ UR O RP</code> 分解为角色 <code>y</code> 及其两个相关事实。剩余部分是问题的核心，且不可证明：没有任何内容表明角色 <code>y</code> 授予 <code>Read</code>。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>Works on</th>
+<th>当它失败时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simp</code>, <code>simp_all</code></td>
+<td>第一个子目标；所有子目标</td>
+<td>留下简化后的目标，若未发生任何更改则失败</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td>所有子目标</td>
+<td>留下未证的部分。如果目标没有变化，则失败</td>
+</tr>
+<tr>
+<td><code>blast</code></td>
+<td>第一个子目标</td>
+<td>失败，且没有提示</td>
+</tr>
+<tr>
+<td><code>force</code>, <code>fastforce</code></td>
+<td>第一个子目标</td>
+<td>失败，且没有提示</td>
+</tr>
+<tr>
+<td><code>clarsimp</code></td>
+<td>第一个子目标</td>
+<td>留下一个经过整理（可能由化简分割）的目标，若未发生任何变化则失败</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>auto</code>、<code>force</code>、<code>fastforce</code> 和 <code>clarsimp</code> 接受化简器的修饰符，写作 <code>simp add:</code>（或简写为 <code>simp:</code>）、<code>simp del:</code> 和 <code>split:</code>，因为单写 <code>add:</code> 会有歧义。这些方法也接受经典推理器的规则。按模块 7 的说法，<code>intro:</code>、<code>elim:</code> 和 <code>dest:</code> 分别用于引入、消去和析构规则。因此 <code>auto simp add: grant_def</code>（模块 4 写成 <code>auto simp: grant_def</code>）展开 <code>grant</code>，而 <code>blast intro: r</code> 允许 <code>blast</code> 使用你给出的规则 <code>r</code>。</p>
+<span class="section-anchor" id="arith"></span>
+<div class="section-header"><span class="section-num">5</span><h2>算术</h2></div>
+<p>算术拥有其专属工具，因为重写和逻辑搜索均无法有效处理它。<strong>线性算术</strong>公式由变量、数字、<code>+</code>、<code>-</code>、<code>=</code>、<code>&lt;</code>、<code>≤</code>及联结词构成，其中变量可与数字相乘（如<code>2 * x</code>），但不可与另一变量相乘。针对此类公式存在<strong>决策过程</strong>：即针对每类公式判定其是否成立，并在成立时予以证明的程序。</p>
+<p>存储服务为每个用户分配配额。新文件可存入的条件是其大小不超过可用空间：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: nat)&quot;
+  by linarith">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: nat)&quot;</span>
+  <span class="isa-proof">by</span> linarith</code></pre></div>
+<p><code>linarith</code> 证明关于 <code>nat</code>、<code>int</code> 和 <code>real</code> 的线性算术目标。<code>nat</code> 上的减法很棘手，因为 <code>3 - 5 = 0</code> 对自然数不成立，而 <code>linarith</code> 通过区分 <code>used ≤ quota</code> 和 <code>quota &lt; used</code> 的情况来处理它。实际上 <code>simp</code> 也证明此目标：化简器调用同一过程的快速但较弱的版本。当 <code>simp</code> 和 <code>auto</code> 留下算术目标时使用 <code>linarith</code>。</p>
+<p><code>linarith</code> 通过添加不等式的倍数来组合不等式，如同在实数上求解不等式组那样，并增加一条针对整数的规则：从 <code>a &lt; b</code> 推导出 <code>a + 1 ≤ b</code>。这对于许多关于整数的目标已经足够，但并非适用于所有情况：对于 <code>nat</code> 和 <code>int</code>，<code>linarith</code> 不是判定过程。例如，它不知道偶数绝不可能是奇数。假设负载均衡器将带有偶数编号的请求发送给一个服务器，而将奇数编号的请求发送给另一个服务器；不应有任何请求同时发送到两个服务器：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(2::int) * x ≠ 2 * y + 1&quot;</span>
+  <span class="isa-proof">by</span> linarith</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. 2 * x ≠ 2 * y + 1</span></code></pre></div>
+<p><code>presburger</code> 判定 <strong>Presburger arithmetic</strong>：关于整数与自然数的线性算术，包括量词、被固定数整除，以及 <code>div</code> 和 <code>mod</code> 被固定数整除。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(2::int) * x ≠ 2 * y + 1&quot;
+  by presburger">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(2::int) * x ≠ 2 * y + 1&quot;</span>
+  <span class="isa-proof">by</span> presburger</code></pre></div>
+<p>量词不是障碍。文件系统将数据存储在 3 和 5 千字节大小的块中；每个至少 8 千字节的数量都可以精确构成：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∀n ≥ 8. ∃a b. n = 3 * a + 5 * (b :: nat)&quot;
+  by presburger">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀n ≥ 8. ∃a b. n = 3 * a + 5 * (b :: nat)&quot;</span>
+  <span class="isa-proof">by</span> presburger</code></pre></div>
+<p><code>arith</code> 尝试 <code>linarith</code> 首先，<code>presburger</code> 在其后，因此它证明了上述三个目标。变量的乘积是另一回事：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;</span>
+  <span class="isa-proof">by</span> linarith</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. x ≤ y ⟹ x * x ≤ y * y</span></code></pre></div>
+<p><code>auto</code> 同样失败。该事实简单，但属于线性算术之外，因此不在这些方法所决定的范围之外。</p>
+<div class="box box-fact"><div class="box-label">事实 9.1<span class="box-title">判定算术</span></div>
+<p>Presburger 算术，即带有加法的一阶自然数理论，是可判定的（Mojżesz Presburger, 1929）。若包含变量的乘法，则不可判定，即使对于单个方程亦然：不存在一种算法能判定每个具有整数系数的多项式方程是否在整数范围内有解（Yuri Matiyasevich, 1970，完成了 Martin Davis、Hilary Putnam 和 Julia Robinson 的工作）。在实数域上，带有加法和乘法的公式再次变得可判定（Alfred Tarski），尽管决策过程在处理复杂输入时可能非常昂贵。</p>
+</div>
+<p>形如 <code>x ≤ y ⟹ x * x ≤ y * y</code> 的目标为真，当且仅当 <code>x ≤ y</code> 与 <code>y * y &lt; x * x</code> 联合无解。对于整数，不存在能始终正确回答所有此类多项式算术问题的判定过程。这并不妨碍证明方法解决特定的非线性目标，或库提供有用的定理。Isabelle 的库包含数千个关于乘法的已证事实。下一节展示如何找到所需的定理，第 9.8 节展示了一个为您查找的工具。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>决策过程需要正确的类型。<code>2 * x ≠ 2 * y + 1</code> 对实数不成立（取 <code>x = y + 1/2</code>），因此若不知 <code>x</code> 和 <code>y</code> 为整数，任何方法均无法证明它。在 <code>(2::int)</code> 中类似地标注类型，只要某数可能属于多种类型。</p>
+</div>
+<span class="section-anchor" id="find"></span>
+<div class="section-header"><span class="section-num">6</span><h2>搜索库</h2></div>
+<p>即使由 <code>Main</code> 加载的库包含超过 20,000 个定理，且其命名遵循需要一段时间才能掌握的惯例，<code>find_theorems</code> 仍会按形状和名称进行检索。在理论文件中输入该命令，或使用 Isabelle/jEdit 的 <strong>Query</strong>面板：其<strong>Find Theorems</strong>标签页设有用于相同条件的<strong>Find:</strong>字段以及<strong>Apply</strong> 按钮。模式是带引号的项，其中 <code>_</code> 代表任意项。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems &quot;rev (rev _)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> <span class="isa-inner">&quot;rev (rev _)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>find_theorems
+  &quot;rev (rev _)&quot;
+
+found 1 theorem(s):
+  List.rev_rev_ident: rev (rev ?xs) = ?xs</code></pre></div>
+<p>答案给出了完整名称，<code>List.rev_rev_ident</code>：理论与定理。你可以将其用作<code>rev_rev_ident</code>。对于第9.5节的乘法目标，仅凭模式会找到过多内容：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems (3) &quot;_ * _ ≤ _ * _&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> (3) <span class="isa-inner">&quot;_ * _ ≤ _ * _&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>find_theorems
+  &quot;_ * _ ≤ _ * _&quot;
+
+found 31 theorem(s) (3 displayed):
+  Nat.mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k
+  Nat.mult_le_mono2: ?i ≤ ?j ⟹ ?k * ?i ≤ ?k * ?j
+  Nat.Suc_mult_le_cancel1: (Suc ?k * ?m ≤ Suc ?k * ?n) = (?m ≤ ?n)</code></pre></div>
+<p><code>(3)</code> 将显示限制为三个匹配项。改为缩小搜索范围。给出类型，并添加第二个标准：单调性定律通常在名称中包含 <code>mono</code>。必须同时满足多个标准：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems &quot;(_::nat) * _ ≤ _ * _&quot; name: mono">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> <span class="isa-inner">&quot;(_::nat) * _ ≤ _ * _&quot;</span> name: mono</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>find_theorems
+  &quot;_ * _ ≤ _ * _&quot;
+  name: &quot;mono&quot;
+
+found 3 theorem(s):
+  Nat.mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k
+  Nat.mult_le_mono2: ?i ≤ ?j ⟹ ?k * ?i ≤ ?k * ?j
+  Nat.mult_le_mono: ⟦?i ≤ ?j; ?k ≤ ?l⟧ ⟹ ?i * ?k ≤ ?j * ?l</code></pre></div>
+<p><code>mult_le_mono</code> fits: 与 <code>x ≤ y</code> 两次结合，得到 <code>x * x ≤ y * y</code>。化简器可将其作为条件规则使用，并从假设中证明两个条件：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;
+  by (simp add: mult_le_mono)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;</span>
+  <span class="isa-proof">by</span> (simp add: mult_le_mono)</code></pre></div>
+<p>你将最常使用的标准：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>准则</th>
+<th>查找定理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;pattern&quot;</code></td>
+<td>在某个位置包含该模式</td>
+</tr>
+<tr>
+<td><code>name: s</code></td>
+<td>其名称包含 <code>s</code></td>
+</tr>
+<tr>
+<td><code>simp: &quot;term&quot;</code></td>
+<td>那些左侧与该项匹配的等式，从而能够重写它</td>
+</tr>
+<tr>
+<td><code>intro</code>, <code>elim</code>, <code>dest</code></td>
+<td>在证明中可以作为此类规则应用于当前目标</td>
+</tr>
+<tr>
+<td><code>-</code> 在某个标准之前</td>
+<td>不满足该条件的结果</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>simp:</code> 准则查找可重写某项的等式，包括当前未注册为 simp 规则的等式。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems simp: &quot;set (filter _ _)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> simp: <span class="isa-inner">&quot;set (filter _ _)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>find_theorems
+  simp: &quot;set (filter _ _)&quot;
+
+found 1 theorem(s):
+  List.set_filter: set (filter ?P ?xs) = {x ∈ set ?xs. ?P x}</code></pre></div>
+<p><code>find_consts</code> 通过类型查找函数。哪些函数将列表转换为集合？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_consts &quot;'a list ⇒ 'a set&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">find_consts</span> <span class="isa-inner">&quot;'a list ⇒ 'a set&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>find_consts
+  &quot;'a list ⇒ 'a set&quot;
+
+found 3 constant(s):
+  BNF_Greatest_Fixpoint.Succ :: &quot;'a list set ⇒ 'a list ⇒ 'a set&quot;
+  List.coset :: &quot;'a list ⇒ 'a set&quot;
+  List.list.set :: &quot;'a list ⇒ 'a set&quot;</code></pre></div>
+<p>除了<code>set</code>之外，答案还包含<code>coset</code>，以及一个类型包含<code>'a list ⇒ 'a set</code>作为部分的函数：<code>find_consts</code>也匹配更大类型内部的类型。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>在模式中使用<code>_</code>，而非变量名。在模式中，<code>xs</code>不是占位符：它仅匹配变量<code>xs</code>本身，且库定理使用其自身的变量进行陈述。应书写<code>&quot;rev (rev _)&quot;</code>，而非<code>&quot;rev (rev xs)&quot;</code>。对于运算符，需给出完整项如<code>&quot;_ * _&quot;</code>，而非单独使用符号<code>*</code>。</p>
+</div>
+<span class="section-anchor" id="refute"></span>
+<div class="section-header"><span class="section-num">7</span><h2>反例：Quickcheck 与 Nitpick</h2></div>
+<p>证明假命题会浪费时间，且自动化工具在假命题上失败时不会指出其假。因此，在尝试证明前应先测试声明。Isabelle 有两个反例查找器：Quickcheck（模块 1）和 Nitpick（模块 2 和 3）。使用默认设置时，Isabelle/jEdit 会在新目标上自动调用 Quickcheck；此后台检查可禁用。以下示例显式调用这些工具，你也可以这样做。</p>
+<h3 id="quickcheck">Quickcheck</h3>
+<p><strong>Quickcheck</strong> 将声明转化为程序并在其自由变元的许多值上运行。默认情况下，它系统地尝试所有不超过小规模的值。这里有一个看似合理的声明：任何拥有写权限的人也拥有读权限。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows es u Write ⟹ allows es u Read&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows es u Write ⟹ allows es u Read&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  es = [(a<sub>1</sub>, Write)]
+  u = a<sub>1</sub></code></pre></div>
+<p>反例是一个包含单个条目的列表。<code>a₁</code> 是用户类型 <code>'u</code> 的一个值，Quickcheck 对其一无所知。仅被授予 <code>Write</code> 的用户可以写入但不能读取。该声明不是 ACL 的定律：它是某些 ACL 具有而其他 ACL 缺乏的性质。练习 9.8 将其转化为不变式。</p>
+<p>Quickcheck 接受方括号中的选项：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>选项</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quickcheck [random]</code></td>
+<td>测试随机值而非所有小值</td>
+</tr>
+<tr>
+<td><code>quickcheck [exhaustive]</code></td>
+<td>测试所有值直至大小边界（默认值）</td>
+</tr>
+<tr>
+<td><code>quickcheck [size = 5]</code></td>
+<td>设置所测试值的大小上限</td>
+</tr>
+<tr>
+<td><code>quickcheck [timeout = 30]</code></td>
+<td>在 30 秒后停止</td>
+</tr>
+<tr>
+<td><code>quickcheck [expect = counterexample]</code></td>
+<td>除非找到反例，否则报告错误；此外还有 <code>no_counterexample</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows es u Write ⟹ allows es u Read&quot;
+  quickcheck [random]
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows es u Write ⟹ allows es u Read&quot;</span>
+  <span class="isa-cmd">quickcheck</span> [random]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-random...
+
+Quickcheck found a counterexample:
+  es = [(a<sub>1</sub>, Write)]
+  u = a<sub>1</sub></code></pre></div>
+<p>如果命题涉及某个函数的结果，Quickcheck 也会显示相关项的值。给用户授权后再撤销该用户的条目，会还原原列表吗？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;revoke u (grant u p es) = es&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;revoke u (grant u p es) = es&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  u = a<sub>1</sub>
+  p = Read
+  es = [(a<sub>1</sub>, Read)]
+Evaluated terms:
+  revoke u (grant u p es) = []</code></pre></div>
+<p>列表已包含用户 <code>a₁</code> 的条目，且 <code>revoke</code> 也移除了该条目。在真命题上，Quickcheck 报告未找到任何内容：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>这是证据，而非证明：Quickcheck 仅尝试了小值。</p>
+<h3 id="nitpick">Nitpick</h3>
+<p><strong>Nitpick</strong>的工作方式不同。它寻找使声明为假的<strong>有限模型</strong>，即为每个类型变元提供小的有限类型并为自由变元提供值。它将问题翻译为命题逻辑并交给 SAT 求解器。因为它直接对集合、关系和量词进行推理，所以擅长处理 Quickcheck 难以运行的声明。</p>
+<p>关于角色的一个断言：如果角色 <code>r</code> 授予 <code>Read</code>，那么在从用户 <code>u</code> 移除 <code>r</code> 之后，该用户将不再能够读取。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(r::'r, Read) ∈ RP ⟹ (u::'u, Read) ∉ (UR - {(u, r)}) O RP&quot;
+  nitpick [card 'u = 1, card 'r = 2]
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(r::'r, Read) ∈ RP ⟹ (u::'u, Read) ∉ (UR - {(u, r)}) O RP&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card 'u = 1, card 'r = 2]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output varies"><div class="isa-output-bar">输出<span class="isa-varies">某一次运行的结果，你的可能不同</span></div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample for card 'r = 2 and card 'u = 1:
+  Free variables:
+    RP = {(r<sub>1</sub>, Read), (r<sub>2</sub>, Read)}
+    UR = {(u<sub>1</sub>, r<sub>1</sub>)}
+    r = r<sub>2</sub>
+    u = u<sub>1</sub></code></pre></div>
+<p>选项 <code>card 'r = 2</code> 指示 Nitpick 尝试一个恰好包含两个元素的类型 <code>'r</code>。若不使用该选项，Nitpick 会并行尝试大小为 1 到 10 的情况，且其报告的 counterexample 的大小可能因运行而异。即使使用该选项，您的运行结果仍可能显示不同的 counterexample。Nitpick 根据类型名称命名各类型的元素：<code>u₁</code> 是用户，<code>r₁</code> 和 <code>r₂</code> 是角色。解读 counterexample：两个角色均授予 <code>Read</code>，且用户 <code>u₁</code> 拥有角色 <code>r₁</code>。该声明从 <code>u₁</code> 处移除角色 <code>r₂</code>，但 <code>u₁</code> 仍可通过 <code>r₁</code> 进行读取。该声明遗漏了用户可能从其他角色获得权限的情况。添加假设“<code>u</code> 的其他任何角色均不授予 <code>Read</code>”，Nitpick 未找到任何内容；<code>blast</code> 随后证明了该声明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+       ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP&quot;
+  nitpick [card 'u = 1, card 'r = 2]">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+       ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card 'u = 1, card 'r = 2]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking goal:
+  ⟦(r, Read) ∈ RP; ∀r'. (u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+  ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP
+
+Nitpick found no counterexample</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by blast">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Nitpick 的反例 <strong>genuine</strong>在 Nitpick 验证其确实证伪该命题时成立。对于涉及无限类型如 <code>nat</code> 的命题，它可能报告反例为<strong>potentially spurious</strong>：有限近似可能不对应于预期类型中的任何反例。应将其视为调查线索。“无反例”亦非证明：可能存在大于 Nitpick 尝试大小的反例。在涉及列表上递归函数的命题中，Nitpick 常超时；此时 Quickcheck 是更好的工具。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Quickcheck</th>
+<th>Nitpick</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>方法</td>
+<td>将断言作为程序在多个值上运行</td>
+<td>使用 SAT 求解器搜索具有有限模型</td>
+</tr>
+<tr>
+<td>Strong on</td>
+<td>列表与数字上的函数</td>
+<td>集合、关系、量词</td>
+</tr>
+<tr>
+<td>需要</td>
+<td>测试声明的可执行定义</td>
+<td>支持编码；无限类型和部分构造需要近似</td>
+</tr>
+<tr>
+<td>在 jEdit 中自动运行</td>
+<td>是</td>
+<td>否（可以开启）</td>
+</tr>
+<tr>
+<td>主选项</td>
+<td><code>size</code></td>
+<td><code>card</code></td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="sledgehammer"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Sledgehammer</h2></div>
+<p>来自第 9.5 节的目标 <code>x * x ≤ y * y</code> 需要引理 <code>mult_le_mono</code>。使用 <code>find_theorems</code> 寻找它需要一些思考。<strong>Sledgehammer</strong> 会为你进行搜索。它将目标以及多达约一千个看似相关的库事实交给在 Isabelle 外部运行的几个自动定理证明器。如果其中一个找到了证明，Sledgehammer 会将其转换为单行 Isabelle 证明，你可以将其粘贴到你的理论中。</p>
+<figure class="fig" id="fig-09-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>Sledgehammer 如何找到证明</title><defs><marker id="fig-09-2__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="560" y="14" width="190" height="266" rx="14" fill="#FFF7ED" stroke="#C2410C" stroke-width="1.6" stroke-dasharray="6 5"/><text x="655" y="272" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#C2410C" text-anchor="middle">Isabelle 之外：不被信任</text><rect x="10" y="14" width="530" height="266" rx="14" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4" stroke-dasharray="6 5"/><text x="275" y="272" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#475569" text-anchor="middle">Isabelle 之内</text><rect x="22" y="30" width="150" height="86" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="97" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#2563EB" text-anchor="middle">你的目标</text><text x="97" y="80" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">(x::nat) ≤ y ⟹</text><text x="97" y="98" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">x * x ≤ y * y</text><rect x="200" y="30" width="150" height="86" rx="10" fill="#F8FAFC" stroke="#475569" stroke-width="1.5"/><text x="275" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">相关性过滤</text><text x="275" y="78" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">从库中挑选</text><text x="275" y="95" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">至多约 1000 条事实</text><rect x="378" y="30" width="150" height="86" rx="10" fill="#F8FAFC" stroke="#475569" stroke-width="1.5"/><text x="453" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">翻译</text><text x="453" y="78" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">译成各个证明器</text><text x="453" y="95" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">的输入语言</text><rect x="572" y="30" width="166" height="86" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/><text x="655" y="52" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#C2410C" text-anchor="middle">外部证明器</text><text x="655" y="72" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">E、Vampire、SPASS、</text><text x="655" y="87" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Zipperposition</text><text x="655" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">cvc5、veriT、Z3（SMT）</text><line x1="174" y1="73" x2="196" y2="73" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="352" y1="73" x2="374" y2="73" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="530" y1="73" x2="568" y2="73" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="655" y1="118" x2="655" y2="158" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><rect x="572" y="162" width="166" height="82" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/><text x="655" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#C2410C" text-anchor="middle">某个证明器找到证明</text><text x="655" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">用到的事实：</text><text x="655" y="228" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">mult_le_mono</text><rect x="300" y="162" width="228" height="82" rx="10" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.6"/><text x="414" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#6D28D9" text-anchor="middle">在 Isabelle 中重建</text><text x="414" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">“Try this:” 单行证明</text><text x="414" y="229" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">by (metis mult_le_mono)</text><rect x="40" y="162" width="210" height="82" rx="10" fill="#F0FDF4" stroke="#15803D" stroke-width="2.4"/><text x="145" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">内核</text><text x="145" y="206" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">检查每一步</text><rect x="122.0" y="216" width="46" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="145.0" y="233" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ 定理</text><line x1="572" y1="203" x2="532" y2="203" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="300" y1="203" x2="254" y2="203" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><text x="380" y="312" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">外部答案本身无法证明目标。Isabelle 必须重建证明。</text><text x="380" y="330" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">经检查的推理从假设和公理推出目标。</text></svg>
+</div><figcaption><span class="fig-num">图 9.2</span> <p>从目标到已检查的证明。Sledgehammer 选择事实，将问题翻译给外部证明器，并根据证明器使用的事实重构证明。只有最后一步，由内核检查，才构成定理。</p>
+</figcaption></figure>
+<p>Isabelle 内置了证明器（模块 1）：E、Vampire、Zipperposition 和 SPASS 是一阶和高阶逻辑的自动定理证明器；cvc5、veriT 和 Z3 是 SMT 求解器，也支持算术。Isabelle2026 还运行其部分自有证明方法，如 <code>metis</code> 和 <code>auto</code>，作为额外的“证明器”。无需信任外部程序或翻译，因为它们的答案仅用于构造内核检查的证明：</p>
+<ul>
+<li><code>metis</code> 是 Isabelle 中的一个证明方法，它从简短列表中寻找一阶证明
+事实。使用三个事实进行搜索远比使用数千个事实容易，且每一步都通过内核。</li>
+<li><code>smt</code> 将问题提交给 SMT 求解器，并在 Isabelle 中逐步回放求解器的证明。</li>
+<li>当诸如<code>simp</code>或<code>auto</code>之类的普通方法利用所发现的事实时，Sledgehammer会建议它。</li>
+</ul>
+<p>在下一个证明步骤应出现的位置写出 <code>sledgehammer</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;
+  sledgehammer">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;</span>
+  <span class="isa-cmd">sledgehammer</span></code></pre></div>
+<div class="isa-output varies"><div class="isa-output-bar">输出<span class="isa-varies">某一次运行的结果，你的可能不同</span></div><pre class="isa-output-body"><code>Sledgehammering...
+
+metis found a proof...
+
+metis: Try this: by (metis mult_le_mono mult_le_mono1) (82 ms)
+
+cvc5 found a proof...
+
+cvc5: Try this: by (simp add: mult_le_mono) (1 ms)
+
+vampire found a proof...
+
+vampire: Try this: by (simp add: mult_mono') (4 ms)
+
+spass found a proof...
+
+verit found a proof...
+
+verit: Duplicate proof
+
+zipperposition found a proof...
+
+e found a proof...
+
+e: Duplicate proof
+
+zipperposition: Try this: using mult_le_mono by blast (1 ms)
+
+spass: Try this: using mult_le_mono by presburger (1 ms)
+
+Done</code></pre></div>
+<p>从顶部读取输出。“Sledgehammering...”表示证明器已启动。每个“… found a proof...”来自一个证明器。该证明器的建议紧随其后或几行之后，格式为“prover: Try this: …”，括号内为验证建议证明所花费的时间。“Duplicate proof”表示一个证明器找到了已由其他证明器提出的证明。“Done”表示所有证明器已完成。在 Isabelle/jEdit 中，点击建议即可插入。选择一个简短且快速的建议，并用它替换 <code>sledgehammer</code> 行。此处 cvc5 的建议正是你在第 9.6 节中手动找到的证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by (simp add: mult_le_mono)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> (simp add: mult_le_mono)</code></pre></div>
+<p>无论选择哪种建议，证明均由 Isabelle 方法 <code>simp</code> 执行，且内核会检查每一步。<code>sledgehammer</code> 命令本身并不进行证明：在获得证明后应将其删除。</p>
+<p>当目标可由少数库事实推导得出且其他方法无法处理时，Sledgehammer 表现最佳。两个长度相同且可交换的日志段相等：<code>⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs</code>。<code>blast</code> 在此目标上失败，<code>simp</code> 和 <code>auto</code> 表现更差：它们运行直至 Isabelle 内存耗尽。化简器使用库的 simp 规则 <code>append_eq_append_conv</code>（该规则说明当两个连接列表相等时）重写第一个假设，得到 <code>es = fs ∧ fs = es</code>。随后，它将这两个等式作为重写规则，反复将 <code>es</code> 转化为 <code>fs</code>，并将 <code>fs</code> 还原为 <code>es</code>。Sledgehammer 将相同的库引理作为事实而非重写规则使用，并建议如下证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs&quot;
+  by (metis append_eq_append_conv)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs&quot;</span>
+  <span class="isa-proof">by</span> (metis append_eq_append_conv)</code></pre></div>
+<p>你可能未曾想到以这种方式引理，但 Sledgehammer 找到了它。</p>
+<p>Isabelle/jEdit 在窗口底部设有 <strong>Sledgehammer</strong>面板。将光标置于证明中并点击<strong>Apply</strong>：证明器在后台运行，同时你可继续工作，结果会显示在面板中，点击某个证明即可将其插入文本。<strong>Provers:</strong>字段列出要运行的证明器，<strong>Cancel</strong> 用于停止它们。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>Sledgehammer 在小型一阶目标上表现最佳。先用 <code>simp</code> 或 <code>auto</code> 进行化简，再对剩余部分调用 Sledgehammer。它不进行归纳，因此对于涉及所有列表的声明，需自行启动归纳，并对各情况调用 Sledgehammer。选项置于方括号中，例如 <code>sledgehammer [timeout = 60]</code> 可将证明器超时时间设为 60 秒而非默认的 30 秒。</p>
+</div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<ul>
+<li><strong>在 Windows 上，没有证明器启动，或出现某个证明器启动失败的消息。</strong> Windows Defender 可能会阻止
+如 Module 1 所警告，Isabelle 的外部证明器需将 <strong>Virus &amp; threat protection</strong> 整个 Isabelle 文件夹排除，正如 Isabelle 的安装页面所建议，然后再次运行 Sledgehammer。</li>
+<li><strong>没有证明器找到证明。</strong> 目标可能为假：使用 <code>quickcheck</code> 和 <code>nitpick</code> 进行检查。它可能需要
+归纳法，或库中不存在的引理：先证明该引理。或者证明器需要更多时间：<code>sledgehammer [timeout = 120]</code>。</li>
+<li><strong>建议的<code>metis</code>调用失败或运行时间过长。</strong>尝试列表中的另一个建议。</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="strategy"></span>
+<div class="section-header"><span class="section-num">9</span><h2>当自动化失败时</h2></div>
+<p>没有算法能对每个逻辑目标始终给出终止且正确的肯定或否定回答：一阶有效性已不可判定（Module 3）。系统化的证明搜索在原则上仍可枚举可推导的定理；对于无推导的目标，它无需终止。在实践中，有界自动化会在某些你可证明的目标上失败。然后按此大致顺序执行以下步骤。</p>
+<ol>
+<li><strong>该主张是否成立？</strong> 运行 <code>quickcheck</code> 和 <code>nitpick</code>。若找到真正的反例，则该命题
+需要修复的是逻辑，而非证明。</li>
+<li><strong>化简并阅读。</strong> <code>apply auto</code>（或<code>apply simp</code>）并阅读剩余部分。剩余的子目标
+展示工具无法完成的工作。</li>
+<li><strong>展开定义。</strong>定义方程默认不是化简规则：使用<code>simp add: f_def</code>添加它们。</li>
+<li><strong>分情况讨论。</strong>一个<code>case</code>需要<code>split: t.split</code>；假设中的<code>if</code>或<code>case</code>需要
+<code>split: if_splits</code> or <code>t.splits</code>.</li>
+<li><strong>使用归纳法</strong>当断言涉及递归类型的所有值且包含递归
+函数。启动它，然后自动处理案例。</li>
+<li><strong>寻找或证明适用的引理。</strong> 用 <code>find_theorems</code> 搜索。若库中没有合适的引理，则写出缺少的
+将 step 作为独立的引理并先证明它。</li>
+<li><strong>尝试对剩余部分使用 Sledgehammer</strong>。</li>
+<li><strong>选择针对目标类型（图 9.3）的不同方法</strong>。</li>
+</ol>
+<figure class="fig" id="fig-09-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>先试哪种方法</title><defs><marker id="fig-09-3__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><text x="24" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">目标的内容是……</text><text x="500" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">先试</text><rect x="14" y="40" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">等式、定义、列表与数上的函数</text><line x1="452" y1="55" x2="488" y2="55" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="44" width="46" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="519.0" y="61" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">simp</text><rect x="550" y="44" width="46" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="573.0" y="61" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">auto</text><rect x="14" y="78" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">关于所有列表或所有数、含递归函数</text><line x1="452" y1="93" x2="488" y2="93" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="82" width="83" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="537.5" y="99" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">induction</text><text x="587" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">然后 simp、auto</text><rect x="14" y="116" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="136" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">∀ ∃ ∧ ∨ ⟶、集合与关系，无算术</text><line x1="452" y1="131" x2="488" y2="131" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="120" width="53" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="522.5" y="137" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">blast</text><rect x="14" y="154" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="174" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">逻辑与等式交织</text><line x1="452" y1="169" x2="488" y2="169" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="158" width="83" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="537.5" y="175" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">fastforce</text><rect x="587" y="158" width="53" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="613.5" y="175" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">force</text><rect x="648" y="158" width="46" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="671.0" y="175" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">auto</text><rect x="14" y="192" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="212" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">+ − &lt; ≤，数与变量相乘</text><line x1="452" y1="207" x2="488" y2="207" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="196" width="76" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="534.0" y="213" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">linarith</text><rect x="580" y="196" width="53" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="606.5" y="213" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">arith</text><rect x="14" y="230" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="250" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">奇偶、按常数取 div 和 mod、对数的 ∃</text><line x1="452" y1="245" x2="488" y2="245" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="234" width="90" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="541.0" y="251" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">presburger</text><rect x="14" y="268" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="288" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">变量相乘；需要一条叫不出名字的引理</text><line x1="452" y1="283" x2="488" y2="283" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="272" width="113" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="552.5" y="289" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">find_theorems</text><rect x="617" y="272" width="105" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="669.5" y="289" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">sledgehammer</text><rect x="14" y="306" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="326" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">没有把握是否成立的命题</text><line x1="452" y1="321" x2="488" y2="321" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="310" width="90" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="541.0" y="327" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">quickcheck</text><rect x="594" y="310" width="68" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="628.0" y="327" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">nitpick</text></svg>
+</div><figcaption><span class="fig-num">图 9.3</span> <p>根据目标类型优先尝试哪个方法，当首选失败时，阅读其遗留部分并沿上述步骤列表向下推进。</p>
+</figcaption></figure>
+<div class="box box-example"><div class="box-label">例 9.2<span class="box-title">在步骤 1、2、4 和 5 中起作用</span></div>
+<p>证明文档所有者可以管理它：如果 <code>owner es = Some v</code> 则 <code>allows es v Admin</code>。</p>
+<p>步骤 1：<code>quickcheck</code> 在其边界内未找到反例；预期含义也表明该命题为真。步骤 5：<code>owner</code> 和 <code>allows</code> 均为列表上的递归函数，因此启动归纳法。步骤 2：令 <code>auto</code> 尽其所能。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma owner_admin: &quot;owner es = Some v ⟹ allows es v Admin&quot;
+  apply (induction es)
+  apply auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> owner_admin: <span class="isa-inner">&quot;owner es = Some v ⟹ allows es v Admin&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀a b es.
+       ⟦owner es = Some v ⟹ False;
+        (if b = Admin then Some (fst (a, b)) else owner es) = Some v;
+        ¬ allows es v Admin⟧
+       ⟹ a = v
+ 2. ⋀a b es.
+       ⟦owner es = Some v ⟹ False;
+        (if b = Admin then Some (fst (a, b)) else owner es) = Some v;
+        ¬ allows es v Admin⟧
+       ⟹ b = Admin</code></pre></div>
+<p>基本情况已证明。归纳步骤仍有两个子目标，且两者在假设中均包含 <code>if</code>：<code>auto</code> 将配对 <code>a</code> 拆分为 <code>a</code> 和 <code>b</code>，但未处理 <code>owner</code> 定义中的 <code>if</code>。第 4 步说明了操作：假设中的 <code>if</code> 需要 <code>split: if_splits</code>。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops
+
+lemma owner_admin: &quot;owner es = Some v ⟹ allows es v Admin&quot;
+  apply (induction es)
+  apply (auto split: if_splits)
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span>
+
+<span class="isa-cmd">lemma</span> owner_admin: <span class="isa-inner">&quot;owner es = Some v ⟹ allows es v Admin&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)
+  <span class="isa-proof">apply</span> (auto split: if_splits)
+  <span class="isa-proof">done</span></code></pre></div>
+</div>
+<p>这个引理马上就能用于下一个命题。只有有权管理文档的人才能删除该文档：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;may_delete u es ⟹ allows es u Admin&quot;
+  by (simp add: may_delete_def owner_admin split: option.splits)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ allows es u Admin&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def owner_admin split: option.splits)</code></pre></div>
+<p>该证明联合使用步骤 3、4 和 6：它展开 <code>may_delete</code>，拆分假设中的 <code>case</code>，并使用上述引理。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>自动化失败必有原因，且该原因通常可见：在剩余子目标中、在反例中，或在追踪记录中。在尝试其他方法前请先阅读。修复方案通常涉及展开一个定义、拆分一个案例、启动一个归纳法，或先证明一个引理。</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>小结</h2></div>
+<ul>
+<li><strong>化简器</strong>使用定向等式进行重写，通常优先处理内部部分，并应用同余
+控制项下降的规则；重写为<code>True</code>的目标得证。它使用<strong>simp set</strong>：<code>fun</code>的方程、<code>datatype</code>的事实以及标记为<code>[simp]</code>的引理。由<code>definition</code>引入的方程默认不注册。</li>
+<li><code>simp add:</code>、<code>simp del:</code> 和 <code>simp only:</code> 改变单次调用的规则；<code>simp_all</code> 作用于每一次
+子目标；<code>[simp]</code> 和 <code>declare … [simp]</code> 更改 simp 集合。</li>
+<li>只有化简器能够证明其条件时，才应用<strong>条件规则</strong>。对于
+子目标也变为重写规则。</li>
+<li><code>if</code> 被自动拆分；<code>case</code> 需要 <code>split: t.split</code>，且假设中的拆分需要 <code>if_splits</code>
+or <code>t.splits</code>.</li>
+<li>重写可能陷入循环；保持右侧比左侧更简单。<strong>交换</strong>规则如交换律
+它们是安全的，因为 Isabelle 仅将它们应用于排序项。<code>using [[simp_trace]]</code> 展示了每一步。</li>
+<li><code>blast</code> 搜索一阶逻辑、集合与关系；<code>auto</code> 化简并对所有子目标进行推理
+留下其无法证明的内容；<code>force</code> 和 <code>fastforce</code> 混合搜索与重写；<code>clarsimp</code> 整理目标。</li>
+<li><code>linarith</code> 证明线性算术（在 <code>nat</code> 和 <code>int</code> 上，而非全部）；<code>presburger</code> 判定线性
+整数的算术运算，包含整除与量词；<code>arith</code> 尝试两种方法。包含变量乘积的整数算术是不可判定的；使用库引理。</li>
+<li><code>find_theorems</code> 和 <code>find_consts</code> 搜索库；Quickcheck 和 Nitpick 搜索反例。</li>
+<li><strong>Sledgehammer</strong> 向外部证明器请求证明所需的定理并重构证明
+内核检查。</li>
+<li>当自动化失败时：测试主张，阅读剩余部分，展开，拆分，归纳，寻找或证明引理，
+并尝试 Sledgehammer。</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>练习</h2></div>
+<div class="exercise" id="ex-9-1"><div class="ex-label"><span class="ex-num">练习 9.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">哪个工具？</span></div>
+<p>对于每个目标，命名你首先尝试的方法，并说明原因，然后在 Isabelle 中验证你的答案。</p>
+<ol>
+<li><code>rev (rev xs @ ys) = rev ys @ xs</code></li>
+<li><code>⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D</code></li>
+<li><code>⟦(a::int) &lt; b; b &lt; c⟧ ⟹ a + 2 ≤ c</code></li>
+<li><code>(n::nat) mod 4 = 1 ⟹ n mod 2 = 1</code></li>
+<li><code>allows es u Admin ⟹ allows es u Write</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>simp</code>：关于库函数 <code>rev</code> 的等式，simp 集合对此非常熟悉。</li>
+<li><code>blast</code>: 关于集合的纯推理。</li>
+<li><code>linarith</code>: 线性算术。对于整数，<code>a &lt; b</code> 意味着 <code>a + 1 ≤ b</code>，且 <code>linarith</code> 知晓此点。</li>
+<li><code>presburger</code>：按常数作 <code>mod</code> 的情形属于普雷斯堡算术。论证需要利用 <code>4 * q + 1</code>
+is odd，这超出了<code>linarith</code>的范围。</li>
+<li><code>quickcheck</code>: 一个仅授予 <code>Admin</code> 的访问控制列表（ACL）是一个反例，因此没有任何方法可以证明它。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rev (rev xs @ ys) = rev ys @ xs&quot;
+  by simp
+
+lemma &quot;⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D&quot;
+  by blast
+
+lemma &quot;⟦(a::int) &lt; b; b &lt; c⟧ ⟹ a + 2 ≤ c&quot;
+  by linarith
+
+lemma &quot;(n::nat) mod 4 = 1 ⟹ n mod 2 = 1&quot;
+  by presburger
+
+lemma &quot;allows es u Admin ⟹ allows es u Write&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rev (rev xs @ ys) = rev ys @ xs&quot;</span>
+  <span class="isa-proof">by</span> simp
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦(a::int) &lt; b; b &lt; c⟧ ⟹ a + 2 ≤ c&quot;</span>
+  <span class="isa-proof">by</span> linarith
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(n::nat) mod 4 = 1 ⟹ n mod 2 = 1&quot;</span>
+  <span class="isa-proof">by</span> presburger
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows es u Admin ⟹ allows es u Write&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  es = [(a<sub>1</sub>, Admin)]
+  u = a<sub>1</sub></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-2"><div class="ex-label"><span class="ex-num">练习 9.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">手动重写</span></div>
+<p>通过<code>revoke</code>和<code>allows</code>的等式以及这些定律：<code>fst (a, b) = a</code>、<code>(x = x) = True</code>和<code>(if True then s else t) = s</code>，将项<code>allows (revoke u [(u, Read)]) u Read</code>手工重写为<code>False</code>。写出每一步及其使用的规则。然后在Isabelle中确认这些规则足以证明<code>simp only:</code>。关于<code>fst</code>和<code>if</code>的两个定律分别称为<code>fst_conv</code>和<code>if_True</code>。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>先处理内部部分：</p>
+<ol>
+<li><code>revoke u [(u, Read)]</code> 匹配 <code>revoke</code> 的第二个方程，其中 <code>(u, Read)</code> 对应 <code>e</code>，<code>[]</code> 对应
+<code>es</code>: 它变为 <code>if fst (u, Read) = u then revoke u [] else (u, Read) # revoke u []</code>。</li>
+<li>现在这个新项的各部分。在条件中，<code>fst (u, Read)</code> 通过 <code>fst_conv</code> 变为 <code>u</code>，然后
+<code>u = u</code> 通过 <code>(x = x) = True</code> 变为 <code>True</code>。在两个分支中，<code>revoke u []</code> 通过 <code>revoke</code> 的第一个等式变为 <code>[]</code>。</li>
+<li><code>if True then [] else [(u, Read)]</code> 通过 <code>if_True</code> 变为 <code>[]</code>。</li>
+<li><code>allows [] u Read</code> 通过 <code>allows</code> 的第一个等式变为 <code>False</code>。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (revoke u [(u, Read)]) u Read = False&quot;
+  by (simp only: revoke.simps allows.simps fst_conv simp_thms if_True)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke u [(u, Read)]) u Read = False&quot;</span>
+  <span class="isa-proof">by</span> (simp only: revoke.simps allows.simps fst_conv simp_thms if_True)</code></pre></div>
+<p>第4步之后，引理读作<code>False = False</code>，其中<code>(x = x) = True</code>由<code>simp_thms</code>转化为<code>True</code>。（以其他顺序进行重写，例如在化简其分支之前先解决<code>if</code>，会得到相同的结果。）</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-3"><div class="ex-label"><span class="ex-num">练习 9.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">为什么 simp 失败了？</span></div>
+<p>这三个引理为真，但<code>by simp</code>对每个引理均失败。在Isabelle中尝试每个引理，阅读消息，说明证明失败的原因，并修复它。</p>
+<ol>
+<li><code>set (grant u p es) = insert (u, p) (set es)</code></li>
+<li><code>may_delete u es ⟹ owner es ≠ None</code>，将 <code>by simp</code> 替换为 <code>by (simp add: may_delete_def)</code></li>
+<li><code>x ∈ set (revoke u es) ⟹ fst x ≠ u</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>“无法应用初始证明方法”：无适用规则。<code>grant</code> 是定义，因此化简器
+它不会展开，且没有 simp 规则涉及 <code>set (grant u p es)</code>（<code>allows_grant</code> 关于 <code>allows</code> 而非 <code>set</code>）。添加 <code>grant_def</code>。</li>
+<li>“证明未能完成”，且剩余目标的假设中包含位于 <code>owner es</code> 上的 <code>case</code>。一个 <code>case</code>
+在假设中仅使用<code>split: option.splits</code>进行拆分。</li>
+<li>“Failed to apply initial proof method”。该断言涉及所有列表并包含递归
+定义函数 <code>revoke</code>，因此归纳法是合适的下一步。在归纳步骤中，<code>revoke</code> 的 <code>if</code> 出现在假设中，这需要 <code>split: if_splits</code>。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;set (grant u p es) = insert (u, p) (set es)&quot;
+  by (simp add: grant_def)
+
+lemma &quot;may_delete u es ⟹ owner es ≠ None&quot;
+  by (simp add: may_delete_def split: option.splits)
+
+lemma &quot;x ∈ set (revoke u es) ⟹ fst x ≠ u&quot;
+  by (induction es) (auto split: if_splits)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;set (grant u p es) = insert (u, p) (set es)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ owner es ≠ None&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def split: option.splits)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;x ∈ set (revoke u es) ⟹ fst x ≠ u&quot;</span>
+  <span class="isa-proof">by</span> (induction es) (auto split: if_splits)</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-4"><div class="ex-label"><span class="ex-num">练习 9.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">撤销的更多定律</span></div>
+<p>证明这三个定律。其中一些需要归纳法；选择 <code>simp</code> 或 <code>auto</code> 作为案例。</p>
+<ol>
+<li><code>revoke u (grant u p es) = revoke u es</code></li>
+<li><code>revoke u (revoke v es) = revoke v (revoke u es)</code></li>
+<li><code>length (revoke u es) ≤ length es</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>第一项无需归纳，仅需<code>grant</code>的定义；第二项和第三项对列表进行归纳以提供关于递归调用的事实；<code>revoke</code>包含一个<code>if</code>，由化简器进行拆分。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;revoke u (grant u p es) = revoke u es&quot;
+  by (simp add: grant_def)
+
+lemma revoke_commute: &quot;revoke u (revoke v es) = revoke v (revoke u es)&quot;
+  by (induction es) auto
+
+lemma &quot;length (revoke u es) ≤ length es&quot;
+  by (induction es) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;revoke u (grant u p es) = revoke u es&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)
+
+<span class="isa-cmd">lemma</span> revoke_commute: <span class="isa-inner">&quot;revoke u (revoke v es) = revoke v (revoke u es)&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (revoke u es) ≤ length es&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto</code></pre></div>
+<p>在第三步中，在拆分<code>if</code>之后，归纳步骤需要从归纳假设<code>length (revoke u es) ≤ length es</code>中获取<code>length (revoke u es) ≤ Suc (length es)</code>：线性算术，而<code>auto</code>做到了这一点。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-5"><div class="ex-label"><span class="ex-num">练习 9.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">拆分案例</span></div>
+<p>定义一个函数 <code>latest :: &quot;'u acl ⇒ ('u × perm) option&quot;</code>，它返回列表的第一个元素，若列表为空则返回 <code>None</code>，在 <code>definition</code> 中使用 <code>case</code> 表达式。然后证明：</p>
+<ol>
+<li><code>latest (grant u p es) = Some (u, p)</code></li>
+<li><code>(latest es = None) = (es = [])</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition latest :: &quot;'u acl ⇒ ('u × perm) option&quot; where
+  &quot;latest es = (case es of [] ⇒ None | e # _ ⇒ Some e)&quot;
+
+lemma &quot;latest (grant u p es) = Some (u, p)&quot;
+  by (simp add: latest_def grant_def)
+
+lemma &quot;(latest es = None) = (es = [])&quot;
+  by (simp add: latest_def split: list.split)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> latest :: <span class="isa-inner">&quot;'u acl ⇒ ('u × perm) option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;latest es = (case es of [] ⇒ None | e # _ ⇒ Some e)&quot;</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;latest (grant u p es) = Some (u, p)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: latest_def grant_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(latest es = None) = (es = [])&quot;</span>
+  <span class="isa-proof">by</span> (simp add: latest_def split: list.split)</code></pre></div>
+<p>第一个引理中的列表是 <code>(u, p) # es</code>，化简器可以直接化简 <code>case</code>，因为数据类型的 <code>case</code> 等式本身就是化简规则。第二个引理的列表为变元 <code>es</code>，必须用 <code>list.split</code> 对 <code>case</code> 作情形分析。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-6"><div class="ex-label"><span class="ex-num">练习 9.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">配额算术</span></div>
+<p>使用算术方法证明每个目标，并说明该方法为何适用。对于最后一个目标，通过 <code>find_theorems</code> 找到所需的引理。</p>
+<ol>
+<li><code>⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)</code></li>
+<li><code>(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y</code></li>
+<li><code>even (n::nat) ⟹ ¬ even (n + 1)</code></li>
+<li><code>(x::nat) ≤ y ⟹ x * z ≤ y * z</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>linarith</code>: 线性，在 <code>nat</code> 上支持减法。</li>
+<li><code>linarith</code>: 乘以标量是线性的。</li>
+<li><code>presburger</code>: <code>even n</code> 表示 2 整除 <code>n</code>，且由数字整除的性质属于 Presburger 算术。</li>
+<li>变量乘积：非线性。<code>find_theorems &quot;(_::nat) * _ ≤ _ * _&quot; name: mono</code>（第9.6节）
+lists <code>mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k</code>，这恰好是所声称的结论。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)&quot;
+  by linarith
+
+lemma &quot;(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y&quot;
+  by linarith
+
+lemma &quot;even (n::nat) ⟹ ¬ even (n + 1)&quot;
+  by presburger
+
+lemma &quot;(x::nat) ≤ y ⟹ x * z ≤ y * z&quot;
+  by (simp add: mult_le_mono1)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)&quot;</span>
+  <span class="isa-proof">by</span> linarith
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y&quot;</span>
+  <span class="isa-proof">by</span> linarith
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;even (n::nat) ⟹ ¬ even (n + 1)&quot;</span>
+  <span class="isa-proof">by</span> presburger
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * z ≤ y * z&quot;</span>
+  <span class="isa-proof">by</span> (simp add: mult_le_mono1)</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-7"><div class="ex-label"><span class="ex-num">练习 9.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">找反例、修正、再证明</span></div>
+<p>安全审查声称：“如果用户拥有权限 <code>p</code>，那么在从角色 <code>r</code> 中移除权限 <code>p</code> 后，用户仍然拥有 <code>p</code>”。在 Isabelle 中形式化为：<code>(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})</code>。使用 Nitpick 寻找反例并解释，然后添加使该声明成立的假设，并使用 <code>blast</code> 进行证明。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(u::'u, p::perm) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r::'r, p)})&quot;
+  nitpick [card 'u = 1, card 'r = 1]
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(u::'u, p::perm) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r::'r, p)})&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card 'u = 1, card 'r = 1]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output varies"><div class="isa-output-bar">输出<span class="isa-varies">某一次运行的结果，你的可能不同</span></div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample for card 'r = 1 and card 'u = 1:
+  Free variables:
+    RP = {(r<sub>1</sub>, p<sub>2</sub>)}
+    UR = {(u<sub>1</sub>, r<sub>1</sub>)}
+    p = p<sub>2</sub>
+    r = r<sub>1</sub>
+    u = u<sub>1</sub></code></pre></div>
+<p>这里 <code>p₂</code> 是三种权限之一。用户只有一个角色时，只能通过 <code>r</code> 获得 <code>p</code>。若 <code>r</code> 失去 <code>p</code>，用户也随之失去该权限。若 <code>u</code> 通过 <code>r</code> 以外的某个角色拥有 <code>p</code>，则该命题成立：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-8"><div class="ex-label"><span class="ex-num">练习 9.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">一个不变式</span></div>
+<p>若每个可能写入的用户也可能读取，则称 ACL 是良构的：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition wf_acl :: &quot;'u acl ⇒ bool&quot; where
+  &quot;wf_acl es = (∀u. allows es u Write ⟶ allows es u Read)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> wf_acl :: <span class="isa-inner">&quot;'u acl ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;wf_acl es = (∀u. allows es u Write ⟶ allows es u Read)&quot;</span></code></pre></div>
+<ol>
+<li>证明 <code>revoke</code> 保持 ACL 良构：<code>wf_acl es ⟹ wf_acl (revoke u es)</code>。</li>
+<li>使用 Quickcheck 证明 <code>grant u Write</code> 不成立。</li>
+<li>证明授予 <code>Read</code> 与 <code>Write</code> 共同保持其良构性：
+<code>wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))</code>.</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;wf_acl es ⟹ wf_acl (revoke u es)&quot;
+  by (simp add: wf_acl_def allows_revoke)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;wf_acl es ⟹ wf_acl (revoke u es)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: wf_acl_def allows_revoke)</code></pre></div>
+<p>展开后，<code>allows_revoke</code> 重写 <code>allows (revoke u es) w …</code> 的两个出现以及假设，a <code>∀</code> 关于 <code>⟶</code> 的条件重写规则完成了证明（第 9.3 节）。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;wf_acl es ⟹ wf_acl (grant u Write es)&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;wf_acl es ⟹ wf_acl (grant u Write es)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  es = []
+  u = a<sub>1</sub></code></pre></div>
+<p>空列表良构，但在单独授予 <code>Write</code> 后，用户可写不可读。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))&quot;
+  by (simp add: wf_acl_def)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))&quot;</span>
+  <span class="isa-proof">by</span> (simp add: wf_acl_def)</code></pre></div>
+<p>展开后，<code>allows_grant</code> 将每个用户 <code>w</code> 与两个新条目进行比较；对于 <code>w = u</code>，<code>Write</code> 和 <code>Read</code> 均成立；对于任何其他用户，旧列表决定两者，且假设（再次为条件规则）完成证明。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-9"><div class="ex-label"><span class="ex-num">练习 9.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">循环与顺序</span></div>
+<ol>
+<li>库中的引理 <code>rev_append</code> 是一个 simp 规则：<code>rev (xs @ ys) = rev ys @ rev xs</code>。解释
+如果你也将 <code>rev ys @ rev xs = rev (xs @ ys)</code> 声明为 simp 规则，将会发生什么。</li>
+<li>使用 <code>simp only:</code> 和单个证明步骤证明 <code>insert a (insert b (insert c A)) = insert c (insert a (insert b A))</code>
+库规则，并解释为什么化简器会停止。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>两条规则互相抵消：<code>rev (xs @ ys)</code> 被重写成 <code>rev ys @ rev xs</code>，然后又被改回原式，如此循环下去。
+两个规则均非置换性的（其两侧为不同的项，而非通过交换变量得到的相同项），因此有序重写不适用，且化简器会陷入循环。</li>
+<li><code>insert_commute</code> 具有置换性。Isabelle 仅在结果在其固定顺序中更小时才应用它
+关于项，它对插入的元素进行排序，类似于冒泡排序，并在元素有序时停止。两侧达到相同的排序形式。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;insert a (insert b (insert c A)) = insert c (insert a (insert b A))&quot;
+  by (simp only: insert_commute)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;insert a (insert b (insert c A)) = insert c (insert a (insert b A))&quot;</span>
+  <span class="isa-proof">by</span> (simp only: insert_commute)</code></pre></div>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>为什么<code>by simp</code>在<code>allows (grant u Read es) u Read</code>上失败而<code>by (simp add: grant_def)</code>成功？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>simp</code> 无法处理列表</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>grant_def</code> 是一个条件规则</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>grant</code> 用 <code>definition</code> 定义，其定义等式默认不会成为 simp 规则</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> 仅使用在同一理论中以 <code>[simp]</code> 编写的规则</button></li></ol><div class="quiz-expl" hidden><code>fun</code> 和许多库引理的等式是化简规则。<code>definition</code> 默认不注册其等式；在需要时提供或注册其 <code>_def</code> 定理。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>化简规则具有形式 <code>v ≠ u ⟹ allows (revoke u es) v p = allows es v p</code>。<code>simp</code> 在何时对 <code>allows (revoke a es) b Read</code> 使用它？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">仅当它能证明<code>b ≠ a</code>时，例如从子目标的假设中</button></li><li><button type="button" class="quiz-opt" data-i="1">始终，因为左侧匹配</button></li><li><button type="button" class="quiz-opt" data-i="2">从不，因为条件规则仅由 <code>auto</code> 使用</button></li><li><button type="button" class="quiz-opt" data-i="3">仅当你使用规则书写 <code>simp add:</code> 时</button></li></ol><div class="quiz-expl" hidden>条件规则仅在化简器通过化简证明其条件实例后应用。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>调用 <code>simp add: add.commute</code>，将交换律 <code>x + y = y + x</code> 加入 simp 集合。为何 <code>simp</code> 不会陷入循环？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Isabelle 在 100 步后停止所有化简</button></li><li><button type="button" class="quiz-opt" data-i="1">它仅从右到左使用</button></li><li><button type="button" class="quiz-opt" data-i="2">它具有置换性，且 Isabelle 仅在项的固定顺序下结果更小时应用它</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> 从不使用关于 <code>+</code> 的规则</button></li></ol><div class="quiz-expl" hidden>有序重写仅在规则使项进入有序状态时才应用置换规则，因此该规则对操作数排序一次后便停止。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>哪种方法适用于涉及集合与关系、包含全称量词 ∀ 与存在量词 ∃ 且无算术运算的目标？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>linarith</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>blast</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>simp only:</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>presburger</code></button></li></ol><div class="quiz-expl" hidden><code>blast</code> 搜索一阶逻辑，其中集合与关系的规则已内置。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">5</span><div><code>linarith</code> 在 <code>(x::nat) ≤ y ⟹ x * x ≤ y * y</code> 上失败。原因是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">目标是假的</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>linarith</code> 仅适用于整数</button></li><li><button type="button" class="quiz-opt" data-i="2">目标需要 <code>presburger</code></button></li><li><button type="button" class="quiz-opt" data-i="3">目标对两个变量进行乘法运算，因此不属于线性算术</button></li></ol><div class="quiz-expl" hidden>线性算术仅允许乘以固定数。形如 <code>mult_le_mono</code> 的引理可处理此非线性目标；不可判定性排除了能判定每个非线性整数算术目标的算法。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Sledgehammer 建议了一个使用两条库引理的证明 <code>by (metis …)</code>。为何你能信任所得定理？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">由于外部证明器是经过验证的程序</button></li><li><button type="button" class="quiz-opt" data-i="1">因为多个证明器达成一致</button></li><li><button type="button" class="quiz-opt" data-i="2">因为 Sledgehammer 会双重检查翻译</button></li><li><button type="button" class="quiz-opt" data-i="3">因为 <code>metis</code> 在 Isabelle 内部构建证明，且内核检查每一步</button></li></ol><div class="quiz-expl" hidden>外部证明器仅指出所需的事实。证明本身由 <code>metis</code> 再次找到并由内核检查，如同其他每个方法一样。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="9"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_08_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 8：HOL 中的函数式编程</span></a><a class="mnav next" href="module_10_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 10：用 Isar 编写结构化证明</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

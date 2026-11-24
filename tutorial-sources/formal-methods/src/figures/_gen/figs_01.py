@@ -14,7 +14,7 @@ def fig_01_1(L):
                     spec='规约', speck='形式化，用逻辑', imp='实现', impk='一段程序',
                     formalise='形式化', implement='实现', val='确认（validation）', valq=['规约说的是否正是', '我们真正想要的？'],
                     valm='评审、举例、测试', ver='验证（verification）', verq=['程序做的是否正是', '规约所说的？'],
-                    verm='证明，覆盖所有输入')}[L]
+                    verm='在明确的假设下证明')}[L]
     s = SVG(760, 330, T['title'])
     boxes = [(20, T['req'], T['reqk'], C['amber'], C['amberp']), (280, T['spec'], T['speck'], C['blue'], C['skyp']),
              (540, T['imp'], T['impk'], C['green'], C['greenp'])]
@@ -50,7 +50,7 @@ def fig_01_2(L):
                     tools='证明工具', toolk='simp、auto、blast、Sledgehammer……', toolk2='规模大，可能有错误',
                     kernel='内核', kernelk='逻辑的推理规则', kernelk2='规模小，经过仔细检查',
                     n1=['只有内核能够', '产生定理。'], n2=['工具提出证明步骤，', '内核逐一检查。'],
-                    n3=['工具中的错误可能让', '证明失败，但不能把', '错误的命题变成定理。'], thm='定理')}[L]
+                    n3=['在可靠的假设下，', '证明搜索的错误', '不会使错误的命题', '成为已证定理。'], thm='定理')}[L]
     s = SVG(760, 360, T['title'])
     s.rect(20, 20, 470, 320, fill=C['bg'], stroke=C['border'], r=16, sw=1.6)
     s.text(42, 50, T['th'], size=15, weight=700, fill=C['slate'])

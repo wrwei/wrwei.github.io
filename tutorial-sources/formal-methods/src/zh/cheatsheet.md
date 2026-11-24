@@ -68,8 +68,8 @@ lead: 把整个系列浓缩在一页上：符号怎样输入、怎样读，命�
 | x R y | “x 与 y 有关系 R” | [4.2.2](module_04_ZH.html#rel-def) |
 | g ∘ f | “g 在 f 之后” | [4.6.3](module_04_ZH.html#inverse) |
 | `Suc n` | “n 的后继” | [5.1.1](module_05_ZH.html#peano) |
-| `x # xs` | “x cons xs” | [5.2.1](module_05_ZH.html#lists) |
-| `'a list` | “alpha list” | [5.2.1](module_05_ZH.html#lists) |
+| `x # xs` | “x 追加到 xs” | [5.2.1](module_05_ZH.html#lists) |
+| `'a list` | “阿尔法列表” | [5.2.1](module_05_ZH.html#lists) |
 | ∀m < n. P(m) | “对所有小于 n 的 m，P(m) 成立” | [5.6](module_05_ZH.html#strong) |
 | Γ ⊢ A | “Γ 推导出 A”，“A 可由 Γ 推导出” | [6.2](module_06_ZH.html#systems) |
 | ⊥ | “bottom”或“falsum”；Isabelle 写作 `False` | [6.4.5](module_06_ZH.html#not) |
@@ -484,8 +484,8 @@ qed
 | **Theories**（理论） | 右侧 | **Prover: ready**（证明器：就绪），以及每个已打开理论的进度 | [1.6](module_01_ZH.html#tour) |
 | **Documentation**（文档） | 左侧 | 各种手册；**prog-prove** 是第三部分所依据的教程 | [1.6](module_01_ZH.html#tour) |
 | **Symbols**（符号） | 底部 | 所有符号，点击即可插入 | [1.6](module_01_ZH.html#tour) |
-| **Query**（查询） | 底部 | **Find Theorems**（查找定理）选项卡，带 **Find:** 输入框和 **Apply**（应用）按钮 | [9.6](module_09_ZH.html#find) |
-| **Sledgehammer** | 底部 | **Apply** 启动证明器，**Cancel**（取消）停止它们；点击一个证明即可插入 | [9.8](module_09_ZH.html#sledgehammer) |
+| **Query**（查询） | 底部 | **Find Theorems**（查找定理）选项卡，带 **Find:**输入框和**Apply**（应用）按钮 | [9.6](module_09_ZH.html#find) |
+| **Sledgehammer**| 底部 |**Apply**启动证明器，**Cancel**（取消）停止它们；点击一个证明即可插入 | [9.8](module_09_ZH.html#sledgehammer) |
 | **File Browser**（文件浏览器） | 左侧 | 生成的代码，位于 `isabelle-export:` 之下 | [8.8](module_08_ZH.html#codegen) |
 
 ### 键盘与鼠标 {#jedit-keys}

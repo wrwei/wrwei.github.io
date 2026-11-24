@@ -1,7 +1,7 @@
 ---
 title: 证明自动化
 part: 3
-lead: 在理解的基础上使用 Isabelle 的自动化工具。你将学会引导化简器，为逻辑、集合和算术问题选择合适的方法，查找引理和反例，调用 Sledgehammer，并知道自动化失败时该怎么办。
+lead: 理解 Isabelle 的自动化工具如何工作。引导化简器，为逻辑、集合或算术选择证明方法，查找引理与反例，使用 Sledgehammer，并在自动化失败后继续推导。
 minutes: 210
 needs: 模块 1–8，尤其是归纳（模块 5）、规则（模块 7）和定义（模块 8）
 goals:
@@ -18,7 +18,7 @@ imports: Main
 
 从模块 1 开始，你就一直在用一个词结束证明：`by simp`、`by auto`、`by blast`。每个这样的词都会启动一个搜索证明的程序。它成功时，能为你省下几十次规则应用；它失败时，又可能让你摸不着头脑：目标（goal）看起来很简单，Isabelle 却只说这个方法失败了。本模块就来打开这个工具箱。你将了解这些工具是怎样工作的，每个工具擅长什么，怎样引导它们，以及当它们都不管用时该怎么办。
 
-先回顾一下：为什么可以放心使用那些你并不了解内部细节的工具？你在第 1.4 节见过 LCF 架构：只有那个小小的内核（kernel）才能产生定理。本模块中的每个工具，无论多么巧妙，最后都要请内核检查每一步推理。工具可能失败，也可能运行很长时间，但它不能把一个错误的陈述变成定理。即使是会调用 Isabelle 之外的程序的 Sledgehammer，也是如此；第 9.8 节会说明其中的道理。
+首先，回顾为何安全使用内部机制细节未知的工具：在 Section 1.4 中介绍了 LCF 架构：普通完成的证明由内核推理构建。此处使用的证明方法遵循此路径。搜索可能失败或运行很长时间，但其结果仅通过从给定假设和公理出发的已检查推理成为定理。Admissions 和 oracle 配置绕过此保证。`find_theorems`、Quickcheck 和 Nitpick 等搜索工具本身并不证明目标。Sledgehammer 重构的证明也经过检查，尽管它调用了 Isabelle 外部的程序；Section 9.8 展示了具体方法。
 
 | 工具 | 它做什么 | 适用于 |
 |---|---|---|
@@ -41,7 +41,7 @@ datatype perm = Read | Write | Admin
 type_synonym 'u acl = "('u × perm) list"
 ```
 
-数据类型（datatype）`perm` 有三个值：`Read`（读）、`Write`（写）和 `Admin`（管理）。`type_synonym` 给一个类型起一个更短的名字：`'u acl` 就是类型 `('u × perm) list`，即由“用户和权限”组成的有序对（pair）的列表。类型变量（type variable）`'u` 是用户的类型。下面的例子使用 `''ann''` 这样的字符串；在 Isabelle 中，字符串的两边各写两个单引号。
+数据类型（datatype）`perm` 有三个值：`Read`（读）、`Write`（写）和 `Admin`（管理）。`type_synonym` 给一个类型起一个更短的名字：`'u acl` 就是类型 `('u × perm) list`，即由“用户和权限”组成的有序对（pair）的列表。类型变元（type variable）`'u` 是用户的类型。下面的例子使用 `''ann''` 这样的字符串；在 Isabelle 中，字符串的两边各写两个单引号。
 
 ```isabelle
 fun allows :: "'u acl ⇒ 'u ⇒ perm ⇒ bool" where
@@ -110,7 +110,7 @@ value "revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])"
 **重写规则**（rewrite rule）是只从左往右使用的等式 `l = r`。用一组规则**重写**一个项，就是一次又一次地找出一个子项，它是某个左边 `l` 的实例，然后把它替换为右边 `r` 的相同实例。任何规则都无法再重写的项叫做**范式**（normal form）。化简器通过把目标重写成 `True` 来证明它。
 :::
 
-在逻辑上，`l = r` 和 `r = l` 说的是同一件事。但化简器仍然只按一个方向使用每个等式，正因为如此，它既快又可预测：它永远不必在“往前走”和“往回走”之间做选择。它还遵循固定的顺序：在重写一个项之前，它先由内向外地重写这个项的各个部分，如图 9.1 所示。
+在逻辑中，`l = r` 和 `r = l` 表达相同含义。化简器仍仅沿单一方向使用每个等式，从而避免双向搜索。普通重写由内向外进行，如图 9.1 所示。同余规则可控制简化部分及其假设条件：例如，`if` 的条件可先被简化，其分支在该条件下被简化。
 
 ::: figure id=fig-09-1
 化简器处理 `allows (grant u Read es) u Read` 的过程。每一步都用箭头旁标出的规则重写高亮的部分。内部的部分先于包含它们的项被重写。
@@ -118,7 +118,7 @@ value "revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])"
 
 ### 在 Isabelle 中观察 {#simp-only}
 
-你可以让 Isabelle 一步一步地走完这个例子。`simp only: r₁ r₂` 只用规则 `r₁ r₂` 重写，不用其他任何规则：
+你可以让 Isabelle 逐步执行示例中的步骤。`simp only: r₁ r₂` 清除普通重写规则，并使用 `r₁ r₂`，结合第 9.2.4 节中描述的假设和内置支持：
 
 ```isabelle
 lemma "allows (grant u Read es) u Read"
@@ -169,7 +169,7 @@ No subgoals!
 **化简规则**（simp rule）是化简器无需告知就会使用的定理。**化简规则集**是理论中某一处的全部化简规则。在引理的名字后面写上 `[simp]`，或者之后用 `declare name [simp]` 声明，就能使它成为化简规则；`declare name [simp del]` 则把它重新移除。
 :::
 
-这个列表里少了一样东西：定义。用 `definition` 给出的定义不是化简规则，所以 `simp` 把 `grant` 当作一个未知的函数：
+列表缺少一项：由`definition`引入的等式默认不是 simp 规则，因此`simp`将`grant`视为未知函数：
 
 ```isabelle fails
 lemma "allows (grant u Read es) u Read"
@@ -182,7 +182,7 @@ lemma "allows (grant u Read es) u Read"
 ***  1. allows (grant u Read es) u Read
 ```
 
-“Failed to apply initial proof method”（未能应用初始的证明方法）的意思是，`simp` 根本无法改变这个目标：化简规则集中没有任何规则与目标的任何部分匹配。用 `add:` 告诉 `simp` 使用这个定义：
+此处“Failed to apply initial proof method”表示`simp`对目标未产生进展：没有适用的规则展开`grant`或证明周围的主张。指示`simp`使用带有`add:`的定义
 
 ```isabelle
 lemma "allows (grant u Read es) u Read"
@@ -273,13 +273,14 @@ goal (2 subgoals):
 在第二个子目标中，化简器把归纳假设（induction hypothesis）——这个子目标的一个假设（assumption）——用作了重写规则。第 9.3 节会解释 simp 怎样使用假设。
 
 ::: keyidea
-化简器是可预测的。它从左往右使用化简规则集中的规则以及你添加的规则，此外什么也不用。`simp` 失败时，问问自己：它本来需要哪个等式？这个等式在化简规则集里吗？
+为理解 simplifier，需从 simp set 中的定向规则、用户添加的规则以及假设入手，内置求解器与 case-splitting 规则亦会参与贡献；当 `simp` 失败时，应追问其所需的方程或 split 规则为何，以及是否已提供该规则。
 :::
 
 ::: trouble
 `by` 失败时会给出两种消息，它们的含义不同：
 
-- **“Failed to apply initial proof method”**：方法对这个目标什么也做不了。对 `simp` 来说，就是没有任何规则适用。常见的原因是某个定义没有展开，或者需要的引理不是化简规则。
+- **“初始证明方法应用失败”**：该方法未产生任何成功的初始结果。对于
+  `simp`，它通常意味着没有进展。往往是因为定义未被展开，或者所需的引理未被设为 simp 规则。
 - **“Failed to finish proof”**（未能完成证明）：方法有所进展，但没有证明目标。消息会显示剩下的部分。读一读它：它告诉你化简器做不到的是什么。
 :::
 
@@ -359,7 +360,7 @@ lemma "⟦∀w. allows es w Write ⟶ allows es w Read; allows es u Write⟧
 
 ### 情形拆分 {#splits}
 
-含有 `if c then a else b` 的目标，按原样是化简不了多少的：化简器不知道 `c` 是否成立。所以它做**情形拆分**（case split）：用下面这条库规则，把目标**拆分**成两种情形，一种是 `c` 成立，另一种是 `c` 不成立：
+包含`if c then a else b`的目标在化简器无法确定`c`或将两个分支归约到同一项时可能陷入停滞，此时它可使用此库规则**split**将目标拆分为`c`成立与不成立两种情况
 
 ```isabelle
 thm if_split
@@ -557,41 +558,19 @@ True ∨ ?P1 ≡ True
 True ∨ allows es u Read ≡ True
 ```
 
-These are the steps of the example in Section 9.2, except that the simplifier used the lemma
-`allows_grant` instead of unfolding `grant`. Each "Applying instance of rewrite rule" names a rule:
-`simp_thms(6)` is the sixth law in `simp_thms`. The rule is written with `≡`, the equality of Isabelle's
-meta-logic in which rewrite rules are stored, and with its variables numbered (`?u1`). Each "Rewriting:"
-shows the instance that was used: which part of the goal, and what it became. The `[1]` is the depth.
-When the simplifier calls itself to prove the condition of a conditional rule, those steps are marked
-`[2]`; they are hidden unless you also raise the option `simp_trace_depth_limit`, whose default is 1, for
-example with `using [[simp_trace, simp_trace_depth_limit = 3]]`.
+这些步骤对应第 9.2 节的例子，但这里化简器用了引理 `allows_grant`，没有展开 `grant`。“Applying instance of rewrite rule”指明应用的规则。例如，`simp_thms(6)` 是 `simp_thms` 中的第六条定律。重写规则用 Isabelle 元逻辑的等式 `≡` 陈述，变元带下标（`?u1`）。“Rewriting:”显示此次应用的实例，说明目标中的哪一部分被改写成什么。`[1]` 表示深度。化简器递归地证明条件规则的前提时，这些步骤标为 `[2]`。要显示它们，可把选项 `simp_trace_depth_limit` 调大，默认值为 1，例如使用 `using [[simp_trace, simp_trace_depth_limit = 3]]`。
 
-A trace can be long. Isabelle/jEdit shows at most 1000 trace messages for a command, then pauses with the
-message "Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?". If that happens with a
-small goal, suspect a rule that loops. Remove `using [[simp_trace]]` when you are done.
+轨迹可能很长。Isabelle/jEdit 对每个命令最多显示 1000 条轨迹消息，随后暂停并提示“Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?”。若在小目标上出现此情况，应怀疑存在循环规则。完成后移除 `using [[simp_trace]]`。
 
-## Logic and sets: blast, auto and friends {#classical}
+## 逻辑与集合：blast、auto 及其相关工具 {#classical}
 
-The simplifier rewrites. It never searches: it does not try a step, find that it leads nowhere, and go back
-to try another. Many goals need such a search. Which assumption should be used? Which value should an
-`∃` get? Isabelle's **classical reasoner**, which you met with `blast` in Module 7, answers these
-questions by searching. It applies the introduction and elimination rules of natural deduction from
-Modules 6 and 7, together with the rules declared for sets and relations, and it backtracks when a choice
-fails.
+化简器进行重写，它从不搜索：它不会尝试一步后发现无果而返回尝试其他路径。许多目标需要此类搜索。应使用哪个假设？`∃` 应获得何值？Isabelle 的 **classical reasoner**（你在 Module 7 中已接触过 `blast`）通过搜索回答这些问题。它应用 Modules 6 和 7 中自然演绎的引入与消除规则，以及为集合和关系声明的规则，并在选择失败时回溯。
 
-::: definition Safe and unsafe rules
-A rule is **safe** if applying it to a provable goal always leaves provable subgoals, as `conjI` and `impI`
-do: these are the safe steps of Section 6.7. A rule is **unsafe** if it might turn a provable goal into an
-unprovable one: `disjI1` reduces `P ∨ Q` to `P`, which may be the wrong choice, and `allE` must guess a
-term for the variable. The classical reasoner applies safe rules freely and unsafe rules only with
-backtracking.
+::: definition 安全与不安全规则
+若将**安全**规则应用于可证明的目标时总能得到可证明的子目标，则该规则是`conjI`和`impI`所演示的：它们是第6.7节中的安全步骤。若某规则可能将可证明的目标转化为不可证明的目标，则该规则是**不安全**的：`disjI1`将`P ∨ Q`归约为`P`，这可能是错误的选择，且`allE`必须为变量猜测项。经典推理器自由地应用安全规则，并仅在回溯时应用不安全规则。
 :::
 
-To give the classical reasoner real work, extend the running example with roles. In a larger service,
-permissions belong to roles and users have roles. Two relations, sets of pairs as in Module 4, describe
-this. `UR` contains `(u, r)` when user `u` has role `r`; `RP` contains `(r, p)` when role `r` grants
-permission `p`. A user has a permission when one of the user's roles grants it. Isabelle writes this
-composition of relations as `UR O RP`:
+为了使经典推理器有实际工作可做，在运行示例中扩展角色。在更大的服务中，权限属于角色，用户拥有角色。两个关系（如 Module 4 中的有序对集合）描述了这一点。当用户 `u` 拥有角色 `r` 时，`UR` 包含 `(u, r)`；当角色 `r` 授予权限 `p` 时，`RP` 包含 `(r, p)`。当用户的某个角色授予权限时，该用户就拥有此权限。Isabelle 将此关系组合写为 `UR O RP`：
 
 ```isabelle
 thm relcomp_unfold
@@ -603,9 +582,7 @@ thm relcomp_unfold
 
 ### blast {#blast}
 
-`blast` is a search procedure for first-order logic, the logic of ∀, ∃ and the connectives from
-Module 3, with the rules for sets and relations built in. Here is a policy fact: if every role that grants
-`Write` also grants `Read`, then every user who may write may read.
+`blast` 是用于一阶逻辑的搜索过程，该逻辑包含 Module 3 中的 ∀、∃ 及连接词，并内置了集合与关系的规则。此处存在一条策略事实：如果每个授予 `Write` 的角色也授予 `Read`，那么每个可能写入的用户均可读取。
 
 ```isabelle
 lemma "⟦∀r. (r, Write) ∈ RP ⟶ (r, Read) ∈ RP; (u, Write) ∈ UR O RP⟧
@@ -613,19 +590,14 @@ lemma "⟦∀r. (r, Write) ∈ RP ⟶ (r, Read) ∈ RP; (u, Write) ∈ UR O RP�
   by blast
 ```
 
-On paper the proof needs a role `r` with `(u, r) ∈ UR` and `(r, Write) ∈ RP`, an instance of the `∀` for
-that `r`, and the role `r` again as the witness for the `∃` hidden in `O`. `blast` found all three. Giving
-users more roles never takes a permission away:
+在纸面上，证明需要一个角色 `r` 与 `(u, r) ∈ UR` 和 `(r, Write) ∈ RP` 配合，这是 `∀` 针对 `r` 的一个实例，并且角色 `r` 再次作为 `O` 中隐藏的 `∃` 的见证者。`blast` 找到了全部三个。给予用户更多角色绝不会剥夺任何权限：
 
 ```isabelle
 lemma "UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP"
   by blast
 ```
 
-In principle `blast` is a **complete** method for first-order logic: if its search had no limit, it would
-find a proof of every valid first-order formula. In practice its search is bounded, as Section 6.9
-described. It does no rewriting and knows little about equality, so it fails on goals that need
-definitions unfolded, functions computed or arithmetic:
+原则上`blast`是一个**完备**的一阶逻辑方法：如果其搜索没有限制，它将找到每个有效一阶公式的证明。在实践中，其搜索是有界的，如第6.9节所述。它不调用化简器且等式推理能力有限，因此经常无法处理需要展开定义、计算函数或算术的目标：
 
 ```isabelle fails
 lemma "allows (grant u Read es) u Read"
@@ -638,15 +610,11 @@ lemma "allows (grant u Read es) u Read"
 ***  1. allows (grant u Read es) u Read
 ```
 
-`blast` either proves the goal or fails with this message. It never leaves a partly proved goal behind, so
-when it fails it gives you no hint why.
+`blast` 要么证明目标，要么以该消息失败。它从不留下部分证明的目标，因此当它失败时，它不提供任何失败原因的提示。
 
 ### auto {#auto}
 
-`auto` combines the two worlds. It simplifies, applies safe rules, and tries a bounded search with unsafe
-rules, on every subgoal. It proves the subgoals it can and leaves the rest, simplified, in the proof state.
-That makes it good at goals with many easy parts, and at telling you what it could not do. Here is a false
-claim about roles: removing the pair `(r, p)` from `RP` does not take permission `p` away from anyone.
+`auto` 结合了两个世界。它在每个子目标上执行化简、应用安全规则，并尝试使用不安全规则进行有界搜索。它证明能够处理的子目标，并将其余部分化简后保留在证明状态中。这使得它在处理包含许多简单部分的子目标时表现良好，并能清晰告知其无法处理的内容。以下是关于权限的一个错误声明：从 `RP` 中移除对 `(r, p)` 的引用并不会剥夺任何人的权限 `p`。
 
 ```isabelle
 lemma "(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})"
@@ -660,15 +628,11 @@ goal (1 subgoal):
  1. ⋀y. ⟦(u, y) ∈ UR; (y, p) ∈ RP⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})
 ```
 
-`auto` took the composition apart and left one subgoal, which you can read as a statement about roles. It
-is not provable, because the role `y` that gives `u` the permission may be `r` itself. When `auto` leaves a
-subgoal that you think should be easy, read it carefully: it may be false, as here, or it may need a lemma
-that `auto` does not know. Section 9.7 shows how to tell the difference automatically.
+`auto` 将组合分解，留下一个子目标，你可以将其读作关于角色的陈述。它不可证明，因为赋予 `u` 权限的角色 `y` 可能是 `r` 本身。当 `auto` 留下一个你认为简单的子目标时，请仔细阅读：它可能像这里一样为假，或者可能需要一个 `auto` 不知道的引理。第 9.7 节展示了如何自动区分这两种情况。
 
-### force and fastforce {#force}
+### force 与 fastforce {#force}
 
-Some goals need search and rewriting at the same time. A storage service keeps every log twice in a row,
-so every log in the set `A` is some list `ys` followed by itself. Then every log in `A` has even length:
+某些目标需要同时进行搜索和重写。存储服务将每条日志连续存储两次，因此集合 `A` 中的每条日志都是某个列表 `ys` 与其自身的拼接。于是 `A` 中的每条日志都具有偶数长度：
 
 ```isabelle fails
 lemma "⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n"
@@ -681,24 +645,18 @@ lemma "⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n 
 ***  1. ⟦∀xs∈A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n
 ```
 
-`auto` could do nothing with this goal, and `blast` fails too, because the proof needs the equation
-`length (ys @ ys) = length ys + length ys` in the middle of the search. `fastforce` combines the search of
-the classical reasoner with the simplifier at every step:
+`auto` 对此目标无法处理，`blast` 也失败，因为证明需要在搜索中间使用等式 `length (ys @ ys) = length ys + length ys`。`fastforce` 在每一步将经典推理器的搜索与化简器结合：
 
 ```isabelle
 lemma "⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n"
   by fastforce
 ```
 
-`force` does the same with a more thorough search. It sometimes succeeds where `fastforce` fails, and
-it can take much longer. Both work on the first subgoal only, and like `blast` they either prove it or
-fail.
+`force` 采用相同的方法，但搜索更彻底。有时 `fastforce` 失败时它仍能成功，代价可能是花费更长的时间。两种方法都只对第一个子目标起作用，并且都像 `blast` 一样，要么证明它，要么失败。
 
 ### clarsimp {#clarsimp}
 
-`clarsimp` applies safe rules and the simplifier. Unlike `auto`, it does not use logic to split a goal
-into several subgoals, and it never guesses. It does not try to finish the proof; it tidies the goal so
-that you can see what remains:
+`clarsimp` 应用安全规则与化简器。与 `auto` 不同，它不使用逻辑将目标拆分为多个子目标，并避免不安全搜索。它可以完成一个目标，否则整理目标以显示剩余部分。化简器拆分器仍可创建多个子目标，特别是在配置为拆分前提时：
 
 ```isabelle
 lemma "∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP"
@@ -712,51 +670,32 @@ goal (1 subgoal):
  1. ⋀x y. ⟦(x, y) ∈ UR; (y, Write) ∈ RP⟧ ⟹ (x, Read) ∈ UR O RP
 ```
 
-`clarsimp` removed the `∀` and the `⟶`, and took apart the assumption `(x, Write) ∈ UR O RP` into a role
-`y` with two facts about it. What is left is the heart of the problem, and it is not provable: nothing
-says that role `y` grants `Read`.
+`clarsimp` 移除了 `∀` 和 `⟶`，并将假设 `(x, Write) ∈ UR O RP` 分解为角色 `y` 及其两个相关事实。剩余部分是问题的核心，且不可证明：没有任何内容表明角色 `y` 授予 `Read`。
 
-| Method | Works on | When it fails |
+| 方法 | Works on | 当它失败时 |
 |---|---|---|
-| `simp`, `simp_all` | first subgoal; all subgoals | leaves the simplified goal, or fails if nothing changed |
-| `auto` | all subgoals | leaves what it could not prove, or fails if nothing changed |
-| `blast` | first subgoal | fails, with no hint |
-| `force`, `fastforce` | first subgoal | fails, with no hint |
-| `clarsimp` | first subgoal | does not try to finish; leaves the goal tidied |
+| `simp`, `simp_all` | 第一个子目标；所有子目标 | 留下简化后的目标，若未发生任何更改则失败 |
+| `auto` | 所有子目标 | 留下未证的部分。如果目标没有变化，则失败 |
+| `blast` | 第一个子目标 | 失败，且没有提示 |
+| `force`, `fastforce` | 第一个子目标 | 失败，且没有提示 |
+| `clarsimp` | 第一个子目标 | 留下一个经过整理（可能由化简分割）的目标，若未发生任何变化则失败 |
 
-`auto`, `force`, `fastforce` and `clarsimp` accept the simplifier's modifiers, written `simp add:` (or
-`simp:` for short), `simp del:` and `split:`, because `add:` alone would be ambiguous. They also accept
-rules for the classical reasoner: `intro:`, `elim:` and `dest:`, for introduction, elimination and
-destruction rules as in Module 7. So
-`auto simp add: grant_def`, or `auto simp: grant_def` as Module 4 wrote it, unfolds `grant`, and
-`blast intro: r` lets `blast` use a rule `r` of your own.
+`auto`、`force`、`fastforce` 和 `clarsimp` 接受化简器的修饰符，写作 `simp add:`（或简写为 `simp:`）、`simp del:` 和 `split:`，因为单写 `add:` 会有歧义。这些方法也接受经典推理器的规则。按模块 7 的说法，`intro:`、`elim:` 和 `dest:` 分别用于引入、消去和析构规则。因此 `auto simp add: grant_def`（模块 4 写成 `auto simp: grant_def`）展开 `grant`，而 `blast intro: r` 允许 `blast` 使用你给出的规则 `r`。
 
-## Arithmetic {#arith}
+## 算术 {#arith}
 
-Arithmetic gets its own tools, because neither rewriting nor logical search handles it well. A formula of
-**linear arithmetic** is built from variables, numbers, `+`, `-`, `=`, `<`, `≤` and the connectives, where
-a variable may be multiplied by a number, as in `2 * x`, but not by another variable. For such formulas
-there are **decision procedures**: programs that decide, for every formula of the kind, whether it holds,
-and prove it if it does.
+算术拥有其专属工具，因为重写和逻辑搜索均无法有效处理它。**线性算术**公式由变量、数字、`+`、`-`、`=`、`<`、`≤`及联结词构成，其中变量可与数字相乘（如`2 * x`），但不可与另一变量相乘。针对此类公式存在**决策过程**：即针对每类公式判定其是否成立，并在成立时予以证明的程序。
 
-A storage service gives each user a quota. A new file fits if its size is at most the free space:
+存储服务为每个用户分配配额。新文件可存入的条件是其大小不超过可用空间：
 
 ```isabelle
 lemma "⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: nat)"
   by linarith
 ```
 
-`linarith` proves goals of linear arithmetic over `nat`, `int` and `real`. Subtraction on `nat` is
-tricky, because `3 - 5 = 0` for natural numbers, and `linarith` takes care of it by distinguishing the
-cases `used ≤ quota` and `quota < used`. In fact `simp` proves this goal too: the simplifier calls a fast but
-weaker version of the same procedure. Use `linarith` when `simp` and `auto` leave an arithmetic goal.
+`linarith` 证明关于 `nat`、`int` 和 `real` 的线性算术目标。`nat` 上的减法很棘手，因为 `3 - 5 = 0` 对自然数不成立，而 `linarith` 通过区分 `used ≤ quota` 和 `quota < used` 的情况来处理它。实际上 `simp` 也证明此目标：化简器调用同一过程的快速但较弱的版本。当 `simp` 和 `auto` 留下算术目标时使用 `linarith`。
 
-`linarith` combines inequalities by adding multiples of them, as you would to solve a system of
-inequalities over the real numbers, plus one rule for whole numbers: from `a < b` it concludes
-`a + 1 ≤ b`. That is enough for many goals about whole numbers, but not for all of them: for `nat` and
-`int`, `linarith` is not a decision procedure. It does not know, for example, that an even number is never
-odd. Suppose a load balancer sends requests with even numbers to one server and odd ones to another; no
-request should go to both:
+`linarith` 通过添加不等式的倍数来组合不等式，如同在实数上求解不等式组那样，并增加一条针对整数的规则：从 `a < b` 推导出 `a + 1 ≤ b`。这对于许多关于整数的目标已经足够，但并非适用于所有情况：对于 `nat` 和 `int`，`linarith` 不是判定过程。例如，它不知道偶数绝不可能是奇数。假设负载均衡器将带有偶数编号的请求发送给一个服务器，而将奇数编号的请求发送给另一个服务器；不应有任何请求同时发送到两个服务器：
 
 ```isabelle fails
 lemma "(2::int) * x ≠ 2 * y + 1"
@@ -769,24 +708,21 @@ lemma "(2::int) * x ≠ 2 * y + 1"
 ***  1. 2 * x ≠ 2 * y + 1
 ```
 
-`presburger` decides **Presburger arithmetic**: linear arithmetic over the integers and natural numbers,
-including quantifiers, divisibility, and `div` and `mod` by numbers.
+`presburger` 判定 **Presburger arithmetic**：关于整数与自然数的线性算术，包括量词、被固定数整除，以及 `div` 和 `mod` 被固定数整除。
 
 ```isabelle
 lemma "(2::int) * x ≠ 2 * y + 1"
   by presburger
 ```
 
-Quantifiers are no obstacle. A file system stores data in blocks of 3 and 5 kilobytes; every amount of at
-least 8 kilobytes can be made up exactly:
+量词不是障碍。文件系统将数据存储在 3 和 5 千字节大小的块中；每个至少 8 千字节的数量都可以精确构成：
 
 ```isabelle
 lemma "∀n ≥ 8. ∃a b. n = 3 * a + 5 * (b :: nat)"
   by presburger
 ```
 
-`arith` tries `linarith` first and `presburger` after it, so it proves all three goals above. Products of
-variables are a different matter:
+`arith` 尝试 `linarith` 首先，`presburger` 在其后，因此它证明了上述三个目标。变量的乘积是另一回事：
 
 ```isabelle fails
 lemma "(x::nat) ≤ y ⟹ x * x ≤ y * y"
@@ -799,36 +735,21 @@ lemma "(x::nat) ≤ y ⟹ x * x ≤ y * y"
 ***  1. x ≤ y ⟹ x * x ≤ y * y
 ```
 
-`auto` fails too. The fact is simple, but it lies outside linear arithmetic, and so outside what these
-methods decide.
+`auto` 同样失败。该事实简单，但属于线性算术之外，因此不在这些方法所决定的范围之外。
 
-::: fact Deciding arithmetic
-Presburger arithmetic, the first-order theory of the natural numbers with addition, is decidable (Mojżesz
-Presburger, 1929). With multiplication of variables it is not, not even for single equations: no
-algorithm decides, for every polynomial equation with integer coefficients, whether it has a solution in
-whole numbers (Yuri Matiyasevich, 1970, completing work of Martin Davis, Hilary Putnam and Julia
-Robinson). Over the real numbers, formulas with addition and multiplication are decidable again (Alfred
-Tarski), but the known algorithms take very long on all but small problems.
+::: fact 判定算术
+Presburger 算术，即带有加法的一阶自然数理论，是可判定的（Mojżesz Presburger, 1929）。若包含变量的乘法，则不可判定，即使对于单个方程亦然：不存在一种算法能判定每个具有整数系数的多项式方程是否在整数范围内有解（Yuri Matiyasevich, 1970，完成了 Martin Davis、Hilary Putnam 和 Julia Robinson 的工作）。在实数域上，带有加法和乘法的公式再次变得可判定（Alfred Tarski），尽管决策过程在处理复杂输入时可能非常昂贵。
 :::
 
-A goal such as `x ≤ y ⟹ x * x ≤ y * y` is true exactly when the opposite, `x ≤ y` together with
-`y * y < x * x`, has no solution. So for whole numbers there is no complete method for arithmetic with
-products, and there cannot be one: it would answer questions that, by the fact above, no algorithm can
-answer. Isabelle's answer is the library: it contains thousands of proved facts about multiplication. The
-next section shows how to find the one you need, and Section 9.8 shows a tool that finds it for you.
+形如 `x ≤ y ⟹ x * x ≤ y * y` 的目标为真，当且仅当 `x ≤ y` 与 `y * y < x * x` 联合无解。对于整数，不存在能始终正确回答所有此类多项式算术问题的判定过程。这并不妨碍证明方法解决特定的非线性目标，或库提供有用的定理。Isabelle 的库包含数千个关于乘法的已证事实。下一节展示如何找到所需的定理，第 9.8 节展示了一个为您查找的工具。
 
 ::: tip
-Decision procedures need the right type. `2 * x ≠ 2 * y + 1` is false for real numbers (take
-`x = y + 1/2`), so no method can prove it without knowing that `x` and `y` are integers. Annotate a type,
-as in `(2::int)`, whenever a number could belong to several types.
+决策过程需要正确的类型。`2 * x ≠ 2 * y + 1` 对实数不成立（取 `x = y + 1/2`），因此若不知 `x` 和 `y` 为整数，任何方法均无法证明它。在 `(2::int)` 中类似地标注类型，只要某数可能属于多种类型。
 :::
 
-## Searching the library {#find}
+## 搜索库 {#find}
 
-Even the library loaded by `Main` contains more than 20,000 theorems, and their names follow conventions
-that take a while to learn. `find_theorems` searches them by shape and by name. Type it in a theory, or
-use the **Query** panel of Isabelle/jEdit: its **Find Theorems** tab has a **Find:** field for the same
-criteria and an **Apply** button. A pattern is a term in quotes, with `_` for any term:
+即使由 `Main` 加载的库包含超过 20,000 个定理，且其命名遵循需要一段时间才能掌握的惯例，`find_theorems` 仍会按形状和名称进行检索。在理论文件中输入该命令，或使用 Isabelle/jEdit 的 **Query**面板：其**Find Theorems**标签页设有用于相同条件的**Find:**字段以及**Apply** 按钮。模式是带引号的项，其中 `_` 代表任意项。
 
 ```isabelle
 find_theorems "rev (rev _)"
@@ -842,8 +763,7 @@ found 1 theorem(s):
   List.rev_rev_ident: rev (rev ?xs) = ?xs
 ```
 
-The answer gives the full name, `List.rev_rev_ident`: the theory and the theorem. You can use it as
-`rev_rev_ident`. For the multiplication goal of Section 9.5, a pattern alone finds too much:
+答案给出了完整名称，`List.rev_rev_ident`：理论与定理。你可以将其用作`rev_rev_ident`。对于第9.5节的乘法目标，仅凭模式会找到过多内容：
 
 ```isabelle
 find_theorems (3) "_ * _ ≤ _ * _"
@@ -859,8 +779,7 @@ found 31 theorem(s) (3 displayed):
   Nat.Suc_mult_le_cancel1: (Suc ?k * ?m ≤ Suc ?k * ?n) = (?m ≤ ?n)
 ```
 
-The `(3)` limits the display to three of the matches. Narrow the search instead. Give the type, and add a
-second criterion: monotonicity laws usually have `mono` in their name. Several criteria must all hold:
+`(3)` 将显示限制为三个匹配项。改为缩小搜索范围。给出类型，并添加第二个标准：单调性定律通常在名称中包含 `mono`。必须同时满足多个标准：
 
 ```isabelle
 find_theorems "(_::nat) * _ ≤ _ * _" name: mono
@@ -877,25 +796,24 @@ found 3 theorem(s):
   Nat.mult_le_mono: ⟦?i ≤ ?j; ?k ≤ ?l⟧ ⟹ ?i * ?k ≤ ?j * ?l
 ```
 
-`mult_le_mono` fits: with `x ≤ y` twice, it gives `x * x ≤ y * y`. The simplifier can use it as a
-conditional rule, and proves both conditions from the assumption:
+`mult_le_mono` fits: 与 `x ≤ y` 两次结合，得到 `x * x ≤ y * y`。化简器可将其作为条件规则使用，并从假设中证明两个条件：
 
 ```isabelle
 lemma "(x::nat) ≤ y ⟹ x * x ≤ y * y"
   by (simp add: mult_le_mono)
 ```
 
-The criteria you will use most:
+你将最常使用的标准：
 
-| Criterion | Finds theorems |
+| 准则 | 查找定理 |
 |---|---|
-| `"pattern"` | that contain the pattern somewhere |
-| `name: s` | whose name contains `s` |
-| `simp: "term"` | that are equations whose left side matches the term, so that they could rewrite it |
-| `intro`, `elim`, `dest` | that could be applied as such a rule to the current goal (inside a proof) |
-| `-` before a criterion | that do not meet it |
+| `"pattern"` | 在某个位置包含该模式 |
+| `name: s` | 其名称包含 `s` |
+| `simp: "term"` | 那些左侧与该项匹配的等式，从而能够重写它 |
+| `intro`, `elim`, `dest` | 在证明中可以作为此类规则应用于当前目标 |
+| `-` 在某个标准之前 | 不满足该条件的结果 |
 
-The `simp:` criterion answers the question "what does the simplifier know about this term?":
+`simp:` 准则查找可重写某项的等式，包括当前未注册为 simp 规则的等式。
 
 ```isabelle
 find_theorems simp: "set (filter _ _)"
@@ -909,7 +827,7 @@ found 1 theorem(s):
   List.set_filter: set (filter ?P ?xs) = {x ∈ set ?xs. ?P x}
 ```
 
-`find_consts` finds functions by their type. Which functions turn a list into a set?
+`find_consts` 通过类型查找函数。哪些函数将列表转换为集合？
 
 ```isabelle
 find_consts "'a list ⇒ 'a set"
@@ -925,27 +843,19 @@ found 3 constant(s):
   List.list.set :: "'a list ⇒ 'a set"
 ```
 
-Besides `set`, the answer contains `coset`, and a function whose type contains `'a list ⇒ 'a set` as a
-part: `find_consts` also matches types inside larger ones.
+除了`set`之外，答案还包含`coset`，以及一个类型包含`'a list ⇒ 'a set`作为部分的函数：`find_consts`也匹配更大类型内部的类型。
 
 ::: pitfall
-Use `_` in patterns, not variable names. In a pattern, `xs` is not a placeholder: it matches only the
-variable `xs` itself, and library theorems are stated with variables of their own. Write `"rev (rev _)"`,
-not `"rev (rev xs)"`. For an operator, give a whole term such as `"_ * _"`, not the symbol `*` alone.
+在模式中使用`_`，而非变量名。在模式中，`xs`不是占位符：它仅匹配变量`xs`本身，且库定理使用其自身的变量进行陈述。应书写`"rev (rev _)"`，而非`"rev (rev xs)"`。对于运算符，需给出完整项如`"_ * _"`，而非单独使用符号`*`。
 :::
 
-## Counterexamples: Quickcheck and Nitpick {#refute}
+## 反例：Quickcheck 与 Nitpick {#refute}
 
-Trying to prove a false statement wastes time, and automation fails on false statements without saying
-that they are false. So test a claim before you try to prove it. Isabelle has two counterexample finders,
-Quickcheck (Module 1) and Nitpick (Modules 2 and 3). Isabelle/jEdit runs Quickcheck automatically on
-every new `lemma`; the examples here call the tools explicitly, as you can too.
+证明假命题会浪费时间，且自动化工具在假命题上失败时不会指出其假。因此，在尝试证明前应先测试声明。Isabelle 有两个反例查找器：Quickcheck（模块 1）和 Nitpick（模块 2 和 3）。使用默认设置时，Isabelle/jEdit 会在新目标上自动调用 Quickcheck；此后台检查可禁用。以下示例显式调用这些工具，你也可以这样做。
 
 ### Quickcheck {#quickcheck}
 
-**Quickcheck** turns the claim into a program and runs it on many values of its free variables. By default
-it tries all values up to a small size, systematically. Here is a claim that sounds reasonable: whoever
-may write may also read.
+**Quickcheck** 将声明转化为程序并在其自由变元的许多值上运行。默认情况下，它系统地尝试所有不超过小规模的值。这里有一个看似合理的声明：任何拥有写权限的人也拥有读权限。
 
 ```isabelle
 lemma "allows es u Write ⟹ allows es u Read"
@@ -961,19 +871,17 @@ Quickcheck found a counterexample:
   u = a⇩1
 ```
 
-The counterexample is a list with a single entry. `a₁` is a value of the user type `'u`, about which
-Quickcheck knows nothing else. A user who is granted only `Write` may write and not read. The claim is not a
-law of ACLs: it is a property that some ACLs have and others lack. Exercise 9.8 turns it into an invariant.
+反例是一个包含单个条目的列表。`a₁` 是用户类型 `'u` 的一个值，Quickcheck 对其一无所知。仅被授予 `Write` 的用户可以写入但不能读取。该声明不是 ACL 的定律：它是某些 ACL 具有而其他 ACL 缺乏的性质。练习 9.8 将其转化为不变式。
 
-Quickcheck takes options in square brackets:
+Quickcheck 接受方括号中的选项：
 
-| Option | Effect |
+| 选项 | 效果 |
 |---|---|
-| `quickcheck [random]` | tests random values instead of all small ones |
-| `quickcheck [exhaustive]` | tests all values up to the size bound (the default) |
-| `quickcheck [size = 5]` | sets the size bound for the values tested |
-| `quickcheck [timeout = 30]` | stops after 30 seconds |
-| `quickcheck [expect = counterexample]` | reports an error unless a counterexample is found; also `no_counterexample` |
+| `quickcheck [random]` | 测试随机值而非所有小值 |
+| `quickcheck [exhaustive]` | 测试所有值直至大小边界（默认值） |
+| `quickcheck [size = 5]` | 设置所测试值的大小上限 |
+| `quickcheck [timeout = 30]` | 在 30 秒后停止 |
+| `quickcheck [expect = counterexample]` | 除非找到反例，否则报告错误；此外还有 `no_counterexample` |
 
 ```isabelle
 lemma "allows es u Write ⟹ allows es u Read"
@@ -989,8 +897,7 @@ Quickcheck found a counterexample:
   u = a⇩1
 ```
 
-When a claim involves a function's result, Quickcheck also shows the values of the terms involved. Does
-revoking a user's entries after a grant give back the original list?
+如果命题涉及某个函数的结果，Quickcheck 也会显示相关项的值。给用户授权后再撤销该用户的条目，会还原原列表吗？
 
 ```isabelle
 lemma "revoke u (grant u p es) = es"
@@ -1009,8 +916,7 @@ Evaluated terms:
   revoke u (grant u p es) = []
 ```
 
-The list already contained an entry of user `a₁`, and `revoke` removed that one too. On a true claim
-Quickcheck reports that it found nothing:
+列表已包含用户 `a₁` 的条目，且 `revoke` 也移除了该条目。在真命题上，Quickcheck 报告未找到任何内容：
 
 ```isabelle
 lemma "allows (revoke u es) v p = (v ≠ u ∧ allows es v p)"
@@ -1024,17 +930,13 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-That is evidence, not proof: Quickcheck tried small values only.
+这是证据，而非证明：Quickcheck 仅尝试了小值。
 
 ### Nitpick {#nitpick}
 
-**Nitpick** works differently. It looks for a **finite model** that makes the claim false: a small finite
-type for each type variable and values for the free variables. It translates the problem into
-propositional logic and hands it to a SAT solver. Because it reasons about sets, relations and quantifiers
-directly, it is good at the claims that Quickcheck finds hard to run.
+**Nitpick**的工作方式不同。它寻找使声明为假的**有限模型**，即为每个类型变元提供小的有限类型并为自由变元提供值。它将问题翻译为命题逻辑并交给 SAT 求解器。因为它直接对集合、关系和量词进行推理，所以擅长处理 Quickcheck 难以运行的声明。
 
-A claim about roles: if role `r` grants `Read`, then after taking `r` away from user `u`, the user can no
-longer read.
+关于角色的一个断言：如果角色 `r` 授予 `Read`，那么在从用户 `u` 移除 `r` 之后，该用户将不再能够读取。
 
 ```isabelle
 lemma "(r::'r, Read) ∈ RP ⟹ (u::'u, Read) ∉ (UR - {(u, r)}) O RP"
@@ -1053,13 +955,7 @@ Nitpick found a counterexample for card 'r = 2 and card 'u = 1:
     u = u⇩1
 ```
 
-The option `card 'r = 2` tells Nitpick to try a type `'r` with exactly two elements. Without the option
-it tries sizes 1 to 10 in parallel, and the size of the counterexample it reports can change from run to
-run. Even with the option, your run may show a different counterexample. Nitpick names the elements of each
-type after the type: `u₁` is a user, `r₁` and `r₂` are roles. Read the counterexample: both roles grant
-`Read`, and user `u₁` has role `r₁`. The claim takes role `r₂` away from `u₁`, but `u₁` can still read
-through `r₁`. The claim forgot that a user may get a permission from another role. Add the assumption that
-no other role of `u` grants `Read`, and Nitpick finds nothing; `blast` then proves the claim:
+选项 `card 'r = 2` 指示 Nitpick 尝试一个恰好包含两个元素的类型 `'r`。若不使用该选项，Nitpick 会并行尝试大小为 1 到 10 的情况，且其报告的 counterexample 的大小可能因运行而异。即使使用该选项，您的运行结果仍可能显示不同的 counterexample。Nitpick 根据类型名称命名各类型的元素：`u₁` 是用户，`r₁` 和 `r₂` 是角色。解读 counterexample：两个角色均授予 `Read`，且用户 `u₁` 拥有角色 `r₁`。该声明从 `u₁` 处移除角色 `r₂`，但 `u₁` 仍可通过 `r₁` 进行读取。该声明遗漏了用户可能从其他角色获得权限的情况。添加假设“`u` 的其他任何角色均不授予 `Read`”，Nitpick 未找到任何内容；`blast` 随后证明了该声明：
 
 ```isabelle
 lemma "⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
@@ -1079,47 +975,32 @@ Nitpick found no counterexample
   by blast
 ```
 
-A counterexample from Nitpick is **genuine** when Nitpick has checked that it really falsifies the claim.
-For claims about infinite types such as `nat`, it may report a counterexample as **potentially
-spurious**: one that might disappear in a larger model. Treat those as hints. "No counterexample" is not a
-proof either: there may be a counterexample larger than the sizes Nitpick tried. On claims about
-recursive functions on lists, Nitpick often runs out of time; Quickcheck is the better tool there.
+Nitpick 的反例 **genuine**在 Nitpick 验证其确实证伪该命题时成立。对于涉及无限类型如 `nat` 的命题，它可能报告反例为**potentially spurious**：有限近似可能不对应于预期类型中的任何反例。应将其视为调查线索。“无反例”亦非证明：可能存在大于 Nitpick 尝试大小的反例。在涉及列表上递归函数的命题中，Nitpick 常超时；此时 Quickcheck 是更好的工具。
 
 | | Quickcheck | Nitpick |
 |---|---|---|
-| Method | runs the claim as a program on many values | searches for a finite model with a SAT solver |
-| Strong on | functions on lists and numbers | sets, relations, quantifiers |
-| Needs | executable definitions | nothing special |
-| Runs automatically in jEdit | yes | no (it can be turned on) |
-| Main option | `size` | `card` |
+| 方法 | 将断言作为程序在多个值上运行 | 使用 SAT 求解器搜索具有有限模型 |
+| Strong on | 列表与数字上的函数 | 集合、关系、量词 |
+| 需要 | 测试声明的可执行定义 | 支持编码；无限类型和部分构造需要近似 |
+| 在 jEdit 中自动运行 | 是 | 否（可以开启） |
+| 主选项 | `size` | `card` |
 
 ## Sledgehammer {#sledgehammer}
 
-The goal `x * x ≤ y * y` from Section 9.5 needed the lemma `mult_le_mono`. Finding it with `find_theorems`
-took some thought. **Sledgehammer** searches for you. It hands the goal, together with up to about a
-thousand library facts that look relevant, to several automatic theorem provers that run outside
-Isabelle. If one of them finds a proof, Sledgehammer turns it into a one-line Isabelle proof that you can
-paste into your theory.
+来自第 9.5 节的目标 `x * x ≤ y * y` 需要引理 `mult_le_mono`。使用 `find_theorems` 寻找它需要一些思考。**Sledgehammer** 会为你进行搜索。它将目标以及多达约一千个看似相关的库事实交给在 Isabelle 外部运行的几个自动定理证明器。如果其中一个找到了证明，Sledgehammer 会将其转换为单行 Isabelle 证明，你可以将其粘贴到你的理论中。
 
 ::: figure id=fig-09-2
-From a goal to a checked proof. Sledgehammer selects facts, translates the problem for external provers and
-reconstructs a proof from the facts that a prover used. Only the last step, checked by the kernel, makes a
-theorem.
+从目标到已检查的证明。Sledgehammer 选择事实，将问题翻译给外部证明器，并根据证明器使用的事实重构证明。只有最后一步，由内核检查，才构成定理。
 :::
 
-The provers come with Isabelle (Module 1): E, Vampire, Zipperposition and SPASS are automatic theorem
-provers for first-order and higher-order logic; cvc5, veriT and Z3 are SMT solvers, which also know
-arithmetic. Isabelle2026 also runs some of its own proof methods, such as `metis` and `auto`, as further
-"provers". Nobody needs to trust the external programs or the translation, because their answers are only
-used to construct a proof that the kernel checks:
+Isabelle 内置了证明器（模块 1）：E、Vampire、Zipperposition 和 SPASS 是一阶和高阶逻辑的自动定理证明器；cvc5、veriT 和 Z3 是 SMT 求解器，也支持算术。Isabelle2026 还运行其部分自有证明方法，如 `metis` 和 `auto`，作为额外的“证明器”。无需信任外部程序或翻译，因为它们的答案仅用于构造内核检查的证明：
 
-- `metis` is a proof method inside Isabelle that searches for a first-order proof from a short list of
-  facts. Searching with three facts is far easier than with thousands, and every step goes through the
-  kernel.
-- `smt` sends the problem to an SMT solver and replays the solver's proof, step by step, inside Isabelle.
-- When an ordinary method such as `simp` or `auto` works with the facts found, Sledgehammer suggests it.
+- `metis` 是 Isabelle 中的一个证明方法，它从简短列表中寻找一阶证明
+  事实。使用三个事实进行搜索远比使用数千个事实容易，且每一步都通过内核。
+- `smt` 将问题提交给 SMT 求解器，并在 Isabelle 中逐步回放求解器的证明。
+- 当诸如`simp`或`auto`之类的普通方法利用所发现的事实时，Sledgehammer会建议它。
 
-Write `sledgehammer` where the next proof step would go:
+在下一个证明步骤应出现的位置写出 `sledgehammer`：
 
 ```isabelle
 lemma "(x::nat) ≤ y ⟹ x * x ≤ y * y"
@@ -1160,89 +1041,63 @@ spass: Try this: using mult_le_mono by presburger (1 ms)
 Done
 ```
 
-Read the output from the top. "Sledgehammering..." means that the provers have started. Each
-"… found a proof..." comes from one prover. That prover's suggestion follows, at once or a few lines
-later, as "prover: Try this: …", with the time the suggested proof took to check in parentheses.
-"Duplicate proof" means that a prover found a proof that was already suggested. "Done" means that all provers have finished. In Isabelle/jEdit you click a
-suggestion to insert it. Choose a short and fast one, and replace the `sledgehammer` line with it. Here
-cvc5's suggestion is the proof you found by hand in Section 9.6:
+从顶部读取输出。“Sledgehammering...”表示证明器已启动。每个“… found a proof...”来自一个证明器。该证明器的建议紧随其后或几行之后，格式为“prover: Try this: …”，括号内为验证建议证明所花费的时间。“Duplicate proof”表示一个证明器找到了已由其他证明器提出的证明。“Done”表示所有证明器已完成。在 Isabelle/jEdit 中，点击建议即可插入。选择一个简短且快速的建议，并用它替换 `sledgehammer` 行。此处 cvc5 的建议正是你在第 9.6 节中手动找到的证明：
 
 ```isabelle
   by (simp add: mult_le_mono)
 ```
 
-Whichever suggestion you choose, the proof is carried out by an Isabelle method, `simp` here, and the kernel
-checks every step. The `sledgehammer` command itself proves nothing: delete it once you have a proof.
+无论选择哪种建议，证明均由 Isabelle 方法 `simp` 执行，且内核会检查每一步。`sledgehammer` 命令本身并不进行证明：在获得证明后应将其删除。
 
-Sledgehammer is at its best when a goal follows from a few library facts in a way that the other methods
-miss. Two segments of a log that commute and have the same length are equal:
-`⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs`. `blast` fails on this goal, and `simp` and `auto`
-do worse: they run until Isabelle runs out of memory. The simplifier rewrites the first assumption with
-the library's simp rule `append_eq_append_conv`, which says when two appended lists are equal, into
-`es = fs ∧ fs = es`. Then it uses these two equations as rewrite rules, turning `es` into `fs` and `fs`
-back into `es`, again and again. Sledgehammer uses the same library lemma as a fact rather than as a
-rewrite rule, and suggests a proof such as this one:
+当目标可由少数库事实推导得出且其他方法无法处理时，Sledgehammer 表现最佳。两个长度相同且可交换的日志段相等：`⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs`。`blast` 在此目标上失败，`simp` 和 `auto` 表现更差：它们运行直至 Isabelle 内存耗尽。化简器使用库的 simp 规则 `append_eq_append_conv`（该规则说明当两个连接列表相等时）重写第一个假设，得到 `es = fs ∧ fs = es`。随后，它将这两个等式作为重写规则，反复将 `es` 转化为 `fs`，并将 `fs` 还原为 `es`。Sledgehammer 将相同的库引理作为事实而非重写规则使用，并建议如下证明：
 
 ```isabelle
 lemma "⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs"
   by (metis append_eq_append_conv)
 ```
 
-You may not have thought of using the lemma in this way, but Sledgehammer found it.
+你可能未曾想到以这种方式引理，但 Sledgehammer 找到了它。
 
-Isabelle/jEdit also has a **Sledgehammer** panel at the bottom of the window. Put the cursor in a proof
-and click **Apply**: the provers run in the background while you go on working, and the results appear in
-the panel, where a click on a proof inserts it into the text. The **Provers:** field lists the provers to
-run, and **Cancel** stops them.
+Isabelle/jEdit 在窗口底部设有 **Sledgehammer**面板。将光标置于证明中并点击**Apply**：证明器在后台运行，同时你可继续工作，结果会显示在面板中，点击某个证明即可将其插入文本。**Provers:**字段列出要运行的证明器，**Cancel** 用于停止它们。
 
 ::: tip
-Sledgehammer works best on small, first-order goals. Simplify first with `simp` or `auto` and call
-Sledgehammer on what is left. It does not do induction, so for a claim about all lists start the induction
-yourself and call Sledgehammer on the cases. Options go in square brackets, for example
-`sledgehammer [timeout = 60]` to give the provers 60 seconds instead of the default 30.
+Sledgehammer 在小型一阶目标上表现最佳。先用 `simp` 或 `auto` 进行化简，再对剩余部分调用 Sledgehammer。它不进行归纳，因此对于涉及所有列表的声明，需自行启动归纳，并对各情况调用 Sledgehammer。选项置于方括号中，例如 `sledgehammer [timeout = 60]` 可将证明器超时时间设为 60 秒而非默认的 30 秒。
 :::
 
 ::: trouble
-- **Windows: no prover runs, or a message says that a prover failed to start.** Windows Defender can block
-  Isabelle's external provers, as Module 1 warned. Exclude the whole Isabelle folder in **Virus & threat
-  protection**, as Isabelle's installation page recommends, and run Sledgehammer again.
-- **No prover finds a proof.** The goal may be false: check it with `quickcheck` and `nitpick`. It may need
-  induction, or a lemma that is not in the library: prove that lemma first. Or the provers need more time:
-  `sledgehammer [timeout = 120]`.
-- **The suggested `metis` call fails or runs for a long time.** Try another suggestion from the list.
+- **在 Windows 上，没有证明器启动，或出现某个证明器启动失败的消息。** Windows Defender 可能会阻止
+  如 Module 1 所警告，Isabelle 的外部证明器需将 **Virus & threat protection** 整个 Isabelle 文件夹排除，正如 Isabelle 的安装页面所建议，然后再次运行 Sledgehammer。
+- **没有证明器找到证明。** 目标可能为假：使用 `quickcheck` 和 `nitpick` 进行检查。它可能需要
+  归纳法，或库中不存在的引理：先证明该引理。或者证明器需要更多时间：`sledgehammer [timeout = 120]`。
+- **建议的`metis`调用失败或运行时间过长。**尝试列表中的另一个建议。
 :::
 
-## When automation fails {#strategy}
+## 当自动化失败时 {#strategy}
 
-No method proves everything; there is no complete proof method for higher-order logic, not even in
-principle. Sooner or later every method fails on a goal that you believe is true. Then work through these
-steps, roughly in this order.
+没有算法能对每个逻辑目标始终给出终止且正确的肯定或否定回答：一阶有效性已不可判定（Module 3）。系统化的证明搜索在原则上仍可枚举可推导的定理；对于无推导的目标，它无需终止。在实践中，有界自动化会在某些你可证明的目标上失败。然后按此大致顺序执行以下步骤。
 
-1. **Is the claim true?** Run `quickcheck` and `nitpick`. If one finds a counterexample, the statement
-   needs fixing, not the proof.
-2. **Simplify and read.** `apply auto` (or `apply simp`) and read what is left. The remaining subgoals
-   show what the tools could not do.
-3. **Unfold definitions.** Definitions are not simp rules: add them with `simp add: f_def`.
-4. **Split cases.** A `case` needs `split: t.split`; an `if` or `case` in an assumption needs
+1. **该主张是否成立？** 运行 `quickcheck` 和 `nitpick`。若找到真正的反例，则该命题
+   需要修复的是逻辑，而非证明。
+2. **化简并阅读。** `apply auto`（或`apply simp`）并阅读剩余部分。剩余的子目标
+   展示工具无法完成的工作。
+3. **展开定义。**定义方程默认不是化简规则：使用`simp add: f_def`添加它们。
+4. **分情况讨论。**一个`case`需要`split: t.split`；假设中的`if`或`case`需要
    `split: if_splits` or `t.splits`.
-5. **Use induction** when the claim is about all values of a recursive type and involves a recursive
-   function. Start it, then automate the cases.
-6. **Find or prove a lemma.** Search with `find_theorems`. If the library has nothing, state the missing
-   step as a lemma of its own and prove it first.
-7. **Try Sledgehammer** on what is left.
-8. **Choose a different method** for the kind of goal (Figure 9.3).
+5. **使用归纳法**当断言涉及递归类型的所有值且包含递归
+   函数。启动它，然后自动处理案例。
+6. **寻找或证明适用的引理。** 用 `find_theorems` 搜索。若库中没有合适的引理，则写出缺少的
+   将 step 作为独立的引理并先证明它。
+7. **尝试对剩余部分使用 Sledgehammer**。
+8. **选择针对目标类型（图 9.3）的不同方法**。
 
 ::: figure id=fig-09-3
-Which method to try first, by the kind of goal. When the first choice fails, read what it leaves and go
-down the list of steps above.
+根据目标类型优先尝试哪个方法，当首选失败时，阅读其遗留部分并沿上述步骤列表向下推进。
 :::
 
-::: example Steps 1, 2, 4 and 5 at work
-Prove that the owner of a document may administer it: if `owner es = Some v` then
-`allows es v Admin`.
+::: example 在步骤 1、2、4 和 5 中起作用
+证明文档所有者可以管理它：如果 `owner es = Some v` 则 `allows es v Admin`。
 
-Step 1: `quickcheck` finds no counterexample, so the claim is probably true. Step 5: both `owner` and
-`allows` are recursive functions on the list, so start an induction. Step 2: let `auto` do what it can.
+步骤 1：`quickcheck` 在其边界内未找到反例；预期含义也表明该命题为真。步骤 5：`owner` 和 `allows` 均为列表上的递归函数，因此启动归纳法。步骤 2：令 `auto` 尽其所能。
 
 ```isabelle
 lemma owner_admin: "owner es = Some v ⟹ allows es v Admin"
@@ -1265,9 +1120,7 @@ goal (2 subgoals):
        ⟹ b = Admin
 ```
 
-The base case is proved. Two subgoals of the induction step remain, and both have an `if` in an assumption:
-`auto` split the pair `a` into `a` and `b` but not the `if` in the definition of `owner`. Step 4 says what
-to do: an `if` in an assumption needs `split: if_splits`.
+基本情况已证明。归纳步骤仍有两个子目标，且两者在假设中均包含 `if`：`auto` 将配对 `a` 拆分为 `a` 和 `b`，但未处理 `owner` 定义中的 `if`。第 4 步说明了操作：假设中的 `if` 需要 `split: if_splits`。
 
 ```isabelle
   oops
@@ -1279,50 +1132,45 @@ lemma owner_admin: "owner es = Some v ⟹ allows es v Admin"
 ```
 :::
 
-The lemma helps with the next claim at once. Only someone who may administer a document may delete it:
+这个引理马上就能用于下一个命题。只有有权管理文档的人才能删除该文档：
 
 ```isabelle
 lemma "may_delete u es ⟹ allows es u Admin"
   by (simp add: may_delete_def owner_admin split: option.splits)
 ```
 
-The proof uses steps 3, 4 and 6 together: it unfolds `may_delete`, splits the `case` in the assumption,
-and uses the lemma proved above.
+该证明联合使用步骤 3、4 和 6：它展开 `may_delete`，拆分假设中的 `case`，并使用上述引理。
 
 ::: keyidea
-Automation fails for a reason, and the reason is usually visible: in the remaining subgoals, in a
-counterexample, or in a trace. Read before you try another method. The fix is most often a definition to
-unfold, a case to split, an induction to start, or a lemma to prove first.
+自动化失败必有原因，且该原因通常可见：在剩余子目标中、在反例中，或在追踪记录中。在尝试其他方法前请先阅读。修复方案通常涉及展开一个定义、拆分一个案例、启动一个归纳法，或先证明一个引理。
 :::
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- The **simplifier** rewrites with equations from left to right, inner parts first, until no rule applies;
-  a goal rewritten to `True` is proved. It uses the **simp set**: equations of `fun`, facts from `datatype`,
-  and lemmas marked `[simp]`, but not definitions.
-- `simp add:`, `simp del:` and `simp only:` change the rules for one call; `simp_all` works on every
-  subgoal; `[simp]` and `declare … [simp]` change the simp set.
-- A **conditional rule** is used only if the simplifier can prove its conditions. The assumptions of a
-  subgoal become rewrite rules too.
-- `if` is split automatically; `case` needs `split: t.split`, and splits in assumptions need `if_splits`
+- **化简器**使用定向等式进行重写，通常优先处理内部部分，并应用同余
+  控制项下降的规则；重写为`True`的目标得证。它使用**simp set**：`fun`的方程、`datatype`的事实以及标记为`[simp]`的引理。由`definition`引入的方程默认不注册。
+- `simp add:`、`simp del:` 和 `simp only:` 改变单次调用的规则；`simp_all` 作用于每一次
+  子目标；`[simp]` 和 `declare … [simp]` 更改 simp 集合。
+- 只有化简器能够证明其条件时，才应用**条件规则**。对于
+  子目标也变为重写规则。
+- `if` 被自动拆分；`case` 需要 `split: t.split`，且假设中的拆分需要 `if_splits`
   or `t.splits`.
-- Rewriting may loop; keep right sides simpler than left sides. **Permutative** rules such as commutativity
-  are safe, because Isabelle applies them only to sort terms. `using [[simp_trace]]` shows every step.
-- `blast` searches first-order logic, sets and relations; `auto` simplifies and reasons on all subgoals and
-  leaves what it cannot prove; `force` and `fastforce` mix search and rewriting; `clarsimp` tidies a goal.
-- `linarith` proves linear arithmetic (on `nat` and `int`, not all of it); `presburger` decides linear
-  arithmetic on whole numbers, with divisibility and quantifiers; `arith` tries both. Arithmetic on whole
-  numbers with products of variables is undecidable; use library lemmas.
-- `find_theorems` and `find_consts` search the library; Quickcheck and Nitpick search for counterexamples.
-- **Sledgehammer** asks external provers for the facts that a proof needs and reconstructs a proof that the
-  kernel checks.
-- When automation fails: test the claim, read what is left, unfold, split, induct, find or prove a lemma,
-  and try Sledgehammer.
+- 重写可能陷入循环；保持右侧比左侧更简单。**交换**规则如交换律
+  它们是安全的，因为 Isabelle 仅将它们应用于排序项。`using [[simp_trace]]` 展示了每一步。
+- `blast` 搜索一阶逻辑、集合与关系；`auto` 化简并对所有子目标进行推理
+  留下其无法证明的内容；`force` 和 `fastforce` 混合搜索与重写；`clarsimp` 整理目标。
+- `linarith` 证明线性算术（在 `nat` 和 `int` 上，而非全部）；`presburger` 判定线性
+  整数的算术运算，包含整除与量词；`arith` 尝试两种方法。包含变量乘积的整数算术是不可判定的；使用库引理。
+- `find_theorems` 和 `find_consts` 搜索库；Quickcheck 和 Nitpick 搜索反例。
+- **Sledgehammer** 向外部证明器请求证明所需的定理并重构证明
+  内核检查。
+- 当自动化失败时：测试主张，阅读剩余部分，展开，拆分，归纳，寻找或证明引理，
+  并尝试 Sledgehammer。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Which tool? {#ex-9-1} ★
-For each goal, name the method you would try first, and say why. Then check your answers in Isabelle.
+:::: exercise 哪个工具？ {#ex-9-1} ★
+对于每个目标，命名你首先尝试的方法，并说明原因，然后在 Isabelle 中验证你的答案。
 
 1. `rev (rev xs @ ys) = rev ys @ xs`
 2. `⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D`
@@ -1331,12 +1179,12 @@ For each goal, name the method you would try first, and say why. Then check your
 5. `allows es u Admin ⟹ allows es u Write`
 
 ::: solution
-1. `simp`: an equation about the library function `rev`, which the simp set knows well.
-2. `blast`: pure reasoning about sets.
-3. `linarith`: linear arithmetic. For integers, `a < b` means `a + 1 ≤ b`, and `linarith` knows that.
-4. `presburger`: `mod` by a number is Presburger arithmetic. The argument needs the fact that `4 * q + 1`
-   is odd, which is beyond `linarith`.
-5. `quickcheck`: an ACL that grants only `Admin` is a counterexample, so no method can prove it.
+1. `simp`：关于库函数 `rev` 的等式，simp 集合对此非常熟悉。
+2. `blast`: 关于集合的纯推理。
+3. `linarith`: 线性算术。对于整数，`a < b` 意味着 `a + 1 ≤ b`，且 `linarith` 知晓此点。
+4. `presburger`：按常数作 `mod` 的情形属于普雷斯堡算术。论证需要利用 `4 * q + 1`
+   is odd，这超出了`linarith`的范围。
+5. `quickcheck`: 一个仅授予 `Admin` 的访问控制列表（ACL）是一个反例，因此没有任何方法可以证明它。
 
 ```isabelle
 lemma "rev (rev xs @ ys) = rev ys @ xs"
@@ -1366,52 +1214,42 @@ Quickcheck found a counterexample:
 :::
 ::::
 
-:::: exercise Rewriting by hand {#ex-9-2} ★
-Rewrite the term `allows (revoke u [(u, Read)]) u Read` to `False` by hand, using the equations of
-`revoke` and `allows` and these laws: `fst (a, b) = a`, `(x = x) = True` and
-`(if True then s else t) = s`. Write down each step and the rule it uses. Then confirm in Isabelle that
-these rules suffice, with `simp only:`. The two laws about `fst` and `if` are called `fst_conv` and
-`if_True`.
+:::: exercise 手动重写 {#ex-9-2} ★
+通过`revoke`和`allows`的等式以及这些定律：`fst (a, b) = a`、`(x = x) = True`和`(if True then s else t) = s`，将项`allows (revoke u [(u, Read)]) u Read`手工重写为`False`。写出每一步及其使用的规则。然后在Isabelle中确认这些规则足以证明`simp only:`。关于`fst`和`if`的两个定律分别称为`fst_conv`和`if_True`。
 
 ::: solution
-Inner parts first:
+先处理内部部分：
 
-1. `revoke u [(u, Read)]` matches the second equation of `revoke`, with `(u, Read)` for `e` and `[]` for
-   `es`: it becomes `if fst (u, Read) = u then revoke u [] else (u, Read) # revoke u []`.
-2. Now the parts of this new term. In the condition, `fst (u, Read)` becomes `u` by `fst_conv`, and then
-   `u = u` becomes `True` by `(x = x) = True`. In both branches, `revoke u []` becomes `[]` by the first
-   equation of `revoke`.
-3. `if True then [] else [(u, Read)]` becomes `[]` by `if_True`.
-4. `allows [] u Read` becomes `False` by the first equation of `allows`.
+1. `revoke u [(u, Read)]` 匹配 `revoke` 的第二个方程，其中 `(u, Read)` 对应 `e`，`[]` 对应
+   `es`: 它变为 `if fst (u, Read) = u then revoke u [] else (u, Read) # revoke u []`。
+2. 现在这个新项的各部分。在条件中，`fst (u, Read)` 通过 `fst_conv` 变为 `u`，然后
+   `u = u` 通过 `(x = x) = True` 变为 `True`。在两个分支中，`revoke u []` 通过 `revoke` 的第一个等式变为 `[]`。
+3. `if True then [] else [(u, Read)]` 通过 `if_True` 变为 `[]`。
+4. `allows [] u Read` 通过 `allows` 的第一个等式变为 `False`。
 
 ```isabelle
 lemma "allows (revoke u [(u, Read)]) u Read = False"
   by (simp only: revoke.simps allows.simps fst_conv simp_thms if_True)
 ```
 
-After step 4 the lemma reads `False = False`, which `(x = x) = True` from `simp_thms` turns into `True`.
-(Rewriting in another order, for example resolving the `if` before simplifying its branches, reaches the
-same result.)
+第4步之后，引理读作`False = False`，其中`(x = x) = True`由`simp_thms`转化为`True`。（以其他顺序进行重写，例如在化简其分支之前先解决`if`，会得到相同的结果。）
 :::
 ::::
 
-:::: exercise Why did simp fail? {#ex-9-3} ★
-These three lemmas are true, but `by simp` fails on each of them. Try each in Isabelle, read the message,
-say why the proof fails, and fix it.
+:::: exercise 为什么 simp 失败了？ {#ex-9-3} ★
+这三个引理为真，但`by simp`对每个引理均失败。在Isabelle中尝试每个引理，阅读消息，说明证明失败的原因，并修复它。
 
 1. `set (grant u p es) = insert (u, p) (set es)`
-2. `may_delete u es ⟹ owner es ≠ None`, with `by (simp add: may_delete_def)` instead of `by simp`
+2. `may_delete u es ⟹ owner es ≠ None`，将 `by simp` 替换为 `by (simp add: may_delete_def)`
 3. `x ∈ set (revoke u es) ⟹ fst x ≠ u`
 
 ::: solution
-1. "Failed to apply initial proof method": no rule applies. `grant` is a definition, so the simplifier
-   does not unfold it, and no simp rule says anything about `set (grant u p es)`. (`allows_grant` is about
-   `allows`, not about `set`.) Add `grant_def`.
-2. "Failed to finish proof", and the remaining goal has a `case` on `owner es` in its assumption. A `case`
-   in an assumption is split only with `split: option.splits`.
-3. "Failed to apply initial proof method". The claim is about all lists and involves the recursive
-   function `revoke`, so it needs induction. In the induction step the `if` of `revoke` ends up in an
-   assumption, which needs `split: if_splits`.
+1. “无法应用初始证明方法”：无适用规则。`grant` 是定义，因此化简器
+   它不会展开，且没有 simp 规则涉及 `set (grant u p es)`（`allows_grant` 关于 `allows` 而非 `set`）。添加 `grant_def`。
+2. “证明未能完成”，且剩余目标的假设中包含位于 `owner es` 上的 `case`。一个 `case`
+   在假设中仅使用`split: option.splits`进行拆分。
+3. “Failed to apply initial proof method”。该断言涉及所有列表并包含递归
+   定义函数 `revoke`，因此归纳法是合适的下一步。在归纳步骤中，`revoke` 的 `if` 出现在假设中，这需要 `split: if_splits`。
 
 ```isabelle
 lemma "set (grant u p es) = insert (u, p) (set es)"
@@ -1426,16 +1264,15 @@ lemma "x ∈ set (revoke u es) ⟹ fst x ≠ u"
 :::
 ::::
 
-:::: exercise More laws for revoke {#ex-9-4} ★★
-Prove these three laws. Some of them need induction; choose `simp` or `auto` for the cases.
+:::: exercise 撤销的更多定律 {#ex-9-4} ★★
+证明这三个定律。其中一些需要归纳法；选择 `simp` 或 `auto` 作为案例。
 
 1. `revoke u (grant u p es) = revoke u es`
 2. `revoke u (revoke v es) = revoke v (revoke u es)`
 3. `length (revoke u es) ≤ length es`
 
 ::: solution
-The first needs no induction, only the definition of `grant`. The second and third are about all lists, so
-they need induction; `revoke` contains an `if`, which the simplifier splits.
+第一项无需归纳，仅需`grant`的定义；第二项和第三项对列表进行归纳以提供关于递归调用的事实；`revoke`包含一个`if`，由化简器进行拆分。
 
 ```isabelle
 lemma "revoke u (grant u p es) = revoke u es"
@@ -1448,14 +1285,12 @@ lemma "length (revoke u es) ≤ length es"
   by (induction es) auto
 ```
 
-In the third, after splitting the `if`, the induction step needs `length (revoke u es) ≤ Suc (length es)` from
-the induction hypothesis `length (revoke u es) ≤ length es`: linear arithmetic, which `auto` does.
+在第三步中，在拆分`if`之后，归纳步骤需要从归纳假设`length (revoke u es) ≤ length es`中获取`length (revoke u es) ≤ Suc (length es)`：线性算术，而`auto`做到了这一点。
 :::
 ::::
 
-:::: exercise Splitting a case {#ex-9-5} ★★
-Define a function `latest :: "'u acl ⇒ ('u × perm) option"` that returns the first entry of a list, or
-`None` for the empty list, using a `case` expression in a `definition`. Then prove:
+:::: exercise 拆分案例 {#ex-9-5} ★★
+定义一个函数 `latest :: "'u acl ⇒ ('u × perm) option"`，它返回列表的第一个元素，若列表为空则返回 `None`，在 `definition` 中使用 `case` 表达式。然后证明：
 
 1. `latest (grant u p es) = Some (u, p)`
 2. `(latest es = None) = (es = [])`
@@ -1472,15 +1307,12 @@ lemma "(latest es = None) = (es = [])"
   by (simp add: latest_def split: list.split)
 ```
 
-In the first lemma the list is `(u, p) # es`, so the simplifier reduces the `case` without a split: the
-datatype's `case` equations are simp rules. In the second the list is the variable `es`, and the `case`
-must be split with `list.split`.
+第一个引理中的列表是 `(u, p) # es`，化简器可以直接化简 `case`，因为数据类型的 `case` 等式本身就是化简规则。第二个引理的列表为变元 `es`，必须用 `list.split` 对 `case` 作情形分析。
 :::
 ::::
 
-:::: exercise Arithmetic for a quota {#ex-9-6} ★★
-Prove each goal with an arithmetic method, and say why the method fits. For the last one, find the lemma
-you need with `find_theorems`.
+:::: exercise 配额算术 {#ex-9-6} ★★
+使用算术方法证明每个目标，并说明该方法为何适用。对于最后一个目标，通过 `find_theorems` 找到所需的引理。
 
 1. `⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)`
 2. `(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y`
@@ -1488,11 +1320,11 @@ you need with `find_theorems`.
 4. `(x::nat) ≤ y ⟹ x * z ≤ y * z`
 
 ::: solution
-1. `linarith`: linear, with subtraction on `nat`.
-2. `linarith`: multiplication by a number is linear.
-3. `presburger`: `even n` means that 2 divides `n`, and divisibility by a number is Presburger arithmetic.
-4. Products of variables: not linear. `find_theorems "(_::nat) * _ ≤ _ * _" name: mono` (Section 9.6)
-   lists `mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k`, which is exactly the claim.
+1. `linarith`: 线性，在 `nat` 上支持减法。
+2. `linarith`: 乘以标量是线性的。
+3. `presburger`: `even n` 表示 2 整除 `n`，且由数字整除的性质属于 Presburger 算术。
+4. 变量乘积：非线性。`find_theorems "(_::nat) * _ ≤ _ * _" name: mono`（第9.6节）
+   lists `mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k`，这恰好是所声称的结论。
 
 ```isabelle
 lemma "⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)"
@@ -1510,11 +1342,8 @@ lemma "(x::nat) ≤ y ⟹ x * z ≤ y * z"
 :::
 ::::
 
-:::: exercise Refute, fix, prove {#ex-9-7} ★★
-A security review claims: "if a user has permission `p`, then after the permission `p` is removed from
-role `r`, the user still has `p`". In Isabelle:
-`(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})`. Find a counterexample with Nitpick, explain it, then
-add an assumption that makes the claim true and prove it with `blast`.
+:::: exercise 找反例、修正、再证明 {#ex-9-7} ★★
+安全审查声称：“如果用户拥有权限 `p`，那么在从角色 `r` 中移除权限 `p` 后，用户仍然拥有 `p`”。在 Isabelle 中形式化为：`(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})`。使用 Nitpick 寻找反例并解释，然后添加使该声明成立的假设，并使用 `blast` 进行证明。
 
 ::: solution
 ```isabelle
@@ -1535,8 +1364,7 @@ Nitpick found a counterexample for card 'r = 1 and card 'u = 1:
     u = u⇩1
 ```
 
-Here `p₂` is one of the three permissions. With a single role, the user gets `p` only through `r`; when `r`
-loses `p`, so does the user. The claim holds if `u` has `p` through some role other than `r`:
+这里 `p₂` 是三种权限之一。用户只有一个角色时，只能通过 `r` 获得 `p`。若 `r` 失去 `p`，用户也随之失去该权限。若 `u` 通过 `r` 以外的某个角色拥有 `p`，则该命题成立：
 
 ```isabelle
 lemma "⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})"
@@ -1545,17 +1373,17 @@ lemma "⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - 
 :::
 ::::
 
-:::: exercise An invariant {#ex-9-8} ★★★
-Call an ACL well formed if every user who may write may also read:
+:::: exercise 一个不变式 {#ex-9-8} ★★★
+若每个可能写入的用户也可能读取，则称 ACL 是良构的：
 
 ```isabelle
 definition wf_acl :: "'u acl ⇒ bool" where
   "wf_acl es = (∀u. allows es u Write ⟶ allows es u Read)"
 ```
 
-1. Prove that `revoke` keeps an ACL well formed: `wf_acl es ⟹ wf_acl (revoke u es)`.
-2. Show with Quickcheck that `grant u Write` does not.
-3. Prove that granting `Read` together with `Write` keeps it well formed:
+1. 证明 `revoke` 保持 ACL 良构：`wf_acl es ⟹ wf_acl (revoke u es)`。
+2. 使用 Quickcheck 证明 `grant u Write` 不成立。
+3. 证明授予 `Read` 与 `Write` 共同保持其良构性：
    `wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))`.
 
 ::: solution
@@ -1564,8 +1392,7 @@ lemma "wf_acl es ⟹ wf_acl (revoke u es)"
   by (simp add: wf_acl_def allows_revoke)
 ```
 
-After unfolding, `allows_revoke` rewrites both occurrences of `allows (revoke u es) w …`, and the
-assumption, a `∀` over `⟶`, becomes a conditional rewrite rule that finishes the proof (Section 9.3).
+展开后，`allows_revoke` 重写 `allows (revoke u es) w …` 的两个出现以及假设，a `∀` 关于 `⟶` 的条件重写规则完成了证明（第 9.3 节）。
 
 ```isabelle
 lemma "wf_acl es ⟹ wf_acl (grant u Write es)"
@@ -1581,32 +1408,28 @@ Quickcheck found a counterexample:
   u = a⇩1
 ```
 
-The empty list is well formed, but after granting `Write` alone the user may write and not read.
+空列表良构，但在单独授予 `Write` 后，用户可写不可读。
 
 ```isabelle
 lemma "wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))"
   by (simp add: wf_acl_def)
 ```
 
-After unfolding, `allows_grant` compares each user `w` with the two new entries. For `w = u` both
-`Write` and `Read` hold; for any other user the old list decides both, and the assumption, again a
-conditional rule, finishes the proof.
+展开后，`allows_grant` 将每个用户 `w` 与两个新条目进行比较；对于 `w = u`，`Write` 和 `Read` 均成立；对于任何其他用户，旧列表决定两者，且假设（再次为条件规则）完成证明。
 :::
 ::::
 
-:::: exercise Loops and orders {#ex-9-9} ★★★
-1. The lemma `rev_append` of the library is a simp rule: `rev (xs @ ys) = rev ys @ rev xs`. Explain what
-   would happen if you also declared `rev ys @ rev xs = rev (xs @ ys)` as a simp rule.
-2. Prove `insert a (insert b (insert c A)) = insert c (insert a (insert b A))` with `simp only:` and a single
-   library rule, and explain why the simplifier stops.
+:::: exercise 循环与顺序 {#ex-9-9} ★★★
+1. 库中的引理 `rev_append` 是一个 simp 规则：`rev (xs @ ys) = rev ys @ rev xs`。解释
+   如果你也将 `rev ys @ rev xs = rev (xs @ ys)` 声明为 simp 规则，将会发生什么。
+2. 使用 `simp only:` 和单个证明步骤证明 `insert a (insert b (insert c A)) = insert c (insert a (insert b A))`
+   库规则，并解释为什么化简器会停止。
 
 ::: solution
-1. The two rules undo each other: `rev (xs @ ys)` would be rewritten to `rev ys @ rev xs` and back, for ever.
-   Neither rule is permutative (their sides are different terms, not the same term with variables swapped),
-   so ordered rewriting does not apply, and the simplifier would loop.
-2. `insert_commute` is permutative. Isabelle applies it only when the result is smaller in its fixed order
-   on terms, so it sorts the inserted elements, like bubble sort, and stops when they are in order. Both
-   sides reach the same sorted form.
+1. 两条规则互相抵消：`rev (xs @ ys)` 被重写成 `rev ys @ rev xs`，然后又被改回原式，如此循环下去。
+   两个规则均非置换性的（其两侧为不同的项，而非通过交换变量得到的相同项），因此有序重写不适用，且化简器会陷入循环。
+2. `insert_commute` 具有置换性。Isabelle 仅在结果在其固定顺序中更小时才应用它
+   关于项，它对插入的元素进行排序，类似于冒泡排序，并在元素有序时停止。两侧达到相同的排序形式。
 
 ```isabelle
 lemma "insert a (insert b (insert c A)) = insert c (insert a (insert b A))"
@@ -1615,48 +1438,48 @@ lemma "insert a (insert b (insert c A)) = insert c (insert a (insert b A))"
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? Why does `by simp` fail on `allows (grant u Read es) u Read` while `by (simp add: grant_def)` succeeds?
-- [ ] `simp` cannot handle lists
-- [ ] `grant_def` is a conditional rule
-- [x] `grant` is defined with `definition`, and definitions are not simp rules
-- [ ] `simp` only uses rules written with `[simp]` in the same theory
-> The equations of `fun` and many library lemmas are simp rules, but a `definition` is unfolded only when you add its `_def` theorem.
+? 为什么`by simp`在`allows (grant u Read es) u Read`上失败而`by (simp add: grant_def)`成功？
+- [ ] `simp` 无法处理列表
+- [ ] `grant_def` 是一个条件规则
+- [x] `grant` 用 `definition` 定义，其定义等式默认不会成为 simp 规则
+- [ ] `simp` 仅使用在同一理论中以 `[simp]` 编写的规则
+> `fun` 和许多库引理的等式是化简规则。`definition` 默认不注册其等式；在需要时提供或注册其 `_def` 定理。
 
-? A simp rule has the form `v ≠ u ⟹ allows (revoke u es) v p = allows es v p`. When does `simp` use it on `allows (revoke a es) b Read`?
-- [x] Only if it can prove `b ≠ a`, for example from an assumption of the subgoal
-- [ ] Always, since the left side matches
-- [ ] Never, since conditional rules are only used by `auto`
-- [ ] Only if you write `simp add:` with the rule
-> A conditional rule is applied only after the simplifier has proved the instance of its condition, by simplification.
+? 化简规则具有形式 `v ≠ u ⟹ allows (revoke u es) v p = allows es v p`。`simp` 在何时对 `allows (revoke a es) b Read` 使用它？
+- [x] 仅当它能证明`b ≠ a`时，例如从子目标的假设中
+- [ ] 始终，因为左侧匹配
+- [ ] 从不，因为条件规则仅由 `auto` 使用
+- [ ] 仅当你使用规则书写 `simp add:` 时
+> 条件规则仅在化简器通过化简证明其条件实例后应用。
 
-? You call `simp add: add.commute`, adding commutativity `x + y = y + x` to the simp set. Why does `simp` not loop?
-- [ ] Isabelle stops every rewriting after 100 steps
-- [ ] It is used from right to left only
-- [x] It is permutative, and Isabelle applies it only when the result is smaller in a fixed order on terms
-- [ ] `simp` never uses rules about `+`
-> Ordered rewriting applies a permutative rule only when it brings the term into order, so the rule sorts the operands once and stops.
+? 调用 `simp add: add.commute`，将交换律 `x + y = y + x` 加入 simp 集合。为何 `simp` 不会陷入循环？
+- [ ] Isabelle 在 100 步后停止所有化简
+- [ ] 它仅从右到左使用
+- [x] 它具有置换性，且 Isabelle 仅在项的固定顺序下结果更小时应用它
+- [ ] `simp` 从不使用关于 `+` 的规则
+> 有序重写仅在规则使项进入有序状态时才应用置换规则，因此该规则对操作数排序一次后便停止。
 
-? Which method fits a goal about sets and relations with ∀ and ∃, and no arithmetic?
+? 哪种方法适用于涉及集合与关系、包含全称量词 ∀ 与存在量词 ∃ 且无算术运算的目标？
 - [ ] `linarith`
 - [x] `blast`
 - [ ] `simp only:`
 - [ ] `presburger`
-> `blast` searches first-order logic, with the rules for sets and relations built in.
+> `blast` 搜索一阶逻辑，其中集合与关系的规则已内置。
 
-? `linarith` fails on `(x::nat) ≤ y ⟹ x * x ≤ y * y`. What is the reason?
-- [ ] The goal is false
-- [ ] `linarith` works only on integers
-- [ ] The goal needs `presburger`
-- [x] The goal multiplies two variables, so it is not linear arithmetic
-> Linear arithmetic allows multiplication by numbers only. Arithmetic with products of variables is undecidable in general, so the proof needs a lemma such as `mult_le_mono`.
+? `linarith` 在 `(x::nat) ≤ y ⟹ x * x ≤ y * y` 上失败。原因是什么？
+- [ ] 目标是假的
+- [ ] `linarith` 仅适用于整数
+- [ ] 目标需要 `presburger`
+- [x] 目标对两个变量进行乘法运算，因此不属于线性算术
+> 线性算术仅允许乘以固定数。形如 `mult_le_mono` 的引理可处理此非线性目标；不可判定性排除了能判定每个非线性整数算术目标的算法。
 
-? Sledgehammer suggests a proof `by (metis …)` that uses two library lemmas. Why can you trust the resulting theorem?
-- [ ] Because the external provers are verified programs
-- [ ] Because several provers agreed
-- [ ] Because Sledgehammer double-checks the translation
-- [x] Because `metis` builds the proof inside Isabelle, and the kernel checks every step
-> The external provers only point to the facts that are needed. The proof itself is found again by `metis` and checked by the kernel, as for every other method.
+? Sledgehammer 建议了一个使用两条库引理的证明 `by (metis …)`。为何你能信任所得定理？
+- [ ] 由于外部证明器是经过验证的程序
+- [ ] 因为多个证明器达成一致
+- [ ] 因为 Sledgehammer 会双重检查翻译
+- [x] 因为 `metis` 在 Isabelle 内部构建证明，且内核检查每一步
+> 外部证明器仅指出所需的事实。证明本身由 `metis` 再次找到并由内核检查，如同其他每个方法一样。
 ```

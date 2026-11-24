@@ -478,7 +478,7 @@ instance fails. A witness against transitivity is a triple $x, y, z$ with $(x, y
 but $(x, z)$ not.
 
 ::: example Three relations on {1, 2, 3}
-1. $\le$, that is $\{(1,1), (2,2), (3,3), (1,2), (1,3), (2,3)\}$, is reflexive, antisymmetric,
+1. $\le$, that is $\{(1,1),\allowbreak (2,2),\allowbreak (3,3),\allowbreak (1,2),\allowbreak (1,3),\allowbreak (2,3)\}$, is reflexive, antisymmetric,
    transitive and total. It is not symmetric: $(1, 2)$ is in it and $(2, 1)$ is not.
 2. "one less than", $\{(1, 2), (2, 3)\}$, is irreflexive and antisymmetric. It is not transitive:
    $(1, 2)$ and $(2, 3)$ are in it but $(1, 3)$ is not. Nor is it total: neither $(1, 3)$ nor
@@ -1397,7 +1397,7 @@ value "Pow {1, 5 :: nat}"
 Which of the six properties of Section 4.2 do these relations on $\{1, 2, 3, 4\}$ have? For every
 property that fails, give a witness, and check your answers with the widget.
 
-1. $R_1 = \{(1, 1), (2, 2), (3, 3), (4, 4), (1, 2), (2, 1)\}$
+1. $R_1 = \{(1, 1),\allowbreak (2, 2),\allowbreak (3, 3),\allowbreak (4, 4),\allowbreak (1, 2),\allowbreak (2, 1)\}$
 2. $R_2 = \{(1, 2), (2, 3), (3, 1)\}$
 3. $R_3 = \{(1, 2), (1, 3), (1, 4)\}$
 

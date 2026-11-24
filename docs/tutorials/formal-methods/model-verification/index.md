@@ -1,6 +1,6 @@
 # Isabelle for model verification
 
-[Formal Methods with Isabelle](../index.html) · [Exercises](exercises.md) · [Quick reference](reference.md) · [Download all examples](../../isabelle/examples/isabelle-tutorial.zip)
+[Formal Methods with Isabelle](../index.html) · [Exercises](exercises.md) · [Quick reference](reference.md) · [Download all examples](../../isabelle/examples/isabelle-tutorial.zip) · [简体中文](zh/index.md){ hreflang=zh-CN }
 
 Learn how to turn a model, a constraint and an operation into a machine-checked argument. This guide starts with Isabelle/HOL and develops a small lid model: define an angle limit, admit an opening operation, prove an invariant, and check a translation between two representations.
 

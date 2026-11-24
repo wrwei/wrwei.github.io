@@ -1,7 +1,7 @@
 ---
 title: 验证函数式程序
 part: 4
-lead: 证明一个程序对每个输入都做到了它的规约所说的事。你将验证插入排序、二叉搜索树和由两个列表构成的队列，看清为什么规约的每一部分都不可缺少，并把经过验证的函数转换成 Haskell 代码。
+lead: 证明程序对每个输入都满足规约。你将验证插入排序、二叉搜索树和用两个列表实现的队列，理解规约中每个条件的作用，并把验证过的函数导出为 Haskell 代码。
 minutes: 230
 needs: 模块 1–11，尤其是模块 8（函数）、模块 10（Isar）和模块 11（辅助引理）
 goals:
@@ -31,7 +31,7 @@ $$
 
 **规约**（specification）是每个可接受的结果都必须具有的性质。它说明结果必须是**什么**，而不说明怎样计算它。
 
-**正确性定理**（correctness theorem）断言：对每个输入，实现给出的结果都具有规约所要求的性质。当一个程序的正确性定理得到证明时，这个程序就是**经过验证的**（verified）。
+**正确性定理**指出，对于满足其声明前提的每个输入，实现的结果都具有指定的性质。当该定理已被证明时，程序**针对该规范被验证**。下面的排序没有类型之外的输入前提；树和队列定理使用表示不变式。
 :::
 
 就排序而言，本模块中的实现是插入排序（insertion sort），即函数 `isort`。规约就是上面的公式。正确性定理把两者连接起来：
@@ -48,14 +48,15 @@ $$
 
 - **规约是写给人看的。** 它应该简短，并且贴近本来想表达的意思，这样你读一读就能检查它说得对不对。这就是确认（模块 1）；规约讲到的计算细节越少，确认就越容易。
 - **实现是写给计算机的。** 它应该运行得快、占用内存少，或者适合手头的数据结构。巧妙的实现很难靠阅读来检查。
-- **证明是两者之间的桥梁。** 定理一旦得到证明，谁也不必为了信任实现而去读它：只要读懂规约，并且知道 Isabelle 已经检查过证明，就够了。
+- **证明是桥梁。** 经过验证的正确性定理让你可以信赖指定的行为
+  无需人工重新检查算法，只要其假设与可信基础适用即可。它不确立规范所遗漏的性质。
 
-一个规约还可以服务于许多实现。插入排序、归并排序和快速排序都满足同一个排序规约；每种排序都需要自己的证明，但定理的陈述是相同的。
+一个规约也可对应多种实现。插入排序、归并排序和快速排序均满足同一排序规约；每种实现代入正确性陈述后，均需各自的证明。
 
-规约分为两种，本模块两种都会用到。**性质**（property）直接描述结果，就像 `sorted` 和 `mset` 对排序所做的那样。**模型**（model）描述数据及其操作的一个简单版本，例如数学上的集合或普通的列表，而定理说明巧妙的版本与简单的版本行为一致。第 12.5 节和第 12.6 节会展开讲第二种。
+本模块使用两种方式呈现规约。**性质**直接描述结果，如`sorted`和`mset`对排序的处理。**模型**描述数据及其操作的简单版本，例如数学集合或普通列表，定理表明智能版本的行为与简单版本一致。第12.5节和第12.6节发展了第二种规约。
 
 ::: keyidea
-一个测试只在一个输入上检查实现。正确性定理覆盖每一个输入，但它的价值取决于它的规约：对照一个说得太少的规约所做的证明，证明的东西也太少。第 12.4 节会展示规约缺了一半时会发生什么。
+测试在选定输入上检查实现。正确性定理覆盖其声明前提下的所有输入，但其质量取决于规范：针对规定过少的规范进行的证明仅能证明过少。第 12.4 节展示了当规范的一半缺失时会发生什么。
 :::
 
 ::: note
@@ -98,7 +99,7 @@ end
 
 本模块的 Isabelle 文本都写在 `begin` 和 `end` 之间。HOL-Library 是随 Isabelle 一起提供、但不属于 `Main` 的一组理论。`"HOL-Library.Multiset"` 指的是其中的理论 `Multiset`，它定义了多重集（multiset）和规约中用到的函数 `mset`。引号是必需的，因为名字里有连字符：没有引号，Isabelle 会把它读成三个导入项：`HOL`、`-` 和 `Library.Multiset`。（在这里，引号并不像在 `lemma` 中那样标记内层语法。）
 
-打开带有这个导入的理论时，Isabelle/jEdit 会先检查 `Multiset` 及其所依赖的库理论，然后才检查你自己的文本。这可能要花上一分钟。**Theories**（理论）面板会显示进度；在它完成之前，你自己的文本还没有被检查，**Output**（输出）面板也不会为它显示任何内容。每次启动 Isabelle/jEdit 都会这样，因为 Isabelle/jEdit 启动时加载的是预先构建好的 HOL 映像，而 HOL-Library 不在其中。
+当打开带有此导入的理论时，Isabelle/jEdit 首先检查 `Multiset` 及其所依赖的库理论，然后才检查您自己的文本。这可能需要数十秒或更长时间。**Theories** 面板显示进度；在进度完成之前，您自己的文本保持未检查状态，且 Output 面板对其无任何输出。使用默认的预构建 HOL 镜像时，这些额外理论必须在每个新的证明器会话中进行检查；自定义会话镜像可以已包含它们。
 
 现在来看这两个函数：
 
@@ -258,7 +259,7 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Quickcheck 尝试了规模不超过某个较小上限的所有列表，没有找到反例。这令人鼓舞，但还不是定论：错误可能只在更长的列表上才显现出来。在 Isabelle/jEdit 中，你甚至不需要这条命令，因为 Auto Quickcheck 会尝试每个新的 `lemma` 陈述，找到反例时就在那一行旁边标出一个蓝色的 **i**（模块 1）。现在来证明它。
+Quickcheck 在其对列表和测试值的界限内未找到反例。一个 bug 可能需要一个未经测试的情况，包括更长的列表或不同的元素值。使用其默认设置，Isabelle/jEdit 也会在新目标上尝试 Auto Quickcheck，并在找到反例时用蓝色 **i** 标记该行（Module 1）。现在证明它。
 
 ## 证明插入排序的正确性 {#isort-proof}
 
@@ -279,32 +280,22 @@ lemma "sorted (isort xs)"
 ***  1. ⋀a xs. sorted (isort xs) ⟹ sorted (ins a (isort xs))
 ```
 
-The base case is solved; the induction step is not. Read the goal that is left. Its premise is the
-induction hypothesis, `sorted (isort xs)`, and its conclusion is `sorted (ins a (isort xs))`, where a
-is Isabelle's name for the head of the list. So the step needs one fact: **inserting into a sorted list
-gives a sorted list**. That fact is about `ins` alone; `isort` only supplies the sorted list. Following
-Module 11's recipe, replace the specific list `isort xs` by a variable, and state the fact as a lemma of
-its own:
+基本情况已解决；归纳步骤尚未解决。阅读剩余的证明目标。其前提为归纳假设 `sorted (isort xs)`，结论为 `sorted (ins a (isort xs))`，其中 a 是 Isabelle 对列表头部的命名。因此该步骤需要一个事实：**将元素插入有序列表仍得到有序列表**。该事实仅涉及 `ins`；`isort` 仅提供有序列表。遵循 Module 11 的配方，将具体列表 `isort xs` 替换为变量，并将该事实声明为独立的引理：
 
 $$
 \mathit{sorted}\ xs \Longrightarrow \mathit{sorted}\ (\mathit{ins}\ x\ xs)
 $$
 
-### The lemmas about ins {#ins-lemmas}
+### 关于 ins 的引理 {#ins-lemmas}
 
-On paper, the lemma follows by induction on xs. For the empty list, `ins x [] = [x]` is sorted. For
-y # ys, look at the two branches of `ins`:
+在纸面上，该引理通过对 xs 进行归纳得出。对于空列表，`ins x [] = [x]` 已排序。对于 y # ys，考察 `ins` 的两个分支：
 
-- If x ≤ y, the result is x # y # ys. It is sorted because x ≤ y, y is at most every element of ys (the
-  list y # ys is sorted), so x is too, and y # ys is sorted.
-- Otherwise y < x, and the result is y # ins x ys. The tail `ins x ys` is sorted by the induction
-  hypothesis, because ys is sorted. And y must be at most every element of `ins x ys`. Which elements are
-  those? Those of ys, and x. y is at most each of them: at most x because y < x, at most the elements of
-  ys because y # ys is sorted.
+- 若 x ≤ y，则结果为 x # y # ys。其已排序，因为 x ≤ y，且 y 不超过 ys 的每个元素（
+  列表 y # ys 有序），故 x 也是如此，且 y # ys 有序。
+- 否则 y < x，结果为 y # ins x ys。尾部 `ins x ys` 由归纳假设排序
+  假设，因为 ys 已排序。且 y 必须至多为 `ins x ys` 中的每个元素。这些元素是哪些？它们是 ys 中的元素和 x。y 至多为其中的每个元素：至多为 x，因为 y < x；至多为 ys 中的元素，因为 y # ys 已排序。
 
-The second branch uses a fact that is so obvious on paper that it is easy to overlook: the elements of
-`ins x ys` are x and the elements of ys. Isabelle does not overlook it. Start the proof of the lemma and
-look at the goals that `auto` leaves:
+第二个分支使用了一个在纸面上显而易见却容易被忽略的事实：`ins x ys` 的元素是 x 和 ys 的元素。Isabelle 不会忽略这一点。启动引理证明并查看 `auto` 留下的目标：
 
 ```isabelle
 lemma "sorted xs ⟹ sorted (ins x xs)"
@@ -325,19 +316,14 @@ goal (1 subgoal):
   oops
 ```
 
-One goal remains, from the branch where ¬ x ≤ a: the head a must be at most every element xa of
-`ins x xs`. (The bound x in `∀x∈set xs. a ≤ x` is a different x from the one being inserted; Isabelle
-reuses the name.) `auto` knows that a is at most every element of xs and that ¬ x ≤ a, but nothing about
-which elements `ins x xs` has: exactly the fact the paper proof used without comment. State it as a
-lemma. It has its own, easy induction:
+一个目标仍然存在，来自 ¬ x ≤ a 分支：头元素 a 必须不大于 `ins x xs` 的每个元素 xa。（`∀x∈set xs. a ≤ x` 中的界 x 与正在插入的 x 不同；Isabelle 重用了该名称。）`auto` 知道 a 不大于 xs 的每个元素且 ¬ x ≤ a，但关于 `ins x xs` 的元素一无所知：仅包含论文证明中未加评论使用的事实。将其表述为引理。它拥有自己的简单归纳法：
 
 ```isabelle
 lemma set_ins: "set (ins x xs) = insert x (set xs)"
   by (induction xs) auto
 ```
 
-`insert x A` is the set A with x added, `{x} ∪ A`. With `set_ins` available, the lemma about
-sortedness goes through. Here it is in Isar, following the paper proof case by case:
+`insert x A` 是向集合 A 添加 x 后的集合，`{x} ∪ A`。利用 `set_ins` 可得，排序性引理成立。以下是遵循论文证明逐例推导的 Isar 形式：
 
 ```isabelle
 lemma sorted_ins: "sorted xs ⟹ sorted (ins x xs)"
@@ -357,26 +343,23 @@ next
 qed
 ```
 
-In the case x ≤ y, the premise `Cons.prems`, that y # ys is sorted, is all `auto` needs. In the other
-case it also needs the induction hypothesis (passed with the whole of `Cons`) and the new lemma. Once you
-know which facts each step needs, the whole induction fits on one line as well; the Isar version shows a
-reader where each fact is used.
+在 x ≤ y 的情况下，前提 `Cons.prems`（即 y # ys 已排序）是 `auto` 所需的全部信息。在另一种情况下，它还需要归纳假设（通过整个 `Cons` 传递）以及新引理。一旦你了解每个步骤需要哪些事实，整个归纳证明也可以写在一行中；Isar 版本向读者展示了每个事实的使用位置。
 
 ```isabelle
 lemma "sorted xs ⟹ sorted (ins x xs)"
   by (induction xs) (auto simp: set_ins)
 ```
 
-Now the theorem's first half is the original induction, with the lemma passed to `auto`:
+现在定理的前半部分是原始的归纳法，将引理传递给 `auto`：
 
 ```isabelle
 lemma sorted_isort: "sorted (isort xs)"
   by (induction xs) (auto simp: sorted_ins)
 ```
 
-### A permutation {#perm-proof}
+### 一个排列 {#perm-proof}
 
-The second half goes the same way. Try the obvious induction and look at the step:
+后半部分同理。尝试明显的归纳法并查看步骤：
 
 ```isabelle
 lemma "mset (isort xs) = mset xs"
@@ -396,9 +379,7 @@ goal (1 subgoal):
   oops
 ```
 
-The step needs the multiset of `ins a (isort xs)`. With the hypothesis `mset (isort xs) = mset xs`,
-the goal would follow from a fact about `ins` alone: inserting x adds one copy of x to the multiset. As
-before, generalise `isort xs` to any list:
+该步骤需要 `ins a (isort xs)` 的多重集。在假设 `mset (isort xs) = mset xs` 下，目标可从关于 `ins` 的事实直接得出：插入 x 会在多重集中增加一个 x 的副本。与之前一样，将 `isort xs` 泛化为任意列表：
 
 ```isabelle
 lemma mset_ins: "mset (ins x xs) = add_mset x (mset xs)"
@@ -408,13 +389,11 @@ lemma mset_isort: "mset (isort xs) = mset xs"
   by (induction xs) (auto simp: mset_ins)
 ```
 
-Notice that `mset_ins` holds for every list, sorted or not: `ins` never loses or duplicates an element,
-wherever it stops.
+注意 `mset_ins` 对每个列表（无论是否排序）均成立：`ins` 在其停止时从不丢失或重复任何元素。
 
-### The correctness theorem {#isort-theorem}
+### 正确性定理 {#isort-theorem}
 
-The two halves give the theorem. `proof` without a method applies the standard rule for `∧` (Module 10),
-which leaves one goal for each half:
+这两部分共同构成定理。`proof` 在不使用方法的情况下应用 `∧`（Module 10）的标准规则，这为每一半各留下一个目标：
 
 ```isabelle
 theorem isort_correct: "sorted (isort xs) ∧ mset (isort xs) = mset xs"
@@ -425,28 +404,19 @@ next
 qed
 ```
 
-The command `theorem`, like `corollary` (Module 11) and `proposition`, means the same as `lemma`; the
-word marks a main result. Insertion sort is verified: for every list of every linearly ordered type,
-`isort` returns a sorted permutation of its input.
+命令`theorem`，如同`corollary`（Module 11）和`proposition`，含义与`lemma`相同；该词标记一个主要结果。插入排序得到验证：对于每个线性有序类型的每个列表，`isort`返回其输入的已排序排列。
 
 ::: keyidea
-Proofs about programs are found from the top down and written from the bottom up. You start with the
-theorem, try induction, and read the goal on which automation stops; the goal tells you which lemma about
-a smaller function is missing, often after you generalise a specific term to a variable. The finished
-theory lists the lemmas first (`set_ins`, `sorted_ins`, `mset_ins`) and the theorem last.
+程序证明自顶向下进行，自底向上书写。从定理开始，尝试归纳法，阅读自动化停止时的目标；该目标告诉你缺少关于更小函数的哪个引理，通常是在将特定项泛化为变量之后。完成的理论首先列出引理（`set_ins`, `sorted_ins`, `mset_ins`），最后列出定理。
 :::
 
 ::: tip
-When a goal mentions a library function, such as `mset` of an appended list, the lemma you need is
-probably in the library already. Search for it with `find_theorems` (Module 9) before you prove it
-yourself. For functions of your own, such as `ins`, the lemmas are yours to state.
+当目标提及库函数，例如已追加列表的 `mset` 时，所需引理可能已在库中。在自行证明前，使用 `find_theorems`（模块 9）进行查找。对于您自己的函数，如 `ins`，引理由您声明。
 :::
 
-## Why a specification needs both halves {#halves}
+## 为什么规约需要两半 {#halves}
 
-A verified program is only as good as its specification, so look at the specification as critically as
-at the program. Would one half have been enough? Two deliberately wrong "sorting" functions answer the
-question.
+已验证程序的质量仅取决于其规约，因此需像审查程序一样严格审视规约。半个版本是否足够？两个故意错误的“排序”函数回答了该问题。
 
 ```isabelle
 definition sort_drop :: "'a::linorder list ⇒ 'a list" where
@@ -456,15 +426,14 @@ definition sort_keep :: "'a::linorder list ⇒ 'a list" where
   "sort_keep xs = xs"
 ```
 
-`sort_drop` throws the list away; `sort_keep` returns it unchanged. Neither sorts. But `sort_drop` meets
-the first half of the specification, because the empty list is sorted:
+`sort_drop` 丢弃列表；`sort_keep` 原样返回。两者均未排序。但`sort_drop` 满足规范的前半部分，因为空列表已排序：
 
 ```isabelle
 lemma "sorted (sort_drop xs)"
   by (simp add: sort_drop_def)
 ```
 
-Its failure shows only in the second half, and Quickcheck finds it at once:
+其失败仅在后半部分显现，且 Quickcheck 能立即找到它：
 
 ```isabelle
 lemma "mset (sort_drop xs) = mset xs"
@@ -481,12 +450,7 @@ Evaluated terms:
   mset xs = mset [a⇩1]
 ```
 
-The counterexample is a list with one element, a₁. Quickcheck tests a claim about an unknown element type
-on small types whose values it calls a₁, a₂, a₃ and so on. The evaluated terms show the two sides of the
-equation, each multiset printed as `mset` of a list, as `value` prints it: the empty multiset on the
-left, a multiset with a₁ on the right. Nitpick (Module 9) agrees. It tries several sizes of the element
-type at once, so which counterexample it reports first can vary from run to run; the option
-`card 'a = 2` fixes the size of `'a` to two values:
+反例是一个包含单个元素 a₁ 的列表。Quickcheck 在值被调用为 a₁, a₂, a₃ 等的小类型上测试关于未知元素类型的声明。求值后的项展示了方程的两边，每个多重集作为 `mset` 的列表打印，如 `value` 所示：左侧为空多重集，右侧为包含 a₁ 的多重集。Nitpick（模块 9）表示同意。它同时尝试几种元素类型的大小，因此它首先报告的反例可能因运行而异；选项 `card 'a = 2` 将 `'a` 的大小固定为两个值：
 
 ```isabelle
   nitpick [card 'a = 2]
@@ -504,14 +468,14 @@ Nitpick found a counterexample for card 'a = 2:
   oops
 ```
 
-`sort_keep` is the mirror image. It meets the second half, since every list is a permutation of itself:
+`sort_keep` 是镜像。它与后半部分匹配，因为每个列表都是自身的排列：
 
 ```isabelle
 lemma "mset (sort_keep xs) = mset xs"
   by (simp add: sort_keep_def)
 ```
 
-and fails the first:
+并且失败于第一个：
 
 ```isabelle
 lemma "sorted (sort_keep xs)"
@@ -526,16 +490,11 @@ Quickcheck found a counterexample:
   xs = [a⇩2, a⇩1]
 ```
 
-Quickcheck's small types are ordered by the index of their values, a₁ < a₂ < a₃, so the list
-`[a₂, a₁]` is out of order, and `sort_keep` returns it unchanged.
+Quickcheck 的小类型按其值的索引排序，a₁ < a₂ < a₃，因此列表 `[a₂, a₁]` 顺序错误，`sort_keep` 将其原样返回。
 
-Each half rules out one kind of wrong program. "Sorted" rules out programs that leave elements out of
-order; "permutation" rules out programs that lose, add or duplicate elements. Only together do they say
-what sorting means.
+每个半规则排除一类错误的程序。“Sorted”排除将元素置于无序状态的程序；“permutation”排除丢失、添加或重复元素的程序。只有两者结合才定义了排序的含义。
 
-Are the two halves together enough, or could a wrong program still meet both? They are enough: for each
-input, exactly one list is sorted and a permutation of it. The library proves this about its own sorting
-function `sort`:
+这两部分合起来是否足够，还是错误的程序仍可能同时满足两者？它们是足够的：对于每个输入，恰好有一个列表是已排序的且是另一个列表的排列。库证明了关于其自身排序函数的性质 `sort`：
 
 ```isabelle
 thm properties_for_sort
@@ -545,51 +504,31 @@ thm properties_for_sort
 ⟦mset ?ys = mset ?xs; sorted ?ys⟧ ⟹ sort ?xs = ?ys
 ```
 
-Read it as: if ys is a permutation of xs and ys is sorted, then ys is `sort xs`. So every function that
-meets the specification computes the same results as `sort`; Exercise 12.7 uses this to prove
-`isort xs = sort xs`. The specification pins down the result for every input.
+将其读作：如果 ys 是 xs 的排列且 ys 已排序，则 ys 为 `sort xs`。因此，每个满足规范的函数都计算出与 `sort` 相同的结果；Exercise 12.7 利用此点证明 `isort xs = sort xs`。该规范确定了每个输入对应的结果。
 
 ::: pitfall
-A common weakening of the specification uses sets instead of multisets: `sorted ys ∧ set ys = set xs`.
-It looks right, and it is wrong. A function that sorts and also removes duplicates, turning
-`[2, 1, 2]` into `[1, 2]`, meets it. For scores in a school this loses a pupil's mark whenever two pupils
-have the same score. Exercise 12.8 builds such a function and lets Quickcheck expose it.
+规范的一个常见弱化使用集合而非多重集：`sorted ys ∧ set ys = set xs`。它看起来正确，但实际上是错误的。一个既排序又去除重复项的函数，将`[2, 1, 2]`转换为`[1, 2]`，便满足该规范。对于学校分数，当两名学生分数相同时，这会丢失一名学生的成绩。练习 12.8 构建了这样一个函数，并让 Quickcheck 暴露它。
 :::
 
 ::: note
-Not every specification has to pin down the result. A specification that allows several results is useful
-when any of them will do: "return some element of the list", "return a shortest path". But then
-"meets the specification" is all the theorem promises, and the users of the program must not rely on
-which result they get.
+并非每个规范都必须确定结果。当任何结果均可接受时，允许多种结果的规范是有用的，例如“返回列表中的某个元素”或“返回最短路径”。但此时“满足规范”是定理所保证的全部内容，程序使用者不得依赖他们获得的具体结果。
 :::
 
-## Binary search trees {#bst}
+## 二叉搜索树 {#bst}
 
-Sorting is a function from inputs to outputs. Many programs instead keep data in a structure and offer
-operations on it: insert a key, ask whether a key is present. Such a structure is correct if the
-operations behave as they should on the data the structure represents. A **binary search tree** is the
-standard example.
+排序是从输入到输出的函数。许多程序改为将数据保存在结构中并提供操作：插入键，询问键是否存在。如果操作在结构所代表的数据上按预期行为，则该结构是正确的。**二叉搜索树**是标准示例。
 
-To find a name in a sorted phone book you do not read it from the first page: you open it in the middle,
-see whether the name comes before or after, and repeat in the half that remains. A binary search tree
-stores keys so that every search can work like that. Each node holds a key; the keys in its left subtree
-are smaller, the keys in its right subtree larger. To look for a key, compare it with the key at the root
-and go left or right. A search follows a single path from the root, so it takes at most as many steps as
-the tree is high. In a well-balanced tree with n keys that is about log₂ n steps, far fewer than n.
+为了在排序的电话簿中查找名称，你不会从第一页开始阅读：你在中间打开它，查看名称是在之前还是之后，并在剩余的半部分中重复。二叉搜索树存储键，使得每次搜索都可以这样工作。每个节点包含一个键；其左子树中的键较小，右子树中的键较大。为了查找一个键，将其与根节点的键进行比较，然后向左或向右移动。搜索遵循从根节点出发的单一路径，并检查最多与树高度一样多的键。具有 n 个键的平衡良好的树的高度与 log₂(n + 1) 成正比。下面实现的树未保持平衡，因此其高度可能为 n。
 
-### Trees and the set they represent {#bst-trees}
+### 树及其所表示的集合 {#bst-trees}
 
-The trees are those of Module 11: a tree is either a leaf `Lf`, which holds nothing, or a node
-`Nd l x r` with a left subtree l, a key x and a right subtree r. Your theory for this module needs its
-own copy of the datatype:
+树为 Module 11 中的树：树要么是空叶 `Lf`，不持有任何内容，要么是具有左子树 l、键 x 和右子树 r 的节点 `Nd l x r`。此模块的理论需要其自身的数据类型副本：
 
 ```isabelle
 datatype 'a btree = Lf | Nd "'a btree" 'a "'a btree"
 ```
 
-A search tree stands for a set of keys: the set of all keys in its nodes. This is what a user of the tree
-cares about. Which shape the tree has, and where each key sits, is the tree's business. Define the set as
-a function:
+搜索树表示一组键：其所有节点中的键的集合。这是用户所关心的内容。树的形状以及每个键的位置是树自身的事务。将集合定义为函数：
 
 ```isabelle
 fun set_of :: "'a btree ⇒ 'a set" where
@@ -597,13 +536,10 @@ fun set_of :: "'a btree ⇒ 'a set" where
 | "set_of (Nd l x r) = set_of l ∪ {x} ∪ set_of r"
 ```
 
-`set_of` is the **abstraction function** of search trees: it maps each tree, the concrete data, to the
-set it represents, the abstract value. Section 12.6 makes the idea general.
+`set_of` 是搜索树的 **抽象函数**：它将每棵表示具体数据的树映射到其表示的集合，即抽象值。第 12.6 节使该思想一般化。
 
 ::: note
-The `datatype` command defines such a function by itself, called `set_btree`, together with others such
-as `map_btree` (the Isabelle manual on datatypes, `datatypes.pdf`, lists them). Its equations, with
-variable names that Isabelle generated, say the same as those of `set_of`:
+`datatype` 命令会自动定义这样的函数，名称为 `set_btree`。它还定义 `map_btree` 等函数，完整列表见 Isabelle 的数据类型手册 `datatypes.pdf`。下面等式中的变元名由 Isabelle 生成，等式与 `set_of` 表达同一个函数：
 
 ```isabelle
 thm btree.set
@@ -615,13 +551,12 @@ thm btree.set
   set_btree ?x21.0 ∪ {?x22.0} ∪ set_btree ?x23.0
 ```
 
-`?x21.0` is the schematic variable `?x21`: Isabelle adds `.0` to a name that ends in a digit. This
-module defines its own function, so that the abstraction function is visible in the theory.
+`?x21.0` 具有名称 `x21` 和索引 0。点分隔索引与以数字结尾的名称；若无该点，`?x21` 将表示名称为 `x` 且索引为 21（模块 9）。此模块定义其自身的函数，使得抽象函数在理论中可见。
 :::
 
-### Search and insertion {#bst-ops}
+### 搜索与插入 {#bst-ops}
 
-Searching compares the key with the key of the node and goes left, goes right, or stops:
+搜索将键与节点的键进行比较，然后向左、向右或停止：
 
 ```isabelle
 fun isin :: "'a::linorder ⇒ 'a btree ⇒ bool" where
@@ -630,8 +565,7 @@ fun isin :: "'a::linorder ⇒ 'a btree ⇒ bool" where
      (if x < y then isin x l else if y < x then isin x r else True)"
 ```
 
-Insertion searches in the same way. If it finds the key, the tree stays as it is; if it reaches a leaf,
-the key was not there, and the leaf becomes a new node:
+以相同方式执行插入搜索。若找到键，树保持不变；若到达叶节点，则键不存在，该叶节点变为新节点：
 
 ```isabelle
 fun tinsert :: "'a::linorder ⇒ 'a btree ⇒ 'a btree" where
@@ -642,7 +576,7 @@ fun tinsert :: "'a::linorder ⇒ 'a btree ⇒ 'a btree" where
       else Nd l y r)"
 ```
 
-Here is a tree with six keys to try them on; Figure 12.2 draws it.
+这里有一棵包含六个键的树，用于尝试它们；Figure 12.2 绘制了它。
 
 ```isabelle
 definition t0 :: "int btree" where
@@ -667,10 +601,7 @@ consts
   :: "bool"
 ```
 
-A set has no order: Isabelle prints the keys in the order in which the generated code collected them, and
-`{5, 2, 1, 4, 8, 9}` is the same set as `{1, 2, 4, 5, 8, 9}`. The search for 4 goes left at 5 and right
-at 2, and finds 4. The search for 7 goes right at 5, left at 8, and reaches a leaf: 7 is not there.
-Inserting 6 takes the same path as the search for 7, and puts a new node where that search ended:
+集合没有顺序：Isabelle 按生成代码收集键的顺序打印键，`{5, 2, 1, 4, 8, 9}` 与 `{1, 2, 4, 5, 8, 9}` 是同一集合。查找 4 在 5 处向左、在 2 处向右，并找到 4。查找 7 在 5 处向右、在 8 处向左，到达叶节点：7 不存在。插入 6 遵循与查找 7 相同的路径，并在该查找结束处放置新节点：
 
 ```isabelle
 value "tinsert 6 t0"
@@ -682,15 +613,12 @@ value "tinsert 6 t0"
 ```
 
 ::: figure id=fig-12-2
-The search tree `t0` before and after `tinsert 6`. Insertion follows the path of a search (right at 5,
-left at 8) and replaces the leaf where the search ends by a new node. At every node, the keys in the left
-subtree are smaller than the node's key and the keys in the right subtree are larger: the invariant `bst`.
+搜索树 `t0` 在 `tinsert 6` 之前和之后的状态。插入操作遵循搜索路径（在 5 处向右，在 8 处向左），并将搜索终止处的叶子节点替换为新节点。在每个节点处，左子树中的键小于该节点的键，而右子树中的键大于该节点的键：即不变式 `bst`。
 :::
 
-### The invariant {#bst-invariant}
+### 不变式 {#bst-invariant}
 
-The search only works if the keys are in the right places. In this tree, 6 sits in the left subtree of
-5, where only smaller keys belong:
+搜索只有在键位于正确位置时才有效。这棵树里的 6 位于 5 的左子树，但左子树中只应有更小的键：
 
 ```isabelle
 value "isin 6 (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))"
@@ -701,18 +629,13 @@ value "isin 6 (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))"
   :: "bool"
 ```
 
-The key 6 is in the tree, but the search goes right at 5 and finds a leaf. The functions are not wrong;
-they assume something about the tree that this tree does not satisfy. That assumption is the tree's
-invariant.
+关键 6 在树中，但搜索在 5 处向右并找到叶节点。函数没有错误；它们对树做出假设，而此树不满足该假设。该假设是树的不变式。
 
-::: definition Invariant of a data structure
-An **invariant** of a data structure is a property that every value built by its operations has, and
-that the operations may rely on. The operations must **preserve** it: if their input satisfies the
-invariant, so does their output.
+::: definition 数据结构的不变式
+数据结构的**不变式**是其操作构建的每个值都具有的性质，且操作可依赖该性质。操作必须**保持**它：若输入满足不变式，则输出也满足。
 :::
 
-For search trees, the invariant is that at every node, all keys of the left subtree are smaller than the
-node's key and all keys of the right subtree are larger:
+对于搜索树，其性质（不变式）为：在每个节点处，左子树的所有键均小于该节点的键，且右子树的所有键均大于该节点的键：
 
 ```isabelle
 fun bst :: "'a::linorder btree ⇒ bool" where
@@ -721,7 +644,7 @@ fun bst :: "'a::linorder btree ⇒ bool" where
      (bst l ∧ bst r ∧ (∀y ∈ set_of l. y < x) ∧ (∀y ∈ set_of r. x < y))"
 ```
 
-`∀y ∈ set_of l. y < x` reads "every key y of l is less than x". Check it on the two trees:
+`∀y ∈ set_of l. y < x` 读作“l 的每个键 y 都小于 x”。在两个树上验证它：
 
 ```isabelle
 value "bst t0"
@@ -736,22 +659,19 @@ value "bst (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))"
   :: "bool"
 ```
 
-The specification of search trees now has three parts, and Section 12.6 shows that they are an instance
-of a general pattern:
+搜索树的规约现在包含三个部分，第 12.6 节表明它们是通用模式的一个实例：
 
-1. Insertion preserves the invariant: `bst t ⟹ bst (tinsert x t)`.
-2. Insertion inserts: `set_of (tinsert x t) = insert x (set_of t)`.
-3. Search is correct: `bst t ⟹ isin x t = (x ∈ set_of t)`.
+1. 插入操作保持不变式：`bst t ⟹ bst (tinsert x t)`。
+2. 插入操作插入：`set_of (tinsert x t) = insert x (set_of t)`.
+3. 搜索正确性：`bst t ⟹ isin x t = (x ∈ set_of t)`。
 
-The second and third parts say that `tinsert` and `isin` do to the tree what `insert` and `∈` do to the
-set it represents. The third holds only for trees that satisfy the invariant, as the tree with 6 in the
-wrong place showed.
+第二、第三部分说明，`tinsert` 与 `isin` 对树的作用分别对应 `insert` 与 `∈` 对树所表示集合的作用。第三部分只对满足不变式的树成立。前面将 6 放错位置的树就是反例。
 
-### A wrong invariant {#bst-wrong}
+空树 `Lf` 也必须满足不变式并代表空集；两者均源于定义；第 12.6 节在一般模式中明确包含了初始化。
 
-The invariant must say the right thing, and that is easy to get wrong. A tempting simplification
-compares each node only with its two children: the left child's key must be smaller, the right child's
-larger. It is easier to state and quicker to check:
+### 一个错误的不变式 {#bst-wrong}
+
+不变式必须正确表述，而这很容易出错。一个诱人的简化方案仅将每个节点与其两个子节点进行比较：左子节点的键必须较小，右子节点的键必须较大。这种表述更简洁且检查更快：
 
 ```isabelle
 fun bst_local :: "'a::linorder btree ⇒ bool" where
@@ -762,8 +682,7 @@ fun bst_local :: "'a::linorder btree ⇒ bool" where
       (case r of Lf ⇒ True | Nd _ y _ ⇒ x < y))"
 ```
 
-The pattern `Nd _ y _` matches any node and names only its key; `_` stands for a part you do not need.
-Is search correct for trees with this invariant? Ask Quickcheck before trying to prove it:
+模式`Nd _ y _`匹配任意节点且仅命名其键；`_`代表你不需要的一部分。具有此不变式的树搜索是否正确？在尝试证明之前，先询问 Quickcheck：
 
 ```isabelle
 lemma "bst_local t ⟹ isin x t = (x ∈ set_of t)"
@@ -785,21 +704,15 @@ Evaluated terms:
   oops
 ```
 
-Draw the tree. Its root holds a₂ and has an empty left subtree. The right child holds a₃, and the left
-child of that node holds a₁. Each node is in order with its children: a₃ is larger than a₂, and a₁ is
-smaller than a₃. So `bst_local` holds. But a₁ is smaller than a₂ and sits in a₂'s right subtree. The
-search for a₁ compares it with a₂, goes left and finds a leaf: `isin` answers False, although a₁ is in
-the tree. The evaluated terms show exactly this.
+画出这棵树。其根节点持有 a₂ 且左子树为空。右子节点持有 a₃，该节点的左子节点持有 a₁。每个节点与其子节点保持有序关系：a₃ 大于 a₂，且 a₁ 小于 a₃。因此 `bst_local` 成立。但 a₁ 小于 a₂ 且位于 a₂ 的右子树中。对 a₁ 的搜索将其与 a₂ 比较，向左查找并找到叶节点：`isin` 返回 False，尽管 a₁ 存在于树中。求值后的项精确地展示了这一点。
 
 ::: pitfall
-An invariant about a recursive structure usually has to speak about whole subtrees, not only about
-neighbours. If a property holds between neighbours only, check with Quickcheck or Nitpick that it
-implies what the operations need, before you build proofs on it.
+关于递归结构的不变式通常必须涉及整棵子树，而不仅仅是邻居。如果某性质仅在邻居之间成立，请在基于此构建证明之前，使用 Quickcheck 或 Nitpick 检查它是否蕴含操作所需的内容。
 :::
 
-### Proving the search tree correct {#bst-proofs}
+### 证明搜索树正确 {#bst-proofs}
 
-Start with the first part of the specification, the invariant, and try the obvious induction:
+从规范的初始部分，即不变式开始，并尝试明显的归纳法：
 
 ```isabelle
 lemma "bst t ⟹ bst (tinsert x t)"
@@ -826,11 +739,7 @@ goal (2 subgoals):
   oops
 ```
 
-Two goals remain, one for each direction in which `tinsert` descends. Look at the first: insertion went
-right (x2 < x, where x2 is the key at the node), and the goal asks that x2 be smaller than every key xa
-of `tinsert x t2`. The premises say that x2 is smaller than every key of t2 and smaller than x. That
-would be enough if `auto` knew that the keys of `tinsert x t2` are x and the keys of t2, which is the
-second part of the specification. Prove it first, and pass it to `auto`:
+剩余两个目标，分别对应`tinsert`下降的两个方向。考察第一个：插入向右（x2 < x，其中 x2 是节点处的键），目标要求 x2 小于`tinsert x t2`的每个键 xa。前提表明 x2 小于 t2 的每个键且小于 x。若`auto`知道`tinsert x t2`的键是 x 和 t2 的键，则这就足够了，这是规范的第二部分。先证明它，并将其传递给`auto`：
 
 ```isabelle
 lemma set_of_tinsert: "set_of (tinsert x t) = insert x (set_of t)"
@@ -840,105 +749,73 @@ lemma bst_tinsert: "bst t ⟹ bst (tinsert x t)"
   by (induction t) (auto simp: set_of_tinsert)
 ```
 
-The lemma `set_of_tinsert` is the second part of the specification. It plays the role that `set_ins`
-played for insertion sort: the invariant talks about the keys in subtrees, so preserving it requires
-knowing which keys insertion adds.
+引理`set_of_tinsert`是规约的第二部分。它扮演了`set_ins`在插入排序中所起的作用：不变式讨论子树中的键，因此保持该不变式需要知道插入添加了哪些键。
 
-The third part, correctness of search, needs no new lemma. Try the obvious induction:
+第三部分，搜索的正确性，不需要新的引理。尝试明显的归纳法：
 
 ```isabelle
 lemma isin_set_of: "bst t ⟹ isin x t = (x ∈ set_of t)"
   by (induction t) auto
 ```
 
-It works at once. It is still worth knowing why it holds, because the argument shows where the invariant
-is needed. On paper: take a tree Nd l y r that satisfies the invariant, and compare x with y. There are
-three cases.
+它立即生效。了解其成立原因仍有价值，因为该论证展示了不变式在何处被需要。在纸面上：取一个满足不变式的树 Nd l y r，并将 x 与 y 比较。存在三种情况。
 
-- **x < y.** The search continues in l, and by the induction hypothesis it answers whether x ∈ set_of l.
-  That is the right answer, because x cannot be y, and x cannot be in r, whose keys are all larger than
-  y.
-- **x = y.** The search stops and answers True, which is right.
-- **y < x.** The mirror image of the first case.
+- **x < y.** 搜索在 l 中继续，根据归纳假设，它回答 x ∈ set_of l 是否成立。
+  这个结果是正确的，因为 x 既不可能等于 y，也不可能出现在 r 中。r 中的键都大于 y。
+- **x = y.** 搜索停止并返回 True，这是正确的。
+- **y < x.** 第一种情况的镜像。
 
-The invariant is used twice in each of the outer cases: once for the induction hypothesis, which needs
-the subtree to be a search tree, and once to rule out the other subtree. `auto` found both uses by itself,
-because the definition of `bst` is a simplification rule.
+在每一个外层案例中，不变式被使用了两次：一次用于归纳假设，这需要子树是一棵搜索树，另一次用于排除另一棵子树。`auto` 自行找到了这两个用途，因为 `bst` 的定义是一个化简规则。
 
-## Data refinement {#refinement}
+## 数据精化 {#refinement}
 
-The search tree was verified in a particular way. Its specification did not describe trees at all; it
-described sets, and the proofs related the tree operations to set operations through the abstraction
-function. This way of verifying a data structure is called data refinement, and it applies to almost
-every data structure.
+搜索树以特定方式验证，其规范并未描述树，而是描述集合，且证明通过抽象函数将树操作与集合操作关联起来。这种验证数据结构的方式称为数据精化，它几乎适用于所有数据结构。
 
-### The pattern {#refine-pattern}
+### 模式 {#refine-pattern}
 
-::: definition Data refinement
-An **abstract model** is a simple mathematical type with operations whose meaning is clear, such as
-sets with `{}`, `insert` and `∈`. A **concrete data structure** implements it with a type and operations
-of its own, chosen for efficiency. They are connected by an **abstraction function** α, which maps each
-concrete value to the abstract value it represents, and an **invariant** I on concrete values. The
-concrete structure **refines** the model if:
+::: definition 数据精化
+本模块使用带有确定性操作和抽象函数的数据精化。一个**抽象模型**是一个简单的数学类型，其操作含义明确，例如带有`{}`、`insert`和`∈`的集合。一个**具体数据结构**通过其自身的类型和操作来实现它，这些类型和操作是出于效率考虑而选择的。它们通过一个**抽象函数**α连接，该函数将每个具体值映射到它所代表的抽象值，以及一个关于具体值的**不变式**I。如果满足以下条件，则具体结构**精化**模型：
 
-1. the concrete empty value represents the abstract one and satisfies I;
-2. every concrete operation preserves I;
-3. on values that satisfy I, every concrete operation corresponds to its abstract one: applying the
-   concrete operation and then α gives the same as applying α and then the abstract operation; and every
-   query, such as a search, gives the answer the abstract query gives.
+1. 具体的空值表示抽象值并满足 I；
+2. 每个具体操作在其前提条件成立时保持 I；
+3. 对于满足 I 和操作前置条件的值，每个具体操作都对应于
+   其抽象版本为：先应用具体操作再应用 α 与先应用 α 再应用抽象操作所得结果相同；且每个查询的答案均与其抽象查询的答案一致。
 :::
 
-Condition 3 is often drawn as a square, as in Figure 12.3: going along the top and then down gives the
-same result as going down and then along the bottom. Diagrams of this kind are called **commuting
-squares**.
+条件 3 常如 Figure 12.3 所示画为正方形：沿顶部再向下与先向下再沿底部给出相同结果。此类图称为 **commuting squares**。
 
-For search trees the pieces are:
+对于搜索树，其组成部分为：
 
-| | Abstract model | Concrete structure |
+| | 抽象模型 | 具体结构 |
 |---|---|---|
-| Values | `'a set` | `'a btree` satisfying `bst` |
-| Empty | `{}` | `Lf` |
-| Insert | `insert x A` | `tinsert x t` |
-| Member | `x ∈ A` | `isin x t` |
-| Connection | | α = `set_of`, I = `bst` |
+| 值 | `'a set` | `'a btree` 满足 `bst` |
+| 空 | `{}` | `Lf` |
+| 插入 | `insert x A` | `tinsert x t` |
+| 成员 | `x ∈ A` | `isin x t` |
+| 连接 | | α = `set_of`, I = `bst` |
 
-`set_of Lf = {}` and `bst Lf` hold by the definitions, `bst_tinsert` is condition 2, and
-`set_of_tinsert` and `isin_set_of` are condition 3.
+`set_of Lf = {}` 和 `bst Lf` 由定义成立，`bst_tinsert` 是条件 2，`set_of_tinsert` 和 `isin_set_of` 是条件 3。
 
-The reward comes when you use the data structure. A program that uses search trees can be reasoned about
-with sets, which you know well, instead of with trees. Here is a fact about trees proved without looking
-at a single tree, from the three lemmas alone:
+当使用数据结构时获得奖励。使用搜索树的程序可以使用集合（您已熟悉）而非树进行推理。以下是仅凭三个引理证明的关于树的性质，无需查看任何树：
 
 ```isabelle
 lemma "bst t ⟹ isin y (tinsert x t) = (y = x ∨ isin y t)"
   by (simp add: bst_tinsert isin_set_of set_of_tinsert)
 ```
 
-The simplifier turns both sides into statements about `set_of t`, where the claim is a law of sets. The
-proof never looks inside `isin` or `tinsert`: if you replaced the trees by balanced trees with the same
-three lemmas, this proof would not change.
+化简器将两侧转化为关于`set_of t`的陈述，其中主张是集合论的一条定律。该证明从不深入`isin`或`tinsert`内部：若你将树替换为具有相同三个引理的平衡树，此证明亦不会改变。
 
-### A queue made of two lists {#queue}
+### 由两个列表构成的队列 {#queue}
 
-A **queue** is a waiting line: elements join at the back and leave from the front, so the first to
-join is the first to leave. The abstract model is a list, with the front of the queue at the head of
-the list. Joining is `xs @ [x]`. Leaving is `tl xs`, the tail of the list: the list without its first
-element. The element at the front is `hd xs`, the head of the list. In Isabelle `tl [] = []`, while
-`hd []` has no specified value (Module 8).
+A **queue** 是一个等待队列：元素从后端加入并从前端离开，因此先加入的元素最先离开。抽象模型是一个列表，队列的前端对应列表的头部。加入操作是 `xs @ [x]`。离开操作是 `tl xs`，即列表的尾部：去掉第一个元素后的列表。前端的元素是 `hd xs`，即列表的头部。在 Isabelle `tl [] = []` 中，尽管 `hd []` 没有指定值（Module 8）。
 
-As a program, the plain list is slow: `xs @ [x]` copies the whole list, so a queue of n elements costs n
-steps for each element that joins. A classic functional implementation uses two lists. The **front**
-list holds the first elements, in order; the **back** list holds the last elements in reverse order, so
-that joining the queue puts an element at the head of the back list in one step. Elements leave from the
-head of the front list. When the front list runs empty, the back list is reversed and becomes the new
-front list.
+作为程序，普通列表效率低下：`xs @ [x]` 复制整个列表，因此包含 n 个元素的队列在每次元素入队时需耗费 n 步。一种经典的函数式实现使用两个列表。**front**列表按顺序保存前部元素；**back** 列表以逆序保存后部元素，使得队列入队操作只需一步即可将元素添加到 back 列表头部。元素从 front 列表头部出队。当 front 列表为空时，对 back 列表进行反转并作为新的 front 列表。
 
 ```isabelle
 datatype 'a queue = Queue "'a list" "'a list"
 ```
 
-A value `Queue f b` has the front list f and the back list b. The queue it represents is the front list
-followed by the back list reversed. That is the abstraction function:
+值 `Queue f b` 具有前列表 f 和后列表 b。其表示的队列是前列表后接后列表的反转。即抽象函数：
 
 ```isabelle
 fun list_of :: "'a queue ⇒ 'a list" where
@@ -954,8 +831,7 @@ value "list_of (Queue [1, 2] [4, 3 :: nat])"
   :: "nat list"
 ```
 
-Now the operations. `refill` moves the back list to the front when the front list is empty; `enq`
-(enqueue) adds an element at the back, `deq` (dequeue) removes the front element, and `first` returns it.
+现在考虑操作。`refill` 在前端列表为空时将后端列表移至前端；`enq`（入队）在末尾添加元素，`deq`（出队）移除前端元素，`first` 返回该元素。
 
 ```isabelle
 definition qempty :: "'a queue" where
@@ -976,8 +852,7 @@ fun first :: "'a queue ⇒ 'a" where
   "first (Queue f b) = hd f"
 ```
 
-The second equation of `refill` applies only when the first does not, that is, when the front list is
-not empty (Module 8 explained how `fun` resolves overlapping patterns). Try the operations:
+`refill` 中的第二个方程仅在前一个方程不适用时生效，即当 front 列表非空时（Module 8 解释了 `fun` 如何解决重叠模式）。尝试以下操作：
 
 ```isabelle
 value "enq 5 (Queue [1, 2] [4, 3 :: nat])"
@@ -992,16 +867,9 @@ value "deq (Queue [1] [4, 3, 2 :: nat])"
   :: "nat queue"
 ```
 
-Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so `refill` reverses
-the back list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to
-the front at most once, so on average each operation takes a constant number of steps, although a
-single `deq` may take longer. (That is a claim about running time, which this module does not prove;
-the theory `Queue_2Lists`, described at the end of this section, does.)
+将 5 添加到头部使后列表非空，移除 1 使前列表为空，因此 `refill` 将后列表反转到前列表：`[4, 3, 2]` 变为 `[2, 3, 4]`。沿从 `qempty` 开始的一条序列，将每个操作的结果作为下一个队列，每个入队的元素从后到前最多被反转一次。这给出了每个操作的常数 **amortised** 列表处理成本：m 个操作的总成本与 m 成正比，尽管一个 `deq` 可能需要线性时间。这不是每个调用的概率或界限。重用较旧的队列版本可能会重复相同的反转。成本模型和 amortised 界限的证明与这里的函数式证明是分开的；`Queue_2Lists`，如下所述，开发了此类界限。
 
-`first` returns the head of the front list. That is the right answer only if the front list is
-empty only when the whole queue is: otherwise the first element might be waiting in the back list. The
-operations keep this true, because `refill` never leaves an empty front list in front of a non-empty
-back list. It is the invariant of the queue:
+`first` 返回前列表的头部。仅当整个队列为空时前列表为空，该答案才是正确的；否则，第一个元素可能正等待在后列表中。这些操作保持此性质成立，因为 `refill` 绝不会在非空后列表之前留下空的前列表。这是队列的不变式：
 
 ```isabelle
 fun qinv :: "'a queue ⇒ bool" where
@@ -1009,32 +877,29 @@ fun qinv :: "'a queue ⇒ bool" where
 ```
 
 ::: figure id=fig-12-3
-The two-list queue as a commuting square. Along the top, the concrete operation `enq 5`; along the
-bottom, the abstract operation, appending `[5]`; the abstraction function `list_of` goes down on both
-sides. Both paths from the top left corner give the list `[1, 2, 3, 4, 5]`.
+双列表队列作为交换图。沿顶部是具体操作 `enq 5`；沿底部是抽象操作，即追加 `[5]`；抽象函数 `list_of` 在两侧向下。从左上角出发的两条路径均得到列表 `[1, 2, 3, 4, 5]`。
 :::
 
-### Proving the queue correct {#queue-proof}
+### 证明队列正确性 {#queue-proof}
 
-The specification follows the pattern of Definition 12.5, with lists as the abstract model:
+规范遵循定义 12.5 的模式，以列表作为抽象模型：
 
-| | Abstract model | Queue |
+| | 抽象模型 | 队列 |
 |---|---|---|
-| Empty | `[]` | `qempty` |
-| Join at the back | `xs @ [x]` | `enq x q` |
-| Leave at the front | `tl xs` | `deq q` |
-| Front element | `hd xs` | `first q` |
-| Connection | | α = `list_of`, I = `qinv` |
+| 空 | `[]` | `qempty` |
+| 在尾部连接 | `xs @ [x]` | `enq x q` |
+| 在队首出队 | `tl xs` | `deq q` |
+| 前元素 | `hd xs` | `first q` |
+| 连接 | | α = `list_of`, I = `qinv` |
 
-Start with the empty queue, which needs only the definition of `qempty`:
+从空队列开始，它仅需定义 `qempty`：
 
 ```isabelle
 lemma list_of_qempty: "list_of qempty = []"
   by (simp add: qempty_def)
 ```
 
-Next, `enq`. A queue is always of the form `Queue f b`, so split the proof into that one case with
-`cases q` (Module 10) and try `auto`:
+接下来，`enq`。队列始终具有 `Queue f b` 的形式，因此使用 `cases q`（Module 10）将证明拆分为该情况，并尝试 `auto`：
 
 ```isabelle
 lemma "list_of (enq x q) = list_of q @ [x]"
@@ -1054,11 +919,7 @@ goal (1 subgoal):
   oops
 ```
 
-`cases q` names the two lists of the queue x1 and x2. `auto` has unfolded `enq` on the left and
-`list_of q` on the right, but it is stuck at `list_of (refill (Queue x1 (x # x2)))`. The equations of
-`refill` depend on whether the front list x1 is empty, and `auto` does not split on that by itself.
-You could tell it to, but there is a better way: state once and for all what `refill` does to the list
-a queue represents, namely nothing. That lemma will serve every operation that calls `refill`:
+`cases q` 命名队列 x1 和 x2 的两个列表。`auto` 在左侧展开了 `enq` 并在右侧展开了 `list_of q`，但在 `list_of (refill (Queue x1 (x # x2)))` 处卡住。`refill` 的方程取决于前部列表 x1 是否为空，而 `auto` 不会自行对此进行分支。你可以指示它这样做，但有一种更好的方法：一劳永逸地声明 `refill` 对队列所代表的列表 a 的作用，即没有任何作用。该引理将为每个调用 `refill` 的操作服务：
 
 ```isabelle
 lemma list_of_refill: "list_of (refill q) = list_of q"
@@ -1068,13 +929,9 @@ lemma list_of_enq: "list_of (enq x q) = list_of q @ [x]"
   by (cases q) (simp add: list_of_refill)
 ```
 
-`cases q rule: refill.cases` splits the proof into the cases of the equations of `refill`: a queue with
-an empty front list, and one with a non-empty front list. It is the case analysis that follows a
-function's patterns, as `rule: f.induct` is the induction that follows its recursion (Module 11). Note
-that `list_of_enq` has no premise: `enq` is correct on every queue, invariant or not, because it only
-ever adds to the back.
+`cases q rule: refill.cases` 将证明分解为 `refill` 中方程的两种情况：队首列表为空的队列与队首列表非空的队列。这是跟随函数模式的情况分析，而 `rule: f.induct` 是跟随其递归的归纳（Module 11）。注意 `list_of_enq` 没有前提：`enq` 对所有队列均正确，无论是否满足不变式，因为它仅向队尾添加元素。
 
-Is `deq` correct on every queue too? Ask Quickcheck before proving:
+`deq` 在每一个队列上是否都正确？在证明之前先询问 Quickcheck：
 
 ```isabelle
 lemma "list_of (deq q) = tl (list_of q)"
@@ -1095,11 +952,7 @@ Evaluated terms:
   oops
 ```
 
-The queue `Queue [] [a₁]` has an empty front list and one element in the back list. It represents the
-list `[a₁]`, so removing the front element should leave the empty list. But `deq` sees an empty front
-list and returns the queue unchanged. This queue breaks the invariant, and no sequence of `enq` and
-`deq` starting from `qempty` builds it. So the correspondence for `deq` holds only under the invariant,
-and the invariant is needed exactly when the front list is empty. The Isar proof makes that visible:
+队列`Queue [] [a₁]`具有空的前置列表和后置列表中的一个元素。它表示列表`[a₁]`，因此移除前置元素应留下空列表。但`deq`看到前置列表为空并返回不变的队列。该队列破坏了不变式，且从`qempty`开始的`enq`和`deq`的任何序列都无法构建它。因此，`deq`的对应关系仅在不变式下成立，且不变式在前置列表为空时是必需的。Isar 证明使这一点变得清晰：
 
 ```isabelle
 lemma list_of_deq:
@@ -1119,9 +972,7 @@ proof (cases q)
 qed
 ```
 
-With an empty front list, the invariant says that the back list is empty too, so the queue is empty and
-`deq` correctly leaves it as it is, since `tl [] = []`. With a non-empty front list, `deq` removes its
-head, and `refill` does not change the list. The remaining parts are short:
+对于空的前列表，不变式表明后列表也为空，因此队列为空，`deq` 正确地保持其状态，因为 `tl [] = []`。对于非空的前列表，`deq` 移除其头部，而 `refill` 不改变列表。剩余部分较短：
 
 ```isabelle
 lemma first_correct: "qinv q ⟹ list_of q ≠ [] ⟹ first q = hd (list_of q)"
@@ -1140,50 +991,28 @@ lemma qinv_deq: "qinv q ⟹ qinv (deq q)"
   by (cases q rule: deq.cases) (auto simp: qinv_refill)
 ```
 
-`first_correct` has two premises: the invariant, and that the queue is not empty. An empty queue has no
-front element: in the model, `hd []` has no specified value. So the specification promises nothing
-about `first` on an empty queue, and leaves an implementation free to return anything there. (This
-implementation happens to return `hd []` for the empty queue, so this particular proof would also work
-without the second premise.)
+`first_correct`有两个前提：不变式和队列非空。空队列没有前导元素：在模型中，`hd []`没有指定值。因此规范对空队列上的`first`不作任何承诺，并允许实现自由返回任意值。（该实现恰好对空队列返回`hd []`，因此这个特定证明即使没有第二个前提也能成立。）
 
-The lemmas `qinv_qempty`, `qinv_enq` and `qinv_deq` say that every queue built from `qempty` with `enq`
-and `deq` satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` always
-holds for the queues a program can build.
+引理`qinv_qempty`、`qinv_enq`和`qinv_deq`表明，由`qempty`、`enq`和`deq`构建的每个队列都满足不变式，因此`list_of_deq`和`first_correct`的前提`qinv q`对通过那些操作构造的队列成立。调用`first_correct`还需要非空性。
 
-### Verified data structures in practice {#practice}
+### 在实践中验证数据结构 {#practice}
 
-Search trees and queues are textbook examples, but the pattern is the one used for verified software in
-general.
+搜索树和队列是教科书中的经典示例，但该模式是通用验证软件所采用的模式。
 
-- **Isabelle's own library.** The Isabelle distribution contains the session HOL-Data_Structures, a
-  collection of verified functional data structures (in the folder `src/HOL/Data_Structures` of your
-  Isabelle installation). Its theory `Queue_Spec` states the queue specification of this section, with
-  an emptiness test as well (Exercise 12.6): eight properties, with an abstraction function `list` and an
-  invariant `invar`. `Queue_2Lists` proves them for the two-list queue, and proves that on average
-  each operation takes a constant number of steps.
-  `Set_Specs` states the set specification of Section 12.5, with deletion as well, and theories such as
-  `Tree_Set`, `AVL_Set` and `RBT_Set` prove it for unbalanced, AVL and red-black trees.
-- **The code generator.** When Isabelle generates code for sets, it represents a finite set by a list of
-  its elements, a data refinement built into the library; importing `HOL-Library.RBT_Set` switches to
-  red-black trees. Multisets are represented by lists too, which is why `value` printed `mset [3, 1]` in
-  Section 12.2.
-- **Large systems.** The seL4 proof (Module 1) is a refinement proof on a large scale: it shows that the
-  kernel's C code refines an executable specification, which in turn refines an abstract specification
-  of what the kernel does.
+- **Isabelle 自身的库。** Isabelle 发行版包含 HOL-Data_Structures 会话，一个
+  已验证函数式数据结构集合（位于 Isabelle 安装文件夹 `src/HOL/Data_Structures` 中）。其理论 `Queue_Spec` 陈述了本节队列规范，包含空性测试（练习 12.6）：八个性质，带有抽象函数 `list` 和不变式 `invar`。`Queue_2Lists` 针对双列表队列证明它们，并在显式操作成本模型中确立摊销界限。`Set_Specs` 陈述第 12.5 节的集合规范，包含删除操作，而理论 `Tree_Set`、`AVL_Set` 和 `RBT_Set` 针对不平衡树、AVL 树和红黑树证明该规范。
+- **代码生成器。** 当 Isabelle 为集合生成代码时，它通过列表表示有限集合
+  其元素，一种内置于库的数据精化；导入 `HOL-Library.RBT_Set` 切换到红黑树。多重集也由列表表示，这就是为什么 `value` 在第 12.2 节中打印了 `mset [3, 1]` 的原因。
+- **大型系统。** seL4 证明（Module 1）是一个大规模的精化证明：它表明
+  内核的 C 代码精化了一个可执行规范，该规范又精化了内核行为的抽象规范。
 
 ::: keyidea
-Data refinement separates two questions: what a data structure means (the abstract model) and how it is
-built (the concrete structure). The abstraction function connects them, and the invariant records what
-the concrete operations assume. Programs that use the structure are reasoned about with the model only.
+数据精化分离了两个问题：数据结构所代表的含义（抽象模型）及其构建方式（具体结构）。抽象函数将二者关联，而不变式记录了具体操作所依赖的前提。使用数据结构的程序仅基于抽象模型进行推理。
 :::
 
-## From verified functions to running code {#export}
+## 从已验证的函数到可运行代码 {#export}
 
-Module 8 showed how `export_code` translates HOL functions into Standard ML, OCaml, Haskell or Scala.
-Applied to verified functions, it turns them into verified programs, with a guarantee that the end of
-this section makes precise. Export everything this module has verified, as one Haskell module. One
-addition first: Haskell code that uses search trees needs an empty tree to start from, so give the empty
-tree a name of its own (the reason for not using `Lf` follows below):
+模块 8 展示了如何将 `export_code` 翻译为 HOL 函数到 Standard ML、OCaml、Haskell 或 Scala。应用于已验证函数时，它将其转化为已验证程序，并保证本节末尾将对此做出精确说明。导出本模块验证的所有内容，作为一个 Haskell 模块。首先增加一项：使用搜索树的 Haskell 代码需要一个空树作为起点，因此给空树一个独立的名称（不使用 `Lf` 的原因见下文）：
 
 ```isabelle
 definition tempty :: "'a btree" where
@@ -1197,126 +1026,71 @@ export_code isort tempty isin tinsert qempty enq deq first
 See theory exports
 ```
 
-As in Module 8, the Output panel only says where the code went: Isabelle stores generated code as
-**theory exports**, files that belong to the theory, instead of printing it. In Isabelle/jEdit,
-*theory exports* in the message is a link. Click it, and the File Browser opens the folder of code
-exported by your theory, under the virtual address `isabelle-export:`. There, the folder `export1`
-holds the file `Verified.hs`: `export_code` numbers the exports of a theory `export1`, `export2`, …
-unless you name the folder yourself with the option `file_prefix`.
+和模块 8 一样，**Output**面板只告诉你代码存放在哪里。Isabelle 把生成的代码存放在**理论导出文件**中，不会直接打印。Isabelle/jEdit 消息中的 *theory exports* 是链接。点击后，**File Browser**（文件浏览器）会在虚拟地址 `isabelle-export:` 打开该理论的导出目录。其中的文件夹 `export1` 包含文件 `Verified.hs`。`export_code` 默认将理论的导出目录编为 `export1`、`export2` 等，也可通过选项 `file_prefix` 自行命名。
 
-Open `Verified.hs` and you find your theory again, in Haskell. The datatypes have become Haskell `data`
-declarations: `Btree` with the constructors `Lf` and `Nd`, and `Queue` with the constructor `Queue`.
-Each function has the equations that `fun` derived from yours, with `#` written `:` and `rev` written
-`reverse`, and the functions that the exported ones need are there too: `ins`, `refill` and the
-library's `hd`. The comparisons `≤` and `<` have become `less_eq` and `less`, the operations of a Haskell
-type class `Ord` that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and
-`linorder` become Haskell classes too (Module 8 compared type classes with Haskell's). The first lines
-of the module list what it exports: the functions, the class `Linorder`, and the types `Btree` and
-`Queue` without their constructors.
+打开 `Verified.hs`，就能看到转换成 Haskell 的理论。数据类型变成了 Haskell 的 `data` 声明，分别是带构造子 `Lf` 和 `Nd` 的 `Btree`，以及带构造子 `Queue` 的 `Queue`。函数使用 `fun` 从原定义导出的等式，其中把 `#` 写成 `:`，把 `rev` 写成 `reverse`。导出函数所依赖的 `ins`、`refill` 和库中的 `hd` 也包含在内。比较运算 `≤`、`<` 变成 `less_eq`、`less`，它们属于 Isabelle 由自身的类 `ord` 生成的 Haskell 类型类 `Ord`。`preorder`、`order` 和 `linorder` 也成为 Haskell 类型类（模块 8 对比了两种语言的类型类）。模块开头列出了导出内容，包括函数、类 `Linorder` 和类型 `Btree`、`Queue`。这些类型的构造子不导出。
 
-This is what `export_code` does by default: it exports the functions in its list and, without their
-constructors, the datatypes and classes that these functions use directly. It exports the constructors
-of a datatype only when the list names one of them. This protects the invariants. Other Haskell code
-can build trees only from `tempty` with `tinsert`, and queues only from `qempty` with `enq` and `deq`,
-so it cannot build a tree that breaks `bst` or a queue that breaks `qinv`. Had the list named the
-constructor `Lf` instead of `tempty`, Isabelle would have exported the type `Btree` with all its
-constructors, `Nd` included, and with them the power to build any tree at all.
+在此 Haskell 导出中，`export_code` 暴露其列表中的函数，并在不含构造函数的情况下暴露这些函数直接使用的数据类型和类。仅当列表命名了某个构造函数的数据类型时，才导出其构造函数。隐藏构造函数保护了表示：普通客户端通过 `tempty` 和 `tinsert` 构造有限且定义良好的树，并通过 `qempty`、`enq` 和 `deq` 构造队列，从而保持已证明的不变式。这并未强制执行操作前置条件，例如 `first` 所需的非空队列。若列表命名的是构造函数 `Lf` 而非 `tempty`，Isabelle 将导出类型 `Btree` 及其所有构造函数，包括 `Nd`，从而赋予构建任意树的能力。
 
-One more thing stays inside the module: the classes `Ord`, `Preorder` and `Order` on which `Linorder`
-builds. As exported here, other Haskell code cannot say how to compare the elements of its own types,
-so it cannot yet call `isort` or the tree functions. Writing `export_code open …` exports everything:
-the classes with their operations, and the datatypes with their constructors. Then the functions can be
-used on any type, but the protection of the invariants is gone. Choosing what to export is part of
-designing the interface of verified code.
+模块内部还包含类 `Ord`、`Preorder` 和 `Order`，`Linorder` 基于它们构建。如当前导出所示，其他 Haskell 代码无法说明如何比较其自有类型的元素，因此尚不能调用 `isort` 或树函数。编写 `export_code open …` 会导出所有内容：带有操作的类以及带有构造器的数据类型。然后，这些函数可用于任何类型，但不变式的保护随之消失。选择导出内容是经过验证的代码接口设计的一部分。
 
-### What is guaranteed {#guarantee}
+### 什么是保证 {#guarantee}
 
-Every function in the generated module comes from equations that are theorems in the logic: for your
-own functions, the equations of your `fun` and `definition` commands (Module 8). The code generator
-translates each equation into an equation of the target language and adds the definitions it needs from
-the library. So when the generated `isort` returns a list, that list is the value of `isort` in the
-logic, and the correctness theorem says that it is sorted and a permutation of the input. This
-guarantee, that every result the program produces is a result the logic agrees with, is called
-**partial correctness** (Module 8): it speaks about the results the program returns, not about whether
-it returns at all. The generated `first`, for example, stops with an error on an empty queue, because
-the library's `hd` has no equation for `[]`. That is no result, so it breaks no promise.
+生成的模块中的每个函数都源自逻辑中的定理方程：对于你自己的函数，你的`fun`和`definition`命令（Module 8）的方程。代码生成器将每个方程翻译为目标语言的方程，并添加库中所需的定义。因此，当生成的`isort`返回一个列表时，该列表是在以下可信基础假设下`isort`在逻辑中的值，且正确性定理表明它是排序的且是输入的一个排列。这一保证，即程序产生的每个结果都是逻辑所认可的结果，被称为**partial correctness**（Module 8）：它讨论的是程序返回的结果，而不是它是否返回。例如，生成的`first`在遇到空队列时会因错误而停止，因为库的`hd`没有`[]`的方程。非空前提条件将调用从`first_correct`中排除；仅靠部分正确性无论如何都不会保证有结果。这种对应关系涉及代表HOL值的输入和定义结果。Haskell还允许`undefined`和无限列表，它们不代表HOL的有限列表数据类型的值。
 
-What the guarantee rests on is the trusted base of Module 1, enlarged by the steps after the proof:
+保证所依赖的是模块1的可信基础，经证明后的步骤扩充：
 
-- **The code generator.** Its translation of equations into the target language happens outside the
-  kernel. Isabelle's code generation manual (`codegen.pdf`) explains that the last steps, translation
-  and printing, are carried out outside the logic and are kept as thin as possible, so that there is
-  little code to trust. Little is not nothing.
-- **The target compiler and its run-time system**: the Haskell compiler, its libraries, garbage
-  collector and integer arithmetic.
-- **The machine**: the hardware, the operating system, and limits that the logic does not know about.
-  In the logic `isort` works on lists of any length; a real computer runs out of memory or stack at some
-  length.
-- **The code around it.** The theorems about `isin`, `deq` and `first` assume the invariants `bst` and
-  `qinv`. The generated module keeps them safe from other Haskell code, as described above, but not
-  from code that edits the generated file or exports the constructors: a tree or queue that breaks its
-  invariant voids the promise. In the same way, the theorems about `isort` and the tree functions
-  assume that `≤` and `<` form a linear order. After `export_code open`, other code compares the
-  elements of its own types with operations that it supplies, and nothing checks that they obey the laws
-  of `linorder`.
-- **The specification.** A verified function does what its specification says. Whether that is what
-  the users need is still validation.
+- **代码生成器。** 其将等式翻译为目标语言的过程发生在
+  kernel。Isabelle 的代码生成手册 (`codegen.pdf`) 解释称，最后步骤（翻译与打印）在逻辑之外执行，且保持尽可能精简，以最小化需信任的代码量。精简不等于无。
+- **目标编译器及其运行时系统**：Haskell 编译器、其库、垃圾
+  collector 与整数算术。
+- **机器**：硬件、操作系统以及逻辑所不知的界限。
+  在逻辑`isort`中，对任意长度的列表均有效；而真实计算机在达到某一长度时会耗尽内存或栈空间。
+- **其周围的代码。** 关于 `isin`、`deq` 和 `first` 的定理假设不变式 `bst` 和
+  `qinv`。`first_correct` 还要求队列非空。隐藏构造器可以确保通过该接口构造的有限、有定义的值保持表示不变式。手动修改生成的代码、公开构造器或绕过类型系统都可能使这个推理失效。同样，关于 `isort` 以及树上函数的定理假定 `≤` 与 `<` 构成线性序。`export_code open` 之后，其他代码用自己提供的运算比较其类型的元素，而这些运算是否遵守 `linorder` 的公理并没有经过检查。
+- **规范。** 已验证函数符合其规范所述行为。
+  用户所需的是验证。
 
 ::: note
-Some correspondences between HOL and the target language are set up by hand, and they belong to the
-trusted base as well. Even the default set-up has a few: the generated code uses Haskell's own lists,
-Booleans and `reverse`. Library theories such as `HOL-Library.Code_Target_Nat`, which Module 8
-mentioned, add more: they make the generated code use the target language's own integers instead of a
-datatype of natural numbers. That is faster, and it is safe as long as the target's integers behave like
-mathematical ones, which Haskell's `Integer` does; but the kernel does not check it.
+HOL 与目标语言之间的一些对应关系由手工建立，它们也属于可信基础。即使默认设置也有少量：生成的代码使用 Haskell 自身的列表、布尔值和 `reverse`。库理论如 `HOL-Library.Code_Target_Nat`（模块 8 曾提及）增加了更多：它们使生成的代码使用目标语言自身的整数而非自然数数据类型。Haskell 的 `Integer` 使用任意精度，受资源限制约束；内核不检查此实现。表示 HOL 自然数的输入仍必须为非负数：调用代码提供的任意负数 `Integer` 不是自然数值。
 :::
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- To **verify** a program is to prove a **correctness theorem**: for every input, the result of the
-  **implementation** (how) has the property of the **specification** (what). The specification is
-  written for people to read and validate; the implementation for the computer.
-- **Insertion sort** meets the sorting specification: `sorted (isort xs) ∧ mset (isort xs) = mset xs`.
-  `mset` from `HOL-Library.Multiset` turns a list into the multiset of its elements; `mset ys = mset xs`
-  says that ys is a permutation of xs.
-- Proofs about programs are found from the top down: try induction, read the goal on which `auto` stops,
-  generalise it into a lemma about a smaller function (`set_ins`, `sorted_ins`, `mset_ins`), and prove
-  that first.
-- Each half of a specification rules out its own kind of wrong program: `[]` is sorted, and the input
-  itself is a permutation. Test specifications with Quickcheck and Nitpick before proving, and test them
-  against deliberately wrong programs. Sets instead of multisets would let duplicates disappear.
-- A **binary search tree** is verified with an **abstraction function** (`set_of`) and an
-  **invariant** (`bst`): insertion preserves the invariant and inserts into the set, and search answers
-  membership in the set. An invariant that compares only neighbours is too weak.
-- **Data refinement** is the general pattern: a concrete structure, an abstract model, an abstraction
-  function and an invariant, with the concrete operations corresponding to the abstract ones. The
-  two-list queue refines lists, and needs its invariant for `deq` and `first`.
-- `export_code` turns verified functions into code, stored as theory exports. The generated code is
-  partially correct relative to the proved equations; the code generator, the compiler, the machine and
-  the calling code remain in the trusted base. Exporting types without their constructors keeps other
-  code from breaking the invariants.
+- 要**验证**程序，即证明一个**正确性定理**：对于满足其
+  前置条件，**实现**（如何）的结果具有**规范**（什么）的性质。规范是为人类阅读和验证而编写的；实现是为计算机编写的。
+- **插入排序**满足排序规范：`sorted (isort xs) ∧ mset (isort xs) = mset xs`。
+  `mset` 从 `HOL-Library.Multiset` 将列表转换为其元素的多重集；`mset ys = mset xs` 表明 ys 是 xs 的一个排列。
+- 程序证明是自顶向下进行的：尝试归纳法，阅读`auto`停止时的目标
+  将其泛化为关于较小函数（`set_ins`, `sorted_ins`, `mset_ins`）的引理，并首先证明该引理。
+- 规范的每一半都排除了其自身的错误程序类型：`[]` 已排序，且输入
+  它本身是一个置换。在证明之前使用 Quickcheck 和 Nitpick 测试规范，并针对故意错误的程序进行测试。使用集合而非多重集会使重复项消失。
+- A **二叉搜索树**通过**抽象函数** (`set_of`) 和
+  **invariant** (`bst`): 插入操作保持不变式并插入到集合中，且搜索回答集合中的成员关系。仅比较邻居的不太强。
+- **数据精化** 是通用模式：具体结构、抽象模型、抽象
+  函数与不变式，具体操作对应抽象操作。双列表队列精化列表，并需要其不变式以用于 `deq` 和 `first`。
+- `export_code` 将已验证的函数转化为代码，存储为理论导出。生成的代码是
+  相对于已证明的方程部分正确；代码生成器、编译器、机器和调用代码仍位于可信基中。隐藏构造函数保护通过接口构建的定义值的表示不变式；调用者仍需满足操作前置条件。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Which functions sort? {#ex-12-1} ★
-Decide on paper which of these functions meet the sorting specification of Definition 12.3, and why.
-Then check your answers in Isabelle: prove the claims that hold from `sorted_isort` and `mset_isort`, and
-let Quickcheck refute the others.
+:::: exercise 哪些函数是排序函数？ {#ex-12-1} ★
+在纸上判定哪些函数满足定义 12.3 的排序规约，并说明理由。随后在 Isabelle 中验证答案：从 `sorted_isort` 和 `mset_isort` 证明成立的断言，并让 Quickcheck 反驳其余部分。
 
 1. `isort (rev xs)`
 2. `rev (isort xs)`
 3. `isort (isort xs)`
-4. `remdups (isort xs)`, where `remdups` removes repeated elements from a list
+4. `remdups (isort xs)`，其中 `remdups` 从列表中移除重复元素
 
 ::: solution
-1. **Meets it.** `isort` sorts any list, so the result is sorted, and
-   `mset (isort (rev xs)) = mset (rev xs) = mset xs`: reversing does not change the multiset.
-2. **Does not.** The result is a permutation of xs, but in descending order. Quickcheck's
-   counterexample below, `xs = [a₁, a₂]`, is turned into `[a₂, a₁]`.
-3. **Meets it.** Sorting a sorted list changes nothing, and in any case `isort` returns a sorted
-   permutation of `isort xs`, which is a permutation of xs.
-4. **Does not.** The result is sorted but loses repeated elements, so it is not a permutation:
-   `[a₁, a₁]` becomes `[a₁]`.
+1. **满足规约。** `isort` 对任意列表排序，因此结果有序，并且
+   `mset (isort (rev xs)) = mset (rev xs) = mset xs`: reversing 不改变 multiset。
+2. **不满足规约。** 结果是 xs 的一个排列，但按降序排列。Quickcheck 的
+   下面的反例 `xs = [a₁, a₂]` 被转化为 `[a₂, a₁]`。
+3. **Meets it.** 对已排序列表进行排序不会改变其内容，且无论如何 `isort` 均返回一个已排序的列表
+   `isort xs` 的排列，它是 xs 的排列。
+4. **不满足规约。** 结果有序，却丢掉了重复元素，因此不是原列表的排列：
+   `[a₁, a₁]` 变为 `[a₁]`。
 
 ```isabelle
 lemma "sorted (isort (rev xs)) ∧ mset (isort (rev xs)) = mset xs"
@@ -1353,23 +1127,17 @@ Evaluated terms:
   mset xs = mset [a⇩1, a⇩1]
 ```
 
-In the first proof `simp` also uses the library's `mset_rev`, `mset (rev xs) = mset xs`, which is a
-simp rule.
+在第一个证明 `simp` 中，还使用了库的 `mset_rev`、`mset (rev xs) = mset xs`，后者是一个 simp 规则。
 :::
 ::::
 
-:::: exercise A queue by hand {#ex-12-2} ★
-For each queue, write down the list it represents and say whether it satisfies `qinv`:
-`Queue [1] [3, 2]`, `Queue [] [2, 1]`, `Queue [] []`. Then work out `deq (Queue [1] [3, 2])` and
-`enq 4 qempty` by hand, using the equations of Section 12.6. Check your answers with `value`.
+:::: exercise 手动实现队列 {#ex-12-2} ★
+对每个队列，写出其表示的列表并判断是否满足`qinv`：`Queue [1] [3, 2]`，`Queue [] [2, 1]`，`Queue [] []`。然后通过手工计算`deq (Queue [1] [3, 2])`和`enq 4 qempty`，使用第12.6节的方程。用`value`检查你的答案。
 
 ::: solution
-`Queue [1] [3, 2]` represents `[1] @ rev [3, 2] = [1, 2, 3]` and satisfies the invariant (its front list
-is not empty). `Queue [] [2, 1]` represents `[1, 2]` but breaks the invariant: its front list is empty
-while its back list is not. `Queue [] []` represents `[]` and satisfies the invariant.
+`Queue [1] [3, 2]` 表示 `[1] @ rev [3, 2] = [1, 2, 3]` 并满足不变式（其前列表非空）。`Queue [] [2, 1]` 表示 `[1, 2]` 但破坏不变式：其前列表为空而后列表非空。`Queue [] []` 表示 `[]` 并满足不变式。
 
-`deq (Queue [1] [3, 2]) = refill (Queue [] [3, 2]) = Queue [2, 3] []`, which represents `[2, 3]`, the
-tail of `[1, 2, 3]`. `enq 4 qempty = refill (Queue [] [4]) = Queue [4] []`.
+`deq (Queue [1] [3, 2]) = refill (Queue [] [3, 2]) = Queue [2, 3] []`，它表示`[2, 3]`，即`[1, 2, 3]`的尾部。`enq 4 qempty = refill (Queue [] [4]) = Queue [4] []`。
 
 ```isabelle
 value "list_of (Queue [1] [3, 2 :: nat])"
@@ -1394,24 +1162,22 @@ value "enq 4 (qempty :: nat queue)"
 :::
 ::::
 
-:::: exercise Search trees by hand {#ex-12-3} ★
-Which of these trees satisfy `bst`? Draw each one first.
+:::: exercise 手动搜索树 {#ex-12-3} ★
+哪些树满足`bst`？先画出每一棵。
 
 1. `Nd (Nd Lf 2 Lf) 3 (Nd Lf 1 Lf)`
 2. `Nd Lf 1 (Nd (Nd Lf 2 Lf) 3 Lf)`
 3. `Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf)`
 
-Where does `tinsert 3 t0` put the key 3, with `t0` from Section 12.5? Check your answers with `value`.
+`tinsert 3 t0` 将密钥 3 放置于何处，其中 `t0` 来自第 12.5 节？使用 `value` 验证你的答案。
 
 ::: solution
-1. **No**: 1 is in the right subtree of 3 but smaller than 3.
-2. **Yes**: 2 and 3 are larger than 1 and lie to its right; 2 lies to the left of 3.
-3. **No**: 4 is in the left subtree of 3 but larger than 3. Every node is bigger than its left child
-   and smaller than its right child, so the tree satisfies `bst_local` of Section 12.5: this is the
-   kind of tree on which the wrong invariant fails.
+1. **No**: 1 在 3 的右子树中但小于 3。
+2. **Yes**: 2 和 3 大于 1 且位于其右侧；2 位于 3 的左侧。
+3. **No**: 4 在 3 的左子树中但大于 3。每个节点都大于其左子节点
+   且小于其右子节点，因此该树满足第 12.5 节中的 `bst_local`：这是导致错误不变式失效的树类型。
 
-`tinsert 3 t0` goes left at 5, right at 2, and left at 4, where it finds a leaf, so 3 becomes the left
-child of 4.
+`tinsert 3 t0` 在 5 处向左，在 2 处向右，在 4 处向左并找到叶节点，因此 3 成为 4 的左子节点。
 
 ```isabelle
 value "bst (Nd (Nd Lf 2 Lf) 3 (Nd Lf 1 Lf) :: int btree)"
@@ -1440,16 +1206,15 @@ value "tinsert 3 t0"
 :::
 ::::
 
-:::: exercise Sorting keeps the length {#ex-12-4} ★★
-Prove `length (isort xs) = length xs` in two ways.
+:::: exercise 排序保持长度 {#ex-12-4} ★★
+用两种方式证明`length (isort xs) = length xs`。
 
-1. By induction, with a lemma about the length of `ins x xs`.
-2. Without induction, from `mset_isort`. The number of elements of a multiset M, counted with their
-   copies, is `size M`. Use `find_theorems` to find a library fact that relates `size (mset xs)` to the
-   length of xs.
+1. 通过归纳法，并借助关于 `ins x xs` 长度的引理。
+2. 无需归纳法，由`mset_isort`。多重集M的元素数量，按
+   copies 是 `size M`。使用 `find_theorems` 查找一个将 `size (mset xs)` 与 xs 的长度相关联的库事实。
 
 ::: solution
-1. The lemma and the induction:
+1. 引理与归纳法：
 
    ```isabelle
    lemma length_ins: "length (ins x xs) = Suc (length xs)"
@@ -1459,7 +1224,7 @@ Prove `length (isort xs) = length xs` in two ways.
      by (induction xs) (auto simp: length_ins)
    ```
 
-2. Search for facts about the size of `mset xs`; the underscore stands for any term:
+2. 搜索关于`mset xs`大小的事实；下划线代表任意项：
 
    ```isabelle
    find_theorems "size (mset _)"
@@ -1473,7 +1238,7 @@ Prove `length (isort xs) = length xs` in two ways.
      Multiset.size_mset: size (mset ?xs) = length ?xs
    ```
 
-   `size_mset` is a simp rule, so `simp` turns the sizes into lengths:
+   `size_mset` 是一个 simp 规则，因此 `simp` 将 sizes 转换为 lengths：
 
    ```isabelle
    lemma "length (isort xs) = length xs"
@@ -1483,13 +1248,12 @@ Prove `length (isort xs) = length xs` in two ways.
    qed
    ```
 
-The second proof shows a benefit of a strong specification: other facts follow from it without new
-inductions.
+第二个证明展示了强规约的好处：无需新的归纳即可推导出其他性质。
 :::
 ::::
 
-:::: exercise A bug in insertion {#ex-12-5} ★★
-A colleague's insertion has a bug:
+:::: exercise 插入操作中的缺陷 {#ex-12-5} ★★
+一位同事的插入存在一个 bug:
 
 ```isabelle
 fun ins_bad :: "'a::linorder ⇒ 'a list ⇒ 'a list" where
@@ -1501,12 +1265,10 @@ fun isort_bad :: "'a::linorder list ⇒ 'a list" where
 | "isort_bad (x # xs) = ins_bad x (isort_bad xs)"
 ```
 
-Find the bug by reading. Then test each half of the specification with Quickcheck. Which half catches
-the bug, and why does the other not?
+通过阅读查找错误。然后使用 Quickcheck 测试规范的每一半。哪一半捕获了错误，而另一半为何没有？
 
 ::: solution
-In the case x ≤ y, `ins_bad` returns `x # ys` and forgets y. Quickcheck finds no counterexample to the
-first half:
+在 x ≤ y 的情况下，`ins_bad` 返回 `x # ys` 并遗忘 y。Quickcheck 未发现前半部分存在反例：
 
 ```isabelle
 lemma "sorted (isort_bad xs)"
@@ -1520,7 +1282,7 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-but refutes the second:
+但反驳了第二个：
 
 ```isabelle
 lemma "mset (isort_bad xs) = mset xs"
@@ -1538,25 +1300,19 @@ Evaluated terms:
   mset xs = mset [a⇩1, a⇩1]
 ```
 
-Dropping y does not disorder the list: x ≤ y and y is at most every element of ys, so `x # ys` is still
-sorted. In fact `sorted (isort_bad xs)` holds for every list. The proof goes as for `sorted_ins` and
-`sorted_isort`, with the lemma `set (ins_bad x xs) ⊆ insert x (set xs)` in place of `set_ins`:
-`ins_bad` may lose elements, but it adds none except x. Only the permutation half notices that an
-element is lost. The fix is the equation of `ins`: `x # y # ys`.
+丢弃 y 不会破坏列表的有序性：x ≤ y 且 y 至多是 ys 的每个元素，因此 `x # ys` 仍然有序。事实上 `sorted (isort_bad xs)` 对每个列表都成立。证明过程与 `sorted_ins` 和 `sorted_isort` 相同，使用引理 `set (ins_bad x xs) ⊆ insert x (set xs)` 代替 `set_ins`：`ins_bad` 可能会丢失元素，但除了 x 外不会添加任何元素。只有排列的一半注意到元素丢失。修复方案是 `ins` 的等式：`x # y # ys`。
 :::
 ::::
 
-:::: exercise Is the queue empty? {#ex-12-6} ★★
-Add an operation that tests whether a queue is empty by looking at the front list only:
+:::: exercise 队列是否为空？ {#ex-12-6} ★★
+添加一个通过仅查看前部列表来测试队列是否为空的运算：
 
 ```isabelle
 fun isempty :: "'a queue ⇒ bool" where
   "isempty (Queue f b) = (f = [])"
 ```
 
-State its correctness in the style of Section 12.6: it should agree with the abstract test
-`list_of q = []`. First let Quickcheck show that the claim needs the invariant, then prove it with the
-invariant.
+按照第 12.6 节的风格陈述其正确性：它应与抽象测试 `list_of q = []` 一致。首先让 Quickcheck 表明该断言需要不变式，然后利用该不变式进行证明。
 
 ::: solution
 ```isabelle
@@ -1575,9 +1331,7 @@ Evaluated terms:
   list_of q = [] = False
 ```
 
-The counterexample has an empty front list and a non-empty back list: `isempty` answers True for a
-queue that is not empty. Such a queue breaks the invariant, and with the invariant as a premise the
-claim holds:
+反例具有空的前列表和非空的后列表：`isempty` 对非空队列回答 True。这样的队列破坏了不变式，且以不变式为前提，该断言成立：
 
 ```isabelle
 lemma isempty_correct: "qinv q ⟹ isempty q = (list_of q = [])"
@@ -1586,14 +1340,11 @@ lemma isempty_correct: "qinv q ⟹ isempty q = (list_of q = [])"
 :::
 ::::
 
-:::: exercise The specification determines the result {#ex-12-7} ★★★
-Prove `isort xs = sort xs`, where `sort` is the library's sorting function. Use `properties_for_sort`
-(Section 12.4) with `mset_isort` and `sorted_isort`, and no induction.
+:::: exercise 规范确定了结果 {#ex-12-7} ★★★
+证明`isort xs = sort xs`，其中`sort`是库的排序函数。使用`properties_for_sort`（第12.4节）与`mset_isort`和`sorted_isort`，且不使用归纳法。
 
 ::: solution
-`properties_for_sort` concludes `sort xs = ys` from `mset ys = mset xs` and `sorted ys`. With
-`ys = isort xs`, its two premises are exactly `mset_isort` and `sorted_isort`, in this order, so `rule`
-can use them as the facts that discharge the premises:
+`properties_for_sort` 从 `mset ys = mset xs` 和 `sorted ys` 推导出 `sort xs = ys`。借助 `ys = isort xs`，其两个前提恰好是 `mset_isort` 和 `sorted_isort`，按此顺序，因此 `rule` 可将它们用作解除前提的事实：
 
 ```isabelle
 lemma isort_sort: "isort xs = sort xs"
@@ -1604,13 +1355,12 @@ proof -
 qed
 ```
 
-The proof never looks at how `isort` works. Any function with the two properties is equal to `sort`, so
-this lemma could be proved for merge sort or quicksort in the same way.
+该证明从不考察 `isort` 的工作原理。任何具备这两个性质的函数都等于 `sort`，因此该引理可以以相同方式对 merge sort 或 quicksort 进行证明。
 :::
 ::::
 
-:::: exercise Tree sort and a weak specification {#ex-12-8} ★★★
-Sort a list by inserting its elements into a search tree and reading the tree from left to right:
+:::: exercise 树排序与弱规范 {#ex-12-8} ★★★
+通过将其元素插入搜索树并从左到右读取树来对列表进行排序：
 
 ```isabelle
 fun inorder :: "'a btree ⇒ 'a list" where
@@ -1625,14 +1375,12 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
   "tsort xs = inorder (build xs)"
 ```
 
-1. Prove that `tsort` meets the weak specification of Section 12.4:
-   `sorted (tsort xs) ∧ set (tsort xs) = set xs`. You need lemmas about `set (inorder t)`,
-   `sorted (inorder t)`, `bst (build xs)` and `set_of (build xs)`; the library lemma `sorted_append`
-   describes when an appended list is sorted.
-2. Show with Quickcheck that `tsort` does not meet the sorting specification, and explain why.
+1. 证明 `tsort` 满足第 12.4 节的弱规约
+   `sorted (tsort xs) ∧ set (tsort xs) = set xs`. 你需要关于 `set (inorder t)`、`sorted (inorder t)`、`bst (build xs)` 和 `set_of (build xs)` 的引理；库引理 `sorted_append` 描述了追加列表有序的条件。
+2. 使用 Quickcheck 证明 `tsort` 不满足排序规范，并解释原因。
 
 ::: solution
-1. Four lemmas, then the claim:
+1. 四个引理，然后是断言：
 
    ```isabelle
    lemma set_inorder: "set (inorder t) = set_of t"
@@ -1652,14 +1400,9 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
      by (simp add: tsort_def sorted_inorder bst_build set_inorder set_of_build)
    ```
 
-   `sorted_inorder` is the hard one. With `sorted_append` and `set_inorder` alone, `auto` stops at a goal
-   `x ≤ xa` for a key x of the left subtree and a key xa of the right subtree. Its premises say that
-   every key of the left subtree is smaller than the key x2 at the node and every key of the right
-   subtree is larger, so `x < x2` and `x2 < xa`, but `auto` does not chain the two. The library rules
-   `less_trans` (from `x < y` and `y < z` conclude `x < z`) and `less_imp_le` (from `x < y` conclude
-   `x ≤ y`), given to `auto` with `intro:` (Module 9), supply the missing steps.
+   `sorted_inorder` 是难点。仅凭 `sorted_append` 和 `set_inorder`，`auto` 在涉及左子树键 x 和右子树键 xa 的目标 `x ≤ xa` 处停止。其前提说明左子树的所有键均小于节点处的键 x2 且右子树的所有键均大于该键，即 `x < x2` 和 `x2 < xa`，但 `auto` 未能将两者链接。库规则 `less_trans`（由 `x < y` 和 `y < z` 推导 `x < z`）与 `less_imp_le`（由 `x < y` 推导 `x ≤ y`）在 Module 9 中随 `intro:` 提供给 `auto`，从而补全缺失步骤。
 
-2. Quickcheck refutes the sorting specification at once:
+2. Quickcheck 立即反驳排序规范：
 
    ```isabelle
    lemma "mset (tsort xs) = mset xs"
@@ -1677,54 +1420,52 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
      mset xs = mset [a⇩1, a⇩1]
    ```
 
-   A search tree stores a set: `tinsert` leaves the tree unchanged when the key is already there. So
-   `tsort` removes duplicates. It satisfies the weak specification with sets, which is exactly why that
-   specification is too weak.
+   搜索树存储一个集合：`tinsert` 在键已存在时使树保持不变。因此 `tsort` 移除重复项。它满足与集合相关的弱规约，这正是该规约过于薄弱的原因。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? What does a correctness theorem for a program state?
-- [ ] That the program passes all of its tests
-- [ ] That the specification says what the users want
-- [x] That for every input, the program's result has the property the specification describes
-- [ ] That the program terminates quickly on every input
-> The theorem connects implementation and specification for all inputs. Whether the specification is what the users want is validation.
+? 程序的正确性定理断言了什么？
+- [ ] 程序通过其所有测试
+- [ ] 规范说明了用户的期望
+- [x] 对于满足定理前提的每个输入，其结果具有指定的性质
+- [ ] 程序在每个输入上快速终止
+> 定理在所述假设与前置条件下连接实现与规约。规约是否满足用户需求属于验证。
 
-? `sort_drop xs = []` for every list. Which half of the sorting specification does it meet?
-- [x] `sorted (sort_drop xs)`, but not `mset (sort_drop xs) = mset xs`
-- [ ] `mset (sort_drop xs) = mset xs`, but not `sorted (sort_drop xs)`
-- [ ] Both halves
-- [ ] Neither half
-> The empty list is sorted, but it is not a permutation of a non-empty list. Only the permutation half catches it.
+? `sort_drop xs = []` 对于每个列表，它满足排序规范的哪一半？
+- [x] `sorted (sort_drop xs)`，但非`mset (sort_drop xs) = mset xs`
+- [ ] `mset (sort_drop xs) = mset xs`，但非`sorted (sort_drop xs)`
+- [ ] 两个半部分
+- [ ] 两部分都捕捉不到这个问题
+> 空列表是有序的，但不是任何非空列表的排列。只有排列条件能发现这个问题。
 
-? Why does the sorting specification use `mset` rather than `set`?
-- [ ] `set` cannot be used in Isabelle proofs
-- [ ] `mset` makes the proofs shorter
-- [ ] `set` would not allow the elements to be reordered
-- [x] With `set`, a function that drops repeated elements would meet the specification
-> `set [2, 1, 2] = set [1, 2]`, so sets cannot tell whether an element was lost from a group of equal ones. Multisets count copies.
+? 为什么排序规范使用 `mset` 而不是 `set`？
+- [ ] `set` 不能用于 Isabelle 证明
+- [ ] `mset` 使证明更简洁
+- [ ] `set` 不允许对元素进行重排序
+- [x] 借助 `set`，一个去除重复元素的函数将满足规范
+> `set [2, 1, 2] = set [1, 2]`，所以集合无法分辨相同元素中是否少了一份。多重集会记录每个元素出现的次数。
 
-? Search is correct only for trees that satisfy the invariant `bst`. Why does `bst` compare a node's key with all keys in its subtrees, not only with its children?
-- [ ] Comparing with children only would make `bst` impossible to compute
-- [x] A tree can have every node in order with its children and still have a key on the wrong side of an ancestor, where search misses it
-- [ ] Isabelle cannot express comparisons with children
-- [ ] It does not matter; both invariants make search correct
-> Quickcheck found such a tree for `bst_local`: a₁ sits in the right subtree of a₂ although it is smaller than a₂, so the search goes left and misses it.
+? 搜索仅在满足不变式 `bst` 的树上正确。为何 `bst` 将节点的键与其所有子树中的键进行比较，而不仅仅是其子节点？
+- [ ] 与仅考虑子节点相比，会使 `bst` 无法计算
+- [x] 一棵树可以使得每个节点都按序排列于其子节点之间，但仍可能在祖先的某一侧存在错误的键，从而导致搜索失败。
+- [ ] Isabelle 无法表达与子级的比较
+- [ ] 这无关紧要；两个不变式均使搜索正确
+> Quickcheck 为 `bst_local` 找到了这样一棵树：a₁ 位于 a₂ 的右子树中，尽管它比 a₂ 小，因此搜索向左进行并错过了它。
 
-? What is `list_of (Queue [1, 2] [5, 4, 3])`?
+? `list_of (Queue [1, 2] [5, 4, 3])`是什么？
 - [ ] `[1, 2, 5, 4, 3]`
 - [ ] `[3, 4, 5, 1, 2]`
 - [x] `[1, 2, 3, 4, 5]`
 - [ ] `[5, 4, 3, 2, 1]`
-> The abstraction function is `f @ rev b`: the front list followed by the reversed back list.
+> 抽象函数是`f @ rev b`：前接列表后跟反向的后接列表。
 
-? `export_code` generates Haskell code for a verified function. Which statement is right?
-- [ ] The Haskell code is checked by Isabelle's kernel
-- [ ] The generated program can never crash or run out of memory
-- [ ] Nothing about the program is guaranteed, since the code generator is not verified
-- [x] Every result the program returns agrees with the logic, provided the code generator, the compiler and the machine work as assumed
-> The guarantee is partial correctness relative to the trusted base, which now includes the code generator and the target compiler.
+? `export_code` 为已验证函数生成 Haskell 代码。哪个陈述正确？
+- [ ] Haskell 代码由 Isabelle 的 kernel 检查
+- [ ] 生成的程序永远不会崩溃或耗尽内存
+- [ ] 由于代码生成器未经验证，程序没有任何保证
+- [x] 程序返回的每个结果都与逻辑一致，前提是代码生成器、编译器和机器按假设工作
+> 保证是相对于可信基的偏正确性，现在包括代码生成器和目标编译器。
 ```

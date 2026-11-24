@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parents[2]
 PROJECT = Path('tutorials/formal-methods/model-verification')
 DOCS = ROOT / 'docs' / PROJECT
 EXAMPLES = ROOT / 'docs/tutorials/isabelle/examples'
+PAGES = ('index', 'exercises', 'reference')
+CHECKED_BLOCK = re.compile(r'<!-- checked: ([\w.]+) -->\s*```isabelle\n(.*?)\n```', re.S)
+FENCED_BLOCK = re.compile(r'^```([^\n]*)\n(.*?)^```[ \t]*$', re.M | re.S)
 SYMBOLS = {'Rightarrow': '⇒', 'Longrightarrow': '⟹', 'longleftrightarrow': '⟷',
            'le': '≤', 'and': '∧', 'not': '¬', 'lparr': '⦇', 'rparr': '⦈',
            'noteq': '≠', 'open': '‹', 'close': '›'}
@@ -42,11 +45,17 @@ def main():
         assert re.search(r'^theory\s+' + re.escape(Path(name).stem) + r'\b', text), name
         assert not re.search(r'^\s*(sorry|oops|axiomatization|oracle)\b', text, re.M), name
     snippets = 0
-    for page in DOCS.glob('*.md'):
-        for name, text in re.findall(r'<!-- checked: ([\w.]+) -->\s*```isabelle\n(.*?)\n```', page.read_text(), re.S):
-            assert normalise(text) in normalise(sources[name]), (page.name, name, text)
-            assert text.rstrip().endswith(('simp', 'simp_all', 'auto', ')', 'qed', '"')), (page.name, text)
-            snippets += 1
+    for title in PAGES:
+        file = f'{title}.md'
+        english = (DOCS / file).read_text()
+        chinese = (DOCS / 'zh' / file).read_text()
+        assert FENCED_BLOCK.findall(english) == FENCED_BLOCK.findall(chinese), file
+        assert CHECKED_BLOCK.findall(english) == CHECKED_BLOCK.findall(chinese), file
+        for page in (english, chinese):
+            for name, text in CHECKED_BLOCK.findall(page):
+                assert normalise(text) in normalise(sources[name]), (file, name, text)
+                assert text.rstrip().endswith(('simp', 'simp_all', 'auto', ')', 'qed', '"')), (file, text)
+                snippets += 1
     proof = json.loads((EXAMPLES / 'proof-status.json').read_text())
     assert proof['status'] == 'checked', 'Run the Isabelle session and refresh the proof record first'
     assert proof['exit_code'] == 0
@@ -67,8 +76,10 @@ def main():
                 result.feed(path.read_text())
                 cache[path] = result
             return cache[path]
-        pages = [site / PROJECT / name for name in
-                 ('index.html', 'exercises/index.html', 'reference/index.html')]
+        pages = [
+            site / PROJECT / edition / ('index.html' if title == 'index' else f'{title}/index.html')
+            for edition in ('', 'zh') for title in PAGES
+        ]
         for page in pages:
             assert page.is_file(), page
             for url in parsed(page).links:

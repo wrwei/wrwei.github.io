@@ -115,7 +115,7 @@ Operator:  (≤) :: ??'a ⇒ ??'a ⇒ bool
 Operand:   x :: 'a
 ```
 
-一个函数在类型变量上使用了 `≤`，而这个类型变量可以代表任何类型，包括没有 `≤` 的类型。把类型变量限制到一个类型类中：线性序用 `'a::linorder`（[第 12.2.1 节](module_12_ZH.html#isort-program)）。
+一个函数在类型变元上使用了 `≤`，而这个类型变元可以代表任何类型，包括没有 `≤` 的类型。把类型变元限制到一个类型类中：线性序用 `'a::linorder`（[第 12.2.1 节](module_12_ZH.html#isort-program)）。
 
 ### Wellsortedness error（类别不符错误） {#wellsortedness}
 
@@ -156,7 +156,7 @@ exception TERM raised⌂:
   :: "'a"
 ```
 
-没有报错，但也没有结果。拼错的名字是一个自由变元，`value` 无法对它求值；答案中的类型变量 `'a` 就是信号。Isabelle/jEdit 用蓝色显示自由变元。改正这个名字（[第 8.1.3 节](module_08_ZH.html#value)）。
+没有报错，但也没有结果。拼错的名字是一个自由变元，`value` 无法对它求值；答案中的类型变元 `'a` 就是信号。Isabelle/jEdit 用蓝色显示自由变元。改正这个名字（[第 8.1.3 节](module_08_ZH.html#value)）。
 
 ### Isabelle 对公式的理解与你不同 {#reading}
 
@@ -655,7 +655,7 @@ Windows Defender 可能会阻止 Isabelle 的外部证明器，而 Sledgehammer 
 
 ### 看不到证明状态 {#proof-state}
 
-点击窗口底部的标签打开 **Output** 面板，并勾选其中的 **Proof state**；这个设置会被记住。然后把光标放在你想查看其状态的那一行的末尾（[第 1.6 节](module_01_ZH.html#tour)、[第 5.4.3 节](module_05_ZH.html#by-induction)）。没有勾选 **Proof state** 时，目标会显示在单独的 **State**（状态）面板中。
+点击窗口底部的标签打开 **Output**面板，并勾选其中的**Proof state**；这个设置会被记住。然后把光标放在你想查看其状态的那一行的末尾（[第 1.6 节](module_01_ZH.html#tour)、[第 5.4.3 节](module_05_ZH.html#by-induction)）。没有勾选 **Proof state**时，目标会显示在单独的**State**（状态）面板中。
 
 ### 符号不被接受 {#symbol}
 

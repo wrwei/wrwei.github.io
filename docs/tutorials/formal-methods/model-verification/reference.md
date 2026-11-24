@@ -1,6 +1,6 @@
 # Isabelle quick reference
 
-[Formal Methods with Isabelle](../index.html) · [Project guide](index.md) · [Exercises](exercises.md) · [Download examples](../../isabelle/examples/isabelle-tutorial.zip)
+[Formal Methods with Isabelle](../index.html) · [Project guide](index.md) · [Exercises](exercises.md) · [Download examples](../../isabelle/examples/isabelle-tutorial.zip) · [简体中文](zh/reference.md){ hreflang=zh-CN }
 
 Use this page while reading or editing a theory. The [guide](index.md) explains each idea with a complete running example.
 

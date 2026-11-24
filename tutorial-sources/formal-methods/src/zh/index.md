@@ -1,6 +1,6 @@
 ---
 title: 用 Isabelle 学形式化方法
-lead: 从逻辑和离散数学到机器检查的证明。先学习形式化方法所依赖的数学，再在 Isabelle/HOL 中证明程序和系统模型的正确性，每一个证明都由 Isabelle2026 检查。
+lead: 从逻辑和离散数学出发，学习用 Isabelle/HOL 检查证明，验证程序和系统模型。课程的证明由 Isabelle2026 检查。
 ---
 
 ## 本系列适合谁 {#who}
@@ -22,7 +22,7 @@ lead: 从逻辑和离散数学到机器检查的证明。先学习形式化方�
 
 ## 应用项目 {#model-verification}
 
-[Isabelle 模型验证](model-verification/index.html)（英文）承接[模块 13](module_13_ZH.html#invariants)和[模块 14](module_14_ZH.html#proof)。你将以一个盖子模型为例，编写守卫条件，证明状态不变式，并验证表示之间的转换保持含义。项目提供交互式守卫演示、八道带解答的练习和 Isabelle2025-2 理论文件。
+[Isabelle 模型验证](model-verification/zh/)承接[模块 13](module_13_ZH.html#invariants)和[模块 14](module_14_ZH.html#proof)。你将以一个盖子模型为例，编写守卫条件，证明状态不变式，并验证表示之间的转换保持含义。项目提供交互式守卫演示、八道带解答的练习和 Isabelle2025-2 理论文件。
 
 ## 参考资料与下载 {#reference}
 
@@ -30,4 +30,4 @@ lead: 从逻辑和离散数学到机器检查的证明。先学习形式化方�
 
 ## 继续深入 {#further}
 
-Isabelle 自带文档（在 Isabelle/jEdit 的 Documentation 面板中）。托比亚斯·尼普科（Tobias Nipkow）的《Programming and Proving in Isabelle/HOL》是官方教程；尼普科和格尔温·克莱因（Gerwin Klein）合著的《Concrete Semantics》在此基础上继续讲解程序设计语言的语义。[形式化证明档案库](https://www.isa-afp.org)（Archive of Formal Proofs）收录了数百个经过检查的 Isabelle 项目。在本站，[数学基础](../math/index_ZH.html)为第一部分的数学提供更多练习。
+Isabelle 自带其文档（Isabelle/jEdit 中的 Documentation 面板）。Tobias Nipkow 所著的 *Programming and Proving in Isabelle/HOL* 是官方教程；Tobias Nipkow 与 Gerwin Klein 合著的 *Concrete Semantics* 以编程语言的语义延续该教程。[Archive of Formal Proofs](https://www.isa-afp.org) 包含数百个经过验证的 Isabelle 开发成果。在该网站上，[Mathematical Foundations](../math/index_ZH.html) 提供了更多 Part I 中数学内容的练习。

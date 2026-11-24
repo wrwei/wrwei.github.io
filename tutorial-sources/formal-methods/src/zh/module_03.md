@@ -1,7 +1,7 @@
 ---
 title: 谓词逻辑
 part: 1
-lead: 说出什么对每个对象都成立、什么对某些对象成立，判断一个公式在某个结构中是否为真，寻找反模型，并把需求变成精确的公式；在纸上做，也在 Isabelle 中做。
+lead: 用量词描述对所有对象成立或对某些对象成立的性质，判断公式在给定结构中是否为真，寻找反模型，并在纸上和 Isabelle 中把需求写成精确的公式。
 minutes: 240
 needs: 学完模块 1 和模块 2
 goals:
@@ -19,7 +19,7 @@ imports: Main
 模块 2 把每个陈述都看作一个不可分割的原子。对于“如果门开着并且警报已布防，警笛就会响”这样的规则，这就够用了。但大多数需求会同时谈到许多对象：“**每个**请求”“**某台**服务器”“**没有**两列火车”“文件的**所有者**”。下面是一条访问控制策略，以及任何人都会从中得出的结论：
 
 1. 每个管理员都能删除每一份文档。
-2. Alice 是管理员。
+2. Alice 是管理员，且季度报告是文档。
 3. 所以，Alice 能删除那份季度报告。
 
 在命题逻辑中，每个句子都变成一个原子，比如 $A$、$B$ 和 $C$，整个论证就变成公式 $A \land B \imp C$。它的真值表是：
@@ -34,15 +34,17 @@ A ∧ B ⟶ C
 - 对象的**性质和关系**，例如“是管理员”和“能删除”；
 - **量词**（quantifier），即“每个”“某个”这类表示数量的词，以及在这些对象上取值的变元。
 
-**谓词逻辑**（predicate logic）正是在模块 2 的联结词之上加入了这些东西。它也叫**一阶逻辑**（first-order logic），因为它的变元在对象（也就是“第一阶”的东西）上取值，而不在对象的性质上取值。戈特洛布·弗雷格（Gottlob Frege）在 1879 年的《概念文字》（Begriffsschrift）中引入了量词，此后谓词逻辑逐渐成为精确陈述数学的标准语言。用它来写，整个论证就是一个公式：
+此处**谓词逻辑**意为**一阶逻辑**：其变量遍历对象，而非谓词或关系本身。它在 Module 2 的连接词基础上增加了上述词汇与量词。Gottlob Frege 在 1879 年的 *Begriffsschrift* 中引入了量词，自此谓词逻辑成为精确陈述数学的标准语言。以此书写，整个论证为一个公式：
 
 $$
-(\forall u\ d.\ \mathit{admin}\ u \imp \mathit{can\_delete}\ u\ d) \land \mathit{admin}\ \mathit{alice} \imp \mathit{can\_delete}\ \mathit{alice}\ \mathit{report}
+(\forall u\ d.\ \mathit{admin}\ u \land \mathit{doc}\ d \imp \mathit{can\_delete}\ u\ d)
+\land \mathit{admin}\ \mathit{alice} \land \mathit{doc}\ \mathit{report}
+\imp \mathit{can\_delete}\ \mathit{alice}\ \mathit{report}
 $$
 
-读作“如果每个管理员 $u$ 都能删除每一份文档 $d$，并且 Alice 是管理员，那么 Alice 能删除那份报告”。学完本模块，你就会知道“无论怎样解释其中的词，这个公式都为真”是什么意思，而 Isabelle 只用一行就能证明它（第 3.8 节）。
+此处 $\mathit{doc}\ d$ 表示“$d$ 是一个文档”。将公式读作“如果每位管理员都能删除每个文档，Alice 是管理员，且报告是文档，则 Alice 能删除报告”。在本模块结束时，您将了解无论其词汇如何解释，该公式为真的含义，且 Isabelle 将在一行内证明它（第 3.8 节）。
 
-谓词逻辑是规约的语言：模块 1 中的排序规约 $\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$ 就是它的一个公式，而 Isabelle 的逻辑 HOL 是它的扩展。
+谓词逻辑是规范的一种语言。模块 1 的排序条件 $\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$ 以这种方式使用了谓词、函数和等式。Isabelle 在其更丰富的逻辑 HOL 中提供了它们的类型化定义。
 
 ## 项、谓词与公式 {#language}
 
@@ -69,7 +71,7 @@ $$
 项为一个对象命名。它永远不会为真或为假。
 :::
 
-$\mathit{alice}$、$d$、$\mathit{owner}\ d$、$x + 1$ 和 $2 * (x + y)$ 都是项。$\mathit{owner}\ d$ 指的是 $d$ 所代表的那份文档的所有者，$x + 1$ 指的是一个数。项就像编程语言中的表达式：它们计算出值。
+$\mathit{alice}$, $d$, $\mathit{owner}\ d$, $x + 1$ 和 $2 * (x + y)$ 是项。$\mathit{owner}\ d$ 命名了由 $d$ 所代表的文档的所有者，$x + 1$ 命名了一个数字。项类似于编程语言中的表达式，因为它们表示值。解释不必提供用于计算它们的可执行算法。
 
 ### 原子公式 {#atoms}
 
@@ -202,7 +204,8 @@ $\forall x.\ \exists y.\ R\ x\ y$ 为真吗？这个问题现在还没有答案�
 **赋值**（assignment）$s$ 给每个变元一个 $D$ 中的值。项的**值**由它的变元和常量的值，借助 $\mathcal M$ 中的函数算出。公式是否**在 $\mathcal M$ 中、在 $s$ 下为真**，按以下规则确定：
 
 - 当 $t_1, \dots, t_n$ 的值组成的元组属于 $P^{\mathcal M}$ 时，$P\ t_1\ \dots\ t_n$ 为真；当两个项的值相同时，$t_1 = t_2$ 为真。
-- $\lnot$、$\land$、$\lor$、$\imp$ 和 $\iff$ 按模块 2 中它们的真值表计算。
+- $\mathit{True}$ 为真且 $\mathit{False}$ 为假；$\lnot$, $\land$, $\lor$, $\imp$ 和 $\iff$
+  遵循来自 Module 2 的它们的真值表。
 - 当 $x$ 取 $D$ 中的**每一个**值（其他变元保持原值）时 $\varphi$ 都为真，$\forall x.\ \varphi$ 就为真。
 - 当 $x$ 取 $D$ 中**至少一个**值时 $\varphi$ 为真，$\exists x.\ \varphi$ 就为真。
 
@@ -210,7 +213,7 @@ $\forall x.\ \exists y.\ R\ x\ y$ 为真吗？这个问题现在还没有答案�
 :::
 
 ::: analogy
-在有限论域上，量词就是一个循环。$\forall x$ 是一个只有每一轮都成功才算成功的循环；$\exists x$ 则只要有一轮成功就成功。在 Python 中，在列表 `D` 上求 $\forall x.\ \exists y.\ R\ x\ y$ 的值就是 `all(any(R(x, y) for y in D) for x in D)`。在无限论域上，循环永远不会结束，这时你需要的是证明。
+在有限域上，量词是一个循环。$\forall x$ 是一个仅在每轮都成功时才成功的循环；$\exists x$ 是在一轮成功时即成功的循环。在 Python 中，$\forall x.\ \exists y.\ R\ x\ y$ 对列表 `D` 的操作是 `all(any(R(x, y) for y in D) for x in D)`。在无限域上，枚举不是一般决策过程：搜索可能找到见证者或反例，但无法完成检查每个元素。一般推理可以解决枚举无法处理的断言。
 :::
 
 现在手工做一个例子。图 3.2 画出了一个结构，它的词汇表有两个一元谓词 $P$ 和 $Q$，以及一个二元谓词 $R$。
@@ -307,7 +310,7 @@ $(\forall x.\ P\ x \lor Q\ x) \imp (\forall x.\ P\ x) \lor (\forall x.\ Q\ x)$ �
 有效的公式包括命题重言式的每一个实例，例如 $P\ x \lor \lnot\, P\ x$，还包括许多命题逻辑无法解释的公式，例如 $(\forall x.\ P\ x) \imp P\ c$。
 
 ::: isabelle
-在 Isabelle 的引理中，**自由变元隐含地是全称量化的**：引理断言，无论这些变元取什么值，它的公式都成立。自由的 `P` 代表任意谓词，自由的 `c` 代表任意元素，而这些元素可以来自任何论域。所以，一条含有自由变元的引理断言的是：它的公式是有效的。模块 2 用来证明重言式的 `blast` 也能在谓词逻辑中搜索证明：
+在 Isabelle 引理中，**自由变元被隐式全称量化**：该引理对其公式在推断类型的每个值上均成立。在下面的基于一阶逻辑的例子中，`P` 和 `Q` 是任意谓词，`c` 是任意元素，且元素类型不受约束。这表示一个有效性声明。使用特定类型如 `nat`、已定义操作或额外假设的引理会在该上下文中做出声明；它不会任意重新解释这些操作。`blast`，模块 2 曾用于重言式，也在谓词逻辑中搜索证明：
 
 ```isabelle
 lemma "(∀x. P x ⟶ Q x) ∧ P c ⟶ Q c"
@@ -334,7 +337,7 @@ Nitpick found a counterexample for card 'a = 2:
 
 从上往下读 Nitpick 的回答。
 
-- `card 'a = 2`：论域有两个元素，Nitpick 把它们叫做 a₁ 和 a₂。`'a` 这个名字来自 Isabelle：它给 `x` 和 `a` 指定了类型 `'a`（读作“alpha”），这是一个**类型变量**（type variable），代表任意类型，所以这条引理同时谈论所有的论域。选项 `[card 'a = 2]` 让 Nitpick 尝试恰好有两个元素的论域。
+- `card 'a = 2`：论域有两个元素，Nitpick 把它们叫做 a₁ 和 a₂。`'a` 这个名字来自 Isabelle：它给 `x` 和 `a` 指定了类型 `'a`（读作“alpha”），这是一个**类型变元**（type variable），代表任意类型，所以这条引理同时谈论所有的论域。选项 `[card 'a = 2]` 让 Nitpick 尝试恰好有两个元素的论域。
 - `P = (λx. _)(a₁ := False, a₂ := True)` 是 Nitpick 表示“由一张表给出的函数”的记法：`P a₁` 是 `False`，`P a₂` 是 `True`。所以 `P` 只对 a₂ 成立。
 - `a = a₂` 是自由变元 `a` 的值。
 - 在 **Skolem constant**（斯科伦常量）下面，Nitpick 列出它为约束变元选定的值：`x = a₁` 就是使 `∀x. P x` 不成立的那个元素。
@@ -345,7 +348,7 @@ Nitpick found a counterexample for card 'a = 2:
   oops
 ```
 
-不加选项时，Nitpick 会并行地尝试 1 到 10 个元素的论域，它最先报告的反模型有多大，每次运行都可能不同；`[card 'a = 2]` 让它的回答可以重现。Isabelle/jEdit 还会对每条新引理运行 Quickcheck，所以在你调用 Nitpick 之前，可能就已经出现了一个反例。Quickcheck 把谓词写成使它为真的那些元素组成的集合，例如 `P = {a₁}`。
+没有选项时，Nitpick 并行尝试大小为 1 到 10 的域，其报告的反例大小每次运行可能不同。`[card 'a = 2]` 固定了域大小，但不保证每次运行打印的见证或元素标签相同。使用默认设置时，Isabelle/jEdit 也会在新引理上尝试 Quickcheck，因此在你调用 Nitpick 之前可能会出现反例。Quickcheck 将谓词写为其为真的元素集合，例如 `P = {a₁}`。
 :::
 
 ::: pitfall
@@ -473,7 +476,7 @@ Nitpick found a counterexample for card 'a = 2 and card 'b = 2:
     λx. y = (λx. _)(a⇩1 := b⇩2, a⇩2 := b⇩1)
 ```
 
-这一次有两个类型变量。公式中没有任何东西说明 `x` 和 `y` 是同一类东西，所以 Isabelle 给了它们不同的类型 `'a` 和 `'b`，`R` 把 `'a` 的元素关联到 `'b` 的元素。选项 `[card = 2]` 让每个类型都有两个元素。`R` 是一张由表组成的表：`R a₁` 是只在 b₂ 处为真的函数，所以 `R a₁ b₂` 成立；同样，`R a₂ b₁` 也成立；其他所有的对都为假。每个 `x` 都有一个 `y`，但没有一个 `y` 能同时适用于两个 `x`。有两个类型的反模型不一定能看作只有一个论域的反模型，但这一个可以：把 b₁ 看成 a₁，b₂ 看成 a₂，`R` 就把 {a₁, a₂} 中的每个元素关联到另一个元素。斯科伦常量显示了这种依赖关系：`λx. y` 是 Nitpick 为每个 `x` 选定的、使左边为真的 `y`，它是 `x` 的函数；`λy. x` 则对每个 `y` 给出一个使 `∀x. R x y` 不成立的 `x`。
+这一次有两个类型变元。公式中没有任何东西说明 `x` 和 `y` 是同一类东西，所以 Isabelle 给了它们不同的类型 `'a` 和 `'b`，`R` 把 `'a` 的元素关联到 `'b` 的元素。选项 `[card = 2]` 让每个类型都有两个元素。`R` 是一张由表组成的表：`R a₁` 是只在 b₂ 处为真的函数，所以 `R a₁ b₂` 成立；同样，`R a₂ b₁` 也成立；其他所有的对都为假。每个 `x` 都有一个 `y`，但没有一个 `y` 能同时适用于两个 `x`。有两个类型的反模型不一定能看作只有一个论域的反模型，但这一个可以：把 b₁ 看成 a₁，b₂ 看成 a₂，`R` 就把 {a₁, a₂} 中的每个元素关联到另一个元素。斯科伦常量显示了这种依赖关系：`λx. y` 是 Nitpick 为每个 `x` 选定的、使左边为真的 `y`，它是 `x` 的函数；`λy. x` 则对每个 `y` 给出一个使 `∀x. R x y` 不成立的 `x`。
 
 ```isabelle
   oops
@@ -522,7 +525,7 @@ Nitpick found a counterexample for card 'a = 2:
 从 $\forall x.\ \varphi$ 可以对任何一个特定的对象推出 $\varphi$：从“每个管理员都在值班”可以推出“如果 Alice 是管理员，那么 Alice 在值班”。这一步把变元 $x$ 替换成了一个项。
 
 ::: definition 代入
-$\varphi[t/x]$ 读作“在 $\varphi$ 中用 $t$ 代入 $x$”，是把 $\varphi$ 中变元 $x$ 的每一次**自由**出现都替换为项 $t$ 后得到的公式。这种操作称为**代入**（substitution）。$x$ 的约束出现保持原样。
+$\varphi[t/x]$, read "$\varphi$ with $t$ for $x$", 是从 $\varphi$ 通过用项 $t$ 替换变量 $x$ 的每个 **free** 出现而得到的公式，必要时先重命名约束变元，使得 $t$ 的自由变元不会变为约束变元。$x$ 的约束出现不被替换。
 :::
 
 例如，$(P\ x \land (\forall x.\ Q\ x))[a/x]$ 是 $P\ a \land (\forall x.\ Q\ x)$：只有第一个 $x$ 是自由的。
@@ -705,6 +708,8 @@ lemma "(∃!x. P x) ⟷ (∃x. P x ∧ (∀y. P y ⟶ y = x))"
 ::: example 形式化一条访问策略
 一个文档系统中有用户和文档。在这个例子中，两者都在同一个论域里，谓词 $\mathit{user}$ 和 $\mathit{doc}$ 说明一个对象属于哪一类；这样的谓词称为**守卫**（guard）。其他符号是 $\mathit{admin}\ u$（$u$ 是管理员）、$\mathit{owns}\ u\ d$（$u$ 拥有 $d$）、$\mathit{can\_read}\ u\ d$（$u$ 能读 $d$）和 $\mathit{can\_delete}\ u\ d$（$u$ 能删除 $d$）。
 
+我们假设管理员是用户，且所有权和权限关系将用户与文档关联起来。这些是建模假设，而非谓词名称的逻辑后果。例如，我们要求 $\forall u.\ \mathit{admin}\ u \imp \mathit{user}\ u$，对于所有权同样要求 $\forall u\ d.\ \mathit{owns}\ u\ d \imp \mathit{user}\ u \land \mathit{doc}\ d$，并对两个权限谓词施加相应的限制。
+
 1. 每份文档恰好有一个所有者，并且所有者是用户：
    $$\forall d.\ \mathit{doc}\ d \imp (\exists u.\ \mathit{user}\ u \land \mathit{owns}\ u\ d \land (\forall v.\ \mathit{owns}\ v\ d \imp v = u))$$
 2. 只有文档的所有者或管理员才能删除它：
@@ -718,7 +723,7 @@ lemma "(∃!x. P x) ⟷ (∃x. P x ∧ (∀y. P y ⟶ y = x))"
 :::
 
 ::: isabelle
-Isabelle 可以比较两种译法。如果它们等价，`blast` 能证明两者之间的 `⟷`。如果不等价，Nitpick 会给出一个能区分它们的结构，从这个结构可以看出哪个公式说的才是你的本意。下面是第 3.6 节中表达“恰好一个”的两种方式：
+Isabelle 可比较两种翻译。若等价，`blast` 证明 `⟷`。若不等价，Nitpick 可能找到区分它们的结构。将该结构与预期要求对比有助于判断哪种翻译合适；它不会替您做出决定。以下是第 3.6 节中表达“恰好一个”的两种方式：
 
 ```isabelle
 lemma "(∃x. holds x ∧ (∀y. holds y ⟶ y = x)) ⟷
@@ -756,10 +761,10 @@ Nitpick found a counterexample for card 'a = 1:
 例 3.10 的策略需要守卫 $\mathit{user}$ 和 $\mathit{doc}$，因为一个论域里装着两类对象。守卫写起来很烦琐，而漏掉一个就会悄无声息地改变意思。去掉需求 3 中的守卫，它就会说管理员能“读”用户。把“每份文档都有所有者”写成 $\forall d.\ \exists u.\ \mathit{owns}\ u\ d$，你就断言了每个对象（包括用户）都被某个东西拥有。还有，像 $\mathit{owner}$ 这样的函数符号即使对用户也必须给出一个值，因为结构是用整个论域上的函数来解释它的。
 
 ::: definition 多类别逻辑
-在**多类别逻辑**（many-sorted logic）或**类型化逻辑**（typed logic）中，词汇表给每个常量、函数符号或谓词符号的每个参数以及每个函数的结果都指定一个**类别**（sort），类别也叫**类型**（type）。结构为每个类别各配一个论域，每个变元只在一个类别的论域上取值：$\forall d{::}\mathit{doc}.\ \exists u{::}\mathit{user}.\ \mathit{owns}\ u\ d$ 读作“对每份文档 $d$，都有一个拥有 $d$ 的用户 $u$”。一个表达式如果在某处放了类别不对的参数，它根本就不是公式。
+在**多类**逻辑或**带类型**的逻辑中，词汇表为每个常量、函数符号和谓词符号的每个参数、以及每个函数的返回值指定一个**类（sort）**，也称**类型**。按这里的约定，结构为每个类配备一个非空的论域，每个变量只在其中一个论域取值。$\forall d{::}\mathit{doc}.\ \exists u{::}\mathit{user}.\ \mathit{owns}\ u\ d$ 读作“对每个文档 $d$，都存在一个用户 $u$，此用户拥有 $d$”。只要有一处实参的类不匹配，整个表达式就不构成公式。
 :::
 
-类型并不增加表达能力：$\forall d{::}\mathit{doc}.\ \varphi$ 说的就是 $\forall d.\ \mathit{doc}\ d \imp \varphi$ 所说的，$\exists u{::}\mathit{user}.\ \varphi$ 说的就是 $\exists u.\ \mathit{user}\ u \land \varphi$ 所说的，正是第 3.7 节的那些模式。类型增加的是一道检查。上面那些错误都变成了类型错误，在任何人用这个公式推理之前，计算机就能发现它们。
+多排序**一阶**逻辑可翻译为单域一阶逻辑。量词变为受限量词：$\forall d{::}\mathit{doc}.\ \varphi$变为$\forall d.\ \mathit{doc}\ d \imp \varphi$，$\exists u{::}\mathit{user}.\ \varphi$变为$\exists u.\ \mathit{user}\ u \land \varphi$。该翻译还需假设排序非空且常量与函数遵守其声明的排序。类型将此类限制纳入语言，使错误排序的参数成为计算机在证明前即可发现的错误。此翻译涉及一阶排序；HOL 还增加了高阶量化。
 
 Isabelle/HOL 从头到尾都是有类型的。每个项都有一个类型。公式是类型为 `bool` 的项，`bool` 的两个值是 `True` 和 `False`。类型为 `τ`（tau）的对象上的谓词，是一个类型为 `τ ⇒ bool` 的函数，它把每个对象映射到 `True` 或 `False`；`τ` 与 `σ`（sigma）之间的关系，是一个类型为 `τ ⇒ σ ⇒ bool` 的函数。所以 Isabelle 中的 `P x` 是把一个函数应用于一个参数，结果是一个公式。由于谓词和函数都和其他东西一样是值，HOL 还允许你对它们进行量化，例如 `∀P. P x ⟶ P x`：正是这一点使它成为一种**高阶**逻辑（higher-order logic）。模块 8 会深入讲解 HOL 的类型和函数。
 
@@ -784,7 +789,7 @@ lemma "(∀u d. admin u ⟶ can_delete u d) ∧ admin alice ⟶ can_delete alice
   by blast
 ```
 
-变元 `u` 和 `d` 不需要守卫：它们的类型可以从 `admin u` 和 `can_delete u d` 推断出来。现在来看一个推不出来的结论。如果所有者能删除自己的文档，Alice 能删除那份报告吗？只有当报告归她所有时才行。Nitpick 需要选项 `show_consts` 才会显示常量的值：
+变量 `u` 和 `d` 无需守卫：其类型由 `admin u` 和 `can_delete u d` 推导得出。现在考虑一个不随之成立的情况。如果所有者可以删除其文档，Alice 能否删除该报告？若她拥有该文档，则该权限将成立，但我们并未假设她拥有它。前提也未禁止通过其他方式获得权限。Nitpick 需要选项 `show_consts` 来显示常量的值：
 
 ```isabelle
 lemma "(∀u d. owns u d ⟶ can_delete u d) ⟶ can_delete alice report"
@@ -827,7 +832,7 @@ lemma "owns report alice"
 
 Isabelle 在尝试证明任何东西之前就拒绝了这个陈述。消息指出了函数（`Operator`，操作符）和不匹配的参数（`Operand`，操作数）：`owns` 的第一个参数应当是 `user`，而 `report` 是 `doc`。
 
-如果你写引理时不做声明，Isabelle 会推断出最一般的类型。在 `(∀x. P x) ⟶ (∃x. P x)` 中，没有任何东西说明 `x` 是什么，所以 `x` 得到一个类型变量 `'a`，`P` 得到类型 `'a ⇒ bool`。对类型变量证明的引理对每个类型都成立，也就是对每个论域都成立：
+如果你写引理时不做声明，Isabelle 会推断出最一般的类型。在 `(∀x. P x) ⟶ (∃x. P x)` 中，没有任何东西说明 `x` 是什么，所以 `x` 得到一个类型变元 `'a`，`P` 得到类型 `'a ⇒ bool`。对类型变元证明的引理对每个类型都成立，也就是对每个论域都成立：
 
 ```isabelle
 lemma "(∀x. P x) ⟶ (∃x. P x)"
@@ -890,7 +895,7 @@ lemma "(∀x. P x) ⟶ (∃x. P x)"
 
 谓词逻辑中的有效性是半可判定的，但不是可判定的。不可满足性也是如此，因为 $\varphi$ 不可满足当且仅当 $\lnot \varphi$ 有效；而可满足性连半可判定都不是。
 
-哥德尔的两个定理很容易混淆。**完备性定理**（completeness theorem，1929/1930）讲的是有效的公式，即在每个结构中都为真的公式：它们全都能被证明。他的**不完备性定理**（incompleteness theorems，1931），也就是模块 1 提到的那个结果，讲的是在一个特定结构（自然数）中为真的公式：任何证明系统，只要它的公理能由程序检查，并且它只证明真的陈述，就不能证明所有这些公式。HOL 能描述自然数，所以不完备性也适用于 Isabelle 的逻辑。
+Gödel的两个定理容易混淆。**完备性定理**（1929/1930）涉及有效公式，即在每个结构中均为真的公式：所有有效公式均可被证明。他的**不完备性定理**（1931）关注在某个特定结构（自然数）中为真的公式：任何其公理由程序可验证、且仅证明真语句的证明系统，都无法证明所有此类公式。HOL可以描述自然数，因此不完备性同样适用于Isabelle的逻辑。
 
 ::: figure id=fig-03-3
 搜索在原则上能解决什么。有效的公式都有证明，系统的证明搜索终将找到一个。有有限反模型的公式，可以通过搜索有限结构来驳倒。对于反模型全都是无限的公式，两种搜索都永远不会停止。Isabelle 的工具只搜索到一定的界限，所以在实践中，它们对前两类公式也可能放弃。
@@ -902,7 +907,7 @@ $$
 (\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)
 $$
 
-“如果 $R$ 是反自反（irreflexive）且传递的，那么有某个元素没有 $R$ 后继。”它不是有效的：以自然数为论域、以 $<$ 为 $R$，两个前提都成立，而每个数都有比它大的数。但它在每个有限结构中都为真（练习 3.8 请你说明原因），所以在有限结构中搜索永远找不到反模型，而证明搜索也永远找不到证明，因为根本没有证明。这样的公式一定存在。如果每个无效的公式都有有限反模型，你就可以让证明搜索和反模型搜索并排运行；两者之中总有一个会结束，有效性也就是可判定的了，而丘奇和图灵已经证明它不是。
+此处**irreflexive**表示无元素与自身相关，**transitive**表示$R\ x\ y$与$R\ y\ z$共同蕴含$R\ x\ z$。该公式表述为：“若$R$为irreflexive且transitive，则存在某元素无$R$-后继。”该公式非有效：以自然数为论域且$<$为$R$时，两前提均成立，且每个数均有更大的数。但在所有有限结构中该公式为真（Exercise 3.8要求证明其原因），故通过有限结构的搜索永找不到反例，证明搜索也永找不到证明，因为不存在证明。此类公式必然存在。若每个非有效公式均有有限反例，则可并行运行证明搜索与反例搜索；二者必有一方终止，从而有效性可判定，但Church与Turing已证明其不可判定。
 
 ::: isabelle
 Isabelle 的两种工具都拿这个公式没办法。Nitpick 尝试了 1 到 10 个元素的论域：
@@ -940,11 +945,12 @@ lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. 
 
 这在实践中意味着：
 
-- **证明搜索**（`simp`、`blast`、`auto`，以及模块 9 中 Sledgehammer 调用的证明器）要么成功，要么放弃。成功会给你一个定理；放弃则什么也没告诉你。
+- **证明搜索** (`simp`, `blast`, `auto`, 以及 Sledgehammer 在 Module 9 中调用的证明器)
+  可以关闭目标、留下子目标、失败或达到资源限制。完成的证明给出定理；未完成的尝试并不确立该主张为假。
 - **反模型搜索**（Nitpick 和 Quickcheck）是另一半：一个真正的反例表明公式不是有效的；找不到反例则什么也说明不了。
 - 两者都放弃时，就轮到你了：找出证明的思路并引导 Isabelle 完成它（第二部分和第三部分会教你怎么做），或者找出一个工具看不到的反模型。
 
-并非一切都不可判定。命题逻辑是可判定的；谓词逻辑中每个谓词都只有一个参数、并且没有函数符号的那一部分，也是可判定的。SAT 求解器和 SMT 求解器（模块 1）能高效地判定一些有用的片段，这就是 Isabelle 的工具要请它们帮忙的原因。
+并非所有问题都是不可判定的。命题逻辑是可判定的，且谓词逻辑中每个谓词仅接受一个参数且无函数符号的部分也是可判定的。SAT 和 SMT 求解器（Module 1）能高效求解许多可判定片段中的有用实例，尽管无法保证每个实例都有实际运行时间。这就是为什么 Isabelle 的工具会调用它们来提供帮助。
 
 ::: keyidea
 谓词逻辑中的有效性是半可判定的：只要证明存在，系统的搜索就能找到它；但没有程序总能告诉你证明不存在。这就是为什么 Isabelle 既提供证明器，也提供反例搜索器；为什么自动化有时会在真的陈述上放弃；也是为什么本系列的其余部分要教你自己引导证明。
@@ -957,7 +963,8 @@ lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. 
 - **结构**是一个非空论域，加上对词汇表的一个解释。为假的 ∀ 语句有**反例**，为真的 ∃ 语句有**见证**。
 - 公式如果在每个结构中都为真，就是**有效的**；如果在某个结构中为真，就是**可满足的**。一个**反模型**就能否定有效性；而要确立有效性，需要一个对每个结构都成立的论证。
 - 否定使 ∀ 和 ∃ 互换；∀ 对 ∧ 可分配，∃ 对 ∨ 可分配，反过来则不行；∃y. ∀x 蕴涵 ∀x. ∃y，反之不然。**代入**不能**捕获**变元。
-- 在规约中，∀ 与 ⟶ 搭配，∃ 与 ∧ 搭配，“只有”使箭头反向，计数需要 `=`。
+- 对于受限语句如“每位管理员都在值班”，使用 ∀ 与 ⟶；对于“某位管理员在
+  call"，使用 ∃ 与 ∧。这些是翻译模式，而非对量词下可出现的联结词的限制。“Only”引入必要条件，计数使用等式。
 - 在 Isabelle 中，谓词是取值为 `bool` 的函数；`typedecl` 和 `consts` 声明词汇表；引理中的自由变元隐含地是全称量化的；`blast` 证明一阶目标，`nitpick` 寻找反模型。`=` 比 `¬` 和 `∧` 结合得更紧，`⟷` 则和 `⟶` 一样松。
 - 有效性是**半可判定的**（哥德尔完备性定理），但不是可判定的，即**不可判定的**（丘奇和图灵，1936）：证明器可能在有效的公式上放弃，反模型搜索器会漏掉无限反模型。
 
@@ -1000,7 +1007,7 @@ lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. 
 ::::
 
 :::: exercise 从自然语言到公式 {#ex-3-3} ★
-词汇表有一元谓词 $\mathit{train}$（是列车）和 $\mathit{block}$（是区段）、二元谓词 $\mathit{occupies}\ t\ b$（“列车 $t$ 占用区段 $b$”），以及常量 $\mathit{depot}$（车库）。把下面的句子翻译成公式：
+词汇包含一元谓词$\mathit{train}$和$\mathit{block}$、二元谓词$\mathit{occupies}\ t\ b$（“列车$t$占据区段$b$”）以及常量$\mathit{depot}$，其表示一个区段。独立翻译每个句子；暂不假设其他句子：
 
 1. 每列列车都占用某个区段。
 2. 没有哪个区段被两列不同的列车占用。
@@ -1010,12 +1017,14 @@ lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. 
 
 ::: solution
 1. $\forall t.\ \mathit{train}\ t \imp (\exists b.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b)$
-2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$。另一种等价的形式更贴近原句：$\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$。
+2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{train}\ t \land \mathit{train}\ u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$.
+   一个更贴近英文的等价形式如下：$\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land \mathit{train}\ t \land \mathit{train}\ u \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$。
 3. $\exists b.\ \mathit{block}\ b \land \lnot (\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ b)$
-4. $\forall x\ b.\ \mathit{occupies}\ x\ b \imp \mathit{train}\ x$：“只有”使箭头反向。
+4. $\forall x\ b.\ \mathit{block}\ b \land \mathit{occupies}\ x\ b \imp \mathit{train}\ x$:
+   任何占据一个区块的东西必须是一列火车。
 5. $\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ \mathit{depot} \land (\forall u.\ \mathit{train}\ u \land \mathit{occupies}\ u\ \mathit{depot} \imp u = t)$
 
-正如第 3.7 节的模式所说，在 1 和 3 中，∀ 与 ⟶ 搭配，∃ 与 ∧ 搭配。在 2 中，由于第 4 句，守卫 $\mathit{train}\ t$ 和 $\mathit{train}\ u$ 是不必要的，但加上它们也无妨。
+在1和3中，∀与⟶对应，∃与∧对应，正如第3.7节中的模式所述。在2中，列车守卫将语句限制为列车，如请求所述。如果还假设句子4，这些守卫对于区块占用者变得冗余，但在单独翻译句子2时它们仍然是必需的。
 :::
 ::::
 
@@ -1172,7 +1181,7 @@ Nitpick found a counterexample for card 'a = 2 and card 'b = 2:
 ::::
 
 :::: exercise Isabelle 中的类型化策略 {#ex-3-9} ★★★
-给第 3.8 节的词汇表加上 `can_read :: "user ⇒ doc ⇒ bool"` 和第二个用户 `bob :: user`。考虑这两条需求：谁都不能删除自己不能读的文档；所有者能删除自己的文档。
+将第 3.8 节的词汇扩展为包含 `can_read :: "user ⇒ doc ⇒ bool"` 与第二位用户 `bob :: user`。不同的常量名本身并不要求不同的用户；不要假设 `bob ≠ alice`。考虑以下要求：无法读取文档的人不能删除该文档，且所有者可以删除其文档。
 
 1. 用 `blast` 证明：如果另外还有 Alice 拥有那份报告，那么 Alice 能读那份报告。
 2. 用 Nitpick 表明：这两条需求加上 `admin bob`，推不出 Bob 能读那份报告。解释这个反模型。
@@ -1215,7 +1224,7 @@ Nitpick found a counterexample for card doc = 1 and card user = 1:
   oops
 ```
 
-在这个反模型中，Bob 是管理员，但谁也不拥有任何东西，谁也不能读或删除任何东西；两条需求都空真地成立。需求中没有任何内容赋予管理员什么权限。如果管理员应当能读一切，那就需要再加一条需求，比如例 3.10 中的需求 3。
+在单用户反例模型中，Alice 和 Bob 表示同一用户。Bob 是管理员，但无人拥有任何内容，也无人能读取或删除任何内容；两个要求均空真成立。要求中未赋予管理员任何权利。若管理员应读取所有内容，则属于额外要求，例如例 3.10 中的要求 3。
 :::
 ::::
 
@@ -1261,6 +1270,6 @@ Nitpick found a counterexample for card doc = 1 and card user = 1:
 - [ ] 这条引理是有效的
 - [ ] 这条引理不可满足
 - [ ] 这条引理有无限反模型
-- [x] 在 Nitpick 搜索过的有限结构中没有反模型；这条引理仍然可能是错的
-> Nitpick 只搜索不超过一定大小的论域，默认最多 10 个元素。有些无效的公式，例如第 3.9 节中的那个，只有无限反模型。
+- [x] 搜索在其范围内未找到反例；该引理可能仍为假
+> Nitpick 在有限范围内进行搜索，并对部分 HOL 构造使用近似。其默认域大小范围是 1–10。某些无效公式（如第 3.9 节中的公式）仅有无限反例。
 ```

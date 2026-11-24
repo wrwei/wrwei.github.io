@@ -39,21 +39,22 @@ Edit the model-verification project's Markdown directly under
   Their 299 Isabelle blocks, 143 output blocks and proof tree remain unchanged.
   The English source checker, HTML/MkDocs builds, desktop/mobile rendering checks and 14 natural-deduction
   widget checks passed. Wide proof trees still scroll within the existing containers.
-  Reconcile these English revisions when the paused Chinese edition resumes.
 - **English edition: complete and published** (`docs/tutorials/formal-methods/`, built with `--lang en`).
   Every module was written, reviewed by a second reader (logs in `notes/reviews/`) and checked with
   Isabelle2026: 14 modules, 889 Isabelle blocks (87 of them failing on purpose), 507 output blocks, all
   matching; 117 exercises, 84 quiz questions, 44 figures, 5 widgets; the downloadable theories build as one
   session.
-- **Chinese edition: paused at the user's request**, to be finished later. Translated and checked against
-  the English pages at the time: `index`, Modules 1, 2, 3, 5, 6, 10 and 11. Translated but not finally
-  checked (the translators were stopped during their last checks): Modules 13 and 14. Partly translated
-  (the English text still stands in the rest): Modules 4, 7, 8, 9 and 12, and drafts of the three reference
-  pages. The figures' and widgets' Chinese strings are done for the modules translated so far.
-  To resume: finish each page by `notes/TRANSLATION.md` (the term table has grown with every module;
-  use it), re-sync any English changes made since, then `node tools/check.mjs` (full parity) must pass
-  before publishing both languages with `node tools/build.mjs --out ../../docs/tutorials/formal-methods`
-  (no `--lang`), which also restores the language switch.
+
+## Chinese edition (24 November 2026)
+
+The Chinese edition includes all 14 modules, the three reference pages and the model-verification
+project. The main course shares the existing Isabelle2026 theory ZIP and captured outputs across
+both languages. The project shares its separate Isabelle2025-2 ZIP and proof record. Edit its
+Chinese guide, exercises and reference under `docs/tutorials/formal-methods/model-verification/zh/`.
+
+Use `notes/TRANSLATION.md` when changing either edition. Run `node tools/check.mjs` to verify
+structure, links and proof parity, then build both languages to generate the language switches.
+The project checker at `tutorial-sources/isabelle/check.py` verifies the excerpts and download.
 
 ## Requirements
 
@@ -72,8 +73,8 @@ python3 -I tools/isa.py --module 05 --update   # check one module and fill in it
 python3 -I src/figures/_gen/figs.py     # redraw all figures (both languages)
 node tools/check.mjs                    # structure, links, parity, style
 node tools/build.mjs                    # build the site into out/site
-node tools/widget-test.mjs              # test every widget in English and Chinese
-node tools/build.mjs --lang en --out ../../docs/tutorials/formal-methods   # publish (English only, for now)
+node tools/widget-test.mjs --lang both  # test every widget in English and Chinese
+node tools/build.mjs --out ../../docs/tutorials/formal-methods   # build both site editions
 ```
 
 `isa.py` assembles the Isabelle blocks of each module page into theories (`Module_NN`, with the

@@ -1,0 +1,1403 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 2：命题逻辑 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="认识由 ¬、∧、∨、⟶ 和 ⟷ 构成的公式。用真值表检验重言式、等价关系和论证的有效性，把公式改写为范式，再用 Isabelle 检验需求公式。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="2" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 2</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 2 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html" class="active"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_02_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#connectives"><span class="num">1</span><span class="side-t">命题与联结词</span></a><a href="#syntax"><span class="num">2</span><span class="side-t">公式的结构</span></a><a href="#truth-tables"><span class="num">3</span><span class="side-t">真值表</span></a><a href="#classify"><span class="num">4</span><span class="side-t">重言式、矛盾式与可满足的公式</span></a><a href="#equivalence"><span class="num">5</span><span class="side-t">逻辑等价与等价定律</span></a><a href="#consequence"><span class="num">6</span><span class="side-t">逻辑推论与论证</span></a><a href="#normal-forms"><span class="num">7</span><span class="side-t">范式</span></a><a href="#sat"><span class="num">8</span><span class="side-t">可满足性与 SAT 求解器</span></a><a href="#requirements"><span class="num">9</span><span class="side-t">把需求写成命题约束</span></a><a href="#summary"><span class="num">10</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第一部分 · 基础</div>
+      <h1 class="module-title"><span class="title-n">模块 2</span>命题逻辑</h1>
+      <p class="module-lead">认识由 ¬、∧、∨、⟶ 和 ⟷ 构成的公式。用真值表检验重言式、等价关系和论证的有效性，把公式改写为范式，再用 Isabelle 检验需求公式。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 210 分钟</span><span class="chip chip-needs">开始之前：模块 1</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>读写含有 ¬、∧、∨、⟶ 和 ⟷ 的公式，并了解 Isabelle 按怎样的优先级和结合方向读它们</li><li>计算真值表，并判断一个公式是重言式、矛盾式，还是可满足但非有效的公式</li><li>用等价定律变换公式，并把公式化为否定范式、合取范式和析取范式</li><li>区分有效和无效的论证形式，并为无效的论证形式给出反例</li><li>把需求写成公式，检查它们是否一致，以及某条性质是否能由它们推出</li><li>在 Isabelle 中用 <code>simp</code>、<code>blast</code> 和 <code>auto</code> 证明重言式，用 <code>quickcheck</code> 和 <code>nitpick</code> 寻找反例</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="connectives"></span>
+<div class="section-header"><span class="section-num">1</span><h2>命题与联结词</h2></div>
+<p>模块 1 写排序的规约时，中间用了一个“并且”：sorted ys ∧ mset ys = mset xs。需求里满是这样的小词：<strong>不</strong>、<strong>并且</strong>、<strong>或者</strong>、<strong>如果……那么</strong>、<strong>仅当</strong>、<strong>除非</strong>。每个小词都由较小的陈述构成一个较大的陈述，而较大的陈述是否为真，只取决于那些较小的陈述是否为真。<strong>命题逻辑</strong>（propositional logic）就是关于这些小词的逻辑。它是本系列中最简单的逻辑，却已经很有用：SAT 求解器是判定命题逻辑问题的程序，每天都在检查硬件设计和软件配置。后面的每一种逻辑，包括 Isabelle 的逻辑，都包含命题逻辑。</p>
+<p>有一个例子贯穿本模块：机房门的控制器。它读取门禁读卡器、密码键盘、火警报警器和封锁开关的状态，然后决定是否给门解锁。</p>
+<div class="box box-definition"><div class="box-label">定义 2.1<span class="box-title">命题</span></div>
+<p>A <strong>proposition</strong>是一个为真或为假的陈述。一个<strong>atomic proposition</strong>，或 <strong>atom</strong>，是在所选建模层级中被视为不可分割的陈述。在公式中，atoms 是如 A、B 或 <code>fire</code> 这样的名称。命题逻辑从不深入考察 atom 内部：它仅使用 atom 为真或为假这一事实。</p>
+</div>
+<p>对于这扇门，“火警正在报警”和“出示了有效的门禁卡”都是原子。像“给门解锁”这样的命令不是命题；在知道 x 是什么之前，“x &gt; 3”也不是命题，关于变量的陈述是模块 3 的主题。有五个<strong>联结词</strong>（connective）可以由较小的命题构成较大的命题。</p>
+<div class="box box-definition"><div class="box-label">定义 2.2<span class="box-title">联结词</span></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>公式</th>
+<th>读作</th>
+<th>名称</th>
+<th>恰好在以下情况为真</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬A</td>
+<td>“非 A”</td>
+<td>否定（negation）</td>
+<td>A 为假</td>
+</tr>
+<tr>
+<td>A ∧ B</td>
+<td>“A 并且 B”</td>
+<td>合取（conjunction）</td>
+<td>A 和 B 都为真</td>
+</tr>
+<tr>
+<td>A ∨ B</td>
+<td>“A 或 B”</td>
+<td>析取（disjunction）</td>
+<td>A 和 B 中至少有一个为真</td>
+</tr>
+<tr>
+<td>A ⟶ B</td>
+<td>“A 蕴涵 B”，“如果 A，那么 B”</td>
+<td>蕴涵（implication）</td>
+<td>A 为假，或者 B 为真</td>
+</tr>
+<tr>
+<td>A ⟷ B</td>
+<td>“A 当且仅当 B”</td>
+<td>等价（equivalence），也称双条件</td>
+<td>A 和 B 同为真，或同为假</td>
+</tr>
+</tbody>
+</table></div>
+<p>此外还有两个常量：<code>True</code> 总是为真，<code>False</code> 总是为假。在 A ⟶ B 中，A 是<strong>前件</strong>（antecedent），B 是<strong>后件</strong>（consequent）。</p>
+</div>
+<p>第 2.3 节会把最后一列说得更精确。在 Isabelle/jEdit 中，用模块 1 中的缩写输入这些符号：<code>~</code> 输入 ¬，<code>&amp;</code> 输入 ∧，<code>|</code> 输入 ∨，<code>--&gt;</code> 输入 ⟶，<code>&lt;--&gt;</code> 输入 ⟷。</p>
+<h3 id="english">从日常语言到公式</h3>
+<p>中文里，每个联结词都有许多种说法：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文说法</th>
+<th>公式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>非 A；并非 A；A 不成立</td>
+<td>¬A</td>
+</tr>
+<tr>
+<td>A 并且 B；A 而且 B；A 但是 B；虽然 A，但是 B</td>
+<td>A ∧ B</td>
+</tr>
+<tr>
+<td>A 或者 B（也可以两者都成立）</td>
+<td>A ∨ B</td>
+</tr>
+<tr>
+<td>要么 A，要么 B，但不会两者都成立</td>
+<td>¬(A ⟷ B)</td>
+</tr>
+<tr>
+<td>既不 A，也不 B</td>
+<td>¬A ∧ ¬B</td>
+</tr>
+<tr>
+<td>如果 A，那么 B；只要 A，就 B；每当 A，就 B；A 仅当 B；只有 B，才 A</td>
+<td>A ⟶ B</td>
+</tr>
+<tr>
+<td>A 是 B 的充分条件；B 是 A 的必要条件</td>
+<td>A ⟶ B</td>
+</tr>
+<tr>
+<td>除非 B，否则 A；A，除非 B</td>
+<td>¬B ⟶ A，它与 A ∨ B 意思相同</td>
+</tr>
+<tr>
+<td>A 当且仅当 B；A 恰好在 B 成立时成立</td>
+<td>A ⟷ B</td>
+</tr>
+</tbody>
+</table></div>
+<p>两个条目值得重新审视。<strong>Or</strong> 在逻辑中是包含性的：当 A 和 B 均为真时 A ∨ B 为真，而诸如“茶还是咖啡？”之类的问题通常邀请二选一而非两者兼得。这种排他性解读是 <em>exclusive or</em>，即 ¬(A ⟷ B)；语境决定了英语意图的解读。而 <strong>but</strong> 添加了逻辑所忽略的对比：“徽章有效但门仍关闭”对应 <code>badge ∧ ¬ opens</code>。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>“仅当 B 时 A”是 A ⟶ B，而非 B ⟶ A。“仅当徽章有效时门才打开”表明每当门打开时，徽章必定有效：<code>opens ⟶ badge</code>。它并未说明有效徽章会打开门；那将是 <code>badge ⟶ opens</code>，“若徽章有效则门打开”。带有“仅当”的要求陈述了必要条件；此示例并不要求徽章有效时门必须打开。</p>
+</div>
+<div class="box box-example"><div class="box-label">例 2.1<span class="box-title">把一条门禁规则形式化</span></div>
+<p>安全团队的第一条需求是：“仅当出示了有效的门禁卡并输入了正确的密码时，门才打开，除非火警正在报警。”为每个基本陈述选一个原子：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>原子</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>opens</code></td>
+<td>门解锁</td>
+</tr>
+<tr>
+<td><code>badge</code></td>
+<td>出示了有效的门禁卡</td>
+</tr>
+<tr>
+<td><code>pin</code></td>
+<td>输入了正确的密码</td>
+</tr>
+<tr>
+<td><code>fire</code></td>
+<td>火警正在报警</td>
+</tr>
+</tbody>
+</table></div>
+<p>此处 <code>opens</code> 对控制器解锁决策进行建模，但不建模物理门运动、执行器故障或人员进入。以下公式每次描述一种情况。</p>
+<p>“仅当出示了有效的门禁卡并输入了正确的密码时，门才打开”是 <code>opens ⟶ badge ∧ pin</code>，而“X，除非 F”是 ¬F ⟶ X，所以这条需求是</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">¬</mi><mrow><mi>f</mi><mi>i</mi><mi>r</mi><mi>e</mi></mrow><mo>⟶</mo><mo stretchy="false">(</mo><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>n</mi><mi>s</mi></mrow><mo>⟶</mo><mrow><mi>b</mi><mi>a</mi><mi>d</mi><mi>g</mi><mi>e</mi></mrow><mo>∧</mo><mrow><mi>p</mi><mi>i</mi><mi>n</mi></mrow><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\lnot \mathit{fire} \imp (\mathit{opens} \imp \mathit{badge} \land \mathit{pin})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord">¬</span><span class="mord"><span class="mord mathit">fire</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">opens</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">badge</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">pin</span></span><span class="mclose">)</span></span></span></span></span></div>
+<p>另一种同样自然的理解是“只有出示了有效的门禁卡并输入了正确的密码，或者发生了火警，门才可以打开”：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>n</mi><mi>s</mi></mrow><mo>⟶</mo><mrow><mi>b</mi><mi>a</mi><mi>d</mi><mi>g</mi><mi>e</mi></mrow><mo>∧</mo><mrow><mi>p</mi><mi>i</mi><mi>n</mi></mrow><mo>∨</mo><mrow><mi>f</mi><mi>i</mi><mi>r</mi><mi>e</mi></mrow></mrow><annotation encoding="application/x-tex">\mathit{opens} \imp \mathit{badge} \land \mathit{pin} \lor \mathit{fire}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7054em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">opens</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">badge</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8498em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">pin</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">fire</span></span></span></span></span></span></div>
+<p>这两个公式看起来不同，说的却是同一件事，练习 2.3 会说明这一点。请注意这条需求<strong>没有</strong>说什么：它没有说有效的门禁卡加上正确的密码就一定能打开门。“仅当”陈述的是必要条件，所以门在什么时候必须打开，要由另一条需求来规定。</p>
+</div>
+<span class="section-anchor" id="syntax"></span>
+<div class="section-header"><span class="section-num">2</span><h2>公式的结构</h2></div>
+<p>要对公式求值、变换公式，或者让计算机检查公式，你需要确切地知道什么才算一个公式，以及每个公式是怎样构造起来的。</p>
+<h3 id="formation">形成规则</h3>
+<div class="box box-definition"><div class="box-label">定义 2.3<span class="box-title">公式</span></div>
+<p>命题逻辑的<strong>公式</strong>（formula）由下面这些规则构造，而且只由这些规则构造：</p>
+<ol>
+<li>每个原子都是公式，<code>True</code> 和 <code>False</code> 也是公式。</li>
+<li>如果 φ 是公式，那么 ¬φ 是公式。</li>
+<li>如果 φ 和 ψ 是公式，那么 (φ ∧ ψ)、(φ ∨ ψ)、(φ ⟶ ψ) 和 (φ ⟷ ψ) 都是公式。</li>
+</ol>
+</div>
+<p>希腊字母 φ（phi）和 ψ（psi）代表任意公式，而不只是原子。例如，由规则 1，A、B 和 C 是公式；于是由规则 2，¬A 是公式；由规则 3，(¬A ∧ B) 是公式；再用一次规则 3，((¬A ∧ B) ⟶ C) 也是公式。A ∧ ∨ B 和 A ¬ B 不是公式：没有哪条规则能产生它们。像这样由基本情形和“由较小的对象构造较大的对象”的规则组成的定义，叫做<strong>归纳定义</strong>（inductive definition）。在模块 5 中，这样的定义将支撑归纳证明，并在 Isabelle 中成为数据类型。</p>
+<p>每个公式都记得自己是怎样构造出来的。把最后使用的那条规则画成一棵树的根，把它所组合的各部分画成根的子结点，再对各部分重复这一过程，得到的就是这个公式的<strong>语法树</strong>（parse tree），如图 2.1 所示。</p>
+<figure class="fig" id="fig-02-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340" role="img"><title>一条需求的语法树</title><defs></defs><line x1="262" y1="62" x2="112" y2="150" stroke="#94A3B8" stroke-width="2"/><line x1="262" y1="62" x2="372" y2="150" stroke="#94A3B8" stroke-width="2"/><line x1="372" y1="150" x2="282" y2="235" stroke="#94A3B8" stroke-width="2"/><line x1="372" y1="150" x2="462" y2="235" stroke="#94A3B8" stroke-width="2"/><line x1="282" y1="235" x2="207" y2="315" stroke="#94A3B8" stroke-width="2"/><line x1="282" y1="235" x2="357" y2="315" stroke="#94A3B8" stroke-width="2"/><circle cx="262" cy="62" r="19" fill="#F0F9FF" stroke="#2563EB" stroke-width="2"/><text x="262" y="68" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="17" font-weight="700" fill="#1A2E4A" text-anchor="middle">⟶</text><circle cx="282" cy="45" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="282" y="49" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><rect x="80.5" y="135" width="63" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="112" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">opens</text><circle cx="145.5" cy="135" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="145.5" y="139" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><circle cx="372" cy="150" r="19" fill="#F0F9FF" stroke="#2563EB" stroke-width="2"/><text x="372" y="156" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="17" font-weight="700" fill="#1A2E4A" text-anchor="middle">∨</text><circle cx="392" cy="133" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="392" y="137" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><circle cx="282" cy="235" r="19" fill="#F0F9FF" stroke="#2563EB" stroke-width="2"/><text x="282" y="241" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="17" font-weight="700" fill="#1A2E4A" text-anchor="middle">∧</text><circle cx="302" cy="218" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="302" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><rect x="434.5" y="220" width="55" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="462" y="240" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">fire</text><circle cx="491.5" cy="220" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="491.5" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><rect x="175.5" y="300" width="63" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="207" y="320" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">badge</text><circle cx="240.5" cy="300" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="240.5" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><rect x="333.5" y="300" width="47" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="357" y="320" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">pin</text><circle cx="382.5" cy="300" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="382.5" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><text x="262" y="28" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#475569" text-anchor="middle">opens ⟶ badge ∧ pin ∨ fire</text><text x="404" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">badge ∧ pin ∨ fire</text><text x="252" y="240" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#475569" text-anchor="end">badge ∧ pin</text><text x="224" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#2563EB" text-anchor="end" font-style="italic">主联结词</text><rect x="556" y="20" width="190" height="300" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="578" y="46" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#1A2E4A" text-anchor="start">某一种情形</text><text x="580" y="76" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">opens =</text><circle cx="668" cy="72" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="668" y="76" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><text x="580" y="103" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">badge =</text><circle cx="668" cy="99" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="668" y="103" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><text x="580" y="130" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">pin =</text><circle cx="668" cy="126" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="668" y="130" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><text x="580" y="157" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">fire =</text><circle cx="668" cy="153" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="668" y="157" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><line x1="578" y1="184" x2="728" y2="184" stroke="#CBD5E1" stroke-width="1.2"/><text x="578" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="start">公式的值</text><circle cx="590" cy="232" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="590" y="236" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><text x="608" y="236" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#DC2626" text-anchor="start" font-style="italic">需求被违反</text><text x="578" y="268" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">从叶子开始往上算：</text><text x="578" y="284" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">每个联结词的值由</text><text x="578" y="300" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">其子结点的值算出。</text></svg>
+</div><figcaption><span class="fig-num">图 2.1</span> <p><code>opens ⟶ badge ∧ pin ∨ fire</code> 的语法树。每个内部结点是一个联结词，每个结点代表写在它旁边的子公式。T 和 F 标记给出了这个公式在一种情形下的求值，第 2.3 节会解释。</p>
+</figcaption></figure>
+<div class="box box-definition"><div class="box-label">定义 2.4<span class="box-title">子公式与主联结词</span></div>
+<p>一个公式的<strong>子公式</strong>（sub-formula）是它的语法树各结点上的公式，包括这个公式本身。<strong>主联结词</strong>（main connective）是根结点上的联结词。公式按它的主联结词命名：¬(A ∧ B) 是一个否定式，而 ¬A ∧ B 是一个合取式。</p>
+</div>
+<p>在图 2.1 中，主联结词是 ⟶，所以这条需求是一个蕴涵式。它的子公式是四个原子、<code>badge ∧ pin</code>、<code>badge ∧ pin ∨ fire</code> 以及整个公式。</p>
+<h3 id="priorities">优先级与结合方向</h3>
+<p>规则 3 在每个二元联结词两边都加上括号，这样每个公式都恰好只有一棵语法树。但括号让公式很难读：门禁需求就得写成 (opens ⟶ ((badge ∧ pin) ∨ fire))。中学代数用一个约定解决同样的问题：× 比 + 结合得更紧，所以 2 + 3 × 4 的意思是 2 + (3 × 4)。逻辑也有同样的约定：每个联结词有一个<strong>优先级</strong>（priority），优先级越高，结合得越紧。在 Isabelle 中，二元联结词还都<strong>向右结合</strong>（group to the right）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>联结词</th>
+<th>Isabelle 中的优先级</th>
+<th>结合方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬</td>
+<td>40</td>
+<td>（作用于后面的公式）</td>
+</tr>
+<tr>
+<td>∧</td>
+<td>35</td>
+<td>向右</td>
+</tr>
+<tr>
+<td>∨</td>
+<td>30</td>
+<td>向右</td>
+</tr>
+<tr>
+<td>⟶</td>
+<td>25</td>
+<td>向右</td>
+</tr>
+<tr>
+<td>⟷</td>
+<td>25</td>
+<td>向右</td>
+</tr>
+</tbody>
+</table></div>
+<p>这些数字取自 Isabelle 本身。在引入这些联结词的库理论 <code>HOL.thy</code> 中，∧ 被声明为 <code>infixr 35</code>（“中缀，向右结合，优先级 35”），∨ 为 <code>infixr 30</code>，⟶ 和 ⟷ 为 <code>infixr 25</code>，¬ 的优先级是 40。所以：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>你写的</th>
+<th>它的意思</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬A ∧ B</td>
+<td>(¬A) ∧ B</td>
+</tr>
+<tr>
+<td>A ∧ B ∨ C</td>
+<td>(A ∧ B) ∨ C</td>
+</tr>
+<tr>
+<td>A ∨ B ∧ C</td>
+<td>A ∨ (B ∧ C)</td>
+</tr>
+<tr>
+<td>A ∧ B ⟶ C</td>
+<td>(A ∧ B) ⟶ C</td>
+</tr>
+<tr>
+<td>A ⟶ B ⟶ C</td>
+<td>A ⟶ (B ⟶ C)</td>
+</tr>
+<tr>
+<td>A ⟶ B ⟷ C</td>
+<td>A ⟶ (B ⟷ C)</td>
+</tr>
+</tbody>
+</table></div>
+<p>向右结合很适合蕴涵：A ⟶ (B ⟶ C) 读作“如果 A，那么如果 B，那么 C”，它与“如果 A 并且 B，那么 C”意思相同；而 (A ⟶ B) ⟶ C 很少是人们想表达的意思。对于 ∧ 和 ∨，结合方向会改变语法树，但不改变意思（第 2.5 节）。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<ul>
+<li>¬A ∧ B 是 (¬A) ∧ B。要否定整个合取式，请写 ¬(A ∧ B)。</li>
+<li>⟶ 和 ⟷ 的优先级相同，所以 A ⟶ B ⟷ C 的意思是 A ⟶ (B ⟷ C)。在这一点上，各种书和工具的约定并不相同；有的让 ⟷ 的优先级低于 ⟶，把同样的文字读成 (A ⟶ B) ⟷ C。只要混用 ⟶ 和 ⟷，就把括号写出来。</li>
+</ul>
+</div>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>Isabelle 打印的公式仅包含其优先级所需的括号，因此它可以向您展示它如何解析您的公式。<code>value</code>，您在 Module 1 中已接触过，可以符号化地简化表达式，但它不枚举自由变元的赋值。对于以下示例，它会将公式原样打印出来。依次将光标置于每一行上：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(¬ A) ∧ (B ⟶ C)&quot;
+value &quot;A ⟶ (B ⟶ C)&quot;
+value &quot;(A ⟶ B) ⟶ C&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(¬ A) ∧ (B ⟶ C)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ⟶ (B ⟶ C)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(A ⟶ B) ⟶ C&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;¬ A ∧ (B ⟶ C)&quot;
+  :: &quot;bool&quot;
+
+&quot;A ⟶ B ⟶ C&quot;
+  :: &quot;bool&quot;
+
+&quot;(A ⟶ B) ⟶ C&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>Isabelle 去掉了按优先级来看多余的括号，保留了会改变意思的括号。输出中的类型 <code>bool</code> 是公式的类型：在 Isabelle 中，公式是类型为 <code>bool</code> 的项，这个类型只有 <code>True</code> 和 <code>False</code> 两个值。再看一个例子，结果会让你有点意外：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;A ⟶ (B ⟷ C)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ⟶ (B ⟷ C)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;A ⟶ B = C&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>Isabelle 把 ⟷ 打印成 <code>=</code>。对于真值来说，“当且仅当”就是相等：A ⟷ B 成立，恰好是在 A 和 B 取值相同的时候。等号比所有联结词结合得都紧（它的优先级是 50），所以 <code>A ⟶ B = C</code> 的意思是 A ⟶ (B ⟷ C)。在 Isabelle 的输出中，把两个公式之间的 <code>=</code> 读作 ⟷；模块 3 会进一步讨论这两者。</p>
+</div>
+<span class="section-anchor" id="truth-tables"></span>
+<div class="section-header"><span class="section-num">3</span><h2>真值表</h2></div>
+<p>第 2.1 节的联结词表格用文字描述了每个联结词。真值表让这些描述变得精确。</p>
+<div class="box box-definition"><div class="box-label">定义 2.5<span class="box-title">赋值</span></div>
+<p><strong>赋值</strong>（valuation）给每个原子指定一个真值（truth value）：T（真）或 F（假）。这样，一个赋值就确定了每个公式的真值：原子的值来自赋值，<code>True</code> 为 T，<code>False</code> 为 F，每个联结词则按照下面它的真值表，由各部分的值组合出整体的值。</p>
+</div>
+<p>下面把所有联结词的真值表合在一张表里。每一行是 A 和 B 的一种赋值，每一列给出一个公式在该行中的值。</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>¬A</th><th>A ∧ B</th><th>A ∨ B</th><th>A ⟶ B</th><th class="tt-main">A ⟷ B</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">可满足但非有效：2 行为真。</p></div>
+<p>这些页面上的表格在页面构建时由公式生成，这避免了手动转录行；我们仍需选择正确的公式。它们按字母顺序列出原子，从每个原子均为 T 的行开始，并以对最后一列进行分类的行结束；第 2.4 节解释了这些术语。</p>
+<p>A ⟶ B 这一列会让大多数人感到意外。蕴涵式恰好只在一行中为假：前件为真而后件为假的那一行。当 A 为假时，无论 B 是什么，A ⟶ B 都为真；这时称它为<strong>空真</strong>（vacuously true）。</p>
+<div class="callout analogy"><div class="callout-label">打个比方</div>
+<p>把 A ⟶ B 想象成一个承诺：“如果你考试及格，我就请你吃晚饭。”只有在你及格了而我没有请你吃饭时，这个承诺才被违背。如果你没及格，那么无论我请不请你吃饭，我都信守了承诺。</p>
+</div>
+<p>对规约来说，这正是你想要的。规则“封锁期间，门保持关闭”，即 <code>lockdown ⟶ ¬ opens</code>，只在封锁期间约束门；在平常的日子里，无论门怎样，这条规则都成立。蕴涵也与因果无关：“如果 2 + 2 = 5，那么门是开着的”为真，因为它的前件为假。</p>
+<p>要求出一个公式在某个赋值下的值，就从原子开始沿着语法树往上算，一路上应用每个联结词的真值表。</p>
+<div class="box box-example"><div class="box-label">例 2.2<span class="box-title">对门禁需求求值</span></div>
+<p>有人出示了有效的门禁卡，输错了密码，没有火警，门却打开了。这个赋值是 opens = T，badge = T，pin = F，fire = F。沿着图 2.1 的树往上算：</p>
+<ol>
+<li><code>badge ∧ pin</code> 是 T ∧ F，即 F。</li>
+<li><code>badge ∧ pin ∨ fire</code> 是 F ∨ F，即 F。</li>
+<li><code>opens ⟶ badge ∧ pin ∨ fire</code> 是 T ⟶ F，即 F。</li>
+</ol>
+<p>在这种情形下需求为假：控制器违反了它。图 2.1 中的标记展示的是同样的计算。</p>
+</div>
+<div class="box box-definition"><div class="box-label">定义 2.6<span class="box-title">真值表</span></div>
+<p>一个公式的<strong>真值表</strong>（truth table）为它的原子的每一种赋值各列一行，并给出公式在每一行中的值。含 n 个原子的公式有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 行，因为每个原子都可以独立于其他原子取 T 或 F。</p>
+</div>
+<div class="box box-example"><div class="box-label">例 2.3<span class="box-title">一张真值表</span></div>
+<p>下面是 <code>opens ⟶ badge ∧ pin</code> 的真值表，也就是去掉火警这一例外的第一条需求；表中还有一列给出子公式 <code>badge ∧ pin</code> 的值：</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">badge</th><th class="tt-atom">opens</th><th class="tt-atom">pin</th><th>badge ∧ pin</th><th class="tt-main">opens ⟶ badge ∧ pin</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">可满足但非有效：5 行为真。</p></div>
+<p>这个公式恰好在三行中为假：就是门打开了，却没有同时具备有效门禁卡和正确密码的那三行。</p>
+</div>
+<p>真值表总是管用的，但它增长得很快。完整的门禁需求（含 <code>fire</code>）有 16 行；10 个原子有 1024 行，20 个原子有一百多万行，30 个原子则超过十亿行。第 2.8 节会再回到这个问题。</p>
+<div class="widget-wrap"><div class="widget-label">动手试试</div><div class="widget" data-widget="truth-table"></div><div class="widget-caption">
+<p>输入一个公式，可以用符号，也可以用 ASCII 字符（<code>~ &amp; | --&gt; &lt;--&gt;</code>）；真值表会随着你的输入即时更新。先输入完整的门禁需求 <code>opens --&gt; badge &amp; pin | fire</code>：它在多少行中为假？为什么？然后试试示例按钮，再切换到<strong>比较两个公式</strong>，看看两个公式的真值表是否相同。</p>
+</div></div>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>一个赋值把公式变成不含变量的公式：把每个原子替换成 <code>True</code> 或 <code>False</code>。<code>value</code> 能计算这样的公式，结果就是真值表中的一行。下面是例 2.2 的那一行，其中 opens = T，badge = T，pin = F，fire = F：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;True ⟶ True ∧ False ∨ False&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;True ⟶ True ∧ False ∨ False&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;False&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>使用变量时，<code>value</code> 不会尝试赋值。在此示例中，它打印公式，尽管该公式在每一行中都为真：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;A ∨ ¬ A&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;A ∨ ¬ A&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>要确立公式在每一行中为真，可以检查其完整的真值表或给出一般性证明。下一节介绍由 Isabelle 检查的证明。</p>
+</div>
+<span class="section-anchor" id="classify"></span>
+<div class="section-header"><span class="section-num">4</span><h2>重言式、矛盾式与可满足的公式</h2></div>
+<p>有些公式在其真值表的每一行中都为真，有些则在任何一行中都不为真。这两个极端，以及介于两者之间的公式，是命题逻辑的核心概念。</p>
+<div class="box box-definition"><div class="box-label">定义 2.7<span class="box-title">重言式、可满足、矛盾式</span></div>
+<p>设 φ 是一个公式。</p>
+<ul>
+<li>如果 φ 在每个赋值下都为真，也就是它的真值表的每一行都是 T，就称 φ 是<strong>重言式</strong>（tautology），或者说 φ 是<strong>有效的</strong>（valid）。</li>
+<li>如果 φ 至少在一个赋值下为真，就称 φ 是<strong>可满足的</strong>（satisfiable）。使 φ 为真的赋值<strong>满足</strong>（satisfy）φ，称为 φ 的一个<strong>模型</strong>（model）。</li>
+<li>如果 φ 在任何赋值下都不为真，就称 φ 是<strong>矛盾式</strong>（contradiction），或者说 φ 是<strong>不可满足的</strong>（unsatisfiable）。</li>
+<li>如果 φ 是可满足的，但不是重言式，就称 φ 是<strong>可满足但非有效的</strong>（contingent）。使 φ 为假的赋值是 φ 的一个<strong>反例</strong>（counterexample）。</li>
+</ul>
+</div>
+<p>计算出的真值表下方的结论用的就是这些说法：“重言式”“矛盾式”和“可满足但非有效”。最简单的重言式是<strong>排中律</strong>（law of excluded middle）：每个命题要么为真，要么为假。</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th>¬A</th><th class="tt-main">A ∨ ¬A</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">重言式：每一行都为真。</p></div>
+<p>它的反面是最简单的矛盾式：</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th>¬A</th><th class="tt-main">A ∧ ¬A</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr></tbody></table></div><p class="tt-verdict">矛盾式：每一行都为假。</p></div>
+<p>例 2.3 中的需求是可满足但非有效的：有三行是反例，其余各行满足它。图 2.2 展示了这几类公式之间的关系。</p>
+<figure class="fig" id="fig-02-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 352" width="760" height="352" role="img"><title>重言式、可满足但非有效的公式与矛盾式</title><defs><marker id="fig-02-2__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="14" y="14" width="732" height="324" rx="16" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="32" y="40" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">所有公式</text><rect x="34" y="56" width="468" height="216" rx="14" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="52" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#2563EB" text-anchor="start">可满足的公式</text><text x="152" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#2563EB" text-anchor="start" font-style="italic">至少在一行中为真</text><rect x="52" y="96" width="200" height="160" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="68" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="start">重言式</text><text x="68" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="start" font-style="italic">在每一行中都为真</text><text x="68" y="170" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ∨ ¬A</text><text x="68" y="194" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ⟶ A</text><text x="68" y="218" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">((A ⟶ B) ⟶ A) ⟶ A</text><text x="272" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">可满足但非有效</text><text x="272" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">在一些行中为真，</text><text x="272" y="154" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">在另一些行中为假</text><text x="272" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ⟶ B</text><text x="272" y="209" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ∧ B</text><text x="272" y="232" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">opens ⟶ badge ∧ pin ∨ fire</text><rect x="522" y="56" width="206" height="216" rx="14" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.8"/><text x="538" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#DC2626" text-anchor="start">矛盾式</text><text x="538" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#DC2626" text-anchor="start" font-style="italic">任何一行都不为真（不可满足）</text><text x="538" y="170" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ∧ ¬A</text><text x="538" y="194" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">False</text><text x="538" y="218" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">(A ⟶ B) ∧ A ∧ ¬B</text><path d="M 400 306 H 152 V 260" stroke="#6D28D9" stroke-width="2" fill="none" marker-end="url(#fig-02-2__ah-6D28D9)"/><path d="M 400 306 H 625 V 276" stroke="#6D28D9" stroke-width="2" fill="none" marker-end="url(#fig-02-2__ah-6D28D9)"/><circle cx="400" cy="306" r="15" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="400" y="312" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#6D28D9" text-anchor="middle">¬</text><text x="424" y="326" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="start">¬ 使这两类互换</text><text x="272" y="261" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">¬ 作用于这类公式，结果仍属这一类</text></svg>
+</div><figcaption><span class="fig-num">图 2.2</span> <p>每个公式恰好属于三类中的一类。可满足的公式包括重言式。否定把每个重言式变成矛盾式，也把矛盾式变成重言式；可满足但非有效的公式经过否定，仍然是可满足但非有效的。</p>
+</figcaption></figure>
+<div class="box box-fact"><div class="box-label">事实 2.1<span class="box-title">否定与三类公式</span></div>
+<p>对每个公式 φ：</p>
+<ol>
+<li>φ 是重言式，当且仅当 ¬φ 是矛盾式。</li>
+<li>φ 是可满足的，当且仅当 ¬φ 不是重言式。</li>
+</ol>
+</div>
+<p>原因是 ¬ 把真值表的每一行都翻转过来。事实 2.1 把一个问题转化成另一个问题：要表明 φ 是重言式，就表明 ¬φ 没有模型；要找 φ 的模型，就去找 ¬φ 的反例。SAT 求解器和 Isabelle 的 Nitpick 都依赖这一点（第 2.8 节和第 2.9 节）。</p>
+<div class="box box-example"><div class="box-label">例 2.4<span class="box-title">皮尔士定律</span></div>
+<p>((A ⟶ B) ⟶ A) ⟶ A 是重言式吗？光看是看不出来的。真值表能告诉你：</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>(A ⟶ B) ⟶ A</th><th class="tt-main">((A ⟶ B) ⟶ A) ⟶ A</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">重言式：每一行都为真。</p></div>
+<p>每一行都是 T。这个公式叫做皮尔士定律（Peirce’s law），得名于逻辑学家查尔斯·桑德斯·皮尔士（Charles Sanders Peirce）。</p>
+</div>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p><strong>重言式就是引理。</strong> 当一条引理含有变量时，Isabelle 把它理解为关于变量所有取值的断言，就像模块 1 中的 <code>xs</code> 那样。在公式中，Isabelle 根据联结词推断出变量的类型是 <code>bool</code>，所以这条断言说的是：公式对 <code>True</code> 和 <code>False</code> 的每一种组合都为真。证明了这条引理，就表明这个公式是重言式。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∨ ¬ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by simp">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>有三种证明方法可以证明重言式：</p>
+<ul>
+<li><code>simp</code>，来自 Module 1 的化简器使用已知等式和逻辑规则对目标进行化简。
+部分目标以此方式关闭；其他目标需要额外的推理。</li>
+<li><code>blast</code> 搜索证明：它把公式拆开，分情况讨论，当某个选择走不通时就回溯。它要么完全证明目标，要么失败。</li>
+<li><code>auto</code> 把化简器与 <code>blast</code> 所用的那类逻辑步骤结合起来，并把它证明不了的部分留下来。</li>
+</ul>
+<p>并不是每个重言式都能靠重写证明。皮尔士定律就难倒了 <code>simp</code>：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. ((A ⟶ B) ⟶ A) ⟶ A</span></code></pre></div>
+<p>此处“Failed to apply initial proof method”表示该方法未能产生成功的初始证明步骤。该消息并未确立该命题为假，也未指出缺失的推理规则。<code>blast</code> 证明了它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ A) ⟶ A&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>所以，证明失败并不意味着公式是假的。在本模块中，如果 <code>simp</code> 失败了，就试试 <code>blast</code> 或 <code>auto</code>；模块 9 会解释每种方法能做什么、不能做什么。</p>
+</div>
+<p>如果公式不是重言式，会怎样？看 A ⟶ B ⟶ A ∧ B ∧ C，它断言得太多了：由 A 和 B，它不仅推出 A ∧ B，还推出了 C。</p>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>每种证明方法都会失败，各有各的失败方式。<code>simp</code> 尽可能地往前推进，然后显示剩下的部分：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. A ⟶ B ⟶ C</span></code></pre></div>
+<p>剩下的目标 A ⟶ B ⟶ C 显示了缺少什么：没有任何东西说明 C 成立。<code>blast</code> 失败时报告的是“Failed to apply initial proof method”，和上面一样，因为它从不留下部分结果。<code>auto</code> 用另一种记法显示它剩下的目标：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-proof">by</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ C</span></code></pre></div>
+<p>把 ⟦A; B⟧ ⟹ C 读作“假设 A 和 B，证明 C”；模块 7 会解释这种记法。</p>
+<p>证明失败不能告诉你公式是不是假的。要弄清这一点，就请 Isabelle 找反例。Isabelle 有两个找反例的工具，Quickcheck 和 Nitpick：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;
+  quickcheck">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-cmd">quickcheck</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  A = True
+  B = True
+  C = False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  nitpick">复制</button></div><pre class="isa-body"><code>  <span class="isa-cmd">nitpick</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = True
+    B = True
+    C = False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>两者都找到了相同的反例：A 和 B 为真，C 为假。在该行中，公式为 T ⟶ T ⟶ F，其值为 F。Quickcheck <em>tests</em>：它逐个评估公式的赋值，直到找到一个使其为假的赋值。Nitpick <em>searches</em>：它将问题转化为 SAT 求解器的可满足性问题（第 2.8 节）。这两个工具在此例中都快速找到了该赋值。若搜索未找到反例或达到资源限制，则并未提供内核检查的证明。在默认设置下，Isabelle/jEdit 也会像你在 Module 1 中看到的那样，自动对新引理尝试 Quickcheck；Nitpick 默认并非自动。</p>
+</div>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>证明表明公式是重言式；反例表明它不是。失败的证明既非如此，因为该方法可能太弱，且“未找到反例”并非证明。在这些示例中，完成的证明确立了全称声明，而真实的反例驳斥了它。</p>
+</div>
+<span class="section-anchor" id="equivalence"></span>
+<div class="section-header"><span class="section-num">5</span><h2>逻辑等价与等价定律</h2></div>
+<p>A ⟶ B 和 ¬A ∨ B 看起来不同，却有相同的真值表。程序员每次改写一个条件时，都会遇到同样的问题：新的 <code>if</code> 判断和原来的一样吗？</p>
+<div class="box box-definition"><div class="box-label">定义 2.8<span class="box-title">逻辑等价</span></div>
+<p>如果两个公式 φ 和 ψ 在每个赋值下都有相同的真值，就称它们是<strong>逻辑等价的</strong>（logically equivalent），记作 φ ≡ ψ，读作“φ 等价于 ψ”。</p>
+</div>
+<p>符号 ≡ 不是联结词。φ ≡ ψ 是一个<strong>关于</strong>两个公式的陈述，是在逻辑之外做出的，就像“这两个程序计算的是同一个函数”一样；而联结词 ⟷ 位于公式内部。两者之间有这样的联系：</p>
+<div class="box box-fact"><div class="box-label">事实 2.2<span class="box-title">等价与 ⟷</span></div>
+<p>φ ≡ ψ 当且仅当 φ ⟷ ψ 是重言式。</p>
+</div>
+<p>这是因为 φ ⟷ ψ 在某一行中为真，恰好是在 φ 和 ψ 在这一行中取值相同的时候。所以，为两边各列一列的真值表就能检查一个等价式。下面是 A ⟶ B ≡ ¬A ∨ B：</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>¬A ∨ B</th><th class="tt-main">(A ⟶ B) ⟷ ¬A ∨ B</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">重言式：每一行都为真。</p></div>
+<p>一小组等价式，即命题逻辑的<strong>定律</strong>（laws），能完成日常的大部分工作。每一条都可以用像上面那样的真值表来检查。</p>
+<div class="box box-fact"><div class="box-label">事实 2.3<span class="box-title">等价定律</span></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>定律</th>
+<th>等价式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>双重否定律（double negation）</td>
+<td>¬¬A ≡ A</td>
+</tr>
+<tr>
+<td>德摩根律（De Morgan）</td>
+<td>¬(A ∧ B) ≡ ¬A ∨ ¬B；¬(A ∨ B) ≡ ¬A ∧ ¬B</td>
+</tr>
+<tr>
+<td>交换律（commutativity）</td>
+<td>A ∧ B ≡ B ∧ A；A ∨ B ≡ B ∨ A</td>
+</tr>
+<tr>
+<td>结合律（associativity）</td>
+<td>(A ∧ B) ∧ C ≡ A ∧ (B ∧ C)；(A ∨ B) ∨ C ≡ A ∨ (B ∨ C)</td>
+</tr>
+<tr>
+<td>分配律（distributivity）</td>
+<td>A ∧ (B ∨ C) ≡ (A ∧ B) ∨ (A ∧ C)；A ∨ (B ∧ C) ≡ (A ∨ B) ∧ (A ∨ C)</td>
+</tr>
+<tr>
+<td>幂等律（idempotence）</td>
+<td>A ∧ A ≡ A；A ∨ A ≡ A</td>
+</tr>
+<tr>
+<td>吸收律（absorption）</td>
+<td>A ∧ (A ∨ B) ≡ A；A ∨ (A ∧ B) ≡ A</td>
+</tr>
+<tr>
+<td>同一律（identity）</td>
+<td>A ∧ True ≡ A；A ∨ False ≡ A</td>
+</tr>
+<tr>
+<td>零律（domination）</td>
+<td>A ∧ False ≡ False；A ∨ True ≡ True</td>
+</tr>
+<tr>
+<td>互补律（complement）</td>
+<td>A ∧ ¬A ≡ False；A ∨ ¬A ≡ True</td>
+</tr>
+<tr>
+<td>蕴涵律（implication）</td>
+<td>A ⟶ B ≡ ¬A ∨ B</td>
+</tr>
+<tr>
+<td>逆否律（contrapositive）</td>
+<td>A ⟶ B ≡ ¬B ⟶ ¬A</td>
+</tr>
+<tr>
+<td>蕴涵否定律（negated implication）</td>
+<td>¬(A ⟶ B) ≡ A ∧ ¬B</td>
+</tr>
+<tr>
+<td>输出律（exportation）</td>
+<td>A ∧ B ⟶ C ≡ A ⟶ B ⟶ C</td>
+</tr>
+<tr>
+<td>双条件律（equivalence）</td>
+<td>A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>这些定律是用原子写出的，但它们对所有公式都成立，而且可以用在更大的公式内部：</p>
+<div class="box box-fact"><div class="box-label">事实 2.4<span class="box-title">代入与置换</span></div>
+<ol>
+<li><strong>代入</strong>（substitution）。如果一个公式是重言式，那么把其中某个原子的每一处出现都换成同一个公式，得到的仍是重言式。事实 2.3 中的每条定律用 ⟷ 写出来都是重言式（事实 2.2），所以把 A、B、C 换成任意公式，定律依然成立。</li>
+<li><strong>置换</strong>（replacement）。如果 φ ≡ ψ，那么把一个公式中 φ 的某一处出现换成 ψ，得到的公式与原公式等价。</li>
+</ol>
+</div>
+<p>代入之所以成立，是因为重言式无论其原子取什么值都为真，因而无论代入的公式取什么值也都为真。置换之所以成立，是因为一个公式的值只取决于它各部分的值。</p>
+<div class="box box-example"><div class="box-label">例 2.5<span class="box-title">化简代码中的条件</span></div>
+<p>一个程序中有这样的判断：</p>
+<pre class="code"><code class="language-text">if not (valid and not expired) or expired:
+</code></pre>
+<p>用 v 表示 <code>valid</code>（有效），用 e 表示 <code>expired</code>（已过期），然后一步一步地化简，并写出每一步所用的定律：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.16em" columnalign="left left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi>v</mi><mo>∧</mo><mi mathvariant="normal">¬</mi><mi>e</mi><mo stretchy="false">)</mo><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mi mathvariant="normal">¬</mi><mi mathvariant="normal">¬</mi><mi>e</mi><mo stretchy="false">)</mo><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>德摩根律</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mi>e</mi><mo stretchy="false">)</mo><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>双重否定律</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mo stretchy="false">(</mo><mi>e</mi><mo>∨</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>结合律</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>幂等律</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>v</mi><mo>⟶</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>蕴涵律</mtext></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}{lll}
+&amp; \lnot(v \land \lnot e) \lor e &amp; \\
+\equiv &amp; (\lnot v \lor \lnot\lnot e) \lor e &amp; \text{德摩根律} \\
+\equiv &amp; (\lnot v \lor e) \lor e &amp; \text{双重否定律} \\
+\equiv &amp; \lnot v \lor (e \lor e) &amp; \text{结合律} \\
+\equiv &amp; \lnot v \lor e &amp; \text{幂等律} \\
+\equiv &amp; v \imp e &amp; \text{蕴涵律}
+\end{array}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:7.2em;vertical-align:-3.35em;"></span><span class="mord"><span class="mtable"><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.85em;"><span style="top:-6.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-0.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.35em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.85em;"><span style="top:-6.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬</span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬¬</span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span><span class="mclose">)</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-0.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.35em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.85em;"><span style="top:-6.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">德摩根律</span></span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">双重否定律</span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">结合律</span></span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">幂等律</span></span></span></span><span style="top:-0.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">蕴涵律</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.35em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span></span></span></span></span></span></span></div>
+<p>因此该测试等价于 <code>if not valid or expired:</code>。这可以是一个拒绝票据的合理条件：当票据无效或已过期时拒绝。蕴含式 <code>valid ⟶ expired</code> 具有相同的真值表，但在此目的下措辞帮助较小；它并未断言有效性与过期性之间的因果关系。化简暴露了一个冗余检查，并未确立策略是错误的。拒绝是否是预期行为仍然是一个验证问题。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>有三个公式看起来很像 A ⟶ B，但其中只有一个与它等价：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>公式</th>
+<th>名称</th>
+<th>与 A ⟶ B 等价吗？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬B ⟶ ¬A</td>
+<td>逆否命题（contrapositive）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>B ⟶ A</td>
+<td>逆命题（converse）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>¬A ⟶ ¬B</td>
+<td>否命题（inverse）</td>
+<td>否</td>
+</tr>
+</tbody>
+</table></div>
+<p>同样，¬(A ∧ B) 与 ¬A ∨ ¬B 等价，而不是与 ¬A ∧ ¬B 等价：否定把 ∧ 变成 ∨，也把 ∨ 变成 ∧。</p>
+</div>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>在 Isabelle 中，等价式是带有 ⟷ 的引理。（Isabelle 也有符号 ≡，但它用于元等价，常出现在定义中，如 Module 7 所述。）<code>blast</code> 在一步内证明了 Example 2.5 的整个化简：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p><code>valid ⟶ expired</code> 两边的括号其实不需要，因为 ⟷ 和 ⟶ 都向右结合；但只要混用这两个联结词，就把括号写上。错误的定律会产生反例。下面是德摩根律的错误版本：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∧ B) ⟷ ¬ A ∧ ¬ B&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∧ B) ⟷ ¬ A ∧ ¬ B&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  A = True
+  B = False
+Evaluated terms:
+  ¬ (A ∧ B) = True
+  ¬ A ∧ ¬ B = False</code></pre></div>
+<p>对于等价式，Quickcheck 还会在“Evaluated terms”（求值的项）下面列出反例中两边各自的值：这里左边是 <code>True</code>，右边是 <code>False</code>。正确的定律都在 Isabelle 的库中；例如，定理 <code>de_Morgan_conj</code> 陈述的是 ¬ (P ∧ Q) ⟷ ¬ P ∨ ¬ Q。化简器会自动使用德摩根律的两种形式。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>在 Isabelle 中，公式之间要写 ⟷，而不要写 <code>=</code>。因为 <code>=</code> 比联结词结合得更紧，<code>A ∧ B = B ∧ A</code> 的意思是 A ∧ (B = B) ∧ A，这根本不是交换律：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B = B ∧ A&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B = B ∧ A&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  A = False
+  B = a<sub>1</sub></code></pre></div>
+<p>B 的值是 a₁，这说明 B 甚至已经不是真值了。在 <code>B = B</code> 中，B 可以是任何东西，所以 Isabelle 给了它一个未知的类型，Quickcheck 从这个类型中挑了一个元素；模块 3 会解释这样的类型。改用 ⟷ 后，<code>A ∧ B ⟷ B ∧ A</code> 的意思就正如它字面所示。</p>
+</div>
+<span class="section-anchor" id="consequence"></span>
+<div class="section-header"><span class="section-num">6</span><h2>逻辑推论与论证</h2></div>
+<p>关于系统的推理中充满了论证：“如果所有测试都通过，发布版本就会被构建；发布版本没有被构建；所以有某个测试失败了。”一个论证有前提和结论，问题在于：当前提都为真时，结论是否一定为真。</p>
+<div class="box box-definition"><div class="box-label">定义 2.9<span class="box-title">逻辑推论</span></div>
+<p>公式 ψ 是公式 φ₁, …, φₙ 的<strong>逻辑推论</strong>（logical consequence），记作</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>φ</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>φ</mi><mi>n</mi></msub><mo>⊨</mo><mi>ψ</mi></mrow><annotation encoding="application/x-tex">\varphi_1, \ldots, \varphi_n \models \psi
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.999em;vertical-align:-0.249em;"></span><span class="mord"><span class="mord mathnormal">φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⊨</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ψ</span></span></span></span></span></div>
+<p>是指：每个使 φ₁, …, φₙ 全都为真的赋值也都使 ψ 为真。φᵢ 称为<strong>前提</strong>（premise），ψ 称为<strong>结论</strong>（conclusion）；⊨ 读作“推出”（entails）。如果一个<strong>论证</strong>（argument）的结论是其前提的逻辑推论，就称这个论证是<strong>有效的</strong>。没有前提时，⊨ ψ 表示 ψ 是重言式。</p>
+</div>
+<p>符号 ⊨ 关乎真假。模块 6 会介绍它的搭档 ⊢，后者关乎证明：φ ⊢ ψ 表示 ψ 可以用某个证明系统的规则从 φ <strong>推导</strong>出来。要用真值表检查一个论证，就去找<strong>坏行</strong>（bad row）：在这一行中，每个前提都为真，而结论为假。论证有效，恰好是在没有坏行的时候；这就给出了检查论证的第二种方法：</p>
+<div class="box box-fact"><div class="box-label">事实 2.5<span class="box-title">推论与重言式</span></div>
+<p>φ₁, …, φₙ ⊨ ψ 当且仅当 φ₁ ∧ … ∧ φₙ ⟶ ψ 是重言式。</p>
+</div>
+<p>这个蕴涵式恰好在坏行中为假。有六种论证形式（argument form）出现得非常频繁，都有了自己的名字。其中四种是有效的；另外两种是错误，只是因为太常见，也有了名字。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>前提</th>
+<th>结论</th>
+<th>有效吗？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>肯定前件式（modus ponens）</td>
+<td>A ⟶ B，A</td>
+<td>B</td>
+<td>是</td>
+</tr>
+<tr>
+<td>否定后件式（modus tollens）</td>
+<td>A ⟶ B，¬B</td>
+<td>¬A</td>
+<td>是</td>
+</tr>
+<tr>
+<td>链式推理，即假言三段论（hypothetical syllogism）</td>
+<td>A ⟶ B，B ⟶ C</td>
+<td>A ⟶ C</td>
+<td>是</td>
+</tr>
+<tr>
+<td>析取三段论（disjunctive syllogism）</td>
+<td>A ∨ B，¬A</td>
+<td>B</td>
+<td>是</td>
+</tr>
+<tr>
+<td>肯定后件（affirming the consequent）</td>
+<td>A ⟶ B，B</td>
+<td>A</td>
+<td>否</td>
+</tr>
+<tr>
+<td>否定前件（denying the antecedent）</td>
+<td>A ⟶ B，¬A</td>
+<td>¬B</td>
+<td>否</td>
+</tr>
+</tbody>
+</table></div>
+<p>由代入（事实 2.4），把 A、B、C 换成任意公式，有效的论证形式依然有效。</p>
+<div class="box box-example"><div class="box-label">例 2.6<span class="box-title">关于发布的两个论证</span></div>
+<p>用 <code>tests</code> 表示“所有测试都通过”，用 <code>built</code> 表示“发布版本已构建”。</p>
+<ol>
+<li>“如果所有测试都通过，发布版本就会被构建。发布版本没有被构建。所以并非所有测试都通过了。”这是否定后件式，所以这个论证是有效的。</li>
+<li>“如果所有测试都通过，发布版本就会被构建。发布版本被构建了。所以所有测试都通过了。”这是肯定后件，这个论证是无效的。真值表能找出坏行：</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">built</th><th class="tt-atom">tests</th><th>tests ⟶ built</th><th class="tt-main">(tests ⟶ built) ∧ built ⟶ tests</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">可满足但非有效：3 行为真。</p></div>
+<p>前提是 <code>built</code> 列和 <code>tests ⟶ built</code> 列，结论是 <code>tests</code> 列。在 built = T、tests = F 的那一行中，两个前提都为真，结论却为假：有人在测试失败的情况下手工构建了发布版本。只要有一个坏行，论证就是无效的。</p>
+</div>
+<div class="callout note"><div class="callout-label">须知</div>
+<p>有效性关乎论证的形式，而与事实无关。一个有效的论证如果有假前提，就可能得出假结论；一个无效的论证也可能碰巧得出真结论。评审一个设计论证时，要问两个问题：形式是否有效？前提是否为真？</p>
+</div>
+<p>有一种特殊情况对规约非常重要。</p>
+<div class="box box-fact"><div class="box-label">事实 2.6<span class="box-title">不一致的前提推出一切</span></div>
+<p>如果没有任何赋值能使 φ₁, …, φₙ 全都为真，那么对每个公式 ψ，都有 φ₁, …, φₙ ⊨ ψ。特别地，A, ¬A ⊨ B。</p>
+</div>
+<p>没有哪一行能使前提全都为真，所以无论 ψ 是什么，都不存在坏行。这就是<strong>爆炸原理</strong>（principle of explosion），它的拉丁文名称是 <strong>ex falso quodlibet</strong>：从谬误出发，可以推出任何东西。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>在相信某个性质从一组需求中推导出来之前，请检查这些需求是否一致。从不一致的前提可以推出任何结论，包括其反面。这并不意味着每种证明方法都能找到证明；它表明仅凭蕴含关系并不能证明这些需求描述的是一个可达的系统。</p>
+</div>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>由事实 2.5，当从前提到结论的蕴涵式是重言式时，论证就是有效的，所以 <code>blast</code> 可以检查它。以否定后件式为例：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ ¬ B ⟶ ¬ A&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ ¬ B ⟶ ¬ A&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>对于无效的论证，Nitpick 会找出坏行：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ B ⟶ A&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ B ⟶ A&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = False
+    B = True</code></pre></div>
+<p>当 A 为假、B 为真时，前提 A ⟶ B 和 B 都成立，而结论 A 不成立。爆炸原理也是一条定理：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ ¬ A ⟶ B&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ ¬ A ⟶ B&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div>
+<span class="section-anchor" id="normal-forms"></span>
+<div class="section-header"><span class="section-num">7</span><h2>范式</h2></div>
+<p>等价的公式看起来可能大不相同，这使它们难以比较，也难以用程序处理。<strong>范式</strong>（normal form）是一种标准形状，每个公式都可以在不改变意思的前提下化成这种形状。常用的范式有三种。</p>
+<div class="box box-definition"><div class="box-label">定义 2.10<span class="box-title">文字与子句</span></div>
+<p><strong>文字</strong>（literal）是一个原子或一个原子的否定，例如 A 或 ¬A。<strong>子句</strong>（clause）是若干文字的析取，例如 ¬A ∨ B ∨ ¬C；单个文字也算一个子句。</p>
+</div>
+<div class="box box-definition"><div class="box-label">定义 2.11<span class="box-title">范式</span></div>
+<ul>
+<li>公式处于<strong>否定范式（NNF）</strong>，当且仅当其仅使用原子、<code>True</code>、<code>False</code>以及
+连接词 ¬、∧ 和 ∨，且每个 ¬ 直接位于原子之前。</li>
+<li>如果一个公式是若干子句的合取，例如 (A ∨ ¬B) ∧ (¬A ∨ C ∨ D) ∧ ¬C，就说它是<strong>合取范式</strong>（conjunctive normal form，CNF）。</li>
+<li>如果一个公式是若干个文字合取式的析取，例如 (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D，就说它是<strong>析取范式</strong>（disjunctive normal form，DNF）。</li>
+</ul>
+</div>
+<p>单个子句计为 CNF，单个文字合取计为 DNF。我们还允许空合取，即 <code>True</code>，以及空析取，即 <code>False</code>。因此空子句为假。这些约定涵盖了恒真或恒假的公式。</p>
+<p>合取范式是一张必须全部成立的小规则清单：子句 ¬A ∨ ¬B ∨ C 说的是 A ∧ B ⟶ C。SAT 求解器的输入就是合取范式。析取范式列出了使公式为真的各种情形，所以从它可以直接看出公式是否可满足：一个析取范式是可满足的，当且仅当它的某个合取式不同时含有一个原子及其否定。否定范式是通往这两种范式的第一步。</p>
+<h3 id="nnf">否定范式</h3>
+<p>任何公式都可以经过三步化为否定范式：</p>
+<ol>
+<li>把每个 φ ⟷ ψ 替换为 (φ ⟶ ψ) ∧ (ψ ⟶ φ)。</li>
+<li>把每个 φ ⟶ ψ 替换为 ¬φ ∨ ψ。</li>
+<li>把每个 ¬ 向内推：把 ¬¬φ 替换为 φ，¬(φ ∧ ψ) 替换为 ¬φ ∨ ¬ψ，¬(φ ∨ ψ) 替换为 ¬φ ∧ ¬ψ，¬True 替换为 False，¬False 替换为 True。</li>
+</ol>
+<p>每一步都利用双条件律、蕴涵律、双重否定律和德摩根律，把一个子公式替换成与它等价的公式，所以由事实 2.4，结果与最初的公式等价。</p>
+<div class="box box-example"><div class="box-label">例 2.7<span class="box-title">否定范式</span></div>
+<p>把 ¬(A ⟶ B ∧ C) 化为否定范式：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.16em" columnalign="left left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi>A</mi><mo>⟶</mo><mi>B</mi><mo>∧</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>A</mi><mo>∨</mo><mi>B</mi><mo>∧</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>蕴涵律</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mi mathvariant="normal">¬</mi><mi>A</mi><mo>∧</mo><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi>B</mi><mo>∧</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>德摩根律</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>A</mi><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>B</mi><mo>∨</mo><mi mathvariant="normal">¬</mi><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>双重否定律、德摩根律</mtext></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}{lll}
+&amp; \lnot(A \imp B \land C) &amp; \\
+\equiv &amp; \lnot(\lnot A \lor B \land C) &amp; \text{蕴涵律} \\
+\equiv &amp; \lnot\lnot A \land \lnot(B \land C) &amp; \text{德摩根律} \\
+\equiv &amp; A \land (\lnot B \lor \lnot C) &amp; \text{双重否定律、德摩根律}
+\end{array}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.8em;vertical-align:-2.15em;"></span><span class="mord"><span class="mtable"><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬¬</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">蕴涵律</span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">德摩根律</span></span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord cjk_fallback">双重否定律、德摩根律</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span></span></span></span></span></span></span></div>
+<p>结果是否定范式，同时也是合取范式：它是子句 A 和 ¬B ∨ ¬C 的合取。</p>
+</div>
+<h3 id="cnf-dnf">合取范式与析取范式</h3>
+<p>从否定范式出发，剩下的工作由分配律完成：</p>
+<ul>
+<li>要得到<strong>合取范式</strong>，就把 ∨ 移到 ∧ 的里面：把 φ ∨ (ψ ∧ χ) 替换为 (φ ∨ ψ) ∧ (φ ∨ χ)，把 (φ ∧ ψ) ∨ χ 替换为 (φ ∨ χ) ∧ (ψ ∨ χ)，直到 ∨ 里面不再有 ∧ 为止。</li>
+<li>要得到<strong>析取范式</strong>，就把 ∧ 移到 ∨ 的里面：把 φ ∧ (ψ ∨ χ) 替换为 (φ ∧ ψ) ∨ (φ ∧ χ)，把 (φ ∨ ψ) ∧ χ 替换为 (φ ∧ χ) ∨ (ψ ∧ χ)，直到 ∧ 里面不再有 ∨ 为止。</li>
+</ul>
+<p>这里的 χ（chi）是又一个表示任意公式的字母。图 2.3 展示了整个过程。</p>
+<figure class="fig" id="fig-02-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 312" width="760" height="312" role="img"><title>从公式到合取范式与析取范式</title><defs><marker id="fig-02-3__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="8" y="16" width="234" height="112" rx="12" fill="#FFFFFF" stroke="#475569" stroke-width="1.8"/><text x="22" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#475569" text-anchor="start">任意公式</text><text x="125" y="100" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ⟶ B) ⟶ C</text><rect x="263" y="16" width="234" height="112" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="277" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#2563EB" text-anchor="start">1. 消去 ⟷ 和 ⟶</text><text x="277" y="66" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">A ⟶ B  ≡  ¬A ∨ B</text><text x="380" y="100" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬(¬A ∨ B) ∨ C</text><rect x="518" y="16" width="234" height="112" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="532" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#6D28D9" text-anchor="start">2. 把 ¬ 向内推</text><text x="532" y="66" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">德摩根律；¬¬A ≡ A</text><text x="635" y="100" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ∧ ¬B) ∨ C</text><rect x="704.0" y="27" width="36" height="21" rx="10.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="722.0" y="43" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">NNF</text><rect x="263" y="184" width="234" height="112" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="277" y="210" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#15803D" text-anchor="start">3a. 用 ∨ 对 ∧ 的分配律</text><text x="277" y="234" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">(A ∧ B) ∨ C ≡ (A ∨ C) ∧ (B ∨ C)</text><text x="380" y="268" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ∨ C) ∧ (¬B ∨ C)</text><rect x="449.0" y="195" width="36" height="21" rx="10.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="467.0" y="211" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">CNF</text><rect x="518" y="184" width="234" height="112" rx="12" fill="#FFFBEB" stroke="#B45309" stroke-width="1.8"/><text x="532" y="210" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#B45309" text-anchor="start">3b. 用 ∧ 对 ∨ 的分配律</text><text x="532" y="234" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">A ∧ (B ∨ C) ≡ (A ∧ B) ∨ (A ∧ C)</text><text x="635" y="268" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ∧ ¬B) ∨ C</text><text x="635" y="287" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">已经是析取范式</text><rect x="704.0" y="195" width="36" height="21" rx="10.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="722.0" y="211" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">DNF</text><line x1="244" y1="72" x2="259" y2="72" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><line x1="499" y1="72" x2="514" y2="72" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><line x1="635" y1="130" x2="635" y2="180" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><line x1="560" y1="130" x2="420" y2="180" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><text x="22" y="214" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">每一步都把一个子公式</text><text x="22" y="233" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">换成与之等价的公式，</text><text x="22" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">所以每个框中的公式</text><text x="22" y="271" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">都与最初的公式等价。</text></svg>
+</div><figcaption><span class="fig-num">图 2.3</span> <p>从任意公式到合取范式和析取范式，以 (A ⟶ B) ⟶ C 为例。第 1、2 步得到否定范式；然后用一个联结词对另一个联结词的分配律，就得到合取范式或析取范式。</p>
+</figcaption></figure>
+<p>门禁需求 <code>opens ⟶ badge ∧ pin ∨ fire</code> 变成 ¬opens ∨ (badge ∧ pin) ∨ fire，这已经是析取范式了；再用分配律，就得到合取范式 (¬opens ∨ badge ∨ fire) ∧ (¬opens ∨ pin ∨ fire)。把这两个子句读回成规则，它们说的是：门在没有火警时打开了，就说明出示过有效的门禁卡，并且输入过正确的密码。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>分配可能使公式爆炸式增长。用分配律把 (A₁ ∧ B₁) ∨ (A₂ ∧ B₂) ∨ … ∨ (Aₙ ∧ Bₙ) 化为合取范式，会得到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 个子句，从每一对中选出 Aᵢ 或 Bᵢ 的每一种选法都对应一个子句：三对时有 8 个子句，二十对时超过一百万个。这就是 Isabelle 的化简器默认不使用分配律的原因。在 <code>HOL.thy</code> 中化简器确实使用的定律列表旁边，有一条注释说，加入分配律“might cause exponential blow-up”（可能导致指数级膨胀）。</p>
+</div>
+<div class="callout note"><div class="callout-label">须知</div>
+<p>SAT 编码可通过 <strong>Tseitin 转换</strong>避免此爆炸：为每个复合子公式赋予新原子作为其名称，添加将该名称与其部分关联的子句，并要求命名整个公式的原子为真。最后这一要求至关重要：仅定义名称不会要求原公式成立。所得 CNF 的大小与原公式成正比。它在扩展后的原子集上不必逻辑等价，但<strong>equisatisfiable</strong>：当且仅当原公式可满足时才可满足。原公式的每个满足赋值均可通过为新原子赋予合适的值来扩展，而 CNF 的模型在丢弃新原子后即为原公式的模型。</p>
+</div>
+<h3 id="nf-tables">由真值表求范式</h3>
+<p>由真值表可以直接得到两种范式。</p>
+<ul>
+<li><strong>析取范式：</strong> 对公式为 T 的每一行，写出描述这一行的文字合取式（这一行中 A 为 T 就写 A，为 F 就写 ¬A），再用 ∨ 把这些合取式连接起来。</li>
+<li><strong>合取范式：</strong> 对公式为 F 的每一行，写出排除这一行的子句（这一行中 A 为 T 就写 ¬A，为 F 就写 A），再用 ∧ 把这些子句连接起来。</li>
+</ul>
+<div class="box box-example"><div class="box-label">例 2.8<span class="box-title">异或</span></div>
+<p>异或 ¬(A ⟷ B) 在 A 和 B 恰好有一个为真时为真：</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟷ B</th><th class="tt-main">¬(A ⟷ B)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr></tbody></table></div><p class="tt-verdict">可满足但非有效：2 行为真。</p></div>
+<p>它在 A = T、B = F 和 A = F、B = T 这两行中为 T，所以它的析取范式是 (A ∧ ¬B) ∨ (¬A ∧ B)。它在 A = T、B = T 和 A = F、B = F 这两行中为 F；排除这两行的子句是 ¬A ∨ ¬B 和 A ∨ B，所以它的合取范式是 (¬A ∨ ¬B) ∧ (A ∨ B)。</p>
+</div>
+<div class="box box-fact"><div class="box-label">事实 2.7<span class="box-title">范式的存在性</span></div>
+<p>每个公式都等价于某个析取范式，也等价于某个合取范式。</p>
+</div>
+<p>真值表方法就证明了这一点。在边界情况下，没有 T 行的公式得到空析取，即 <code>False</code>；没有 F 行的公式得到空合取，即 <code>True</code>。事实 2.7 还说明 ¬、∧ 和 ∨ 能表达所有可能的真值表；练习 2.7 会说明，更少的联结词也就够了。</p>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>每次转换都是一个等价式，所以 <code>blast</code> 可以确认它。下面是图 2.3 的两个结果：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ C) ⟷ (A ∧ ¬ B) ∨ C&quot;
+  by blast
+
+lemma &quot;((A ⟶ B) ⟶ C) ⟷ (A ∨ C) ∧ (¬ B ∨ C)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ C) ⟷ (A ∧ ¬ B) ∨ C&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ C) ⟷ (A ∨ C) ∧ (¬ B ∨ C)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>一个疏忽会表现为一个反例。挪动一对括号就会改变意思：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ∧ B) ∨ C ⟷ A ∧ (B ∨ C)&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ∧ B) ∨ C ⟷ A ∧ (B ∨ C)&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = False
+    B = False
+    C = True</code></pre></div>
+<p>当 A 为假、C 为真时，左边为真而右边为假。</p>
+</div>
+<span class="section-anchor" id="sat"></span>
+<div class="section-header"><span class="section-num">8</span><h2>可满足性与 SAT 求解器</h2></div>
+<p>本模块的所有问题都可以归结为同一个问题。</p>
+<div class="box box-definition"><div class="box-label">定义 2.12<span class="box-title">可满足性问题</span></div>
+<p><strong>可满足性问题</strong>（satisfiability problem），简称 <strong>SAT</strong>，问的是：给定一个命题公式（通常是合取范式），它是可满足的吗？<strong>SAT 求解器</strong>（SAT solver）是回答这个问题的程序；当答案为“是”时，它还会返回一个满足该公式的赋值。</p>
+</div>
+<p>由事实 2.1，φ 是重言式当且仅当 ¬φ 不可满足。由事实 2.5，φ₁, …, φₙ ⊨ ψ 当且仅当 φ₁ ∧ … ∧ φₙ ∧ ¬ψ 不可满足，因为这个公式的模型正是一个坏行。而一组需求是一致的，当且仅当它们的合取是可满足的。所以，一个 SAT 求解器就能回答本模块的所有问题。</p>
+<p>SAT 有多难？检查别人给出的一个赋值很快：只要对公式求一次值。自己找出一个这样的赋值则是另一回事，因为真值表有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 行。</p>
+<div class="box box-fact"><div class="box-label">事实 2.8<span class="box-title">库克定理</span></div>
+<p>SAT 是 <strong>NP 完全</strong>的。这是斯蒂芬·库克（Stephen Cook）在 1971 年证明的。</p>
+</div>
+<p><strong>NP</strong>是这样一类判定问题（即回答“是”或“否”的问题）：一旦有人给出一个解，答案“是”就能很快地得到<strong>检验</strong>，也就是说，检验所需的步数不超过问题规模的某个多项式。SAT 就是其中之一。下面这些问题也是：考试能否排出一张没有冲突的时间表？这个数独能否填完？这几个版本的软件包能否一起安装？如果一个问题属于 NP，并且 NP 中的每个问题都能高效地转化为它，这个问题就是 <strong>NP 完全</strong>的（NP-complete）。SAT 是第一个被证明为 NP 完全的问题；列昂尼德·列文（Leonid Levin）独立地得到了同样的结果。因此，只要 SAT 有一个快速的（多项式时间的）算法，NP 中的每个问题就都有快速算法。没有人知道这样的算法是否存在：这就是 <strong>P 与 NP 问题</strong>（P versus NP），其中 P 是能在多项式时间内<strong>求解</strong>的问题类。这个问题自 1971 年以来一直悬而未决，是克雷数学研究所的七个千禧年大奖难题之一。</p>
+<p>即便如此，SAT 求解仍是实用的成功。真值表枚举在原子数量上呈指数时间；一般 SAT 的多项式时间算法尚未可知。来自实际问题的公式常具有求解器可利用的结构。许多求解器源自 <strong>DPLL 过程</strong>，以戴维斯、普特南、洛根曼和洛文德命名，他们于 20 世纪 60 年代初描述了该过程。它作用于 CNF 并重复两个步骤：</p>
+<ol>
+<li><strong>单元传播。</strong> 若一个未满足子句恰好包含一个未赋值文字且其所有其他
+当字面量为假时，该字面量必须为真：据此进行赋值。在可能的情况下重复此过程。</li>
+<li><strong>决策</strong>（decision）。否则，选一个还没有取值的原子，给它试一个值。</li>
+</ol>
+<p>当某个子句变为假时，就出现了<strong>冲突</strong>（conflict）。这时算法回到最近的、另一个值还没有试过的那个决策，撤销该决策之后所做的一切，然后试另一个值。如果每个子句都变为真，公式就是可满足的；如果发生冲突时已经没有可以回退的决策，公式就是不可满足的。</p>
+<p>自 20 世纪 90 年代末起，求解器开始使用<strong>冲突驱动的子句学习（CDCL）</strong>。出现冲突时，求解器分析原因，并添加一个子句来排除导致冲突的赋值组合。保留这个子句可以避免重复尝试同一组合。现代 CDCL 求解器能够处理含几十万个命题原子、几百万个子句的工业公式。</p>
+<div class="box box-example"><div class="box-label">例 2.9<span class="box-title">单元传播</span></div>
+<p>这个合取范式是可满足的吗？</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mi>A</mi><mo>∨</mo><mi>B</mi><mo stretchy="false">)</mo><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>A</mi><mo>∨</mo><mi>C</mi><mo stretchy="false">)</mo><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>B</mi><mo>∨</mo><mi>C</mi><mo stretchy="false">)</mo><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>C</mi><mo>∨</mo><mi>D</mi><mo stretchy="false">)</mo><mo>∧</mo><mi mathvariant="normal">¬</mi><mi>D</mi></mrow><annotation encoding="application/x-tex">(A \lor B) \land (\lnot A \lor C) \land (\lnot B \lor C) \land (\lnot C \lor D) \land \lnot D
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span></span></span></span></span></div>
+<p>最后一个子句是单个文字，所以 D = F。于是子句 ¬C ∨ D 迫使 C = F。接着 ¬A ∨ C 迫使 A = F，¬B ∨ C 迫使 B = F。这时 A ∨ B 为假：出现了冲突，而且一次决策都没有做。这个公式是不可满足的，求解器没有写出它的 16 行真值表就证明了这一点。</p>
+</div>
+<p>凡是能表述成许多相互约束的是非选择的问题，都有 SAT 求解器的用武之地：检查两个电路是否计算同一个函数，以及在一个设计中搜索在固定步数之内违反某条性质的运行（即有界模型检测）；判定哪些软件包可以一起安装（Eclipse 开发环境就用 SAT 求解器 Sat4j 来解决其插件之间的依赖关系）；排课表和排班表。SMT 求解器，例如模块 1 中提到的 Z3 和 cvc5，用数、数组和其他数据扩展了 SAT 求解，是程序验证器背后的引擎。Isabelle 的 Nitpick 则把寻找反例的问题转化为 SAT 问题。</p>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>Isabelle 自带一个小型 CDCL 求解器，证明方法 <code>sat</code> 就使用它。<code>sat</code> 把目标的否定转换成合取范式，然后问求解器它是否可满足。下面用它确认例 2.9：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((A ∨ B) ∧ (¬ A ∨ C) ∧ (¬ B ∨ C) ∧ (¬ C ∨ D) ∧ ¬ D)&quot;
+  by sat">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((A ∨ B) ∧ (¬ A ∨ C) ∧ (¬ B ∨ C) ∧ (¬ C ∨ D) ∧ ¬ D)&quot;</span>
+  <span class="isa-proof">by</span> sat</code></pre></div>
+<p>为什么要信任求解器？你不必信任它。当求解器发现否定后的目标不可满足时，它还会返回推理的各个步骤，即一个归结证明（proof by resolution），而 Isabelle 会在内核中重放每一步：这正是模块 1 中的 LCF 思想。当目标不是重言式时，求解器会为目标的否定找到一个模型，于是 <code>sat</code> 失败，并给出这个赋值，也就是一个反例：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-proof">by</span> sat</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">exception THM 0 raised⌂: SAT solver found a countermodel:
+A: true, B: true, C: false</span></code></pre></div>
+<p>消息的第一行是技术性的；第二行说 SAT 求解器找到了一个反模型（countermodel），也就是你在第 2.4 节中找到的那个反例。另一个方法 <code>satx</code> 会先做一次 Tseitin 式的定义式合取范式变换，使大目标的合取范式保持较小的规模。</p>
+</div>
+<span class="section-anchor" id="requirements"></span>
+<div class="section-header"><span class="section-num">9</span><h2>把需求写成命题约束</h2></div>
+<p>回到机房的门。经过一番讨论，安全团队就四条需求达成了一致：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>需求</th>
+<th>公式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>仅当出示了有效的门禁卡并输入了正确的密码，或者火警正在报警时，门才打开。</td>
+<td><code>opens ⟶ badge ∧ pin ∨ fire</code></td>
+</tr>
+<tr>
+<td>R2</td>
+<td>火警正在报警时，门打开。</td>
+<td><code>fire ⟶ opens</code></td>
+</tr>
+<tr>
+<td>R3</td>
+<td>封锁期间，门保持关闭。</td>
+<td><code>lockdown ⟶ ¬ opens</code></td>
+</tr>
+<tr>
+<td>R4</td>
+<td>有效的门禁卡加上正确的密码能打开门。</td>
+<td><code>badge ∧ pin ⟶ opens</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>原子 <code>badge</code>、<code>pin</code>、<code>fire</code> 和 <code>lockdown</code>（正处于封锁状态）描述的是情形：它们由传感器报告，控制器无法选择。<code>opens</code> 是控制器的决定。有三个问题很重要：</p>
+<ol>
+<li>需求是否一致：是否存在至少一种情境与决策同时满足所有需求？</li>
+<li>无论传感器报告什么，控制器能否在每一种情形下都满足它们？</li>
+<li>它们能否保证团队关心的那些性质？</li>
+</ol>
+<div class="box box-definition"><div class="box-label">定义 2.13<span class="box-title">一致的需求</span></div>
+<p>如果一组写成公式的需求的合取是可满足的，也就是存在一个赋值使它们全都为真，就称这组需求是<strong>一致的</strong>（consistent）。</p>
+</div>
+<h3 id="consistency">一致性</h3>
+<div class="box box-isabelle"><div class="box-label">在 Isabelle 中检验</div>
+<p>Nitpick 寻找反例，而由事实 2.1，¬φ 的反例就是 φ 的模型。所以，要找需求的一个模型，就写出它们的否定，再请 Nitpick 找反例：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens))&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens))&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    badge = True
+    fire = False
+    lockdown = False
+    opens = False
+    pin = False</code></pre></div>
+<p>这个否定式的反例就是需求的一个模型：门禁卡有效、密码错误、没有火警、也没有封锁时，门关着就满足全部四条需求。所以这些需求是一致的。</p>
+</div>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>Nitpick 也可以直接找模型：对需求本身（不加 ¬）使用 <code>nitpick [satisfy]</code>，它会报告“Nitpick found a model”（Nitpick 找到了一个模型），后面跟着那个赋值。</p>
+</div>
+<h3 id="scenarios">让需求失效的情形</h3>
+<p>有一个模型还不够：门必须在每一种情形下都能正常工作，包括罕见的情形。在封锁期间，如果火警响了，会怎么样？把 <code>fire</code> 和 <code>lockdown</code> 加到需求中，看看结果是否仍然可满足：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens) ∧
+         fire ∧ lockdown)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens) ∧
+         fire ∧ lockdown)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Isabelle 证明不存在满足它们的赋值。在封锁期间的火灾中，R2 称门必须打开，R3 称门必须保持关闭，且没有控制器能同时执行两者。当有人出示有效徽章和正确的 PIN 码时，R3 与 R4 之间也会发生同样的冲突。此类冲突隐藏在罕见事件的组合中，而这正是测试很少涉及之处。在这些情况下适用 Fact 2.6：从要求 <strong>与冲突的传感器读数</strong> 可推出任意结论，即使门既打开又关闭。原始要求在其它情况下是可满足的；问题在于它们在这些情况下无法同时成立。仅针对不可能前提的证明无法保证控制器应如何响应。</p>
+<h3 id="repair">修复需求</h3>
+<p>这些冲突不是逻辑上的错误，而是还没有人做出的决定，而且只有编写需求的人才能做出这些决定；这就是模块 1 所说的确认。假设团队决定人身安全优先：火警优先于封锁，封锁优先于门禁卡。R3 和 R4 变为：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>需求</th>
+<th>公式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R3′</td>
+<td>封锁期间，除非火警正在报警，否则门保持关闭。</td>
+<td><code>lockdown ∧ ¬ fire ⟶ ¬ opens</code></td>
+</tr>
+<tr>
+<td>R4′</td>
+<td>有效的门禁卡加上正确的密码能打开门，封锁期间除外。</td>
+<td><code>badge ∧ pin ∧ ¬ lockdown ⟶ opens</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>现在可以做更强的检查了。新需求与 R1 和 R2 一起，完全确定了门的行为：它们迫使 <code>opens</code> 与 fire ∨ (badge ∧ pin ∧ ¬lockdown) 取相同的值。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma door_determined:
+  &quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+   ⟶ (opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> door_determined:
+  <span class="isa-inner">&quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+   ⟶ (opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>反过来，一个恰好在 fire ∨ (badge ∧ pin ∧ ¬lockdown) 成立时开门的控制器，无论传感器报告什么，都满足全部四条需求：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma door_rule_ok:
+  &quot;(opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown) ⟶
+   (opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> door_rule_ok:
+  <span class="isa-inner">&quot;(opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown) ⟶
+   (opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>引理 <code>door_rule_ok</code> 是一次具体而微的验证。需求是规约，<code>opens</code> 的规则是实现，而这个证明一次就覆盖了四个传感器的全部十六种情形。它还表明，修复后的需求在每一种情形下都是一致的，因为在每种情形下，按这条规则做出的决定都满足全部需求。引理 <code>door_determined</code> 进一步说明，其他任何决定都做不到这一点：需求没有给控制器留下任何选择的余地。</p>
+<h3 id="properties">能推出的性质，以及一条推不出的性质</h3>
+<p>最后，性质。团队希望确保在火灾之外，控制器绝不会在缺少正确 PIN 码的情况下命令解锁门：<code>opens ∧ ¬ fire ⟶ pin</code>。这由需求推导得出。这是否能防止未经授权的物理进入还取决于模型之外的方面：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (opens ∧ ¬ fire ⟶ pin)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (opens ∧ ¬ fire ⟶ pin)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>原来的承诺“封锁期间，门保持关闭”则不再能推出了：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (lockdown ⟶ ¬ opens)&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (lockdown ⟶ ¬ opens)&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    badge = False
+    fire = True
+    lockdown = True
+    opens = True
+    pin = False</code></pre></div>
+<p>这个反例是封锁期间发生了火警，门开着：这正是团队做出的决定。反例并不总是意味着错误。这里，它在一个具体情形中记录了一个有意的权衡，而这正是向必须接受这个权衡的人展示它的最好方式。如果他们没有料到这一点，那么错的是需求，而不是证明。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>用命题逻辑分析需求的步骤是：选择原子，把由环境决定的和由系统决定的区分开；把每条需求写成公式；检查需求是否一致，包括在那些重要的罕见情形下；证明你需要的性质确实能够推出；把每个反例都当作一个需要讨论的情形来读。这些检查中的每一项都是一个可满足性问题。</p>
+</div>
+<p>我们的命题模型存在局限。其原子描述单一情形，因此无法表达“警报停止十秒后门锁再次锁定”或量化每个员工与部门。尽管可使用更多原子编码有限数量的员工或时间步，但命题逻辑缺乏遍历对象或时间的变量。模块 3 中的谓词逻辑引入了对象与量词，模块 13 对随时间变化的系统进行建模。</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>小结</h2></div>
+<ul>
+<li><strong>命题</strong>要么为真，要么为假。公式由<strong>原子</strong>、<code>True</code> 和 <code>False</code> 用 ¬、∧、∨、⟶ 和 ⟷ 按归纳定义构造而成，每个公式都有一棵<strong>语法树</strong>。</li>
+<li>在 Isabelle 中，¬ 结合得最紧，其次是 ∧，再次是 ∨，然后是优先级相同的 ⟶ 和 ⟷；二元联结词都向右结合。Isabelle 把 ⟷ 打印成 <code>=</code>。混用 ⟶ 和 ⟷ 时一定要加括号。</li>
+<li><strong>赋值</strong>给每个原子一个真值，<strong>真值表</strong>列出全部 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 种赋值。A ⟶ B 只在 A 为真、B 为假时为假。</li>
+<li>公式要么是<strong>重言式</strong>（在每一行中都为真），要么是<strong>可满足但非有效的</strong>（在一些行中为真，在另一些行中为假），要么是<strong>矛盾式</strong>（在任何一行中都不为真）；φ 是重言式，恰好是在 ¬φ 不可满足的时候。</li>
+<li>当 φ ⟷ ψ 是重言式时，φ ≡ ψ。各条<strong>定律</strong>（德摩根律、分配律、逆否律……）能在不改变意思的前提下变换公式。</li>
+<li>当没有哪一行使前提全都为真而 ψ 为假时，φ₁, …, φₙ ⊨ ψ。肯定前件式和否定后件式是有效的；肯定后件和否定前件则不是。不一致的前提能推出一切。</li>
+<li>每个公式都有与之等价的<strong>否定范式</strong>、<strong>合取范式</strong>和<strong>析取范式</strong>。分配律可能使合取范式变得指数级地大；Tseitin 变换能避免这一点。</li>
+<li><strong>SAT</strong> 是 NP 完全的（库克，1971 年），但在实践中，CDCL 求解器能判定非常大的公式。</li>
+<li>对于需求，<strong>一致性</strong>就是可满足性；当“需求 ⟶ 性质”是重言式时，这条性质就能从需求推出；每个反例都是一个需要讨论的情形。</li>
+<li>在 Isabelle 中，变量类型为 <code>bool</code> 的引理声明了一个重言式。<code>simp</code>、<code>blast</code> 和 <code>auto</code>
+证明重言式 (<code>blast</code> 和 <code>auto</code> 比 <code>simp</code> 更多); <code>quickcheck</code> 和 <code>nitpick</code> 寻找反例; ¬φ 的反例是 φ 的模型。这些方法各有优劣; 一种方法的失败并不能确立一个主张为假。</li>
+</ul>
+<p>数学基础系列中的模块<a href="../math/module_02_ZH.html">逻辑、量词与规格说明</a>面向一般的计算机学科讲解命题逻辑和谓词逻辑，练习更多。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>练习</h2></div>
+<div class="exercise" id="ex-2-1"><div class="ex-label"><span class="ex-num">练习 2.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">括号与主联结词</span></div>
+<p>按照 Isabelle 的优先级，为下面每个公式加上所有隐含的括号，并指出每个公式的主联结词。</p>
+<ol>
+<li>¬A ∨ B ∧ C</li>
+<li>A ∧ B ⟶ C ∨ D</li>
+<li>A ⟶ B ⟶ C ∧ D</li>
+<li>A ∨ B ⟷ C ⟶ D</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>(¬A) ∨ (B ∧ C)。主联结词是 ∨。</li>
+<li>(A ∧ B) ⟶ (C ∨ D)。主联结词是 ⟶。</li>
+<li>A ⟶ (B ⟶ (C ∧ D))。主联结词是第一个 ⟶，因为 ⟶ 向右结合。</li>
+<li>(A ∨ B) ⟷ (C ⟶ D)。∨ 比 ⟷ 和 ⟶ 结合得更紧，而 ⟷ 和 ⟶ 优先级相同，并且向右结合。主联结词是 ⟷。</li>
+</ol>
+<p><code>value</code> 可以确认第三个答案：它打印加满括号的公式时，会去掉那些按优先级来看多余的括号。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;A ⟶ (B ⟶ (C ∧ D))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ⟶ (B ⟶ (C ∧ D))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;A ⟶ B ⟶ C ∧ D&quot;
+  :: &quot;bool&quot;</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-2"><div class="ex-label"><span class="ex-num">练习 2.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">用真值表分类</span></div>
+<p>用真值表判断下面每个公式是重言式、矛盾式，还是可满足但非有效的公式。对每个可满足但非有效的公式，给出一个模型和一个反例。</p>
+<ol>
+<li>(A ⟶ B) ∨ (B ⟶ A)</li>
+<li>(A ⟶ B) ∧ A ∧ ¬B</li>
+<li>(A ⟶ B) ⟶ (B ⟶ A)</li>
+<li>(A ∧ B ⟶ C) ⟶ (A ⟶ C) ∨ (B ⟶ C)</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>重言式。无论 A 和 B 取什么值，两个蕴涵式中总有一个为真：如果 B 为真，A ⟶ B 为真；如果 B 为假，B ⟶ A 为真。</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>B ⟶ A</th><th class="tt-main">(A ⟶ B) ∨ (B ⟶ A)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">重言式：每一行都为真。</p></div>
+<ol start="2">
+<li>矛盾式：A ⟶ B 和 A 迫使 B 为真，这与 ¬B 矛盾。</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>¬B</th><th class="tt-main">(A ⟶ B) ∧ A ∧ ¬B</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr></tbody></table></div><p class="tt-verdict">矛盾式：每一行都为假。</p></div>
+<ol start="3">
+<li>可满足但非有效。一个模型：A = T，B = T。一个反例：A = F，B = T，此时 A ⟶ B 为真，而它的逆命题 B ⟶ A 为假。</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>B ⟶ A</th><th class="tt-main">(A ⟶ B) ⟶ (B ⟶ A)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">可满足但非有效：3 行为真。</p></div>
+<ol start="4">
+<li>重言式，这也许出人意料。结论只有在 A ⟶ C 和 B ⟶ C 都为假时才为假，也就是 A 和 B 为真而 C 为假时；但这时前提 A ∧ B ⟶ C 也为假。</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th class="tt-atom">C</th><th>A ∧ B ⟶ C</th><th>(A ⟶ C) ∨ (B ⟶ C)</th><th class="tt-main">(A ∧ B ⟶ C) ⟶ (A ⟶ C) ∨ (B ⟶ C)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">重言式：每一行都为真。</p></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-3"><div class="ex-label"><span class="ex-num">练习 2.3</span><span class="ex-stars" title="2">★★</span><span class="ex-title">用定律推导等价式</span></div>
+<p>用事实 2.3 中的定律一步一步地证明下面的等价式，并写出每一步所用的定律：</p>
+<ol>
+<li>(A ⟶ B) ∧ (A ⟶ C) ≡ A ⟶ B ∧ C</li>
+<li>A ⟶ (B ⟶ C) ≡ B ⟶ (A ⟶ C)</li>
+<li>¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ opens ⟶ badge ∧ pin ∨ fire（例 2.1 中的两种理解）</li>
+</ol>
+<p>然后在 Isabelle 中检查这三个等价式。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>(A ⟶ B) ∧ (A ⟶ C) ≡ (¬A ∨ B) ∧ (¬A ∨ C)（两次使用蕴涵律）；≡ ¬A ∨ (B ∧ C)（分配律，从右往左用）；≡ A ⟶ B ∧ C（蕴涵律）。</li>
+<li>A ⟶ (B ⟶ C) ≡ A ∧ B ⟶ C（输出律）；≡ B ∧ A ⟶ C（交换律）；≡ B ⟶ (A ⟶ C)（输出律）。</li>
+<li>¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ ¬fire ∧ opens ⟶ badge ∧ pin（输出律）；≡ ¬(¬fire ∧ opens) ∨ (badge ∧ pin)（蕴涵律）；≡ (fire ∨ ¬opens) ∨ (badge ∧ pin)（德摩根律和双重否定律）；≡ ¬opens ∨ ((badge ∧ pin) ∨ fire)（交换律和结合律）；≡ opens ⟶ badge ∧ pin ∨ fire（蕴涵律）。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ (A ⟶ C) ⟷ (A ⟶ B ∧ C)&quot;
+  by blast
+
+lemma &quot;(A ⟶ (B ⟶ C)) ⟷ (B ⟶ (A ⟶ C))&quot;
+  by blast
+
+lemma &quot;(¬ fire ⟶ (opens ⟶ badge ∧ pin)) ⟷ (opens ⟶ badge ∧ pin ∨ fire)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ (A ⟶ C) ⟷ (A ⟶ B ∧ C)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ (B ⟶ C)) ⟷ (B ⟶ (A ⟶ C))&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(¬ fire ⟶ (opens ⟶ badge ∧ pin)) ⟷ (opens ⟶ badge ∧ pin ∨ fire)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-4"><div class="ex-label"><span class="ex-num">练习 2.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">有效还是无效？</span></div>
+<p>把每个论证写成前提和结论，并判断它是否有效。对每个无效的论证，给出一个反例。然后在 Isabelle 中检查你的答案。</p>
+<ol>
+<li>如果缓存是热的，请求就很快。请求不快。所以缓存不是热的。</li>
+<li>如果输入合法，解析器就接受它。输入不合法。所以解析器不接受它。</li>
+<li>这个服务使用 TLS，或者运行在内部网络上。它没有运行在内部网络上。所以它使用 TLS。</li>
+<li>如果作业在夜间运行，它就会提早完成。如果它提早完成，报告就准备好了。报告准备好了。所以作业是在夜间运行的。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>warm ⟶ fast</code>, <code>¬ fast</code> ⊨ <code>¬ warm</code>（<code>warm</code>、<code>fast</code> 分别表示缓存是热的、请求很快）：否定后件式，有效。</li>
+<li><code>ok ⟶ accepts</code>, <code>¬ ok</code> ⊨ <code>¬ accepts</code>（<code>ok</code> 表示“输入合法”，<code>accepts</code> 表示“解析器接受输入”）：否定前件，无效。反例：ok = F，accepts = T，即一个宽松的解析器接受了某个不合法的输入。</li>
+<li><code>tls ∨ internal</code>, <code>¬ internal</code> ⊨ <code>tls</code>（<code>tls</code>、<code>internal</code> 分别表示使用 TLS、运行在内部网络上）：析取三段论，有效。</li>
+<li><code>night ⟶ early</code>, <code>early ⟶ ready</code>, <code>ready</code> ⊨ <code>night</code>: 无效，属于肯定后件的谬误。
+反例：night = F, early = F, ready = T；报告可能因其他原因而就绪。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(warm ⟶ fast) ∧ ¬ fast ⟶ ¬ warm&quot;
+  by blast
+
+lemma &quot;(ok ⟶ accepts) ∧ ¬ ok ⟶ ¬ accepts&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(warm ⟶ fast) ∧ ¬ fast ⟶ ¬ warm&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(ok ⟶ accepts) ∧ ¬ ok ⟶ ¬ accepts&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    accepts = True
+    ok = False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(tls ∨ internal) ∧ ¬ internal ⟶ tls&quot;
+  by blast
+
+lemma &quot;(night ⟶ early) ∧ (early ⟶ ready) ∧ ready ⟶ night&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(tls ∨ internal) ∧ ¬ internal ⟶ tls&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(night ⟶ early) ∧ (early ⟶ ready) ∧ ready ⟶ night&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    early = False
+    night = False
+    ready = True</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-5"><div class="ex-label"><span class="ex-num">练习 2.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">范式</span></div>
+<p>把下面每个公式先化为否定范式，再化为合取范式和析取范式。在 Isabelle 中检查你的答案。</p>
+<ol>
+<li>A ⟷ B</li>
+<li>¬(A ∨ B ⟶ C)</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>先消去 ⟷，再消去 ⟶：A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) ≡ (¬A ∨ B) ∧ (¬B ∨ A)。这是否定范式，而且已经是合取范式。要得到析取范式，就用分配律展开：(¬A ∧ ¬B) ∨ (¬A ∧ A) ∨ (B ∧ ¬B) ∨ (B ∧ A)。中间两个合取式是矛盾式，等价于 False，而 φ ∨ False ≡ φ，所以析取范式是 (¬A ∧ ¬B) ∨ (A ∧ B)。</li>
+<li>消去 ⟶，再把 ¬ 向内推：¬(A ∨ B ⟶ C) ≡ ¬(¬(A ∨ B) ∨ C) ≡ ¬¬(A ∨ B) ∧ ¬C ≡ (A ∨ B) ∧ ¬C。这是否定范式，也是合取范式（含两个子句）。再用分配律展开，就得到析取范式 (A ∧ ¬C) ∨ (B ∧ ¬C)。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟷ B) ⟷ (¬ A ∨ B) ∧ (¬ B ∨ A)&quot;
+  by blast
+
+lemma &quot;(A ⟷ B) ⟷ (¬ A ∧ ¬ B) ∨ (A ∧ B)&quot;
+  by blast
+
+lemma &quot;¬ (A ∨ B ⟶ C) ⟷ (A ∨ B) ∧ ¬ C&quot;
+  by blast
+
+lemma &quot;¬ (A ∨ B ⟶ C) ⟷ (A ∧ ¬ C) ∨ (B ∧ ¬ C)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟷ B) ⟷ (¬ A ∨ B) ∧ (¬ B ∨ A)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟷ B) ⟷ (¬ A ∧ ¬ B) ∨ (A ∧ B)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∨ B ⟶ C) ⟷ (A ∨ B) ∧ ¬ C&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∨ B ⟶ C) ⟷ (A ∧ ¬ C) ∨ (B ∧ ¬ C)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-6"><div class="ex-label"><span class="ex-num">练习 2.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">水泵控制器</span></div>
+<p>一台水泵给水箱注水。两个传感器分别报告 <code>low</code>（水位低于低水位线）和 <code>high</code>（水位高于高水位线）；一个开关选择 <code>manual</code>（手动）模式；控制器决定 <code>pump</code>（水泵运行）。需求如下：</p>
+<ul>
+<li>R1：如果水位低，并且处于自动模式，水泵就运行。</li>
+<li>R2：如果水位高，水泵就不运行。</li>
+<li>R3：在手动模式下，水泵运行。</li>
+</ul>
+<ol>
+<li>把这些需求写成公式，并用 Nitpick 表明它们是一致的。</li>
+<li>找出一个使它们相互冲突的情形，并在 Isabelle 中证明这个冲突。你会怎样修复这些需求？</li>
+<li>按你的修复，能推出“如果水位低，水泵就运行”吗？如果再加上“水位不可能既低又高”这个假设，能推出吗？</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>R1 是 <code>low ∧ ¬ manual ⟶ pump</code>，R2 是 <code>high ⟶ ¬ pump</code>，R3 是 <code>manual ⟶ pump</code>。对它们的否定找到的反例，就是这三条需求的一个模型：</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump))&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump))&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    high = False
+    low = False
+    manual = False
+    pump = True</code></pre></div>
+<p>在自动模式下，水位在两条水位线之间时，水泵可以运行。</p>
+<ol start="2">
+<li>在手动模式下水位高时，R3 说水泵运行，R2 说水泵不运行：</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump) ∧
+         manual ∧ high)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump) ∧
+         manual ∧ high)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>去问工程师哪条需求优先。防止水箱溢出很可能是他们的回答，于是 R3 变为 R3′：<code>manual ∧ ¬ high ⟶ pump</code>。</p>
+<p>存在第二个冲突，R3′ 未消除：在自动模式下，当水位报告为低且高时，R1 声明泵运行而 R2 声明其不运行；传感器在所述顺序标记下从不同时报告两者；第 3 部分使该环境假设显式化。</p>
+<ol start="3">
+<li>仅凭这些需求推不出来。Nitpick 找到了这样一种情形：传感器同时报告水位低和水位高，处于手动模式，而水泵关着：</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    high = True
+    low = True
+    manual = True
+    pump = False</code></pre></div>
+<p>加上假设 <code>¬ (low ∧ high)</code> 之后，这条性质就能推出了。这个假设描述的是传感器（也就是环境），而不是控制器：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (low ∧ high) ∧
+       (low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (low ∧ high) ∧
+       (low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>关于环境的假设是规约的一部分：没有这些假设，一个正确的控制器也可能看起来是错的。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-7"><div class="ex-label"><span class="ex-num">练习 2.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">两个联结词就够了</span></div>
+<ol>
+<li>证明每个公式都等价于一个只用 ⟶ 和 <code>False</code> 的公式：分别给出与 ¬A、A ∨ B、A ∧ B 和 A ⟷ B 等价的这样的公式，并在 Isabelle 中检查它们。为什么这样就涵盖了所有公式？</li>
+<li>证明只有 ∧ 和 ∨ 是不够的：只用 ∧ 和 ∨ 由原子构造的公式（不用 ¬、⟶、⟷、<code>True</code> 或 <code>False</code>）没有一个与 ¬A 等价。提示：当每个原子都为 T 时，这样的公式取什么值？</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>真值表表明 ¬A ≡ A ⟶ False。于是 A ∨ B ≡ ¬A ⟶ B ≡ (A ⟶ False) ⟶ B，而 A ∧ B ≡ ¬(A ⟶ ¬B) ≡ (A ⟶ B ⟶ False) ⟶ False。对于 ⟷，利用 A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) 和上面 ∧ 的公式：((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ A ⟷ (A ⟶ False)&quot;
+  by blast
+
+lemma &quot;A ∨ B ⟷ ((A ⟶ False) ⟶ B)&quot;
+  by blast
+
+lemma &quot;A ∧ B ⟷ ((A ⟶ B ⟶ False) ⟶ False)&quot;
+  by blast
+
+lemma &quot;(A ⟷ B) ⟷ (((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False)&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ⟷ (A ⟶ False)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ B ⟷ ((A ⟶ False) ⟶ B)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟷ ((A ⟶ B ⟶ False) ⟶ False)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟷ B) ⟷ (((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>这就涵盖了所有公式：由代入（事实 2.4），把 A 和 B 换成任意公式，这些等价式依然成立，所以你可以从里到外逐个替换联结词，而由置换，每一步得到的都是等价的公式。<code>True</code> 等价于 False ⟶ False。</p>
+<ol start="2">
+<li>在使每个原子都为 T 的那个赋值下，只用 ∧ 和 ∨ 由原子构造的每个公式都为 T：在这个赋值下，原子都为 T；而如果 φ 和 ψ 为 T，那么 φ ∧ ψ 和 φ ∨ ψ 也为 T。由于这些公式由这些规则构造，而且只由这些规则构造（定义 2.3），所以每个这样的公式都为 T。但在这个赋值下 ¬A 为 F，所以它们之中没有一个与 ¬A 等价。这种沿着归纳定义的规则进行的论证叫做<strong>结构归纳法</strong>（structural induction）；模块 5 会正式讲解它。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-8"><div class="ex-label"><span class="ex-num">练习 2.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">骑士与无赖</span></div>
+<p>在一座岛上，骑士总是说真话，无赖总是说假话。你遇到两个岛民 P 和 Q。P 说：“Q 是无赖。”Q 说：“P 和我是同一类人。”用 <code>p</code> 表示“P 是骑士”，用 <code>q</code> 表示“Q 是骑士”。</p>
+<ol>
+<li>解释为什么 P 的话给出约束 p ⟷ ¬q，并把 Q 的话也写成一个约束。</li>
+<li>用 Nitpick 找出谁是骑士、谁是无赖。</li>
+<li>在 Isabelle 中证明这是唯一的解。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>如果 P 是骑士，P 说的话为真；如果 P 是无赖，P 说的话为假。所以“P 说 S”意味着 p ⟷ S。P 说的是 ¬q，于是得到 p ⟷ ¬q。Q 说 P 和 Q 是同一类人，即 p ⟷ q，于是得到 q ⟷ (p ⟷ q)。</li>
+<li>对约束的否定找到的反例，就是约束的一个模型：</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)))&quot;
+  nitpick
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)))&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    p = True
+    q = False</code></pre></div>
+<p>P 是骑士，Q 是无赖。验证一下：P 如实地说 Q 是无赖，而 Q 谎称他们两人是同一类人。</p>
+<ol start="3">
+<li>由这些约束可以推出这个解：</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)) ⟶ p ∧ ¬ q&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)) ⟶ p ∧ ¬ q&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>单是 Q 的约束就已经迫使 p 为真：q ⟷ (p ⟷ q) 等价于 p。如果 p 为真，p ⟷ q 与 q 的值相同，所以这个约束为真；如果 p 为假，p ⟷ q 与 q 的值相反，所以这个约束为假。p 为真时，P 的约束 p ⟷ ¬q 使 q 为假。</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>Isabelle 怎样读 ¬A ∧ B ⟶ C？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">¬(A ∧ B ⟶ C)</button></li><li><button type="button" class="quiz-opt" data-i="1">((¬A) ∧ B) ⟶ C</button></li><li><button type="button" class="quiz-opt" data-i="2">(¬A) ∧ (B ⟶ C)</button></li><li><button type="button" class="quiz-opt" data-i="3">(¬(A ∧ B)) ⟶ C</button></li></ol><div class="quiz-expl" hidden>¬ 结合得最紧，其次是 ∧，然后是 ⟶。所以 ¬ 只作用于 A，∧ 连接 ¬A 和 B，而 ⟶ 是主联结词。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">2</span><div>A ⟶ B 什么时候为假？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A 为假时</button></li><li><button type="button" class="quiz-opt" data-i="1">A 和 B 都为假时</button></li><li><button type="button" class="quiz-opt" data-i="2">B 为真而 A 为假时</button></li><li><button type="button" class="quiz-opt" data-i="3">只有在 A 为真而 B 为假时</button></li></ol><div class="quiz-expl" hidden>只有当前件成立而后件不成立时，蕴涵式才被违背。A 为假时，A ⟶ B 为空真。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>公式 φ 和它的否定 ¬φ 都是可满足的。φ 属于哪一类？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">可满足但非有效：在一些行中为真，在另一些行中为假</button></li><li><button type="button" class="quiz-opt" data-i="1">重言式</button></li><li><button type="button" class="quiz-opt" data-i="2">矛盾式</button></li><li><button type="button" class="quiz-opt" data-i="3">不可能出现这种情况</button></li></ol><div class="quiz-expl" hidden>φ 可满足，说明有某一行使 φ 为真；¬φ 可满足，说明有某一行使 φ 为假。所以 φ 既不是重言式，也不是矛盾式。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>哪种论证形式是无效的？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">由 A ⟶ B 和 A，推出 B</button></li><li><button type="button" class="quiz-opt" data-i="1">由 A ⟶ B 和 ¬B，推出 ¬A</button></li><li><button type="button" class="quiz-opt" data-i="2">由 A ⟶ B 和 B，推出 A</button></li><li><button type="button" class="quiz-opt" data-i="3">由 A ∨ B 和 ¬A，推出 B</button></li></ol><div class="quiz-expl" hidden>这是肯定后件。在 A = F、B = T 这一行中，两个前提都为真，而结论为假。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>在一条关于命题公式的引理上，<code>by simp</code> 失败了。你能得出什么结论？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">这个公式不是重言式</button></li><li><button type="button" class="quiz-opt" data-i="1">暂时什么也得不出：试试 <code>blast</code> 或 <code>auto</code>，或者用 <code>quickcheck</code> 或 <code>nitpick</code> 找反例</button></li><li><button type="button" class="quiz-opt" data-i="2">这个公式是矛盾式</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle 处理不了命题公式</button></li></ol><div class="quiz-expl" hidden>证明失败不等于找到了反例：<code>simp</code> 在皮尔士定律上就会失败，而皮尔士定律是重言式。只有成功的证明或者反例才能给问题下定论。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Nitpick 为 ¬(R1 ∧ R2 ∧ R3) 找到了一个反例。这说明了什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">R1 ∧ R2 ∧ R3 是重言式</button></li><li><button type="button" class="quiz-opt" data-i="1">这些需求是不一致的</button></li><li><button type="button" class="quiz-opt" data-i="2">其中某条需求是错的</button></li><li><button type="button" class="quiz-opt" data-i="3">这些需求是一致的：这个反例满足全部三条需求</button></li></ol><div class="quiz-expl" hidden>¬(R1 ∧ R2 ∧ R3) 的反例使这个否定式为假，因而使 R1 ∧ R2 ∧ R3 为真。它是这些需求的一个模型，表明它们可以同时成立。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="2"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_01_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 1：什么是形式化方法</span></a><a class="mnav next" href="module_03_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 3：谓词逻辑</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/widgets/_core.js" defer></script>
+<script src="assets/widgets/truth-table.js" defer></script>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

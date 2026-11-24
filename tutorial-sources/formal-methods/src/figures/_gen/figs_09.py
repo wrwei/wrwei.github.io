@@ -74,8 +74,8 @@ def fig_09_2(L):
                     recon='在 Isabelle 中重建', reconk='“Try this:” 单行证明',
                     kernel='内核', kernelk='检查每一步', thm='定理',
                     outside='Isabelle 之外：不被信任', inside='Isabelle 之内',
-                    note=['如果证明器或翻译出错，重建就会失败。',
-                          '错误的命题永远不会成为定理。'])}[L]
+                    note=['外部答案本身无法证明目标。Isabelle 必须重建证明。',
+                          '经检查的推理从假设和公理推出目标。'])}[L]
     s = SVG(760, 360, T['title'])
     # zones
     s.rect(560, 14, 190, 266, fill=C['orangep'], stroke=C['orange'], r=14, sw=1.6, dash='6 5')
@@ -85,8 +85,7 @@ def fig_09_2(L):
     # top row: goal -> filter -> translation -> provers
     s.rect(22, 30, 150, 86, fill=C['skyp'], stroke=C['blue'], r=10, sw=1.6)
     s.text(97, 54, T['goal'], size=14, weight=700, fill=C['blue'], anchor='middle')
-    premise = '(x::nat) ≤ y ⟹' if L == 'en' else 'x ≤ y ⟹'
-    s.lines(97, 80, [premise, 'x * x ≤ y * y'], size=12.5, anchor='middle', mono=True, gap=18)
+    s.lines(97, 80, ['(x::nat) ≤ y ⟹', 'x * x ≤ y * y'], size=12.5, anchor='middle', mono=True, gap=18)
     s.rect(200, 30, 150, 86, fill=C['bg'], stroke=C['slate'], r=10, sw=1.5)
     s.text(275, 54, T['filt'], size=14, weight=700, fill=C['navy'], anchor='middle')
     s.lines(275, 78, T['filtk'], size=12, anchor='middle', fill=C['slate'])

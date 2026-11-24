@@ -1,6 +1,6 @@
 # Isabelle exercises
 
-[Formal Methods with Isabelle](../index.html) · [Project guide](index.md) · [Quick reference](reference.md) · [Download examples](../../isabelle/examples/isabelle-tutorial.zip)
+[Formal Methods with Isabelle](../index.html) · [Project guide](index.md) · [Quick reference](reference.md) · [Download examples](../../isabelle/examples/isabelle-tutorial.zip) · [简体中文](zh/exercises.md){ hreflang=zh-CN }
 
 Try these after reading the guide. Use a copy of the files for experiments so you can return to the complete examples. `Exercise_Answers.thy` imports `Isabelle_Tutorial.thy` and contains every answer below.
 

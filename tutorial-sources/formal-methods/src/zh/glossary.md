@@ -109,7 +109,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **对象逻辑**<br>object logic | 书写公式所用的逻辑；在 Isabelle/HOL 中是 HOL，含 ¬ ∧ ∨ ⟶ ∀ ∃ 和 =。 | [7.1.1](module_07_ZH.html#meta-pure) |
 | **多重集**<br>multiset | 不计顺序、但计每个元素出现次数的汇集；也叫袋。`mset xs` 是列表元素组成的多重集。 | [12.2.2](module_12_ZH.html#isort-spec) |
 | **多类别逻辑**<br>many-sorted logic | 类型化的逻辑：符号的每个参数和结果都有一个类别，每个变元只在一个类别的论域中取值。 | [3.8](module_03_ZH.html#types) |
-| **多态的**<br>polymorphic | 类型中含有类型变量的函数（例如 `rev :: 'a list ⇒ 'a list`）对该类型的每个实例都适用。 | [8.1.1](module_08_ZH.html#types) |
+| **多态的**<br>polymorphic | 类型中含有类型变元的函数（例如 `rev :: 'a list ⇒ 'a list`）对该类型的每个实例都适用。 | [8.1.1](module_08_ZH.html#types) |
 
 <div class="section-anchor" id="g-e"></div>
 
@@ -273,10 +273,10 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 |---|---|---|
 | **λ 抽象**<br>λ-abstraction | `λx. t`，把每个 x 映射为 t 的无名函数。 | [8.2.1](module_08_ZH.html#lambda) |
 | **LCF 方法**<br>LCF approach | 一种架构：定理是一个抽象类型的值，只有内核的推理规则能创建它们，因此证明工具中的错误不会产生错误的定理。 | [1.4](module_01_ZH.html#trust) |
-| **类别**<br>sort (in Isabelle) | 类型类的集合，写作 {c₁, …, cₙ}。类型变量可以被限制到某个类别，例如 `'a::{one, plus}`。 | [8.6.2](module_08_ZH.html#classes) |
+| **类别**<br>sort (in Isabelle) | 类型类的集合，写作 {c₁, …, cₙ}。类型变元可以被限制到某个类别，例如 `'a::{one, plus}`。 | [8.6.2](module_08_ZH.html#classes) |
 | **类别（多类别逻辑中）**<br>sort (in many-sorted logic) | 在多类别逻辑中是“类型”的另一个说法：符号的每个参数和结果都有一个类别。 | [3.8](module_03_ZH.html#types) |
 | **类型**<br>type | 项所代表的值的种类，例如 `nat` 或 `'a list ⇒ nat`。Isabelle 首先检查类型。 | [8.1.1](module_08_ZH.html#types) |
-| **类型变量**<br>type variable | 代表任意类型的变量，例如 `'a`，读作 alpha。 | [3.4](module_03_ZH.html#validity), [8.1.1](module_08_ZH.html#types) |
+| **类型变元**<br>type variable | 代表任意类型的变量，例如 `'a`，读作 alpha。 | [3.4](module_03_ZH.html#validity), [8.1.1](module_08_ZH.html#types) |
 | **类型标注**<br>type annotation | `t :: τ` 告诉 Isabelle：t 的类型是 τ，例如 `value "2 + 3 :: nat"`。 | [1.7.2](module_01_ZH.html#first-compute), [8.1.2](module_08_ZH.html#terms) |
 | **类型构造子**<br>type constructor | 由其他类型构造出类型的名字，例如 `list` 或 `option`；它写在参数之后，例如 `nat list`。 | [8.1.1](module_08_ZH.html#types) |
 | **类型合一**<br>type unification | 寻找使两个类型相等的类型。失败时 Isabelle 报告“Type unification failed”。 | [8.1.4](module_08_ZH.html#type-errors) |

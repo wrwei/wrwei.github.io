@@ -1,7 +1,7 @@
 ---
-title: Isabelle 中的自然演绎
+title: 在 Isabelle 中使用自然演绎
 part: 2
-lead: 把模块 6 的纸上证明一条规则一条规则地变成 Isabelle 的证明脚本，一路读懂每一个证明状态，并在某一步失败时看出问题出在哪里。
+lead: 逐条应用规则，把模块 6 的纸上证明写成 Isabelle 证明脚本。读懂每一步的证明状态，并找出证明步骤失败的原因。
 minutes: 240
 needs: 模块 1、2、3 和 6
 goals:
@@ -270,7 +270,8 @@ thm ccontr classical refl subst ssubst iffI iffD1 iffD2
 ::: definition 引入规则、消去规则与析构规则
 - **引入规则**（introduction rule）的联结词出现在结论中：`conjI`、`disjI1`、`disjI2`、`impI`、`notI`、`allI`、`exI`、`iffI`。
 - **消去规则**（elimination rule）的联结词（或者 `False`）出现在第一个前提中，这个前提叫作**主前提**（major premise）；它的结论是一个任意的公式，即一个像 `?R` 这样的图式变量。它的其他前提说明在证明这个公式时可以假设什么：`conjE`、`disjE`、`impE`、`notE`、`FalseE`、`allE`、`exE`。
-- **析构规则**（destruction rule）的联结词出现在主前提中，结论是主前提的一部分：`conjunct1`、`conjunct2`、`mp`、`spec`、`iffD1`、`iffD2`。
+- **分解规则**把联结词放在主前提中，并用主前提的一部分或一个实例作为
+  结论：`conjunct1`, `conjunct2`, `mp`, `spec`, `iffD1`, `iffD2`.
 :::
 
 对同一条纸上规则，Isabelle 常常提供两个版本：一条读起来和纸上规则一样的析构规则（`conjunct1`、`mp`、`spec`），以及一条做同样的工作、但形式更适合对假设进行推理的消去规则（`conjE`、`impE`、`allE`）。第 7.4 节会说明第二种形式好在哪里。
@@ -318,7 +319,7 @@ goal (1 subgoal):
 `proof (prove)` 表示 Isabelle 正在等待证明步骤。它下面列出了仍有待证明的**子目标**（subgoal），并带有编号。一开始只有一个子目标：整个陈述。
 
 ::: definition 子目标与证明状态
-**子目标**的形式是 `⋀x₁ … xₖ. ⟦H₁; …; Hₙ⟧ ⟹ C`：对变元 x₁ … xₖ 的任意取值（第 7.6 节），在**假设** H₁ … Hₙ 之下，证明**结论** C。变元和假设都可以没有。**证明状态**（proof state）是子目标的列表。列表为空时，证明就完成了。
+**子目标**的形式是 `⋀x₁ … xₖ. ⟦H₁; …; Hₙ⟧ ⟹ C`：对变元 x₁ … xₖ 的任意取值（第 7.6 节），在**假设**H₁ … Hₙ 之下，证明**结论**C。变元和假设都可以没有。**证明状态**（proof state）是子目标的列表。列表为空时，证明就完成了。
 :::
 
 子目标就是模块 6 反向搜索中的目标 Γ ⊢ C（[第 6.7 节](module_06_ZH.html#search)），只不过是用 Pure 写的：假设 Γ 写在 ⟹ 前面，结论 C 写在它后面。
@@ -354,7 +355,7 @@ goal (2 subgoals):
  2. A ∧ B ⟹ A
 ```
 
-`conjI` 有两个前提，所以现在有两个子目标，证明树的每个分支对应一个。两者都保留了假设 A ∧ B。证明方法（proof method）作用于子目标 1；子目标 2 等着轮到它。
+`conjI`有两个前提，因此现在有两个子目标，分别对应树的每个分支，两者都保留假设A ∧ B，`rule`和`assumption`步骤在此作用于子目标1，子目标2等待其轮次，其他方法如`auto`和`simp_all`可以作用于所有子目标（模块5）。
 
 现在反向使用 (∧E₂)：
 
@@ -436,13 +437,13 @@ A ∧ B ⟶ B ∧ A 的证明树和它的证明脚本。从根部开始，每个
 :::
 
 ::: analogy
-证明状态就是一张待办清单。每个 `apply` 从清单上取下第一项，并可能在原处放上几个新的、更小的事项；`done` 检查清单是否已经清空。
+证明状态是一个待办事项列表。在这些逐条规则的脚本中，`apply` 将第一项替换为所选步骤的子目标；`done` 检查列表是否为空。
 :::
 
 ### 合一 {#backward-unification}
 
 ::: definition 合一
-**合一**（unification）通过为图式变量选择值，使两个项变得完全相同。Isabelle 每次应用规则时都要用到它：在 `rule` 中，合一的是规则的结论和子目标的结论；在 `assumption` 中，合一的是子目标的结论和某个假设。如果无论怎样选值都不能使两个项完全相同，这一步就失败了。
+**合一**通过为模式变量选择值使两个项相同。Isabelle 在应用规则时使用它：在`rule`中，在规则结论与子目标结论之间；在`assumption`中，在子目标结论与假设之间。如果没有值的选择能使两个项相同，则该应用无法成功。Isabelle 还尊重类型和变量作用域，并基于绑定变量重命名和 lambda 转换比较项；它在合一时不证明任意算术恒等式。高阶合一无一般判定过程，因此搜索未必找到所有可能的实例化。
 :::
 
 | 项 1 | 项 2 | 合一的结果 |
@@ -716,7 +717,7 @@ goal (1 subgoal):
   done
 ```
 
-第 7.6 节中有一个非用 `frule` 不可的例子：一个要用两次的带量词的假设。
+第7.6节有一个`frule`有用的情况：一个需要两次使用的量化假设。
 
 ### 一次走多步：intro 与 elim {#assumptions-intro}
 
@@ -765,6 +766,8 @@ goal (2 subgoals):
 | 由某个假设可以得到一个新事实 | 析构规则 | `drule`；要保留这个假设就用 `frule` | `apply (drule mp)` |
 | 结论就是某个假设 | 无 | `assumption` | `apply assumption` |
 | 同一类的许多步骤 | 引入规则或消去规则 | `intro`、`elim` | `apply (intro impI conjI)` |
+
+这些是惯例配对，并非由方法名强制执行的限制。`rule` 也可以逆向使用消去或破坏定理，正如 `rule conjunct2` 已做的那样。类似地，当 `erule` 的第一个前提和结论匹配时，它可以使用如 `mp` 这样的定理。这些方法在将定理与子目标及其假设进行合一（resolve）的方式上有所不同。
 
 ::: tip
 先看子目标，再找规则。如果你想处理结论的主联结词（main connective），就用 `rule` 应用它的引入规则。如果你想使用某个假设，就用 `erule` 应用这个假设的联结词的消去规则。第 7.8 节会说明把两者弄混时会发生什么。
@@ -1127,16 +1130,16 @@ goal (1 subgoal):
 ***  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
 ```
 
-其他证明方法也帮不上忙。证明卡住了，唯一的出路是退回去：
+此直接规则序列阻塞了预期的 `assumption` 步骤。为此证明，在 `exI` 之前重启使用 `exE`，使得见证可以依赖于命名主密钥：
 
 ```isabelle
   oops
 ```
 
-在纸上也会发生同样的事情。在证明树中把 (∃I) 放在 (∃E) 下面，就意味着要在 (∃E) 的本征变元 a 出现之前选定见证。唯一可行的见证是 a，可那样一来，(∃E) 的结论就会提到它自己的本征变元，而附加条件禁止这样做。Isabelle 的检查只是同一个条件的另一种形式。
+在纸面上，此尝试性树会在其（∃E）作用域外使用本征变元 a 作为存在见证，这违反了侧条件。Isabelle 拒绝用后续固定的 x 实例化 `?x4 y`，从而强制执行了相同的作用域限制。这并未证明不存在任何 HOL 方法能解决剩余的模式目标：HOL 的选择算子可以表达主密钥而无需引用该局部名称。要点在于此特定逐条证明所要求的依赖关系。
 
 ::: keyidea
-**先固定，后猜测。** `rule allI` 和 `erule exE` 固定变元；`rule exI`、`erule allE` 和 `drule spec` 产生未知量。一个未知量只能变成由它产生之前就已固定的变元构造出的项。所以，先应用固定变元的规则，再应用产生未知量的规则。这正是第 6.7 节的建议：先打开存在量词的假设，再选择实例和见证；而 Isabelle 的未知量说明了这条建议为什么行得通。
+**先固定，后猜测。** `rule allI`和`erule exE`固定变量；`rule exI`、`erule allE`和`drule spec`创建未知项。未知项只能由在创建它之前已固定的变量构成的项组成，这由显示子目标中的其参数记录。上下文参数和常量仍然可用。先固定变量是这些证明的一种有用策略，而非对每个可能的HOL证明的要求。这是第6.7节的建议，即先打开存在性假设，然后选择实例和见证，Isabelle的未知项展示了其工作原理。
 :::
 
 如果一个陈述不是有效的（valid），那么什么顺序都不行。逆命题（converse）(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) 说的是：如果每扇门都有钥匙，那么存在一把万能钥匙。[第 6.6 节](module_06_ZH.html#quantifiers)给出了一个反模型（countermodel），练习 7.9 则让你亲眼看着证明的尝试卡住。
@@ -1156,7 +1159,7 @@ goal (1 subgoal):
  1. ?n + ?n = 6
 ```
 
-没有哪个假设说明 `?n` 应该是哪个数，而 `simp`（模块 1）不会求出等式中的未知量：
+无假设固定 `?n`，且 `simp`（模块 1）不通过搜索数值见证来求解此方程：
 
 ```isabelle fails
   apply simp
@@ -1273,7 +1276,7 @@ goal (1 subgoal):
 
 ### 反证法 {#classical-raa}
 
-到目前为止用到的规则都是直觉主义的（intuitionistic）：其中没有一条是 (RAA)。模块 6 说明了，有些重言式（tautology）不用 (RAA) 就推导不出来（[第 6.5 节](module_06_ZH.html#classical)），排中律（law of excluded middle）A ∨ ¬A 就是标准的例子。不用 (RAA) 试试看：
+目前使用的显式自然演绎规则均有直觉主义对应规则；其中没有（RAA）。这并不意味着底层 HOL 理论是直觉主义的，也不意味着自动化使用的所有库事实都是构造性的。模块 6 解释了某些重言式在没有（RAA）的情况下无法推导（[Section 6.5](module_06_ZH.html#classical)），而 A ∨ ¬A，即排中律，是标准示例。尝试在不使用它的情况下：
 
 ```isabelle
 lemma "A ∨ ¬ A"
@@ -1405,7 +1408,7 @@ thm excluded_middle
 
 ### 一条德摩根律 {#classical-demorgan}
 
-第 6.5 节说明了，在德摩根律（De Morgan's laws）的四个方向中，有一个需要 (RAA)：¬(A ∧ B) ⟶ ¬A ∨ ¬B。思路是：假设 ¬A ∨ ¬B 为假。那么 A 必定成立，否则 ¬A ∨ ¬B 就成立了；B 也是一样。但 A ∧ B 与 ¬(A ∧ B) 矛盾。
+在德摩根定律的四个方向中，第 6.5 节指出需要（RAA）：¬(A ∧ B) ⟶ ¬A ∨ ¬B。思路：假设 ¬A ∨ ¬B 为假。那么 A 必须成立，否则 ¬A ∨ ¬B 将成立；同理 B 也成立。但 A ∧ B 与 ¬(A ∧ B) 矛盾。
 
 ```prooftree
 ¬(A ∧ B) ⟶ ¬A ∨ ¬B   (⟶I¹)
@@ -1558,20 +1561,13 @@ goal (2 subgoals):
 
 要使用一个已有的等价式，`iffD1` 和 `iffD2` 的作用就像两个方向上的 `mp`。
 
-## When a step fails {#errors}
+## 当步骤失败时 {#errors}
 
-Any step can fail, and Isabelle's messages are short. This section collects the ones you will meet,
-with their causes and fixes. Isabelle marks the step that failed and shows the proof state it was given.
-The steps before it are not affected, so you can replace the failing step with another.
+任何步骤都可能失败，且 Isabelle 的消息简短。本节收集你将遇到的消息及其原因和修复方法。Isabelle 标记失败的步骤并显示其接收到的证明状态。其前的步骤不受影响，因此你可以用其他步骤替换失败的步骤。
 
-### Failed to apply proof method {#errors-apply}
+### 应用证明方法失败 {#errors-apply}
 
-This is the most common message. It means that the method could do nothing with subgoal 1: for `rule`,
-the conclusion of the rule does not unify with the conclusion of the subgoal; for `erule`, either that or
-no assumption fits the rule's major premise; for `drule` and `frule`, no assumption fits the major
-premise; for `assumption`, no assumption unifies with the conclusion. Isabelle shows the proof state it
-was given. Here is the early choice of a side that Module 6 warned about (Section 6.4), followed by a
-hopeful `assumption`:
+这是最常见的消息，表示该方法对子目标 1 无法执行任何操作：对于 `rule`，规则结论与子目标结论无法合一；对于 `erule`，要么无法合一，要么没有假设匹配规则的主要前提；对于 `drule` 和 `frule`，没有假设匹配主要前提；对于 `assumption`，没有假设与结论合一。Isabelle 展示了它接收到的证明状态。以下是模块 6 在 6.4 节中警告过的早期选择，随后是一个充满希望的 `assumption`：
 
 ```isabelle fails
 lemma "A ∨ ¬ A"
@@ -1586,12 +1582,9 @@ lemma "A ∨ ¬ A"
 ***  1. A
 ```
 
-`disjI1` left the subgoal A, which has no assumptions at all, so `assumption` has nothing to unify with.
-Three other causes are common. Each gives the same message, followed by the proof state as it was before
-the failing step.
+`disjI1` 左侧的子目标 A 没有任何前提，因此 `assumption` 没有可合一的对象。另外三种常见原因也会产生相同的消息，随后显示失败步骤发生前的证明状态。
 
-**Taking an assumption apart before it is one.** In the goal A ∧ B ⟶ B ∧ A, the conjunction A ∧ B is
-not an assumption; it is part of the implication, so `erule conjE` finds nothing to work on:
+**在假设成为假设之前将其拆解。**在目标 A ∧ B ⟶ B ∧ A 中，合取 A ∧ B 不是假设，而是蕴含式的一部分，因此 `erule conjE` 找不到可操作的内容：
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1605,10 +1598,9 @@ lemma "A ∧ B ⟶ B ∧ A"
 ***  1. A ∧ B ⟶ B ∧ A
 ```
 
-Apply `impI` first: it moves A ∧ B into the assumptions.
+首先应用 `impI`：它将 A ∧ B 移入假设。
 
-**Expecting assumption to look inside a formula.** After `impI` and `conjI`, subgoal 1 is A ∧ B ⟹ B. B
-is part of the assumption, but it is not the assumption, so `assumption` fails:
+**期望假设能深入公式内部。** 在 `impI` 和 `conjI` 之后，子目标 1 为 A ∧ B ⟹ B。B 是假设的一部分，但并非假设本身，因此 `assumption` 失败：
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1625,10 +1617,9 @@ lemma "A ∧ B ⟶ B ∧ A"
 ***  2. A ∧ B ⟹ A
 ```
 
-`assumption` only unifies whole formulas. Take the assumption apart first, with `erule conjE`.
+`assumption` 仅对完整公式进行合一。首先使用 `erule conjE` 分解假设。
 
-**Using a rule for the wrong connective.** `disjI1` concludes a disjunction, but the conclusion of the
-subgoal A ∧ B ⟹ B ∧ A is a conjunction:
+**使用适用于错误联结词的规则。** `disjI1` 结论为析取，但子目标 A ∧ B ⟹ B ∧ A 的结论为合取：
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1643,13 +1634,11 @@ lemma "A ∧ B ⟶ B ∧ A"
 ***  1. A ∧ B ⟹ B ∧ A
 ```
 
-When in doubt, look the rule up with `thm`: for `rule`, its conclusion must have the same main connective
-as the conclusion of the subgoal.
+如有疑问，使用 `thm` 查阅该规则：对于 `rule`，其结论必须与子目标的结论合一。固定连接词必须匹配，但像 `?P` 这样的模式结论可以匹配不同的形状。该规则在实例化前不必显示目标的连接词。
 
-### Undefined fact {#errors-name}
+### 未定义的定理 {#errors-name}
 
-A misspelt rule name gives a different message. Many rule names end in a capital I, which looks much
-like a lower-case l:
+拼写错误的规则名会给出不同的消息。许多规则名以大写 I 结尾，其外观与小写 l 非常相似：
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1662,10 +1651,9 @@ lemma "A ∧ B ⟶ B ∧ A"
 *** Undefined fact: "conjl"⌂
 ```
 
-### Failed to finish proof {#errors-done}
+### 证明失败 {#errors-done}
 
-`done` fails if subgoals remain, and lists them. Take the same early choice as above and write `done`
-straight after it:
+`done` 在子目标未消解时失败，并列出它们。采用与上文相同的早期选择，并在其后直接写入 `done`：
 
 ```isabelle fails
 lemma "A ∨ ¬ A"
@@ -1679,15 +1667,11 @@ lemma "A ∨ ¬ A"
 ***  1. A
 ```
 
-`done` never proves anything itself, not even a subgoal whose conclusion is one of its assumptions. Add
-the missing steps or, if the subgoal left is unprovable, as here, go back and choose differently. (A
-one-line proof `by m`, as in `by blast`, behaves a little differently: after the method m, it closes the
-subgoals that are left by assumption, and reports Failed to finish proof only if something else
-remains.)
+`done` 本身无法证明任何内容，甚至无法证明结论是其假设之一的子目标。添加缺失的步骤，或者如果剩余子目标不可证明，如本例所示，则返回并选择不同的策略。（一行证明 `by m`，如 `by blast` 所示，行为略有不同：在方法 m 之后，它通过假设关闭剩余子目标，并且仅当其他内容剩余时才报告 Failed to finish proof。）
 
-### Forgetting done {#errors-forget}
+### 遗忘完成 {#errors-forget}
 
-Without `done`, the proof is still open when the next command arrives, and the next lemma is refused:
+没有`done`，当下一条命令到达时证明仍然开放，且下一条引理被拒绝：
 
 ```isabelle fails
 lemma "A ⟶ A"
@@ -1701,14 +1685,11 @@ lemma "B ⟶ B"
 *** Bad context for command "lemma"⌂
 ```
 
-A lemma cannot start inside a proof. Add `done` after the last `apply`. If the unfinished proof is the
-last one in the theory, `end` is refused instead, with the message "Illegal application of proof command
-in "prove" mode".
+引理不能始于证明内部。在最后一个`apply`后添加`done`。若未完成的证明是理论中的最后一个，则拒绝`end`，并提示“在“prove”模式下非法使用证明命令”。
 
-### A detour, not an error: rule instead of erule {#errors-rule}
+### 一次绕道，而非错误：使用 rule 而非 erule {#errors-rule}
 
-Some mistakes produce no error at all, only a strange proof state. Applying an elimination rule with
-`rule` instead of `erule` is the usual one:
+某些错误根本不会报错，只会产生一个奇怪的证明状态。通常的情况是：将带有 `rule` 的消除规则应用于 `erule` 时
 
 ```isabelle
 lemma "A ∨ B ⟶ B ∨ A"
@@ -1724,37 +1705,27 @@ goal (3 subgoals):
  3. ⟦A ∨ B; ?Q2⟧ ⟹ B ∨ A
 ```
 
-`rule` unified only the conclusion ?R of `disjE` with B ∨ A. The major premise became subgoal 1, so
-Isabelle asks you to prove some disjunction it does not know yet, and the two cases speak of unknown
-formulas. `apply assumption` would repair this by unifying the unknown disjunction with A ∨ B, and the
-result would be the `erule` version with the assumption A ∨ B kept in both cases. Use `erule` from the
-start.
+`rule` 仅将 `disjE` 的结论 ?R 与 B ∨ A 进行合一。主要前提成为子目标 1，因此 Isabelle 要求证明某个它尚不知晓的析取式，且两个案例涉及未知公式。`apply assumption` 通过将未知析取式与 A ∨ B 进行合一来修复此问题，结果将是 `erule` 版本，其中假设 A ∨ B 在两个案例中均予保留。从一开始就使用 `erule`。
 
 ```isabelle
   oops
 ```
 
 ::: trouble
-- **Failed to apply proof method**: the rule does not fit subgoal 1, or no assumption fits its major
-  premise. Check the main connective; use `impI` before taking an assumption apart; read the rule with
-  `thm`.
-- **Undefined fact**: a misspelt rule name, such as `conjl` for `conjI`.
-- **Failed to finish proof**: subgoals remain at `done`; they are listed.
-- **Bad context for command "lemma"**: the previous proof has no `done`.
-- **Inner syntax error … Failed to parse prop**: a mistake in the statement itself, such as ⟹ inside a
-  formula (Section 7.1).
-- **A subgoal that cannot be closed, with unknowns such as `?x4 y`**: a quantifier rule came too early.
-  Fix variables before you create unknowns (Section 7.6).
+- **应用证明方法失败**：该规则不适用于子目标 1，或其假设不匹配主要结论
+  前提。检查主连接词；在分解假设前使用 `impI`；使用 `thm` 读取规则。
+- **未定义的定理**：拼写错误的规则名称，例如将`conjl`误写为`conjI`。
+- **证明未完成**：`done`处仍有子目标；它们已列出。
+- **命令“lemma”的上下文错误**：前一个证明没有`done`。
+- **内部语法错误…解析 prop** 失败：语句本身存在错误，例如在
+  公式（第 7.1 节）。
+- **一个无法关闭的子目标，包含如`?x4 y`**这样的未知量：量词规则应用过早。
+  在创建未知变量之前先固定变量（第7.6节）。
 :::
 
-## Letting Isabelle search: blast and auto {#blast}
+## 让 Isabelle 进行搜索：blast 与 auto {#blast}
 
-Module 6 ended by letting `blast` prove its derivations ([Section 6.9](module_06_EN.html#isabelle)). You
-have now done by hand what `blast` does automatically. `blast` belongs to Isabelle's **classical
-reasoner**, a family of proof methods built on natural-deduction rules. It applies introduction and
-elimination rules like the ones in this module: the safe ones of Section 6.7 freely, the others as
-choices. When a choice leads nowhere, it goes back and tries another, and in the end it either finds a
-complete proof or fails. Each example of this module takes a single call:
+模块 6 通过让 `blast` 证明其推导（[Section 6.9](module_06_ZH.html#isabelle)）结束。你现在已手动完成了 `blast` 自动执行的操作。`blast` 属于 Isabelle 的 **classical reasoner**，这是一组基于自然演绎规则证明方法的家族。它应用引入和消除规则，如本模块中的规则：安全规则（第 6.7 节）自由应用，其他规则作为选择。当选择无果时，它可以回溯并尝试其他选择，在其搜索范围内。它可能找到完整证明、失败或达到资源限制。以下示例采用单次调用：
 
 ```isabelle
 lemma "¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B"
@@ -1767,11 +1738,9 @@ lemma "⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))"
   by blast
 ```
 
-`blast` found the instance step s that unification alone got wrong in Section 7.6: when one choice
-fails, it tries another. And whatever `blast` finds, the theorem is built by Isabelle's kernel from the
-rules of the logic, as for every other method (Module 1).
+`blast` 找到了在 7.6 节中仅靠合一无法正确处理的实例步骤 s：当一个选择失败时，它会尝试另一个选择。无论 `blast` 找到什么，定理均由 Isabelle 的内核根据逻辑规则构建。如 Module 1 所述，该保证针对相对于理论公理和可信基础设施的普通重构证明；承认和预言方法引入了不同的证据。
 
-When the statement is not valid, `blast` fails, as Section 6.9 showed for the master key:
+当命题无效时，`blast` 失败，正如第 6.9 节对主密钥所示：
 
 ```isabelle fails
 lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
@@ -1784,10 +1753,7 @@ lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
 ***  1. (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)
 ```
 
-With `by`, Isabelle calls the method the *initial* proof method, so the message says only that `blast`
-found no proof. It does not say whether the statement is false or too hard for `blast`; `nitpick`
-(Modules 2 and 3) can look for a counterexample. `auto` behaves differently: it does what it can and
-shows you what is left.
+借助`by`，Isabelle 调用该方法作为初始证明方法，因此消息仅表明`blast`未找到证明，它并未说明该命题为假或对于`blast`而言过于困难；`nitpick`（Modules 2 和 3）可以寻找反例。`auto` 的行为不同：它尽其所能并展示剩余部分。
 
 ```isabelle
 lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
@@ -1804,64 +1770,53 @@ goal (1 subgoal):
   oops
 ```
 
-`auto` turned the implication into an assumption and stopped there. `auto` combines classical reasoning
-with the simplifier, and leaves the subgoals it cannot prove; Module 9 covers it in depth. `blast` does
-no rewriting and knows little about equality, but *Programming and Proving in Isabelle/HOL* calls it "the
-method of choice for complex logical goals".
+`auto` 将蕴含式转化为假设并在此停止。`auto` 结合经典推理与化简器，并保留其无法证明的子目标；Module 9 深入介绍它。`blast` 不调用化简器且对等式知之甚少，但 *Programming and Proving in Isabelle/HOL* 称其为“复杂逻辑目标的首选方法”。
 
-So which should you use? For routine logic, `blast` or `auto`. But automation fails often enough, on
-goals that are too big or not quite true, and then the manual steps are how you find out why: apply a
-few rules by hand, look at the subgoals, and call `blast` on the pieces, or discover that one of them
-cannot be proved. That is why this module did everything by hand first.
+那么应该使用哪一个？对于常规逻辑，使用 `blast` 或 `auto`。但自动化在目标过大或不完全为真时经常失败，此时手动步骤是查明原因的方法：手动应用若干规则，查看子目标，并对各部分调用 `blast`，或发现其中一部分无法被证明。这就是为什么该模块首先全部手动操作的原因。
 
 ::: tip
-A good routine when `blast` fails: apply the obvious introduction rules with `intro` (`impI`, `allI`,
-`conjI`, …) and take apart the obvious assumptions with `elim` (`conjE`, `exE`, …). Then try `blast` on
-each subgoal. A subgoal that looks false is a hint that the whole statement may be false; try `nitpick`
-on the lemma.
+当`blast`失败时的良好例程：使用`intro`（`impI`, `allI`, `conjI`, …）应用明显的引入规则，并用`elim`（`conjE`, `exE`, …）分解明显的假设。然后在每个子目标上尝试`blast`。看似错误的子目标是整个命题可能为假的提示；请在引理上尝试`nitpick`。
 :::
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- Isabelle has two levels of logic: the meta-logic **Pure**, with ⟹, ⋀ and ≡, in which rules and goals
-  are written, and the object logic **HOL**, with ¬ ∧ ∨ ⟶ ∀ ∃ and =, in which formulas are written.
-- A rule is a theorem: `thm conjI` shows `⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q`. **Schematic variables** such as `?P` can
-  be replaced by any term: by **unification** automatically, or by hand with `of` and `rule_tac`.
-- Each rule of Module 6 has an Isabelle name: `conjI`, `conjunct1`, `conjunct2`, `conjE`, `disjI1`,
-  `disjI2`, `disjE`, `impI`, `mp`, `impE`, `notI`, `notE`, `FalseE`, `allI`, `spec`, `allE`, `exI`,
-  `exE`, `ccontr`, `classical`, `refl` and `subst`.
-- A proof script builds the paper tree from the root: `rule` applies an introduction rule to the
-  conclusion; `erule`, `drule` and `frule` apply elimination and destruction rules to assumptions;
-  `assumption` closes a branch; `intro` and `elim` repeat; `done` checks that nothing is left.
-- `allI` and `exE` create **fixed variables** (⋀x), which enforce the eigenvariable conditions; `exI`,
-  `allE` and `spec` create unknowns. Fix first, guess later.
-- Classical proofs use `ccontr`, which is (RAA), or `classical`.
-- The common messages are Failed to apply proof method, Undefined fact, Failed to finish proof and Bad
-  context for command.
-- `blast` searches with the same rules and either succeeds or fails; `auto` shows what it could not
-  prove.
+- Isabelle 具有两个逻辑层级：元逻辑 **Pure**，包含 ⟹、⋀ 和 ≡，用于规则和目标的
+  被书写的是对象逻辑**HOL**，其中包含¬ ∧ ∨ ⟶ ∀ ∃ 和 =，公式在其中被书写。
+- 规则是一个定理：`thm conjI` 展示了 `⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q`。**模式变量** 如 `?P` 可以
+  由适当类型的项和允许的变量依赖关系实例化：通过**合一**自动完成，或通过`of`和`rule_tac`手动完成。
+- 模块 6 的每条规则在 Isabelle 中均有对应名称：`conjI`, `conjunct1`, `conjunct2`, `conjE`, `disjI1`,
+  `disjI2`, `disjE`, `impI`, `mp`, `impE`, `notI`, `notE`, `FalseE`, `allI`, `spec`, `allE`, `exI`, `exE`, `ccontr`, `classical`, `refl` and `subst`.
+- 证明脚本从根节点构建论文树：`rule` 将规则的结论与
+  目标；`erule`、`drule` 和 `frule` 以不同方式对假设应用规则进行形式化规约；`assumption` 关闭分支；`intro` 和 `elim` 重复；`done` 检查是否无剩余。
+- `allI` 和 `exE` 创建 **固定变量** (⋀x)，它们强制执行本征变元条件；`exI`，
+  `allE` 和 `spec` 创建未知项。先固定前者，稍后猜测后者。
+- 经典证明使用`ccontr`，即（RAA），或`classical`。
+- 常见的消息有 Failed to apply proof method、Undefined fact、Failed to finish proof 和 Bad
+  上下文用于命令。
+- `blast` 使用相同的规则进行搜索，且要么成功要么失败；`auto` 展示其无法处理的内容
+  证明。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Read a rule {#ex-7-1} ★
-`thm impE` prints `⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R`.
+:::: exercise 读取一条规则 {#ex-7-1} ★
+`thm impE` 打印 `⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R`。
 
-1. Which premise is the major premise?
-2. Which premise has an assumption of its own, and what is it?
-3. Draw the rule as a paper rule, in the style of Module 6.
-4. With which method do you normally use `impE`? What does it do to the subgoal ⟦A ⟶ B; A⟧ ⟹ C?
+1. 哪个前提是大前提？
+2. 哪个前提拥有自己的假设，它是什么？
+3. 将规则绘制为纸面规则，采用 Module 6 的风格。
+4. 通常用哪种方法应用 `impE`？它怎样处理子目标 ⟦A ⟶ B; A⟧ ⟹ C？
 
 ::: solution
-1. `?P ⟶ ?Q`: it contains the connective that the rule eliminates.
-2. The third, `?Q ⟹ ?R`: while proving ?R you may assume ?Q.
-3. As a paper rule, with the discharged assumption marked:
+1. `?P ⟶ ?Q`: 它包含该规则所消除的连接词。
+2. 第三条，`?Q ⟹ ?R`：在证明 ?R 时，你可以假设 ?Q。
+3. 作为论文规则，已释放的假设标记为：
 
    $$
    \dfrac{\begin{matrix}\\ \\ P \imp Q\end{matrix} \qquad \begin{matrix}\\ \\ P\end{matrix} \qquad \begin{matrix}[Q]^1\\ \vdots\\ R\end{matrix}}{R}\;(\mathrm{impE}^1)
    $$
 
-4. With `erule`. It removes the assumption A ⟶ B and leaves two subgoals: prove A, and then prove C
-   with B as an extra assumption.
+4. 根据 `erule`，它移除假设 A ⟶ B 并留下两个子目标：证明 A，然后证明 C
+   以 B 作为额外假设。
 
    ```isabelle
    lemma "⟦A ⟶ B; A⟧ ⟹ C"
@@ -1875,8 +1830,7 @@ on the lemma.
     2. ⟦A; B⟧ ⟹ C
    ```
 
-   The first subgoal is closed by `assumption`; the second cannot be proved, because C is unrelated to A
-   and B, so abandon the attempt:
+   第一个子目标由 `assumption` 关闭；第二个子目标无法证明，因为 C 与 A 和 B 无关，因此放弃尝试：
 
    ```isabelle
      oops
@@ -1884,9 +1838,8 @@ on the lemma.
 :::
 ::::
 
-:::: exercise From tree to script {#ex-7-2} ★
-Write an apply script that follows this tree step by step. Say which command closes which leaf. Then check
-your script in Isabelle.
+:::: exercise 从树到脚本 {#ex-7-2} ★
+编写一个 apply 脚本，按此树逐步执行，说明哪个命令关闭哪个叶节点，然后在 Isabelle 中验证该脚本。
 
 ```prooftree
 A ⟶ B ⟶ A ∧ B   (⟶I¹)
@@ -1897,7 +1850,7 @@ A ⟶ B ⟶ A ∧ B   (⟶I¹)
 ```
 
 ::: solution
-Two `impI` steps for (⟶I¹) and (⟶I²), one `conjI` step for (∧I), and one `assumption` for each leaf:
+针对 (⟶I¹) 和 (⟶I²) 的两个 `impI` 步骤，针对 (∧I) 的一个 `conjI` 步骤，以及每个叶节点的一个 `assumption` 步骤：
 
 ```isabelle
 lemma "A ⟶ B ⟶ A ∧ B"
@@ -1918,13 +1871,12 @@ goal (1 subgoal):
   done
 ```
 
-The first `assumption` closes the leaf [A]¹ (subgoal 1 is A), the second closes [B]².
+第一个`assumption`关闭叶节点[A]¹（子目标1为A），第二个关闭[B]²。
 :::
 ::::
 
-:::: exercise Which method? {#ex-7-3} ★
-For each subgoal, name the first step you would take (method and rule), and say what is left after it.
-Then finish each proof in Isabelle.
+:::: exercise 采用哪种方法？ {#ex-7-3} ★
+对每个子目标，命名你采取的第一步（方法与规则），并说明其后的剩余部分。随后在 Isabelle 中完成每个证明。
 
 1. `⟦A; B⟧ ⟹ B ∧ A`
 2. `A ∧ B ⟹ B`
@@ -1933,12 +1885,12 @@ Then finish each proof in Isabelle.
 5. `P c ⟹ ∃x. P x`
 
 ::: solution
-1. `rule conjI` leaves B and A, each closed by `assumption`.
-2. `erule conjE` leaves ⟦A; B⟧ ⟹ B, closed by `assumption`.
-3. `rule impI` leaves ⟦¬ A; A⟧ ⟹ B. Then `erule notE` turns the goal into A, closed by `assumption`.
-4. `erule allE` replaces the assumption with an instance P t, where t is an unknown, and `assumption`
-   sets t to c. (`drule spec` works too.)
-5. `rule exI` leaves P t to prove, with an unknown witness t, and `assumption` sets t to c.
+1. `rule conjI` 留下 B 和 A 两个子目标，分别用 `assumption` 完成。
+2. `erule conjE` 留下 ⟦A; B⟧ ⟹ B，用 `assumption` 完成。
+3. `rule impI` 留下 ⟦¬ A; A⟧ ⟹ B。再用 `erule notE` 把目标化为 A，最后用 `assumption` 完成。
+4. `erule allE` 用实例 P t 替换假设，其中 t 是未知项，且 `assumption`
+   将 sets 赋值为 c。（`drule spec` 同样适用。）
+5. `rule exI` 留下待证的 P t，其中见证 t 未知。`assumption` 将 t 实例化为 c。
 
 ```isabelle
 lemma "⟦A; B⟧ ⟹ B ∧ A"
@@ -1971,15 +1923,14 @@ lemma "P c ⟹ ∃x. P x"
 :::
 ::::
 
-:::: exercise Currying {#ex-7-4} ★★
-Exercise 6.4 derived these two formulas on paper. Prove them in Isabelle with `rule`, `erule`, `drule` and
-`assumption`:
+:::: exercise 柯里化 {#ex-7-4} ★★
+练习 6.4 在纸上推导了这两个公式。请使用 `rule`、`erule`、`drule` 和 `assumption` 在 Isabelle 中证明它们：
 
 1. `(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)`
 2. `(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)`
 
 ::: solution
-In the first, take the conjunction apart and use the nested implication twice, with `drule mp`:
+在第一个证明中，将合取式拆开，并两次使用嵌套蕴含，其中`drule mp`：
 
 ```isabelle
 lemma "(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)"
@@ -1994,7 +1945,7 @@ lemma "(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)"
   done
 ```
 
-In the second, `erule impE` asks you to prove A ∧ B, which `conjI` splits:
+在第二种情况中，`erule impE`要求你证明 A ∧ B，`conjI` 将其分解：
 
 ```isabelle
 lemma "(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)"
@@ -2021,11 +1972,8 @@ goal (2 subgoals):
 :::
 ::::
 
-:::: exercise Two De Morgan laws without RAA {#ex-7-5} ★★
-Exercise 6.5 and Section 6.5 derived `¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)` and `¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)` on paper. Prove
-both in Isabelle without `ccontr` or `classical`. In the second you will meet the pitfall of Section 7.5:
-`erule notE` takes the first negated assumption. Name the one you want with `erule_tac P = B in notE`
-(the variable of `notE` is called P).
+:::: exercise 两个不含 RAA 的德摩根定律 {#ex-7-5} ★★
+Exercise 6.5 和 Section 6.5 在纸上推导了 `¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)` 和 `¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)`。在 Isabelle 中证明两者，不使用 `ccontr` 或 `classical`。在第二个证明中，你将遇到 Section 7.5 中的陷阱：`erule notE` 取第一个被否定的假设。用 `erule_tac P = B in notE` 命名你希望的那个（`notE` 的变量名为 P）。
 
 ::: solution
 ```isabelle
@@ -2041,7 +1989,7 @@ lemma "¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)"
   done
 ```
 
-In the second law, the case split leaves two subgoals with both ¬A and ¬B among the assumptions:
+在第二条定律中，情况分解留下两个子目标，其中假设中同时包含 ¬A 和 ¬B：
 
 ```isabelle
 lemma "¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)"
@@ -2058,8 +2006,7 @@ goal (2 subgoals):
  2. ⟦¬ A; ¬ B; B⟧ ⟹ False
 ```
 
-In the first case, ¬A is the right one, and it comes first. In the second case, `erule notE` would take
-¬A again and leave A to prove, which is impossible; choose ¬B instead:
+在第一种情况下，¬A 是正确的且优先出现。在第二种情况下，`erule notE` 会再次选取 ¬A 而留下 A 需证明，这是不可能的；因此选择 ¬B：
 
 ```isabelle
   apply (erule notE)
@@ -2080,17 +2027,15 @@ goal (1 subgoal):
 :::
 ::::
 
-:::: exercise Write access {#ex-7-6} ★★
-In an access-control policy, every administrator may write. Prove that whoever may not write is not an
-administrator:
+:::: exercise 写访问 {#ex-7-6} ★★
+在访问控制策略中，每位管理员均可写入。证明任何不可写入者均非管理员：
 
 `(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)`
 
-Plan the order of the quantifier steps first: which rule fixes a variable, and which creates an
-unknown?
+首先规划量词步骤的顺序：哪个规则固定变量，哪个生成未知项？
 
 ::: solution
-`allI` fixes u in the conclusion, and `allE` creates an unknown instance of the assumption. Fix first:
+`allI`在结论中固定u，`allE`创建假设的未知实例。先固定：
 
 ```isabelle
 lemma "(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)"
@@ -2118,7 +2063,7 @@ goal (1 subgoal):
  1. ⋀u. ⟦¬ can_write u; admin u; can_write u⟧ ⟹ False
 ```
 
-`assumption` instantiated the unknown with the fixed u, which is possible because u was fixed first.
+`assumption` 使用固定项 u 实例化了未知量，这是可能的，因为 u 是最先固定的。
 
 ```isabelle
   apply (erule notE)
@@ -2128,10 +2073,8 @@ goal (1 subgoal):
 :::
 ::::
 
-:::: exercise Splitting an existential {#ex-7-7} ★★
-Prove `(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)`, which Exercise 6.6 derived on paper. Then explain in a
-sentence or two, in terms of fixed variables and unknowns, why the converse,
-`(∃x. P x) ∧ (∃x. Q x) ⟶ (∃x. P x ∧ Q x)`, cannot be proved.
+:::: exercise 存在量词拆分 {#ex-7-7} ★★
+证明`(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)`，这是练习6.6在纸上推导出的结果。然后用一两句话，基于固定变量和未知项，解释为什么逆命题`(∃x. P x) ∧ (∃x. Q x) ⟶ (∃x. P x ∧ Q x)`无法被证明。
 
 ::: solution
 ```isabelle
@@ -2157,22 +2100,15 @@ goal (2 subgoals):
   done
 ```
 
-The converse is not valid: P could be "is even" and Q "is odd" on the natural numbers. Both have
-witnesses, but no number is both. In a proof attempt, the two `exE` steps fix two different variables,
-one with P and one with Q, and the single unknown witness of `exI` cannot become both: unification never
-makes two different fixed variables equal. This is the broken eigenvariable condition of Exercise 6.6 in
-Isabelle's form.
+逆命题不成立：P 可为“是偶数”，Q 为“是奇数”，论域为自然数。二者均有见证，但无数字同时满足二者。在证明尝试中，两个 `exE` 步骤固定了两个不同的变量，一个满足 P，一个满足 Q，而 `exI` 的单一未知见证无法同时成为二者：合一从不使两个不同的固定变量相等。不同的名称并不断言不同的值；相反，我们没有等式允许我们将这些任意见证视为相同。这是 Isabelle 中练习 6.6 的本征变元条件失效情形。
 :::
 ::::
 
-:::: exercise Peirce's law {#ex-7-8} ★★★
-Exercise 6.8 derived Peirce's law, ((A ⟶ B) ⟶ A) ⟶ A, on paper with (RAA). Turn that derivation into an
-apply script with `ccontr`, following the tree step by step, and say which step does the work of (⊥E).
-Then shorten the script with `classical`.
+:::: exercise Peirce 定律 {#ex-7-8} ★★★
+练习 6.8 利用反证法 (RAA) 在纸上推导了皮尔士定律 ((A ⟶ B) ⟶ A) ⟶ A。请按照 `ccontr` 逐步跟随推导树，将其转化为 apply 脚本，并指出哪一步执行了 (⊥E) 的工作。随后，使用 `classical` 缩短该脚本。
 
 ::: solution
-At the bottom of the tree of Exercise 6.8 are (⟶I¹), (RAA²) and (¬E) with the premises [¬A]² and A. As in
-Section 7.7, `rule ccontr`, `rule notE` and `assumption` take the last two steps and leave A to prove:
+在练习 6.8 的树底部是 (⟶I¹)、(RAA²) 和 (¬E)，前提为 [¬A]² 和 A。与第 7.7 节类似，`rule ccontr`、`rule notE` 和 `assumption` 取最后两步并留下 A 以证明：
 
 ```isabelle
 lemma "((A ⟶ B) ⟶ A) ⟶ A"
@@ -2188,7 +2124,7 @@ goal (1 subgoal):
  1. ⟦(A ⟶ B) ⟶ A; ¬ A⟧ ⟹ A
 ```
 
-A comes from the assumption (A ⟶ B) ⟶ A by (⟶E), which needs A ⟶ B:
+A 由 (A ⟶ B) ⟶ A 经 (⟶E) 得到，这需要 A ⟶ B：
 
 ```isabelle
   apply (erule impE)
@@ -2201,7 +2137,7 @@ goal (2 subgoals):
  2. ⟦¬ A; A⟧ ⟹ A
 ```
 
-To prove A ⟶ B, assume A (⟶I³). The goal is then B, and `erule notE` turns it into A, using ¬A:
+要证明 A ⟶ B，假设 A（⟶I³）。目标变为 B，而 `erule notE` 利用 ¬A 将其转化为 A。
 
 ```isabelle
   apply (rule impI)
@@ -2215,8 +2151,7 @@ goal (2 subgoals):
  2. ⟦¬ A; A⟧ ⟹ A
 ```
 
-This single `erule notE` does the work of both (¬E) and (⊥E) in the tree, because `notE` concludes any
-formula, here B. Both subgoals left are assumptions:
+此单个`erule notE`同时完成了树中(¬E)和(⊥E)的工作，因为`notE`可得出结论任意公式，此处为B。剩余的两个子目标均为假设：
 
 ```isabelle
   apply assumption
@@ -2224,7 +2159,7 @@ formula, here B. Both subgoals left are assumptions:
   done
 ```
 
-With `classical`, the three steps after `impI` become one:
+借助`classical`，`impI`之后的三个步骤合并为一个：
 
 ```isabelle
 lemma "((A ⟶ B) ⟶ A) ⟶ A"
@@ -2249,14 +2184,11 @@ goal (1 subgoal):
 :::
 ::::
 
-:::: exercise A proof that must fail {#ex-7-9} ★★★
-Section 6.7 showed that a backward search for (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) never closes. Watch it
-happen in Isabelle: apply the quantifier rules in the best order you can find, and show the state where
-you get stuck. Then explain, with fixed variables and unknowns, why no order can work.
+:::: exercise 一个必须失败的证明 {#ex-7-9} ★★★
+第 6.7 节展示了针对 (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) 的后向搜索永远无法闭合。在 Isabelle 中观察其过程：应用你能找到的最佳顺序的量词规则，并展示你陷入困境的状态。然后，使用本征变元和未知项解释为何任何顺序都无法奏效。
 
 ::: solution
-The conclusion starts with ∃x, so the only rule for the conclusion is `exI`, and it creates the unknown
-witness before anything is fixed:
+结论中 ∃x 的直接引入使用 `exI`，并在任何内容被固定之前创建未知见证者：
 
 ```isabelle
 lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
@@ -2277,63 +2209,54 @@ goal (1 subgoal):
   oops
 ```
 
-To close the subgoal, R x (?y6 y) and R ?x2 y must become identical. The instance ?y6 y can become y,
-because `allI` fixed y before `allE` created ?y6. But the witness ?x2 would have to become x, which `exE`
-fixed after `exI` created ?x2, and that is not allowed. Taking the assumption apart first only moves the
-problem: `erule allE` and `erule exE` then fix x before the witness is created, so the witness can become
-x, but the instance of ∀y is created before `allI` fixes y, so it cannot become y. One unknown is always
-created too early. The y of the conclusion can only be fixed after the witness is created, since its ∀y
-lies inside ∃x; and the x of the assumption can only be fixed after the instance is created, since its ∃x
-lies inside ∀y.
+为关闭子目标，R x (?y6 y) 与 R ?x2 y 必须完全相同。实例 ?y6 y 可化为 y，因为 `allI` 在 `allE` 创建 ?y6 之前固定了 y。但见证 ?x2 必须化为 x，而 `exE` 在 `exI` 创建 ?x2 之后才固定 x，这是不允许的。先分解假设仅转移问题：`erule allE` 和 `erule exE` 在创建见证前固定 x，使见证可化为 x，但 ∀y 的实例在 `allI` 固定 y 前创建，故无法化为 y。总有一个未知量创建过早。结论中的 y 只能在见证创建后固定，因其 ∀y 位于 ∃x 内部；假设中的 x 只能在实例创建后固定，因其 ∃x 位于 ∀y 内部。
 
-This is the never-ending search of Section 6.7 in Isabelle's terms: each new door needs a new key. The
-formula is not valid (Section 6.6 gives a countermodel), so no order could have worked; the conditions
-that make Isabelle refuse these unifications are what keep its proofs sound.
+这是 Isabelle 中第 6.7 节永无止境的搜索：每扇新门都需要一把新钥匙。该公式无效（第 6.6 节给出了反例），因此任何顺序都无效；导致 Isabelle 拒绝这些合一的条件正是保持其证明健全性的条件。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? In the subgoal `⟦A ⟶ B; A⟧ ⟹ B`, what does ⟹ say?
-- [ ] That the formula (A ⟶ B) ∧ A ⟶ B has already been proved
-- [x] That B must be proved, and A ⟶ B and A may be used as assumptions
-- [ ] That A ⟶ B and A are the conclusions of the subgoal
-- [ ] Nothing more than ⟶: Isabelle prints the two arrows differently only for display
-> ⟹ is Pure's "from … infer". Left of it are the assumptions of the subgoal, right of it the conclusion still to be proved.
+? 在子目标`⟦A ⟶ B; A⟧ ⟹ B`中，⟹表示什么？
+- [ ] 公式 (A ⟶ B) ∧ A ⟶ B 已被证明
+- [x] 必须证明 B，且 A ⟶ B 和 A 可用作假设
+- [ ] A ⟶ B 和 A 是该子目标的结论
+- [ ] 与 ⟶ 的含义相同，只是 Isabelle 显示时用了不同的箭头
+> ⟹ 是 Pure 的“从 … 推断”。其左侧为子目标的假设，右侧为仍需证明的结论。
 
-? `thm exI` prints `?P ?x ⟹ ∃x. ?P x`. What does the question mark in `?x` mean?
-- [ ] That x is optional
-- [ ] That x is a fixed variable of the current subgoal
-- [x] That ?x is a schematic variable: when the rule is used, it can be replaced by any term
-- [ ] That x has not been defined
-> Schematic variables are placeholders. Isabelle fills them in by unification, or you choose them with `of` or `rule_tac`.
+? `thm exI` 打印 `?P ?x ⟹ ∃x. ?P x`。`?x` 中的问号是什么意思？
+- [ ] 该 x 是可选的
+- [ ] 该 x 是当前子目标的本征变元
+- [x] 该 ?x 是本征变元：它可由具有正确类型和允许作用域的项实例化
+- [ ] x 尚未定义
+> 本征变元是受类型和范围约束的占位符。Isabelle 通过合一填充它们，或者你使用 `of` 或 `rule_tac` 选择它们；后续局部变量不能通过早期未知变量逃逸。
 
-? The subgoal is `A ∨ B ⟹ B ∨ A`. Which step performs (∨E) on the assumption, leaving one subgoal per case?
+? 子目标是 `A ∨ B ⟹ B ∨ A`。哪一步对假设执行了 (∨E)，使得每个情况各留下一个子目标？
 - [ ] `apply (rule disjI1)`
 - [ ] `apply (rule disjE)`
 - [ ] `apply (drule disjI2)`
 - [x] `apply (erule disjE)`
-> `erule` matches the major premise A ∨ B with the assumption and leaves the two cases. `rule disjE` leaves three subgoals with unknown formulas.
+> `erule` 将大前提 A ∨ B 与假设进行合一，并留下两个分支。`rule disjE` 留下三个带有未知公式的子目标。
 
-? After `apply (rule allI)` the subgoal reads `⋀x. ∀x. P x ∧ Q x ⟹ P x`. What is the x after ⋀?
-- [x] A fixed variable: it stands for an arbitrary value and unification never replaces it
-- [ ] A schematic variable that unification will choose later
-- [ ] The same variable as the x bound by ∀ in the assumption
-- [ ] A constant from Isabelle's library
-> `allI` turns the HOL quantifier into Pure's ⋀. The fixed variable is what Module 6 called the eigenvariable.
+? 在`apply (rule allI)`之后，子目标读作`⋀x. ∀x. P x ∧ Q x ⟹ P x`。在⋀之后的x是什么？
+- [x] 固定变量：它代表任意值，且合一操作从不替换它
+- [ ] 一个统一（unification）稍后选择的本征变元
+- [ ] 与假设中由 ∀ 绑定的 x 相同的变量
+- [ ] Isabelle 库中的一个常量
+> `allI` 将 HOL 量词规约为 Pure 的 ⋀。该固定变量即 Module 6 所称的本征变元。
 
-? A proof is stuck at `⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y`, and `apply assumption` fails. Why?
-- [ ] The relation R would have to be reflexive
-- [x] The unknown ?x4 was created before x was fixed, so it cannot become x
-- [ ] `assumption` cannot handle two fixed variables
-- [ ] The statement being proved is false
-> The statement is valid (it is `ex_all`), but `exI` came before `exE`. Fix first, guess later.
+? 证明在`⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y`处卡住，且`apply assumption`失败。为什么？
+- [ ] 关系 R 必须具有自反性
+- [x] 在 x 被固定之前创建了未知量 ?x4，因此它不能成为 x
+- [ ] `assumption` 无法处理两个固定变量
+- [ ] 所证明的陈述为假
+> 该命题有效（即 `ex_all`），但 `exI` 出现在 `exE` 之前。先修正，后猜测。
 
-? `by blast` reports "Failed to apply initial proof method". What do you know?
-- [ ] The statement is false
-- [ ] `blast` needs a `done` after it
-- [x] `blast` found no proof; the statement may be false, or too hard for `blast`
-- [ ] The kernel rejected a proof that `blast` found
-> `blast` either finds a complete proof or fails. A failure says nothing about truth; use `nitpick` to look for a counterexample, or apply some rules by hand.
+? `by blast` 报告“初始证明方法应用失败”。你了解什么？
+- [ ] 该命题为假
+- [ ] `blast` 需要在其后跟随 `done`
+- [x] `blast` 未找到证明；该命题可能为假，或对 `blast` 而言过于困难
+- [ ] 内核拒绝了一个证明，该证明声称 `blast` 找到了
+> `blast` 要么找到完整证明，要么失败。失败对真值不作任何断言；使用 `nitpick` 来寻找反例，或手动应用某些规则。
 ```

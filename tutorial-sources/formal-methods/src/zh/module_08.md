@@ -1,7 +1,7 @@
 ---
 title: HOL 中的函数式编程
 part: 3
-lead: 把 Isabelle/HOL 当作一门带类型的函数式编程语言来使用。你将定义自己的数据类型和函数并用它们进行计算，读懂 Isabelle 打印出的类型和消息，弄清为什么每个函数都必须终止，并把你的定义转换成 Haskell 代码。
+lead: 把 Isabelle/HOL 用作带类型的函数式编程语言。定义数据类型和函数并用它们求值，读懂 Isabelle 输出的类型和消息，证明递归定义的终止性，再把可执行的定义导出为 Haskell 代码。
 minutes: 210
 needs: 模块 1–7
 goals:
@@ -9,20 +9,23 @@ goals:
   - 使用 λ 抽象、柯里化和部分应用
   - 定义数据类型，并用 `definition`、`fun` 和 `primrec` 定义其上的函数
   - 用列表和数进行计算，并用类型类解释重载的记号
-  - 解释为什么每个函数都必须终止，读懂 Isabelle 关于终止性的消息，并在 Isabelle 找不到度量时自己提供一个
+  - 解释为什么`fun`需要终止性，阅读Isabelle的终止性消息，并在Isabelle无法找到时提供一个度量
   - 用 `export_code` 从你的定义生成 Haskell 代码
 imports: Main
 ---
 
 ## 逻辑中的程序 {#hol}
 
-在第二部分中，你用 Isabelle 检查了关于公式的证明。第三部分转向 Isabelle/HOL 的另一面：它也是一门编程语言。HOL 包含一门小巧的、带类型的**函数式编程语言**（functional programming language），与 Haskell、OCaml 和 Standard ML（Isabelle 自身的核心就是用它写的）很接近。你用等式编写程序，由 Isabelle 运行它们；又因为程序是逻辑的一部分，你还可以证明关于它们的事实。模块 9 到模块 11 讲证明，本模块讲编程。
+在第二部分中，你使用 Isabelle 检查关于公式的证明。第三部分转向 Isabelle/HOL 的另一半：其可执行定义构成一种编程语言。HOL 包含一种类型化的 **函数式编程语言**，与 Haskell、OCaml 和 Standard ML（Isabelle 核心部分的编程语言）相近。你将程序写为等式，Isabelle 运行它们，并且由于程序是逻辑的一部分，你可以证明关于它们的性质。模块 9 至 11 涉及证明；本模块涉及编程。
 
 HOL 中的程序与 Python、Java 或 C 中的程序有三点不同。
 
-- **没有副作用**（side effect）。HOL 函数不会修改变量，不会打印输出，也不会读文件。给定相同的参数，它总是返回相同的结果，就像数学中的函数一样。
-- **没有循环**。重复要靠递归（recursion）来完成，就像模块 5 中那样。
-- **每个函数都是全函数**（total）。对于参数类型中的每一个值，它都返回一个结果。第 8.7 节会解释逻辑为什么坚持这一点。
+- **无副作用。** HOL 函数不修改变量、打印或读取文件。其参数
+  确定其数学值。状态变化可以通过显式传递输入和输出状态来建模。
+- **重复的递归。** 此处函数使用递归，如 Module 5 所示。循环也可
+  在 HOL 中建模；它们在这些函数定义中不是原始构造。
+- **每个函数都是全函数。**它表示其类型中每个参数对应的值。这并不意味着
+  即每个 HOL 函数都具有可执行代码，或每次求值均成功。第 8.7 节解释了为何 `fun` 接受的递归方程需要终止性证明。
 
 本模块一步一步地构建一个例子：一个英国交通灯的控制器。这种交通灯先亮红灯，接着红灯和黄灯一起亮，然后亮绿灯，再亮黄灯，最后又回到红灯。你将把它的状态描述为一个数据类型（datatype），用列表和数计算它的状态序列以及各个状态持续的时间，检查一个路口的安全规则，最后为它生成 Haskell 代码。一路上，你会遇到初学者常犯的错误，并看到 Isabelle 给出的真实消息。
 
@@ -43,7 +46,7 @@ HOL 中的每个项都有一个**类型**（type），Isabelle 在做任何其�
 | `'a ⇒ 'b` | 从 `'a` 到 `'b` 的函数 | `Suc`、`rev` |
 
 ::: definition HOL 中的类型
-像 `bool`、`nat` 或 `int` 这样的**基本类型**（base type）就是一个名字。像 `list` 或 `option` 这样的**类型构造子**（type constructor）由其他类型构造出新的类型，它写在参数的**后面**：`nat list` 是自然数列表的类型，`nat list list` 是由这种列表组成的列表的类型。`'a × 'b` 是有序对的类型，`'a ⇒ 'b` 是函数的类型。**类型变量**（type variable）`'a`、`'b`……代表任意类型；如果一个函数的类型中含有类型变量，例如 `rev :: 'a list ⇒ 'a list`，那么它对这个类型的每个实例都适用，这样的函数称为**多态的**（polymorphic）。
+像 `bool`、`nat` 或 `int` 这样的**基本类型**（base type）就是一个名字。像 `list` 或 `option` 这样的**类型构造子**（type constructor）由其他类型构造出新的类型，它写在参数的**后面**：`nat list` 是自然数列表的类型，`nat list list` 是由这种列表组成的列表的类型。`'a × 'b` 是有序对的类型，`'a ⇒ 'b` 是函数的类型。**类型变元**（type variable）`'a`、`'b`……代表任意类型；如果一个函数的类型中含有类型变元，例如 `rev :: 'a list ⇒ 'a list`，那么它对这个类型的每个实例都适用，这样的函数称为**多态的**（polymorphic）。
 :::
 
 `t :: τ` 读作“t 的类型是 τ”。函数箭头 ⇒ 用 `=>` 输入，乘积符号 × 用 `<*>` 输入（也可以直接写 `*` 来代替 ×）。箭头的优先级比任何类型构造子都低，所以 `nat ⇒ bool list` 的意思是 `nat ⇒ (bool list)`。
@@ -68,7 +71,7 @@ Isabelle 打印类型时会尽量少用括号。第二个类型不需要括号�
 
 ### 项与类型推断 {#terms}
 
-**项**（term）是 HOL 的表达式：可以是常量，例如 `True`、`0` 或 `rev`；可以是变量，例如 `x`；可以是作用于参数的函数，例如 `rev xs`；也可以是本模块将要介绍的其他形式之一。命令 `term` 读入一个项，算出它的类型，并把两者都打印出来，但不做任何求值：
+**项**是 HOL 的表达式，可以是 `True`、`0` 或 `rev` 这样的常量，`x` 这样的变量，`rev xs` 这样的函数应用，或本模块介绍的其他形式。命令 `term` 读入项、推断其类型，并打印项及其类型，但不将它作为程序来执行：
 
 ```isabelle
 term "Suc 0"
@@ -90,7 +93,7 @@ term "(Suc 0, [True])"
 你从来没有说过 `5` 是自然数，这是 Isabelle 自己推算出来的：一个列表的所有元素都具有同一个类型，`Suc 0` 是一个 `nat`，所以 `5` 也必须是 `nat`。在最后一个项中，有序对的左边是一个 `nat`，右边是一个 `bool list`，所以它的类型是 `nat × bool list`。
 
 ::: definition 类型推断与类型标注
-**类型推断**（type inference）根据项中各个常量的类型，算出项的每一部分的类型。凡是常量没有确定类型的地方，结果中就含有类型变量。**类型标注**（type annotation）`t :: τ`（在更大的项中写作 `(t::τ)`）告诉 Isabelle：`t` 的类型是 τ。
+**类型推断**根据常量与变量的类型以及应用与绑定施加的约束，计算项中每个部分的类型。当常量使类型保持开放时，结果包含类型变元。**类型注解** `t :: τ`（或在较大项内的 `(t::τ)`）告知 Isabelle `t` 具有类型 τ。
 :::
 
 在下面这个项中，常量没有确定类型：
@@ -104,7 +107,7 @@ term "x + 1"
   :: "'a"
 ```
 
-变量 `x` 和数 `1` 可以是自然数、整数或实数：它们都有 `+` 和 `1`。Isabelle 的回答是类型变量 `'a`，意思是“某个类型”。加一个标注就能确定下来：
+变量 `x` 和数 `1` 可以是自然数、整数或实数：它们都有 `+` 和 `1`。Isabelle 的回答是类型变元 `'a`，意思是“某个类型”。加一个标注就能确定下来：
 
 ```isabelle
 term "x + (1::nat)"
@@ -117,7 +120,7 @@ term "x + (1::nat)"
 
 由于 `+` 的两个参数类型相同，现在 `x` 也是 `nat` 了。第 8.6 节会解释 Isabelle 对 `x + 1` 中的 `'a` 知道些什么。
 
-`x` 是一个**自由变元**（free variable）：一个不是常量的名字。Isabelle/jEdit 用蓝色显示自由变元，用黑色显示 `Suc` 这样的常量。
+`x` 是一个 **自由变元**：它既不是已声明的常量，也不是由量词或 λ 绑定的。Isabelle/jEdit 将自由变元显示为蓝色，而如 `Suc` 这样的常量显示为黑色。
 
 ### 用 value 计算 {#value}
 
@@ -146,7 +149,7 @@ value "lenght [1, 2::nat]"
   :: "'a"
 ```
 
-这里没有任何错误消息。如果 `value` 把你的项原样返回，而类型是 `'a` 这样的类型变量，就找一找有没有拼错的名字：Isabelle/jEdit 会像显示其他变量一样，用蓝色显示它。
+这里没有任何错误消息。如果 `value` 把你的项原样返回，而类型是 `'a` 这样的类型变元，就找一找有没有拼错的名字：Isabelle/jEdit 会像显示其他变量一样，用蓝色显示它。
 :::
 
 ### 类型对不上时 {#type-errors}
@@ -189,7 +192,7 @@ value "rev [1, 2::nat] [3]"
 ***
 ```
 
-Isabelle 把 `rev [1, 2] [3]` 读作把列表 `rev [1, 2]` 应用于 `[3]`。列表不是函数，所以**运算符** `rev [1, 2]` 是“not of function type”（不是函数类型）。在冲突的两个类型中，`_ ⇒ _` 代表“某个函数类型”，`_ list` 代表“某个列表类型”。`[3]` 的类型 `??'a` 是 Isabelle 在处理这个项时临时引入的一个类型变量，它始终不需要被确定下来。
+Isabelle 把 `rev [1, 2] [3]` 读作把列表 `rev [1, 2]` 应用于 `[3]`。列表不是函数，所以**运算符** `rev [1, 2]` 是“not of function type”（不是函数类型）。在冲突的两个类型中，`_ ⇒ _` 代表“某个函数类型”，`_ list` 代表“某个列表类型”。`[3]` 的类型 `??'a` 是 Isabelle 在处理这个项时临时引入的一个类型变元，它始终不需要被确定下来。
 
 ## 函数也是值 {#functions}
 
@@ -200,7 +203,7 @@ Isabelle 把 `rev [1, 2] [3]` 读作把列表 `rev [1, 2]` 应用于 `[3]`。列
 要写一个函数而不给它起名字，就使用 **λ 抽象**（λ-abstraction）：`λx. x + 1` 是把 `x` 映射为 `x + 1` 的函数，读作“lambda x，x 加 1”。λ 用 `%` 或 `\lambda` 输入。
 
 ::: definition λ 抽象与函数应用
-设 `t` 是一个类型为 τ₂ 的项，其中可以出现类型为 τ₁ 的变量 `x`，那么 `λx. t` 就是类型为 τ₁ ⇒ τ₂ 的函数，它把每个值 `x` 映射为 `t`。把函数 `f` 应用于参数 `a`，称为**函数应用**（application），写作 `f a`，不用括号，也不用逗号。把 `λx. t` 应用于 `a`，得到的是把 `t` 中的 `x` 换成 `a` 的结果；这一步称为 **β 归约**（β-reduction）。
+若`t`是类型为τ₂的项，其中可能包含类型为τ₁的变量`x`，则`λx. t`是类型为τ₁ ⇒ τ₂的函数，它将每个值`x`映射为`t`。函数`f`对参数`a`的**Application**记作`f a`，无需括号或逗号。将`λx. t`应用于`a`会将`t`中`x`的自由出现替换为`a`，并在必要时重命名绑定变量以避免捕获`a`中的变量（Module 3）。此步骤称为**β-reduction**。
 :::
 
 ```isabelle
@@ -313,7 +316,7 @@ value "Suc Suc 0"
 ***
 ```
 
-在需要一个 `nat` 的地方，`Suc` 的操作数却是函数 `Suc :: nat ⇒ nat`。应该写成 `Suc (Suc 0)`。漏写括号是类型错误最常见的原因。
+`Suc`的操作数是函数`Suc :: nat ⇒ nat`，其中需要`nat`。写出`Suc (Suc 0)`。缺失括号是类型错误的常见原因。
 :::
 
 ## 数据类型 {#datatypes}
@@ -338,7 +341,7 @@ term "Green"
 ```
 
 ::: definition 数据类型
-声明 `datatype t = C₁ τ… | … | Cₙ τ…` 引入一个新类型 `t`，它的值由**构造子** C₁, …, Cₙ 构造。每个构造子接受的参数的类型列在它的后面（也可以没有参数）。用不同构造子构造的值互不相同；用同一个构造子构造的值，只有当它们的参数相等时才相等；并且 `t` 的每个值都是用这些构造子构造的。构造子都不带参数的数据类型称为**枚举类型**（enumeration）。
+声明 `datatype t = C₁ τ… | … | Cₙ τ…` 引入一个新类型 `t`，它的值由**构造子**C₁, …, Cₙ 构造。每个构造子接受的参数的类型列在它的后面（也可以没有参数）。用不同构造子构造的值互不相同；用同一个构造子构造的值，只有当它们的参数相等时才相等；并且 `t` 的每个值都是用这些构造子构造的。构造子都不带参数的数据类型称为**枚举类型**（enumeration）。
 :::
 
 `light` 上的函数要说明对每个构造子做什么。下面是交通灯的下一个状态 `next_light`：
@@ -369,7 +372,7 @@ value "next_light (next_light Red)"
   :: "light"
 ```
 
-定义 8.5 中列出的那些事实随数据类型一起产生，而且 `simp` 知道它们。它能立即证明两个构造子不同：
+数据类型提供了定义8.5的构造子性质。`simp`中可用区分性与单射性；`cases`方法下方的穷尽性支持。`simp`立即证明两个构造子不同：
 
 ```isabelle
 lemma "Red ≠ Green"
@@ -399,7 +402,7 @@ goal (4 subgoals):
   done
 ```
 
-`simp_all` 把 `simp` 应用于所有子目标。用 `value` 做一次测试只能检查一个状态，而这条引理覆盖了全部四个状态。
+`simp_all` 将 `simp` 应用于所有子目标。在单一光源处求值方程可验证该实例；该引理覆盖全部四个实例。由于此类型有限，穷举计算亦可验证全部四个实例。
 
 最后是交通灯的时间安排。每个状态持续固定的秒数，由函数 `duration`（时长）给出：
 
@@ -419,7 +422,7 @@ fun duration :: "light ⇒ nat" where
 datatype 'a stack = Empty | Push 'a "'a stack"
 ```
 
-这样读：元素类型为 `'a` 的栈，要么是空栈 `Empty`，要么是 `Push x s`，即把元素 `x` 压入（push）栈 `s` 的顶部所得的栈。类型变量使这个类型成为多态的：`nat stack`、`light stack`，等等。不只是单个名字的参数类型，例如 `'a stack`，要放在引号里。
+这样读：元素类型为 `'a` 的栈，要么是空栈 `Empty`，要么是 `Push x s`，即把元素 `x` 压入（push）栈 `s` 的顶部所得的栈。类型变元使这个类型成为多态的：`nat stack`、`light stack`，等等。不只是单个名字的参数类型，例如 `'a stack`，要放在引号里。
 
 ```isabelle
 term "Push (1::nat) (Push 2 (Push 3 Empty))"
@@ -471,7 +474,7 @@ value "to_list (Push (1::nat) (Push 2 (Push 3 Empty)))"
 
 ### 选项与有序对 {#options}
 
-空栈的栈顶元素是什么？在 Java 中你可能会得到一个异常，在 C 中则会得到内存里碰巧存放的东西。HOL 函数是全函数，所以类型为 `'a stack ⇒ 'a` 的函数即使对 `Empty` 也必须返回**某个**元素。干净利落的出路是改变结果的类型。HOL 的库实质上定义了
+空栈的栈顶元素是什么？实现可能会抛出异常；C 语言中无效的内存访问可能具有未定义行为。类型为 `'a stack ⇒ 'a` 的 HOL 函数即使对于 `Empty` 也表示*某个*元素，而不一定提供计算它的代码。为了明确表示缺失的结果，更改结果类型。HOL 库本质上定义了
 
 `datatype 'a option = None | Some 'a`
 
@@ -499,7 +502,7 @@ value "pop (Push Red (Push Green Empty))"
 ```
 
 ::: definition 有序对与选项
-当 `a :: τ₁` 且 `b :: τ₂` 时，**有序对** `(a, b)` 的类型是 `τ₁ × τ₂`；函数 `fst` 和 `snd` 分别返回它的第一个和第二个分量。三元组 `(a, b, c)` 是 `(a, (b, c))` 的简写。**选项类型**（option type）`'a option` 的值是 `None`，以及对每个 `x :: 'a` 而言的 `Some x`；它是可能缺失的结果的类型。
+当 `a :: τ₁` 且 `b :: τ₂` 时，**有序对**`(a, b)` 的类型是 `τ₁ × τ₂`；函数 `fst` 和 `snd` 分别返回它的第一个和第二个分量。三元组 `(a, b, c)` 是 `(a, (b, c))` 的简写。**选项类型**（option type）`'a option` 的值是 `None`，以及对每个 `x :: 'a` 而言的 `Some x`；它是可能缺失的结果的类型。
 :::
 
 ### 用 case 拆开值 {#case}
@@ -511,7 +514,7 @@ fun top_or :: "'a ⇒ 'a stack ⇒ 'a" where
   "top_or d s = (case top s of None ⇒ d | Some x ⇒ x)"
 ```
 
-`top_or d s` 是 `s` 的栈顶元素；如果 `s` 是空栈，就是默认值 `d`。`case t of p₁ ⇒ e₁ | p₂ ⇒ e₂` 这样读：计算 `t`，找出第一个与它的值匹配的模式 pᵢ，然后返回 eᵢ，其中模式中的变量代表值中与之匹配的部分。这里的箭头和函数类型中的 ⇒ 是同一个符号。和 `if … then … else …` 一样，位于更大的项中的 `case` 表达式必须放在括号里。
+`top_or d s` 是 `s` 的顶层元素，或当 `s` 为空时的默认值 `d`。将 `case t of p₁ ⇒ e₁ | p₂ ⇒ e₂` 读作：计算 `t`，找到匹配其值的第一个模式 pᵢ，并返回 eᵢ，其中模式的变量代表匹配部分。箭头与函数类型中的 ⇒ 相同。较大项中的 `case` 表达式通常需要括号来标记其范围，如 `if … then … else …`。
 
 ```isabelle
 value "top_or Red (Push Green Empty)"
@@ -598,7 +601,7 @@ lemma safe_Red: "safe (Red, l)"
 最后一条引理对东西方向的灯的每个状态 `l` 都成立：只要南北方向的灯是红灯，无论东西方向的灯显示什么，路口都是安全的。
 
 ::: keyidea
-除非你用 `simp add: f_def` 提出要求，否则 `simp` 不会展开 `definition`。这是有意为之的。一个定义引入一个概念；一旦你证明了它的重要性质，例如 `safe_Red`，后面的证明就应该使用这些性质，而不是定义本身。这样证明就能保持简短；而如果定义改变了，也只需要修复这些性质的证明。模块 9 会介绍更多控制化简器的方法。
+默认情况下，`definition` 不将其等式注册为化简规则。你可以使用 `simp add: f_def` 或将其注册以供后续使用（Module 9）。这是有意的。定义引入一个概念；一旦你证明了其重要性质，如 `safe_Red`，后续证明应使用这些性质而非定义。这样证明保持简短，且若定义更改，仅需修复性质证明。Module 9 展示了更多控制化简器的方法。
 :::
 
 ::: pitfall
@@ -623,9 +626,9 @@ definition safe2 :: "light × light ⇒ bool" where
 
 ### 递归函数：fun 与 primrec {#fun-primrec}
 
-`primrec` 只接受**原始递归**（primitive recursion）：每个构造子一个等式，每个等式的模式都是作用于变量的构造子，并且递归调用只作用于参数的直接组成部分，例如 `Push x s` 的等式中的 `height s`。这样的函数总会终止，所以 `primrec` 不需要证明终止性（termination）；正如你在 `height` 那里看到的，它只报告新常量。
+对于此处简单的数据类型，`primrec`使用**原始递归**：包含构造函数参数变量的构造函数模式，且递归调用仅针对参数的直接递归部分，例如`height s`在`Push x s`的方程中。此类函数总是终止，因此`primrec`无需终止性证明；它仅报告新常量，正如你在`height`中所见。
 
-`fun` 接受的要多得多：嵌套的模式、多个参数上的模式、相互重叠的等式，以及 Isabelle 能自己找到终止性证明的任何递归。下面这个函数把列表的元素一个接一个地压入栈中；它的递归调用同时改变了两个参数：
+`fun` 接受更广泛的内容：嵌套模式、多参数模式、重叠方程以及一大类 Isabelle 自动证明终止的递归定义。该函数将列表元素逐个压入栈中；其递归调用同时改变两个参数：
 
 ```isabelle
 fun push_all :: "'a list ⇒ 'a stack ⇒ 'a stack" where
@@ -651,7 +654,7 @@ value "to_list (push_all [1, 2, 3::nat] Empty)"
   :: "nat list"
 ```
 
-Both commands give the simplifier the defining equations under the name `f.simps`:
+两个命令均将定义方程以名称 `f.simps` 提供给化简器：
 
 ```isabelle
 thm height.simps
@@ -664,19 +667,16 @@ thm height.simps
 
 | | `definition` | `primrec` | `fun` |
 |---|---|---|---|
-| Recursion | none | primitive: on the immediate parts | general, once termination is proved |
-| Patterns | none: `f x₁ … xₙ = t` | one constructor pattern per equation | any constructor patterns, also nested and overlapping |
-| Used by `simp` | only with `simp add: f_def` | always (`f.simps`) | always (`f.simps`) |
-| Termination | no question | guaranteed by the form | proved automatically, or the definition is rejected |
+| 递归 | none | 原始定义：关于直接部分 | 一般地，一旦终止性得证 |
+| 模式 | none: `f x₁ … xₙ = t` | 构造器模式带有变量参数 | 构造子模式，包括嵌套和重叠的 |
+| 由 `simp` 使用 | 默认未注册；添加 `f_def` | `f.simps` 默认注册 | `f.simps` 默认注册 |
+| 终止性 | no question | 由形式保证 | 自动证明。若证明失败，则拒绝该定义 |
 
-Which to choose? Use `definition` for a non-recursive concept that you want to reason about abstractly,
-`fun` for recursive functions and for anything that needs patterns, and `primrec` when a function follows
-the structure of a datatype exactly and you want to be sure no termination proof is involved. Many
-users write `fun` almost everywhere, as Module 1 did for `double`.
+如何选择？使用 `definition` 对希望抽象推理的非递归概念进行形式化规约，使用 `fun` 处理递归函数及任何需要模式匹配的情况，并在函数完全遵循数据类型结构且希望确保不涉及终止性证明时使用 `primrec`。许多用户几乎在所有地方都使用 `fun`，正如 Module 1 对 `double` 所做的那样。
 
-### Missing and overlapping patterns {#patterns}
+### 缺失与重叠的模式 {#patterns}
 
-What if the equations do not cover every constructor? This function forgets the empty stack:
+如果方程未覆盖所有构造子，此函数会忽略空栈：
 
 ```isabelle
 fun top_value :: "'a stack ⇒ 'a" where
@@ -693,14 +693,7 @@ consts
 Found termination order: "{}"
 ```
 
-Isabelle accepts the definition with a warning, and completes it with the equation
-`top_value Empty = undefined`. It uses this equation to construct the function, but it does not add it
-to `top_value.simps`, so `simp` cannot use it. Here `undefined` is a constant of every type about which
-nothing is known:
-`top_value Empty` is *some* element, but no proof can tell which. The function is total, as every HOL
-function is, but on `Empty` it is **unspecified**. When you try to compute that value, the code behind
-`value` has no equation to use and stops with an exception (Section 8.8 explains where this code comes
-from):
+Isabelle 接受该定义并给出警告，使用等式 `top_value Empty = undefined` 完成它。它利用该等式构造函数，但未将其添加到 `top_value.simps`，因此 `simp` 不会自动使用它。此处 `undefined` 是一个多态常量，其值除类型外未指定：`top_value Empty` 是 *某个* 元素，定义未选定特定元素。该函数是全函数，如同所有 HOL 函数一样，但在 `Empty` 上它是 **unspecified**。当你尝试计算该值时，`value` 背后的代码没有可用的等式，并以异常停止（第 8.8 节解释了该代码的来源）：
 
 ```isabelle fails
 value "top_value (Empty :: nat stack)"
@@ -710,17 +703,13 @@ value "top_value (Empty :: nat stack)"
 *** exception Match raised⌂
 ```
 
-The ⌂ points into the generated program, not into your theory. The library's `hd`, the first element of a list, is unspecified for `[]` in the same way, and
-`value "hd ([] :: light list)"` fails with the same exception.
+⌂ 指向生成的程序，而非你的理论。库的 `hd`（列表的第一个元素）对于 `[]` 未指定，方式相同，且 `value "hd ([] :: light list)"` 以相同的异常失败。
 
 ::: tip
-Missing patterns are often a sign of a missing case in your thinking. Prefer an option result, as in
-`top`, so that the caller has to handle the empty case. `primrec` warns about a missing constructor too,
-with the message `No equation for constructor "Empty"`.
+缺失的模式通常表明思维中遗漏了某个情况。优先使用选项结果，如 `top` 所示，以便调用者必须处理空情况。`primrec` 也会警告缺失的构造子，并附带消息 `No equation for constructor "Empty"`。
 :::
 
-Equations may also **overlap**: one argument may match several patterns. `fun` then uses the first
-equation that matches, as Haskell and ML do:
+方程也可能**重叠**：一个参数可能匹配多个模式。`fun` 然后使用第一个匹配的方程，正如 Haskell 和 ML 所做的那样：
 
 ```isabelle
 fun is_red :: "light ⇒ bool" where
@@ -728,8 +717,7 @@ fun is_red :: "light ⇒ bool" where
 | "is_red l = False"
 ```
 
-The variable `l` matches every light, `Red` included. `fun` resolves the overlap by turning the second
-equation into one equation for each remaining constructor, as `thm` shows:
+变量`l`匹配所有灯，`Red`包含在内。`fun`通过将第二个方程转化为每个剩余构造器的一个方程来解决重叠，如`thm`所示：
 
 ```isabelle
 thm is_red.simps
@@ -742,8 +730,7 @@ thm is_red.simps
   is_red Amber = False
 ```
 
-The order of the equations therefore matters. Put the general equation first, and the specific one can
-never be used. Isabelle rejects such a definition:
+因此方程的顺序至关重要。将一般方程置于前面，则具体方程将永远无法被使用。Isabelle 会拒绝此类定义：
 
 ```isabelle fails
 fun is_red2 :: "light ⇒ bool" where
@@ -757,8 +744,7 @@ fun is_red2 :: "light ⇒ bool" where
 *** True
 ```
 
-`primrec` does not accept overlapping equations at all: its patterns must be constructors applied to
-variables, and the plain variable `l` is not such a pattern:
+`primrec` 完全不接受重叠方程：其模式必须是应用于变量的构造函数，而普通变量 `l` 不是此类模式：
 
 ```isabelle fails
 primrec is_red3 :: "light ⇒ bool" where
@@ -772,10 +758,9 @@ primrec is_red3 :: "light ⇒ bool" where
 ***   False
 ```
 
-### When a name is misspelt {#names}
+### 当名称拼写错误时 {#names}
 
-Section 8.1 showed that a misspelt name in a term becomes a free variable. In a definition, a free
-variable on the right-hand side has no value, so Isabelle rejects it:
+第 8.1 节表明，项中拼写错误的名称会成为自由变元。在定义中，右侧的自由变元不由参数确定，因此 Isabelle 会拒绝它：
 
 ```isabelle fails
 fun cycle_time :: "light list ⇒ nat" where
@@ -792,9 +777,7 @@ fun cycle_time :: "light list ⇒ nat" where
 ***     ls
 ```
 
-The message lists `duraton` among the variables of the equation (after ⋀, "for all"): Isabelle took
-the misspelt `duration` for a variable. Misspelt names of types and theorems give "Undefined" errors
-instead, because Isabelle looks them up:
+消息列表 `duraton` 在等式的变量中（在 ⋀，“对于所有”之后）：Isabelle 将拼写错误的 `duration` 视为变量。类型和定理的拼写错误会给出“Undefined”错误，因为 Isabelle 会查找它们：
 
 ```isabelle fails
 thm duraton.simps
@@ -804,13 +787,11 @@ thm duraton.simps
 *** Undefined fact: "duraton.simps"⌂
 ```
 
-The same happens for a misspelt type in a signature, such as `lights` for `light`: the message is
-`Undefined type name: "lights"`.
+签名中拼写错误的类型也会发生同样的情况，例如 `lights` 对应于 `light`：消息为 `Undefined type name: "lights"`。
 
-## Lists in practice {#lists}
+## 实践中的列表 {#lists}
 
-Back to the traffic light. A list of states describes how the light behaves over time. `trace n l` is
-the list of the first `n` states, starting with `l`:
+回到交通灯。状态列表描述了灯光随时间的行为。`trace n l` 是前 `n` 个状态的列表，从 `l` 开始：
 
 ```isabelle
 fun trace :: "nat ⇒ light ⇒ light list" where
@@ -834,9 +815,8 @@ value "trace 6 Red"
   :: "light list"
 ```
 
-::: example Evaluating trace by hand
-`value` computes by rewriting with the defining equations, and you can do the same on paper. Write `3`
-as `Suc (Suc (Suc 0))`:
+::: example 通过手工评估轨迹
+`value` 执行的计算遵循定义方程，你可以在纸上做同样的操作。将 `3` 写为 `Suc (Suc (Suc 0))`：
 
 $$
 \begin{aligned}
@@ -847,28 +827,26 @@ $$
 \end{aligned}
 $$
 
-Each step uses an equation of `trace` or of `next_light`. Every recursive call has a smaller first
-argument, so the computation reaches `trace 0` and stops.
+每一步使用`trace`或`next_light`的等式。每个递归调用具有更小的第一个参数，因此计算到达`trace 0`并停止。
 :::
 
-### The list library {#library}
+### 列表库 {#library}
 
-The theory `List`, part of `Main`, defines about a hundred functions on lists and proves more than a
-thousand lemmas about them. These are the ones you will use most:
+理论`List`，作为`Main`的一部分，定义了约一百个列表函数，并证明了关于它们的一千多个引理。这些是你将最常使用的：
 
-| Function | What it computes | Example |
+| 函数 | 它计算什么 | 例 |
 |---|---|---|
-| `length xs` | the number of elements | `length [a, b] = 2` |
-| `xs @ ys` | `xs` followed by `ys` | `[a] @ [b, c] = [a, b, c]` |
-| `map f xs` | `f` applied to every element | `map f [a, b] = [f a, f b]` |
-| `filter P xs` | the elements that satisfy `P` | `filter P [a, b] = [a]` if `P a` and `¬ P b` |
-| `foldr f xs e` | the elements combined with `f`, from the right | `foldr f [a, b] e = f a (f b e)` |
-| `zip xs ys` | pairs of corresponding elements | `zip [a, b] [c, d] = [(a, c), (b, d)]` |
-| `take n xs`, `drop n xs` | the first `n` elements; the rest | `take 1 [a, b] = [a]` |
-| `xs ! n` | element number `n`, counting from 0 | `[a, b] ! 1 = b` |
-| `[m..<n]` | the numbers from `m` up to `n − 1` | `[2..<5] = [2, 3, 4]` |
+| `length xs` | 元素的数量 | `length [a, b] = 2` |
+| `xs @ ys` | `xs` 后接 `ys` | `[a] @ [b, c] = [a, b, c]` |
+| `map f xs` | `f` 应用于每个元素 | `map f [a, b] = [f a, f b]` |
+| `filter P xs` | 满足`P`的元素 | `filter P [a, b] = [a]` 如果 `P a` 且 `¬ P b` |
+| `foldr f xs e` | 与 `f` 结合的元素，从右侧 | `foldr f [a, b] e = f a (f b e)` |
+| `zip xs ys` | 对应元素对 | `zip [a, b] [c, d] = [(a, c), (b, d)]` |
+| `take n xs`, `drop n xs` | 前 `n` 个元素；其余 | `take 1 [a, b] = [a]` |
+| `xs ! n` | 元素编号 `n`，从 0 开始计数 | `[a, b] ! 1 = b` |
+| `[m..<n]` | 从 `m` 到 `n − 1` 的数字 | `[2..<5] = [2, 3, 4]` |
 
-Apply them to traces. How long is each state of one cycle, and how long is the whole cycle?
+将它们应用于轨迹。一个周期中每个状态持续多长时间，整个周期持续多长时间？
 
 ```isabelle
 value "map duration (trace 4 Red)"
@@ -888,8 +866,7 @@ value "sum_list (map duration (trace 4 Red))"
   :: "nat"
 ```
 
-A full cycle takes a minute. `sum_list` adds up a list of numbers. Which states in a longer trace are
-green?
+一个完整周期耗时一分钟。`sum_list` 对数字列表求和。在更长的轨迹中，哪些状态是绿色的？
 
 ```isabelle
 value "filter (λl. l = Green) (trace 9 Red)"
@@ -900,9 +877,7 @@ value "filter (λl. l = Green) (trace 9 Red)"
   :: "light list"
 ```
 
-`foldr` is the general way to combine all elements of a list into one value. `foldr f [x₁, x₂, x₃] e` is
-`f x₁ (f x₂ (f x₃ e))`: start from `e` at the right end and combine each element with the result so far.
-With `f` adding a state's duration to a running total, it computes the cycle time again:
+`foldr` 是将列表所有元素合并为单个值的通用方式。`foldr f [x₁, x₂, x₃] e` 是 `f x₁ (f x₂ (f x₃ e))`：从右侧的 `e` 开始，将每个元素与迄今为止的结果进行合并。通过 `f` 将状态持续时间累加到运行总计中，它重新计算了周期时间：
 
 ```isabelle
 value "foldr (λl t. duration l + t) (trace 4 Red) 0"
@@ -913,15 +888,13 @@ value "foldr (λl t. duration l + t) (trace 4 Red) 0"
   :: "nat"
 ```
 
-Figure 8.3 shows `map`, `filter` and `foldr` side by side on one cycle.
+图 8.3 展示了 `map`、`filter` 和 `foldr` 在单个周期中的并排情况。
 
 ::: figure id=fig-08-3
-`map` transforms every element, `filter` keeps some of them, and `foldr` combines all of them into one
-value. `sum_list` is `foldr (+)` with start value 0.
+`map` 变换每个元素，`filter` 保留其中部分元素，`foldr` 将它们组合为一个值。`sum_list` 是带有初始值 0 的 `foldr (+)`。
 :::
 
-`zip` pairs two lists element by element, and `[0..<4]` is the list of the numbers 0, 1, 2 and 3, so
-together they number the states:
+`zip` 按元素对两个列表进行配对，`[0..<4]` 是数字 0、1、2 和 3 的列表，因此它们共同对状态进行编号：
 
 ```isabelle
 value "zip [0..<4] (trace 4 Red)"
@@ -932,8 +905,7 @@ value "zip [0..<4] (trace 4 Red)"
   :: "(nat × light) list"
 ```
 
-`length` counts elements, and `take`, `drop` and `!` cut lists and select elements. Positions count
-from 0:
+`length` 统计元素，`take`、`drop` 和 `!` 截断列表并选取元素。位置从 0 开始计数：
 
 ```isabelle
 value "length (trace 6 Red)"
@@ -956,11 +928,9 @@ value "trace 6 Red ! 2"
   :: "light"
 ```
 
-### List comprehension {#comprehension}
+### 列表推导 {#comprehension}
 
-Combinations of `map` and `filter` can also be written as a **list comprehension**, as in Haskell and
-Python. `[e. x ← xs, P x]` is the list of the values of `e` for the elements `x` of `xs` that satisfy
-`P x`. Type ← as `<-`. Here are the short states of a cycle, with their durations:
+`map` 与 `filter` 的组合也可写成 **list comprehension**，如 Haskell 和 Python 中所示。`[e. x ← xs, P x]` 是满足 `P x` 的 `xs` 的元素 `x` 对应的 `e` 值的列表。键入 `<-` 以表示 ←。以下是周期的短状态及其持续时间：
 
 ```isabelle
 value "[(l, duration l). l ← trace 4 Red, duration l < 10]"
@@ -971,30 +941,19 @@ value "[(l, duration l). l ← trace 4 Red, duration l < 10]"
   :: "(light × nat) list"
 ```
 
-The expression `(l, duration l)` builds a pair for each element; `l ← trace 4 Red` is a **generator**,
-which takes the elements `l` of the list one by one; `duration l < 10` is a condition. There can be
-several generators and conditions, separated by commas.
+表达式`(l, duration l)`为每个元素构建一对；`l ← trace 4 Red`是**生成器**，它依次取列表的`l`元素；`duration l < 10`是条件。可以有多个生成器和条件，用逗号分隔。
 
 ::: pitfall
-Some list functions are unspecified for some arguments: `hd []`, the first element of the empty list,
-and `xs ! n` when `n` is not a position of `xs`. They return *some* value of the right type, but nothing
-is known about it, and computing it with `value` stops with an exception, as for `top_value` in
-Section 8.4. Before you use `hd xs` or `xs ! n` in a definition, make sure that `xs` is not empty or that
-`n < length xs`.
+某些列表函数对部分参数未指定：`hd []`（空列表的首元素）以及当`n`不是`xs`的位置时的`xs ! n`。它们表示右侧类型的*某个*值，而不指定具体是哪一个，使用`value`计算时会抛出异常，如第8.4节中的`top_value`所示。在定义中使用`hd xs`或`xs ! n`之前，请确保`xs`非空或满足`n < length xs`。
 :::
 
-## Numbers and type classes {#numbers}
+## 数字与类型类 {#numbers}
 
-HOL has several types of numbers: `nat`, `int`, and, with the theory `Complex_Main`, `real` and
-`complex`. This series needs only `nat` and `int`.
+HOL 拥有多种数字类型：`nat`、`int`，以及通过理论 `Complex_Main` 引入的 `real` 和 `complex`。本系列仅需 `nat` 和 `int`。
 
-### Natural numbers and integers {#nat-int}
+### 自然数与整数 {#nat-int}
 
-The type `nat` behaves like a datatype with two constructors, `0` and `Suc`: every natural number is
-either `0` or `Suc n` for a smaller natural number `n`. That is why you can define functions on `nat` by
-pattern matching on `0` and `Suc n`, as `trace` does. A numeral such as `3` denotes the same number as
-`Suc (Suc (Suc 0))` (though the two are written differently, which matters for `simp`, as the pitfall at
-the end of this section shows), and `value` prints natural numbers as numerals:
+类型`nat`的行为类似于具有两个构造子`0`和`Suc`的数据类型：每个自然数要么是`0`，要么是`Suc n`，其中`n`是较小的自然数。这就是为什么你可以通过对`0`和`Suc n`进行模式匹配来定义`nat`上的函数，正如`trace`所做的那样。像`3`这样的数字表示与`Suc (Suc (Suc 0))`相同的数（尽管两者的写法不同，这对`simp`很重要，正如本节末尾的陷阱所示），而`value`将自然数打印为数字：
 
 ```isabelle
 value "Suc (Suc 0)"
@@ -1005,7 +964,7 @@ value "Suc (Suc 0)"
   :: "nat"
 ```
 
-The type `int` contains the negative numbers too. The two types differ most visibly in subtraction:
+类型`int`包含负数。两种类型在减法上的差异最为显著：
 
 ```isabelle
 value "(2::nat) - 3"
@@ -1020,21 +979,17 @@ value "(2::int) - 3"
   :: "int"
 ```
 
-Isabelle prints negative numbers with a space after the minus sign.
+Isabelle 打印负数时，在减号后保留一个空格。
 
-::: definition Truncated subtraction
-On `nat`, subtraction is **truncated**: `m - n` is `0` whenever `m ≤ n`, because there is no natural
-number below 0. On `int`, subtraction is the usual one.
+::: definition 截断减法
+在`nat`上，减法被**截断**：当`m ≤ n`时`m - n`为`0`，因为没有小于0的自然数。在`int`上，减法是通常的减法。
 :::
 
 ::: pitfall
-Truncated subtraction breaks familiar laws. On `nat`, `(m - n) + n = m` holds only if `n ≤ m`: with
-`m = 5` and `n = 7`, the left side is `0 + 7 = 7`. A bank account whose balance is a `nat` cannot go
-overdrawn: withdrawing too much leaves exactly 0, silently, instead of a debt. When negative values make
-sense, use `int`; when they do not, check `n ≤ m` before you subtract.
+截断减法破坏了熟悉的定律。在`nat`上，`(m - n) + n = m`仅在`n ≤ m`时成立：给定`m = 5`和`n = 7`，左侧为`0 + 7 = 7`。余额为`nat`的银行账户不能透支：提取过多会静默地留下恰好0，而非债务。当负值有意义时使用`int`；当无意义时，在减法前检查`n ≤ m`。
 :::
 
-Division on `nat` and `int` is `div`, with remainder `mod`:
+`nat` 除以 `int` 得 `div`，余数为 `mod`：
 
 ```isabelle
 value "(17::nat) div 5"
@@ -1057,8 +1012,7 @@ value "(-17::int) mod 5"
   :: "int"
 ```
 
-On `int`, `div` rounds down, towards minus infinity, so `-17 div 5` is −4, and `mod` is chosen to make
-`(a div b) * b + a mod b = a` hold: (−4) · 5 + 3 = −17. And division by zero?
+在`int`上，`div`向下舍入（朝向负无穷），因此`-17 div 5`为−4，且选择`mod`以使`(a div b) * b + a mod b = a`成立：(−4) · 5 + 3 = −17。那除以零呢？
 
 ```isabelle
 value "(17::nat) div 0"
@@ -1069,23 +1023,17 @@ value "(17::nat) div 0"
   :: "nat"
 ```
 
-::: fact Division by zero
-In HOL, `a div 0 = 0` and `a mod 0 = a` for every `a` (the library's lemmas `div_by_0` and `mod_by_0`).
+::: fact 零除法
+在 HOL 中，`a div 0 = 0` 和 `a mod 0 = a` 对于每个 `a`（库的引理 `div_by_0` 和 `mod_by_0`）。
 :::
 
-This is not a mistake. Every HOL function is total, so `17 div 0` must be some number. The library
-chooses 0, a value that makes many laws hold without side conditions. A program that divides by zero is
-still wrong; the logic does not stop with an error. When division by zero matters, state `b ≠ 0`
-as an assumption in your lemmas.
+这不是错误。每个 HOL 函数都是全函数，因此 `17 div 0` 必须是某个数。库选择 0，该值使许多定律在无需附加条件的情况下成立。被要求拒绝除以零的程序需要显式检查；逻辑不会对该操作抛出错误。当除以零至关重要时，在引理中将 `b ≠ 0` 声明为假设。
 
-The functions `int :: nat ⇒ int` and `nat :: int ⇒ nat` convert between the two types; `nat` maps
-negative integers to 0. The operator `/` is division on fields such as the real numbers, not on `nat`
-or `int`, and `x ^ n` is the power xⁿ, with `n` a natural number.
+函数 `int :: nat ⇒ int` 和 `nat :: int ⇒ nat` 在两种类型之间进行转换；`nat` 将负整数映射为 0。运算符 `/` 是实数域等域上的除法，而非在 `nat` 或 `int` 上，`x ^ n` 是幂 xⁿ，其中 `n` 为自然数。
 
-### Overloading and type classes {#classes}
+### 重载与类型类 {#classes}
 
-You have used `+`, `0` and numerals on both `nat` and `int`. Such names are **overloaded**: one name has
-several meanings, chosen by the type. And yet they do not exist for every type. A light is not a number:
+你已在`nat`和`int`上使用了`+`、`0`及数字。此类名称是**overloaded**：一个名称具有多个含义，由类型决定。然而它们并非对每种类型都存在。光不是数字：
 
 ```isabelle fails
 value "next_light 3"
@@ -1101,25 +1049,17 @@ value "next_light 3"
 ***
 ```
 
-"No type arity light :: numeral" says that the type `light` is not in the class `numeral`, the class of
-types that have numerals, so `3` cannot be a light. (An *arity* is Isabelle's record that a type belongs
-to a class.) Isabelle organises overloading in **type classes**.
+“No type arity light :: numeral”表示类型 `light` 不属于支持数值字面量的类 `numeral`，因此 `3` 不能是该灯色类型的值。Isabelle 用 arity 记录类型属于某个类的信息，并用**类型类**管理重载。
 
-::: definition Type class and sort
-A **type class** is a named collection of types that provide certain operations, sometimes with laws.
-For example, the class `plus` contains the types that have an operation `+`, `zero` those with a `0`,
-`numeral` those with numerals 1, 2, 3, … and an associative `+`, and `ord` those with `≤` and `<`. A type
-in a class is an **instance** of it: `nat` and `int` are instances of all four. A **sort** is a set of
-classes, written `{c₁, …, cₙ}`, or `c` for a single class. A type variable can be restricted to a sort:
-`'a::{one, plus}` stands for any type that is an instance of both `one` and `plus`.
+::: definition 类型类与排序
+**类型类**是一个有名称的类型集合，所含类型提供指定的运算，有时还要满足某些定律。例如，`plus` 所含的类型有运算 `+`，`zero` 要求有 `0`，`numeral` 要求有数值字面量 1、2、3 等，并且 `+` 满足结合律，`ord` 要求有 `≤` 和 `<`。属于一个类的类型称为该类的**实例**。`nat` 和 `int` 都是上述四个类的实例。**类型类约束（sort）**是一组类型类，记作 `{c₁, …, cₙ}`，单个类可以写成 `c`。给类型变元加上这样的约束时，`'a::{one, plus}` 表示同时是 `one` 和 `plus` 实例的任意类型。
 :::
 
 ::: analogy
-Type classes play the role of interfaces in Java or traits in Rust, and Haskell's type classes are the
-same idea. A sort says which interfaces an unknown type must implement.
+类型类扮演 Java 中接口或 Rust 中特征的角色，Haskell 的类型类也是相同的理念。排序规定了未知类型必须实现的接口。
 :::
 
-Isabelle hides sorts unless you ask for them. The option `show_sorts` makes them visible:
+除非显式请求，否则 Isabelle 会隐藏类型类（sorts）。选项 `show_sorts` 使其可见：
 
 ```isabelle
 declare [[show_sorts]]
@@ -1136,9 +1076,7 @@ declare [[show_sorts = false]]
   :: "'a::numeral"
 ```
 
-Now you can see what Isabelle knows about the `'a` of Section 8.1: `x + 1` has *some* type that has
-`1` and `+`. And `2 + 2` has some type of the class `numeral`. That is the key to the message from
-Module 1, which promised that you would learn to read it here:
+现在你可以看到 Isabelle 对第 8.1 节中 `'a` 的了解：`x + 1` 具有 `1` 和 `+` 的*某些*类型。且 `2 + 2` 具有类 `numeral` 的某些类型。这就是来自 Module 1 消息的关键，该消息承诺你将在此处学会阅读它：
 
 ```isabelle fails
 value "2 + 2"
@@ -1150,19 +1088,15 @@ value "2 + 2"
 *** Cannot derive subsort relation numeral < term_of
 ```
 
-To print a result, `value` must turn the computed value back into a term. It does so with an overloaded
-function `term_of`, which exists for the types in the class `term_of`: `nat`, `int`, lists, and the
-datatypes you define, among others. Now read the message line by line.
+要打印结果，`value`必须将计算出的值转换回项。它通过类`term_of`中存在的重载函数`term_of`来实现，该函数适用于`nat`、`int`、列表以及您定义的数据类型等类型。现在逐行阅读消息。
 
-- **Wellsortedness error**: some type is required to be in a class it is not known to be in.
-- **Type 'a not of sort term_of**: the type of `2 + 2` is the unknown `'a`, and `value` needs it to be in
-  the class `term_of`.
-- **Cannot derive subsort relation numeral < term_of**: all Isabelle knows about `'a` is that it is in
-  `numeral`. That would be enough only if every type in `numeral` were also in `term_of`, that is, if
-  `numeral` were a subclass of `term_of`, written `numeral < term_of`. It is not.
+- **排序良好性错误**：某些类型被要求属于其未被确知所属的类。
+- **类型 'a 不属于 sort term_of**：`2 + 2` 的类型为未知 `'a`，且 `value` 需要其属于
+  类 `term_of`。
+- **无法推导出子类型关系 numeral < term_of**：Isabelle 对`'a`所知仅限于其属于
+  `numeral`. 那将仅在 `numeral` 中的每个类型也属于 `term_of` 时成立，即若 `numeral` 是 `term_of` 的子类，记作 `numeral < term_of`。事实并非如此。
 
-The cure is the one from Module 1: say which type you mean, as in `value "2 + 2 :: nat"`. The same
-missing information can make a proof fail:
+解决方案来自 Module 1：指明你意指的类型，如 `value "2 + 2 :: nat"` 所示。同样的缺失信息会导致证明失败：
 
 ```isabelle fails
 lemma "x + 0 = x"
@@ -1175,9 +1109,7 @@ lemma "x + 0 = x"
 ***  1. x + 0 = x
 ```
 
-The goal is about a type of sort `{plus, zero}`: a type with some `+` and some `0`. Nothing in those
-classes says that `0` is neutral for `+`, so the claim cannot be proved for every such type. For natural
-numbers it is a law of arithmetic:
+目标是关于一个类型为 `{plus, zero}` 的排序：一个具有某些 `+` 和某些 `0` 的类型。这些类中没有任何内容表明 `0` 对 `+` 是中性的，因此该声明不能对每个这样的类型进行证明。对于自然数，它是算术定律：
 
 ```isabelle
 lemma "x + 0 = (x::nat)"
@@ -1185,8 +1117,7 @@ lemma "x + 0 = (x::nat)"
 ```
 
 ::: pitfall
-`value` computes with numerals, but `simp` does not match a numeral against a `Suc` pattern. The
-equations of `trace` are about `0` and `Suc n`, and `2` is neither, syntactically:
+`value` 对数值进行计算，但 `simp` 不会将数值与 `Suc` 模式进行匹配。`trace` 的方程涉及 `0` 和 `Suc n`，而 `2` 在语法上均非如此：
 
 ```isabelle fails
 lemma "trace 2 Red = [Red, RedAmber]"
@@ -1199,8 +1130,7 @@ lemma "trace 2 Red = [Red, RedAmber]"
 ***  1. trace 2 Red = [Red, RedAmber]
 ```
 
-The library lemma `numeral_eq_Suc` rewrites a numeral into `Suc` of a smaller number, after which the
-equations of `trace` apply:
+库引理 `numeral_eq_Suc` 将数字重写为更小的数字 `Suc`，随后 `trace` 的等式适用：
 
 ```isabelle
 lemma "trace 2 Red = [Red, RedAmber]"
@@ -1208,98 +1138,65 @@ lemma "trace 2 Red = [Red, RedAmber]"
 ```
 :::
 
-## Why every function must terminate {#termination}
+## 为什么 fun 需要终止性 {#termination}
 
-Every `fun` you have written produced a line "Found termination order". Module 5 (Section 5.7)
-explained why Isabelle insists on termination, what a measure is, and how to read the message when `fun`
-rejects a definition. Module 1 promised that this module would explain why termination matters, so this
-section recalls the argument and connects it with the three ways of defining a function in Section 8.4.
-Then it reads Isabelle's termination messages in full, and shows what to do when a function terminates
-but Isabelle cannot see why.
+此前每次使用 `fun`，你都见到过“Found termination order”（已找到终止序）。第 5.7 节解释了 Isabelle 为什么要求终止性、什么是度量，以及 `fun` 拒绝定义时如何读报错。模块 1 提过这个问题。本节先复习终止性的理由，并说明它与第 8.4 节三种定义函数的方法的关系，然后逐项读懂 Isabelle 的终止性报告，看看已知函数终止而 Isabelle 未能证明时该怎么做。
 
-### Total functions and consistency {#total}
+### 总函数与一致性 {#total}
 
-When you define a function with `fun`, Isabelle makes your equations into theorems: after
-`fun next_light`, the equation `next_light Red = RedAmber` is a theorem you can use in any proof. This is
-only safe if some function really satisfies the equations. Module 5 showed what goes wrong otherwise,
-with the "definition" `bad n = bad n + 1` of a function `bad :: nat ⇒ nat`. Suppose Isabelle accepted it:
+当使用`fun`定义函数时，Isabelle 会将你的方程转化为定理：在`fun next_light`之后，方程`next_light Red = RedAmber`成为可在任何证明中使用的定理。仅当确实存在满足这些方程的函数时，这才是安全的。模块 5 展示了否则会发生的问题，即函数`bad :: nat ⇒ nat`的“定义”`bad n = bad n + 1`。假设 Isabelle 接受了它：
 
-1. The equation would be a theorem for every `n`. Take `n = 0` and write `k` for the number `bad 0`:
-   the theorem says `k = k + 1`.
-2. Subtract `k` from both sides. This works even with truncated subtraction: `k - k = 0` and
-   `(k + 1) - k = 1`. So `0 = 1` would be a theorem.
-3. But `0 ≠ 1` is a theorem too: `1` is `Suc 0`, and values built with different constructors are
-   different (Definition 8.5; `nat` behaves like a datatype, Section 8.6).
-4. A statement and its negation together are a contradiction, and from a contradiction every statement
-   follows: the principle of explosion of Module 2, the rule (⊥E) of Module 6.
+1. 该方程对于每个`n`都是定理。取`n = 0`并令`k`为数值`bad 0`：
+   该定理表明 `k = k + 1`。
+2. 从两边减去 `k`。即使使用截断减法也成立：`k - k = 0` 和
+   `(k + 1) - k = 1`. 因此，`0 = 1` 将是一个定理。
+3. 但 `0 ≠ 1` 也是一个定理：`1` 是 `Suc 0`，且由不同构造器构建的值
+   不同（定义 8.5；`nat` 表现如数据类型，第 8.6 节）。
+4. 一个命题与其否定共同构成矛盾，且从矛盾中可以推导出任何命题
+   遵循 Module 2 的爆炸原理与 Module 6 的 (⊥E) 规则。
 
-One bad equation would make every statement a theorem, and every proof would be worthless.
+一个错误的等式会使每个陈述成为定理，且每个证明都毫无价值。
 
 ::: keyidea
-A `definition` as in Section 8.4 is safe without any proof: its right-hand side does not mention the
-constant being defined, so it cannot be circular, and it can never make the logic inconsistent. `fun`
-does not take your recursive equations on trust. It first defines the function by non-recursive
-definitions of this safe kind, through a construction that Isabelle carries out for you, and then
-*proves* your equations from them as theorems. That proof needs a termination argument. If Isabelle
-cannot find one, the definition is rejected, and nothing about the function becomes a theorem.
+A `definition` 如第 8.4 节所述，无需任何证明即安全：其右侧未提及所定义的常量，因此不会循环，且绝不会使逻辑不一致。`fun` 并不盲目信任你的递归方程。它首先通过 Isabelle 为你执行的构造，以这种安全类型的非递归定义定义函数，然后*证明*你的方程作为定理。该证明需要终止论证。如果 Isabelle 无法找到，`fun` 失败：它不提供作为定理的无限制定义方程。底层 `function` 包可以保留部分定义和条件事实，这超出了本介绍的范围。
 :::
 
-If every chain of recursive calls ends in an equation without a recursive call, the equations determine
-the function's value for every argument, one step at a time, as in Example 8.1, and the proof goes
-through. Not every non-terminating equation is contradictory: Module 5 pointed out that every function
-satisfies `f n = f n`. But `fun` does not try to tell harmless equations from harmful ones; it accepts
-recursion only with a termination proof. A missing pattern (Section 8.4) is a different matter: it leaves
-a value unspecified, which can never contradict anything, so `fun` only warns about it.
+如果每个递归调用链都终止于不含递归调用的方程，则方程逐步确定每个参数的函数值，如例8.1所示，证明即可成立。并非所有非终止方程都是矛盾的：模块5指出每个函数都满足`f n = f n`。但`fun`并未尝试区分无害方程与有害方程；它仅在提供终止证明时才接受递归。缺失模式（第8.4节）则是另一回事：它使某个值未指定，这永远不与任何内容矛盾，因此`fun`仅对此发出警告。
 
-### Reading the termination messages {#termination-messages}
+### 阅读终止消息 {#termination-messages}
 
-To prove termination, Isabelle looks for a measure, as in Module 5: a function from the arguments to the
-natural numbers that becomes smaller with every recursive call. The measures it tries are built from the
-sizes of the arguments.
+为证明终止性，Isabelle 寻找一个度量，如 Module 5 中所示：一个从参数到自然数的函数，在每次递归调用时都会变小。它尝试的度量由参数的大小构建。
 
 ::: definition Size
-Every value of a datatype has a **size**, a natural number, written `size x`. For a natural number `n`
-the size is `n` itself, and for a list its length. For a value of a datatype you define, the size counts
-the constructors in it that have an argument of the same datatype, a **recursive** argument:
-`size (Push 1 (Push 2 Empty))` is 2, and every `light` has size 0, because no constructor of `light`
-takes an argument.
+对于此处定义的数据类型，Isabelle 提供了 **size**，即一个自然数，记作 `size x`。对于自然数 `n`，其大小为 `n` 本身；对于列表，其大小为长度。对于我们的栈，`Empty` 的大小为 0，且每个 `Push` 将内部栈的大小加 1：`size (Push 1 (Push 2 Empty))` 的大小为 2。每个 `light` 都有大小
+0. 其他数据类型可能具有不同的大小方程；检查其生成的 `t.size` 事实
+因此，与其假设 `size` 计算每个构造子或每个存储元素，
 :::
 
-When the search succeeds, `fun` prints the measure it found. You have seen three kinds of report in this
-module:
+当搜索成功时，`fun` 打印它找到的度量。你在此模块中见过三种报告：
 
-| Report | Meaning |
+| 报告 | 含义 |
 |---|---|
-| `"{}"` | no recursive calls, nothing to prove (`next_light`, `top`) |
-| `"(λp. size (fst p)) <*mlex*> {}"` | the size of the first argument decreases (`trace`) |
-| `"(λp. length (fst p)) <*mlex*> {}"` | the length of the first argument, a list, decreases (`push_all`) |
+| `"{}"` | 无递归调用，无需证明 (`next_light`, `top`) |
+| `"(λp. size (fst p)) <*mlex*> {}"` | 第一个参数的大小减小（`trace`） |
+| `"(λp. length (fst p)) <*mlex*> {}"` | 第一个参数（一个列表）的长度递减（`push_all`） |
 
-As in Module 5, the arguments of a function with several arguments form one tuple `p`, so `fst p` is the
-first argument. `<*mlex*>` chains measures lexicographically, as for Ackermann's function in Module 5: if
-the first measure stays the same, the next one must decrease. The final `{}` ends the chain.
+与 Module 5 类似，具有多个参数的函数的参数构成一个元组 `p`，因此 `fst p` 是第一个参数。`<*mlex*>` 对度量进行字典序链接，如同 Module 5 中 Ackermann 函数的情况：如果第一个度量保持不变，则下一个度量必须减小。最终的 `{}` 结束该链。
 
-When the search fails, Isabelle prints what it tried. Module 5 read the message for `bad`, with one call
-and one measure. In general the message has four parts:
+当搜索失败时，Isabelle 会打印它尝试过的内容。Module 5 读取了 `bad` 的消息，其中包含一次调用和一次度量。一般而言，该消息由四个部分组成：
 
-- **Calls** lists the recursive calls, named a), b), …, each with the argument before and after the call:
-  `a) n ~> n div 2` says that a call with argument `n` leads to a call with argument `n div 2`.
-- **Measures** lists the measures Isabelle tried, numbered 1), 2), … .
-- **Result matrix** has one row for each call and one column for each measure. Each entry says what
-  Isabelle could prove about the measure at that call: `<` means it decreases, `<=` that it does not grow
-  (but may stay the same), `?` that Isabelle could prove neither, and `F` that it grows, so that it can
-  never decrease there.
-- **Unfinished subgoals** are the statements that Isabelle could not prove, each labelled with a call, a
-  measure and a relation: `(b, 1, <)` is the claim that measure 1 decreases at call b).
+- **Calls** 列出递归调用，命名为 a)、b)、…，每个调用均包含调用前后的参数：
+  `a) n ~> n div 2` 表示带有参数 `n` 的调用会导致带有参数 `n div 2` 的调用。
+- **Measures** 列出了 Isabelle 尝试的度量，编号为 1)、2)、… 。
+- **结果矩阵**的每行对应一次调用，每列对应一个度量。每个单元格说明
+  Isabelle 可证明该调用处的度量：`<` 表示其递减，`<=` 表示其不增长（但可能保持不变），`?` 表示 Isabelle 无法证明任何情况，`F` 表示其递增，因此在该处永远无法递减。
+- **未完成子目标**是 Isabelle 无法证明的命题，每个均带有调用、一个
+  度量与关系：`(b, 1, <)` 是断言在调用 b) 时度量 1 减小。
 
-A lexicographic order exists when Isabelle can pick measures one after another so that every call has `<`
-under one of the picked measures and `<=` under all the measures picked before it. When no choice works,
-the message ends with **Could not find lexicographic termination order**. Exercise 8.8 gives you three
-more reports to predict and read.
+当 Isabelle 能够依次选取度量，使得每次调用在其中一个选取的度量下满足 `<`，并在所有之前选取的度量下满足 `<=` 时，存在字典序。当无选择可行时，消息以 **Could not find lexicographic termination order** 结尾。练习 8.8 提供了另外三个报告供预测和阅读。
 
-::: example A function nobody has proved terminating
-Module 5 ended its section on termination with the Collatz function, which counts the steps that the
-famous "3n + 1" process takes from `n` to 1: halve an even number, triple an odd one and add 1. Here is
-what Isabelle says about it:
+::: example 一个无人证明终止的函数
+模块 5 以 Collatz 函数结束其关于终止性的章节，该函数计算著名的“3n + 1”过程从 `n` 到 1 所需的步数：对偶数减半，对奇数乘三加一。以下是 Isabelle 对此的说明：
 
 ```isabelle fails
 fun collatz :: "nat ⇒ nat" where
@@ -1330,20 +1227,12 @@ consts
 *** Could not find lexicographic termination order.
 ```
 
-There are two calls and one measure, the size of `n`. Call a), with `n div 2`, decreases it: the entry is
-`<`. For call b), with `3 * n + 1`, the two unfinished subgoals show what Isabelle was left with when it
-tried to prove that the size decreases (`<`) or at least does not grow (`<=`): `False`, under the
-conditions of the call, that `n` is above 1 and odd. Since `3 * n + 1` is larger than `n`, no proof is
-possible. (Isabelle writes `F` only when such a goal becomes plain `False`, without conditions; here the
-conditions remain, so the entry is `?`.) The row of call b) has no `<`, so there is no termination
-order. No other measure is known either: as Module 5 explained, a termination proof would settle the
-Collatz conjecture, which is still open.
+存在两次调用和一个度量，即`n`的大小。调用a)使用`n div 2`使其减小：条目为`<`。对于调用b)，使用`3 * n + 1`，两个未完成的子目标展示了Isabelle在尝试证明大小减小（`<`）或至少不增长（`<=`）时留下的内容：在调用条件下，`False`表明`n`大于1且为奇数。由于`3 * n + 1`大于`n`，无法进行证明。（Isabelle仅在目标变为无条件的`False`时才写入`F`；此处条件仍然存在，因此条目为`?`。）调用b)的行没有`<`，因此不存在终止序。也没有其他已知的度量：正如模块5所述，终止证明将解决科拉茨猜想，该猜想目前仍是开放的。
 :::
 
-### When Isabelle needs help {#termination-help}
+### 当 Isabelle 需要帮助时 {#termination-help}
 
-Some functions terminate, but not by a measure that Isabelle tries. How long must a driver wait for
-green? From each state, add up the durations until the light turns green:
+某些函数终止，但并非通过 Isabelle 尝试的度量。司机等待绿灯需多长时间？从每个状态起，累加至灯变绿的时间段：
 
 ```isabelle fails
 fun wait :: "light ⇒ nat" where
@@ -1370,15 +1259,9 @@ consts
 *** Could not find lexicographic termination order.
 ```
 
-The function does terminate: from any state, the light is green after at most three steps. But the only
-measure Isabelle tries is the size of `l`, and every light has size 0 (Definition 8.9). A measure that is
-always 0 never decreases, so the subgoal for `<` is false. The subgoal for `<=` is true, but Isabelle
-would have to split `l` into its four cases to prove it, and it does not try; so the entry is `?`.
+这个函数确实会终止。从任意状态出发，最多三步后灯就变绿。但是 Isabelle 唯一尝试的度量是 `l` 的大小。按定义 8.9，每种灯色的大小都是 0。恒为 0 的度量无法减小，所以 `<` 的子目标为假。`<=` 的子目标为真，但证明需要把 `l` 分为四种情形，Isabelle 并未尝试这样做，所以矩阵中的条目为 `?`。
 
-One fix is to write the function so that termination is evident. Here the library does the work: take
-the first four states, keep those before the first green with `takeWhile`, and add up their durations.
-`takeWhile P xs` is the longest initial part of `xs` whose elements all satisfy `P`. The definition is not
-recursive at all:
+一种修复方案是编写函数使得终止性显而易见。此处由库完成工作：取前四个状态，保留第一个绿色状态 `takeWhile` 之前的状态，并累加它们的持续时间。`takeWhile P xs` 是 `xs` 的最长初始部分，其所有元素均满足 `P`。该定义完全不递归：
 
 ```isabelle
 definition wait :: "light ⇒ nat" where
@@ -1392,12 +1275,9 @@ value "map wait [Red, RedAmber, Green, Amber]"
   :: "nat list"
 ```
 
-A driver who arrives at amber waits 3 + 30 + 2 = 35 seconds.
+到达琥珀色交通灯的驾驶员需等待 3 + 30 + 2 = 35 秒。
 
-When no such reformulation is natural, you can supply the measure yourself. Module 5 met an example:
-`sum_from i n = (if n < i then 0 else i + sum_from (i + 1) n)` adds up the numbers from `i` to `n`. It
-terminates because the distance `n + 1 - i` decreases at every call, but neither argument gets smaller,
-so `fun` gives up. The command `function` separates the definition from its termination proof:
+当没有自然的公式化约时，你可以自行提供测度。模块 5 遇到了一个例子：`sum_from i n = (if n < i then 0 else i + sum_from (i + 1) n)` 将数字从 `i` 累加到 `n`。它终止是因为距离 `n + 1 - i` 在每次调用时都减小，但两个参数都没有变小，因此 `fun` 放弃。命令 `function` 将定义与其终止性证明分离：
 
 ```isabelle
 function sum_from :: "nat ⇒ nat ⇒ nat" where
@@ -1407,14 +1287,7 @@ termination
   by (relation "measure (λ(i, n). n + 1 - i)") auto
 ```
 
-`function` takes the same equations as `fun`, but proves nothing by itself. The line
-`by pat_completeness auto` proves that the patterns cover every case and do not contradict each other;
-with a single equation that is a formality. `termination` then asks for the termination proof, and you
-name the measure. `λ(i, n). n + 1 - i` is the function that maps the pair of arguments `(i, n)` to
-`n + 1 - i`; `measure` turns it into the relation "has a smaller measure", and the method `relation`
-makes Isabelle use that relation. `auto` proves the rest: that the relation is well-founded, as it is
-for every measure (Module 5), and that the call decreases the measure, from `n + 1 - i` to
-`n + 1 - (i + 1)`, because the call happens only when `¬ n < i`. Now `sum_from` is defined, and it computes:
+`function` 接受与 `fun` 相同的方程，但将证明义务留给你。`by pat_completeness auto` 行证明模式覆盖所有情况且互不矛盾；对于单个方程，这仅是形式上的。`termination` 随后要求终止证明，你命名了度量。`λ(i, n). n + 1 - i` 是将参数对 `(i, n)` 映射到 `n + 1 - i` 的函数；`measure` 将其转化为“具有更小度量”的关系，`relation` 方法使 Isabelle 使用该关系。`auto` 证明其余部分：该关系是良基的，因为每个自然数度量都是良基的（第 5 模块），且调用使度量从 `n + 1 - i` 减小到 `n + 1 - (i + 1)`，因为调用仅发生在 `¬ n < i` 时。现在定义了 `sum_from`，它进行计算：
 
 ```isabelle
 value "sum_from 3 5"
@@ -1425,16 +1298,11 @@ value "sum_from 3 5"
   :: "nat"
 ```
 
-The manual *Defining Recursive Functions in Isabelle/HOL*, under **functions** in the Documentation
-panel, explains `function` in depth. Every function defined with `fun` or `function` also comes with an
-induction rule that follows its recursion, `f.induct`; Module 11 uses it.
+手册《在 Isabelle/HOL 中定义递归函数》在 Documentation 面板的 **functions** 下深入解释了 `function`。在证明终止性后，这些定义还提供了遵循递归的归纳规则 `f.induct`；Module 11 使用了它。
 
-## From HOL to running code {#codegen}
+## 从 HOL 到可运行代码 {#codegen}
 
-The functions you have defined are programs, and Isabelle can translate them into other programming
-languages: Standard ML, OCaml, Haskell and Scala. This is how a function that you have proved correct
-becomes part of real software, and Modules 12 and 14 use it for verified programs. Generate Haskell
-code for the traffic light:
+您定义的可执行函数是程序，Isabelle 可将它们翻译为其他编程语言：Standard ML、OCaml、Haskell 和 Scala。这就是您证明正确的函数成为真实软件一部分的方式，Modules 12 和 14 利用它进行验证程序。生成交通灯的 Haskell 代码：
 
 ```isabelle
 export_code next_light duration trace in Haskell module_name Traffic
@@ -1444,19 +1312,9 @@ export_code next_light duration trace in Haskell module_name Traffic
 See theory exports
 ```
 
-`export_code` takes the names of the functions to translate, and adds everything they need: here the
-datatype `light` and the natural numbers. `module_name` names the Haskell module. Write `in SML`,
-`in OCaml` or `in Scala` for the other languages. Only definitions that compute can be translated. A
-definition that quantifies over all natural numbers, such as `all_small k = (∀n::nat. n < k)`, has no
-program: `export_code` rejects it with a wellsortedness error, because `∀` can be computed only over
-types whose elements can be listed, the class `enum`, and `nat` is not in it.
+`export_code` 接受要翻译的函数名称，并添加它们所需的一切：此处为数据类型 `light` 与自然数。`module_name` 命名 Haskell 模块。对其它语言使用 `in SML`、`in OCaml` 或 `in Scala`。翻译需要所涉及操作的可执行代码方程。例如，导出原始定义 `all_small k = (∀n::nat. n < k)` 会因良构性错误而失败：`∀` 的默认代码枚举类 `enum` 中的类型，而 `nat` 不在该类中。这并不意味着 `all_small` 不可计算：它始终为 `False`（取 `n = k`），因此已证明的代码方程 `all_small k = False` 可使其可执行。在将规范转化为运行代码时（如 Module 12），这种区分至关重要。
 
-The code does not appear in the Output panel. In Isabelle/jEdit, the words *theory exports* in the
-message are a link: click it, and jEdit's File Browser opens on the generated files, in a virtual folder
-whose name begins with `isabelle-export:`. The Haskell module is the file `Traffic.hs`, in a folder
-`export1` (`export_code` numbers the exports of a theory `export1`, `export2`, …). Here it is, without
-its first line, an option for the Haskell compiler, and without the `import` declarations that follow
-the `module` line:
+代码未出现在 Output 面板中。在 Isabelle/jEdit 中，消息中的 *theory exports* 一词是一个链接：点击它，jEdit 的 File Browser 会在名称以 `isabelle-export:` 开头的虚拟文件夹中打开生成的文件。Haskell 模块是文件 `Traffic.hs`，位于文件夹 `export1` 中（`export_code` 对理论 `export1` 的导出进行编号，`export2`，…）。此处为去除首行、Haskell 编译器选项以及 `module` 行之后的 `import` 声明后的内容：
 
 ```text
 module Traffic(Nat, Num, Light, next_light, trace, duration) where {
@@ -1502,57 +1360,34 @@ duration Amber = nat_of_num (Bit1 One);
 }
 ```
 
-The translation follows your equations closely. The `module` line names the module `Traffic`, as
-`module_name` asked, and lists what it exports. The datatype `light` becomes a Haskell `data` type with
-the same constructors, and `next_light` and `trace` have the same equations as in Isabelle. Everything
-else is the natural numbers, translated as the logic builds them: a datatype `Nat` with the constructors
-`Zero_nat` and `Suc`, and numerals in binary, built from `One` with `Bit0` (append the binary digit 0)
-and `Bit1` (append 1). So 30 is `Bit0 (Bit1 (Bit1 (Bit1 One)))`, binary 11110, and `nat_of_num`
-converts it into `Suc` form. This representation is faithful but slow. For efficient code, import the
-library theory `HOL-Library.Code_Target_Nat` in the theory header (`imports Main
-"HOL-Library.Code_Target_Nat"`): the code generator then represents `nat` by Haskell's built-in
-integers.
+该翻译紧密遵循您的方程。`module`行命名了模块`Traffic`，如`module_name`所要求，并列出其导出内容。数据类型`light`成为具有相同构造器的Haskell`data`类型，且`next_light`和`trace`拥有与Isabelle中相同的方程。其余部分为自然数，随逻辑构建方式翻译为：具有构造器`Zero_nat`和`Suc`的数据类型`Nat`，以及基于`One`使用`Bit0`（追加二进制位0）和`Bit1`（追加1）构建的二进制数字。因此30为`Bit0 (Bit1 (Bit1 (Bit1 One)))`（二进制11110），且`nat_of_num`将其转换为`Suc`形式。此表示法忠实但缓慢。为获得高效代码，需在理论头（`imports Main "HOL-Library.Code_Target_Nat"`）中导入库理论`HOL-Library.Code_Target_Nat`：代码生成器随后使用Haskell内置整数表示`nat`。
 
 ::: note
-The code generator is not part of Isabelle's kernel, so the generated code is not checked by the kernel:
-the code generator belongs to the trusted base (Module 1). It is designed so that every computation
-step of the generated program corresponds to rewriting with equations that are theorems in the logic.
-So if the program returns a result, the result agrees with your definitions; the guarantee is called
-*partial correctness*. The command `value` uses the same machinery. For a term without variables it
-translates the term into ML, runs it, and turns the result back into a term with `term_of`; that is why
-it needs the class `term_of` (Section 8.6), and why it stopped with an exception at `top_value Empty`
-(Section 8.4). For a term with variables, such as `rev [a, b, c]`, it uses a symbolic variant of the
-same translation.
+代码生成器不属于 Isabelle 内核，因此生成的代码不由内核检查：代码生成器属于可信基础（模块 1）。其设计使得生成程序的每个计算步骤都对应于使用逻辑中定理的等式进行化简。假设生成器、其配置和目标运行时保持这种对应关系，则返回结果与逻辑定义一致；这提供了部分正确性保证。它不保证生成的代码在每个目标语言输入上终止或避免资源错误。命令 `value` 使用相同的机制。对于不含变量的项，它将该项翻译为 ML，运行它，并通过 `term_of` 将结果转换回项；这就是它需要类 `term_of`（第 8.6 节）的原因，以及为什么它在 `top_value Empty` 处因异常而停止（第 8.4 节）。对于包含变量的项，如 `rev [a, b, c]`，它使用相同翻译的符号变体。
 :::
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- HOL is a typed functional programming language inside a logic. Functions have no side effects, use
-  recursion instead of loops, and are total. `typ` prints a type, `term` the type of a term, and `value`
-  evaluates a term.
-- Types are built from base types (`bool`, `nat`, `int`), type constructors written after their
-  arguments (`'a list`, `'a option`), pairs `'a × 'b`, functions `'a ⇒ 'b` and type variables. Isabelle
-  infers types; an annotation `t :: τ` fixes one. Misspelt names become free variables.
-- `λx. t` is a function without a name. Functions of several arguments are curried: `nat ⇒ nat ⇒ nat`
-  means `nat ⇒ (nat ⇒ nat)`, `f x y` means `(f x) y`, and a partial application is a function.
-- `datatype` defines enumerations and recursive types such as stacks and lists. Functions take values
-  apart by pattern matching in equations or with `case`. Options represent results that may be missing.
-- `definition` defines non-recursive functions; `simp` uses `f_def` only when asked. `primrec` allows
-  primitive recursion; `fun` allows general patterns and recursion, warns about missing patterns, and
-  resolves overlapping ones in order.
-- The list library offers `map`, `filter`, `foldr`, `zip`, `take`, `drop`, `!`, `[m..<n]` and list
-  comprehension. Subtraction on `nat` is truncated, `div` and `mod` are total, and overloaded
-  operations are organised in type classes and sorts.
-- Every `fun` must terminate, or its equations could prove `0 = 1`. Isabelle searches for a decreasing
-  measure, reports it, and explains its failure with a matrix of calls and measures. With `function` and
-  `termination` you supply the measure yourself.
-- `export_code` translates definitions into Haskell, SML, OCaml or Scala.
+- HOL 支持在逻辑内部进行类型化的函数式编程。函数表示全数学
+  映射；此处可执行定义使用递归且无副作用。`typ` 打印类型，`term` 打印项及其类型，`value` 求值项。
+- 类型由基类型（`bool`, `nat`, `int`）和紧随其后的类型构造器构建
+  参数（`'a list`, `'a option`）、对 `'a × 'b`、函数 `'a ⇒ 'b` 及类型变元。Isabelle 推断类型；注解 `t :: τ` 固定其一。在项中，未声明的名称可能成为自由变元。
+- `λx. t` 是一个无名函数。多参数函数采用柯里化：`nat ⇒ nat ⇒ nat`
+  `nat ⇒ (nat ⇒ nat)` 表示含义，`f x y` 表示 `(f x) y`，且部分应用是一个函数。
+- `datatype` 定义了枚举和递归类型（如栈和列表）。函数取值
+  通过方程中的模式匹配或`case`进行分离。选项表示可能缺失的结果。
+- `definition` 定义非递归函数；`f_def` 默认情况下不是化简规则。`primrec` 允许
+  原始递归；`fun` 允许通用模式与递归，警告缺失模式，并按顺序解决重叠模式。
+- 列表库提供了`map`、`filter`、`foldr`、`zip`、`take`、`drop`、`!`、`[m..<n]`和list
+  理解。`nat`上的减法为截断式，`div`与`mod`为全函数，重载操作按类型类与种类组织。
+- `fun` 要求在提供无限制定义方程之前终止：接受任意
+  递归方程可证明`0 = 1`。Isabelle 搜索递减度量，报告其结果，并通过调用与度量矩阵解释其失败。借助`function`与`termination`，你可自行提供度量。
+- `export_code` 将定义规约为 Haskell、SML、OCaml 或 Scala。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Types by hand {#ex-8-1} ★
-Work out the type of each term by hand. Then check your answers with `term` in the theory of this
-module, where `Red` and `next_light` are defined.
+:::: exercise 手工定义类型 {#ex-8-1} ★
+通过手工推导每个项的类型，然后在包含 `Red` 和 `next_light` 定义的本模块理论中，利用 `term` 验证你的答案。
 
 1. `[Some True, None]`
 2. `(Suc, [0::nat])`
@@ -1586,19 +1421,18 @@ term "λf x. f (f x)"
   :: "('a ⇒ 'a) ⇒ 'a ⇒ 'a"
 ```
 
-1. `None` has type `'a option` for every `'a`; next to `Some True` it must be a `bool option`.
-2. A pair of a function `nat ⇒ nat` and a `nat list`.
-3. `#` puts a light in front of `xs`, so `xs` is a list of lights, and so is the result. Isabelle
-   prints the λ-term as `(#) Red`, the partial application of `#`, for the same reason as it printed
-   `(+)` in Section 8.2.
-4. A partial application: `map` has received its function, `light ⇒ light`, and waits for the list.
-5. `f` is applied to `x` and then to the result `f x`, so its argument type and its result type must be
-   the same, `'a`. The term applies a function twice.
+1. `None` 对于每个 `'a` 具有类型 `'a option`；在 `Some True` 旁边它必须是一个 `bool option`。
+2. 函数 `nat ⇒ nat` 与 `nat list` 的配对。
+3. `#` 在 `xs` 前方放置一盏灯，因此 `xs` 是一个灯列表，且结果亦然。Isabelle
+   打印 λ-项为 `(#) Red`，`#` 的部分应用，原因与在 Section 8.2 中打印 `(+)` 相同。
+4. 偏应用：`map` 已接收其函数 `light ⇒ light`，并等待列表。
+5. `f` 应用于 `x` 并应用于结果 `f x`，因此其参数类型和结果类型必须
+   相同，`'a`。该术语将函数应用两次。
 :::
 ::::
 
-:::: exercise Lists by hand {#ex-8-2} ★
-Work out the value of each term on paper, then check with `value`.
+:::: exercise 手工定义列表 {#ex-8-2} ★
+在纸上计算每个项的值，然后使用`value`进行验证。
 
 1. `take 3 (drop 2 [0..<10])`
 2. `zip [Red, Green] [1, 2, 3::nat]`
@@ -1632,21 +1466,21 @@ value "[n * n. n ← [1..<5]]"
   :: "nat list"
 ```
 
-1. `drop 2` removes 0 and 1; `take 3` keeps the next three numbers.
-2. `zip` stops at the end of the shorter list, so the 3 has no partner.
-3. The multiples of 3 below 10, including 0.
-4. `foldr f [1, 2, 3] []` is `f 1 (f 2 (f 3 []))`. Each step appends the element at the end of the list
-   built so far: first `[3]`, then `[3, 2]`, then `[3, 2, 1]`. This `foldr` reverses the list.
-5. The squares of 1 to 4: `[1..<5]` stops before 5.
+1. `drop 2` 移除 0 和 1；`take 3` 保留接下来的三个数字。
+2. `zip` 在较短列表的末尾停止，因此 3 没有配对。
+3. 3 的倍数，小于 10，包含 0。
+4. `foldr f [1, 2, 3] []` 是 `f 1 (f 2 (f 3 []))`。每一步将元素追加到列表末尾
+   到目前为止构建的：首先是 `[3]`，然后是 `[3, 2]`，接着是 `[3, 2, 1]`。这个 `foldr` 反转列表。
+5. 1 到 4 的平方：`[1..<5]` 在 5 之前停止。
 :::
 ::::
 
-:::: exercise Natural numbers and integers {#ex-8-3} ★
-Predict each value, then check it. Explain each result that surprised you.
+:::: exercise 自然数与整数 {#ex-8-3} ★
+预测每个值，然后验证。解释每个令你惊讶的结果。
 
-1. `(5::nat) - 7 + 7` and `(5::int) - 7 + 7`
+1. `(5::nat) - 7 + 7` 与 `(5::int) - 7 + 7`
 2. `(7::nat) div 2 * 2`
-3. `(-7::int) div 2` and `(-7::int) mod 2`
+3. `(-7::int) div 2` 与 `(-7::int) mod 2`
 4. `(7::nat) mod 0`
 
 ::: solution
@@ -1679,17 +1513,17 @@ value "(7::nat) mod 0"
   :: "nat"
 ```
 
-1. On `nat`, `5 - 7` is truncated to 0, and `0 + 7 = 7`. On `int` the result is the expected 5.
-2. `7 div 2 = 3`, and `3 * 2 = 6`: integer division throws the remainder away.
-3. `div` on `int` rounds down, so `-7 div 2 = -4` (not −3), and then `-7 mod 2 = 1`, because
+1. 在`nat`上，`5 - 7`被截断为0，且`0 + 7 = 7`。在`int`上，结果是预期的5。
+2. `7 div 2 = 3`, 且 `3 * 2 = 6`: 整数除法丢弃余数。
+3. `div` on `int` 向下取整，因此 `-7 div 2 = -4` (not −3)，然后 `-7 mod 2 = 1`，因为
    `(-4) * 2 + 1 = -7`.
-4. `a mod 0 = a`: `mod` is total, like every HOL function, and this is the value the library chooses
-   for a remainder by 0 (Fact 8.1).
+4. `a mod 0 = a`: `mod` 是全的，如同每个 HOL 函数，这是库选择的值
+   对于余数除以 0（Fact 8.1）。
 :::
 ::::
 
-:::: exercise Is the junction safe? {#ex-8-4} ★★
-A designer controls the east–west light of the junction from the north–south light with this function:
+:::: exercise 交叉路口的安全性如何？ {#ex-8-4} ★★
+设计者通过此函数利用南北方向交通灯控制东西方向交通灯：
 
 ```isabelle
 fun cross :: "light ⇒ light" where
@@ -1699,9 +1533,7 @@ fun cross :: "light ⇒ light" where
 | "cross Amber = RedAmber"
 ```
 
-The state of the junction is `(l, cross l)`. Use `value` and `map` to check `safe` for all four states
-`l`. Which states break the rule of Section 8.4? Then write the cycle of a safe controller as a list of
-junction states, with all-red states in between, and check with `value` that every state in it is safe.
+交叉路口的状态为`(l, cross l)`。使用`value`和`map`对全部四种状态`l`检查`safe`。哪些状态违反了第8.4节的规则？随后，将安全控制器的循环表示为包含所有全红状态的路径状态列表，并使用`value`验证其中的每个状态均安全。
 
 ::: solution
 ```isabelle
@@ -1713,9 +1545,7 @@ value "map (λl. safe (l, cross l)) [Red, RedAmber, Green, Amber]"
   :: "bool list"
 ```
 
-The states with `l = RedAmber` and `l = Amber` are unsafe: then neither light is in the state `Red`,
-because one shows red and amber and the other amber. A safe cycle lets each direction run its sequence while the other is
-red, with both red in between:
+状态包含`l = RedAmber`和`l = Amber`是不安全的：此时两个灯均不处于状态`Red`，因为一个显示红灯和琥珀灯，另一个显示琥珀灯。安全循环允许每个方向运行其序列，而另一个方向为红灯，中间状态均为红灯：
 
 ```isabelle
 definition safe_cycle :: "(light × light) list" where
@@ -1730,15 +1560,12 @@ value "filter (λp. ¬ safe p) safe_cycle"
   :: "(light × light) list"
 ```
 
-No state is unsafe. `value` can use `safe` and `safe_cycle` without being told: the code generator
-always uses the equations of definitions, unlike `simp`.
+没有状态是不安全的。`value` 可以使用 `safe` 和 `safe_cycle` 而无需被告知：代码生成器始终使用定义方程，不同于 `simp`。
 :::
 ::::
 
-:::: exercise From lists to stacks {#ex-8-5} ★★
-Define `from_list :: 'a list ⇒ 'a stack` with `primrec`, so that the first element of the list ends on top
-of the stack. Test it with `value`. Then prove `to_list (from_list xs) = xs` and
-`height (from_list xs) = length xs` by induction, as in Module 5.
+:::: exercise 从列表到栈 {#ex-8-5} ★★
+用 `primrec` 定义 `from_list :: 'a list ⇒ 'a stack`，使得列表的第一个元素位于栈顶。用 `value` 测试它。然后像 Module 5 中那样，通过归纳法证明 `to_list (from_list xs) = xs` 和 `height (from_list xs) = length xs`。
 
 ::: solution
 ```isabelle
@@ -1762,17 +1589,12 @@ lemma "height (from_list xs) = length xs"
   by (induction xs) auto
 ```
 
-Both proofs follow the recursion of `from_list` over the list: the base case `[]` and the induction step
-`x # xs` are computed by the equations of `from_list`, `to_list` and `height`, and the induction step
-uses the induction hypothesis. Compare `from_list` with `push_all` from Section 8.4, which puts the *last* element
-on top.
+两个证明均遵循对列表中 `from_list` 的递归：基本情况 `[]` 和归纳步骤 `x # xs` 由 `from_list`、`to_list` 和 `height` 的方程计算得出，且归纳步骤使用了归纳假设。将 `from_list` 与第 8.4 节中的 `push_all` 进行比较，后者将最后一个元素置于顶部。
 :::
 ::::
 
-:::: exercise An average {#ex-8-6} ★★
-Define `average :: nat list ⇒ nat` with `definition`, as the sum of the list divided by its length. Compute
-the average duration of the states of one cycle, and `average []`. Why does `average []` not fail? Then
-prove `average [] = 0` and, for every `n`, `average [n] = n`.
+:::: exercise 一个平均 {#ex-8-6} ★★
+用 `definition` 定义 `average :: nat list ⇒ nat`，即列表之和除以其长度。计算一个周期内状态的平均持续时间，以及 `average []`。为什么 `average []` 不会失败？然后证明 `average [] = 0`，并且对于每个 `n`，证明 `average [n] = n`。
 
 ::: solution
 ```isabelle
@@ -1794,9 +1616,7 @@ consts
   :: "nat"
 ```
 
-The four durations add up to 60, and `60 div 4 = 15`. For the empty list the sum and the length are both
-0, and `0 div 0 = 0` (Fact 8.1), so `average []` is 0 rather than an error. Whether 0 is a sensible
-average of nothing is a question for the specification, not for Isabelle.
+四个持续时间之和为 60，且 `60 div 4 = 15`。对于空列表，其和与长度均为 0，且 `0 div 0 = 0`（Fact 8.1），因此 `average []` 为 0 而非错误。0 是否是“无”的合理平均值是规范层面的问题，而非 Isabelle 的问题。
 
 ```isabelle
 lemma "average [] = 0"
@@ -1806,17 +1626,12 @@ lemma "average [n] = n"
   by (simp add: average_def)
 ```
 
-Without `add: average_def`, `simp` would fail, as it did for `safe` in Section 8.4.
+没有`add: average_def`，`simp`会失败，正如第8.4节中`safe`的情况一样。
 :::
 ::::
 
-:::: exercise Sensor codes {#ex-8-7} ★★★
-A sensor reports the state of the light as a number: 0 for red, 1 for red and amber, 2 for green and 3 for
-amber. Define `code_of :: light ⇒ nat` and a decoder `light_of :: nat ⇒ light option` with `fun`, using
-the patterns `0`, `Suc 0`, … and a final catch-all equation that returns `None` for every other number.
-Check with `thm light_of.simps` how `fun` handled the overlapping last equation. Test the decoder on
-`[0, 2, 7]`. Then prove that decoding undoes encoding: `light_of (code_of l) = Some l`.
-(Hint: the pitfall at the end of Section 8.6.)
+:::: exercise 传感器代码 {#ex-8-7} ★★★
+传感器将灯光状态报告为一个数字：0 代表红色，1 代表红黄灯，2 代表绿灯，3 代表黄灯。定义 `code_of :: light ⇒ nat` 和解码器 `light_of :: nat ⇒ light option`，使用模式 `fun`，并采用模式 `0`、`Suc 0` 等以及一个返回 `None` 的通配方程处理其他所有数字。使用 `thm light_of.simps` 检查 `fun` 如何处理重叠的最后一个方程。在 `[0, 2, 7]` 上测试解码器。然后证明解码逆转编码：`light_of (code_of l) = Some l`。（提示：第 8.6 节末尾的陷阱。）
 
 ::: solution
 ```isabelle
@@ -1844,8 +1659,7 @@ thm light_of.simps
   light_of (Suc (Suc (Suc (Suc ?va)))) = None
 ```
 
-`fun` replaced the catch-all equation by one for the numbers that the earlier equations do not cover:
-those of the form `Suc (Suc (Suc (Suc ?va)))`, that is, 4 and above.
+`fun` 用针对前序方程未覆盖的数字（即形如 `Suc (Suc (Suc (Suc ?va)))`，也就是 4 及以上的数）的方程替换了通配方程。
 
 ```isabelle
 value "map light_of [0, 2, 7]"
@@ -1856,35 +1670,28 @@ value "map light_of [0, 2, 7]"
   :: "light option list"
 ```
 
-For the proof, split on `l` with `cases`. In each case the goal is about a numeral, such as
-`light_of 2 = Some Green`, and the equations of `light_of` are about `Suc` patterns. `numeral_eq_Suc`
-turns the numerals into `Suc` form:
+对于证明，对`l`进行`cases`拆分。在每种情况下，目标都关于一个数字，如`light_of 2 = Some Green`，而`light_of`的方程关于`Suc`模式。`numeral_eq_Suc`将数字转换为`Suc`形式：
 
 ```isabelle
 lemma "light_of (code_of l) = Some l"
   by (cases l) (simp_all add: numeral_eq_Suc)
 ```
 
-Without `numeral_eq_Suc`, `simp` proves the cases for `Red` and `RedAmber` but gets stuck on
-`light_of 2 = Some Green` and `light_of 3 = Some Amber`, as the pitfall predicts.
+没有`numeral_eq_Suc`，`simp`证明了`Red`和`RedAmber`的情况，但在`light_of 2 = Some Green`和`light_of 3 = Some Amber`上卡住了，正如陷阱所预测的那样。
 :::
 ::::
 
-:::: exercise Termination in Isabelle's words {#ex-8-8} ★★★
-For each definition, predict whether `fun` accepts it, and what it reports: the termination order, or
-the entries of the result matrix. Then try it.
+:::: exercise Isabelle 中的终止性 {#ex-8-8} ★★★
+对于每个定义，预测 `fun` 是否接受它，以及它报告的是终止序还是结果矩阵的条目。然后尝试执行。
 
-1. `merge`, which merges two sorted lists into one sorted list, with the type
-   `'a::linorder list ⇒ 'a list ⇒ 'a list` and the equations `merge [] ys = ys`, `merge xs [] = xs` and
-   `merge (x # xs) (y # ys) = (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)`. The
-   class `linorder` contains the types with a linear order `≤`, such as `nat` and `int`.
-2. `forever n = forever (n + 1)`, with type `nat ⇒ nat`. Is it as dangerous as `bad` in Section 8.7?
-3. `count_up i n = (if i < n then count_up (i + 1) n + 1 else 0)`, with type `nat ⇒ nat ⇒ nat`, from
-   Exercise 5.8, which `fun` rejects. Define it with `function`, as `sum_from` in Section 8.7, and compute
-   `count_up 3 10`.
+1. `merge`，它将两个有序列表合并为一个有序列表，具有类型
+   `'a::linorder list ⇒ 'a list ⇒ 'a list` 以及方程 `merge [] ys = ys`、`merge xs [] = xs` 和 `merge (x # xs) (y # ys) = (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)`。类 `linorder` 包含具有线性序 `≤` 的类型，例如 `nat` 和 `int`。
+2. `forever n = forever (n + 1)`，类型为`nat ⇒ nat`。它是否如第8.7节中的`bad`那样危险？
+3. `count_up i n = (if i < n then count_up (i + 1) n + 1 else 0)`，类型为`nat ⇒ nat ⇒ nat`，来自
+   练习 5.8，其 `fun` 被拒绝。使用 `function` 定义它，如第 8.7 节中的 `sum_from`，并计算 `count_up 3 10`。
 
 ::: solution
-1. Accepted:
+1. 已接受：
 
    ```isabelle
    fun merge :: "'a::linorder list ⇒ 'a list ⇒ 'a list" where
@@ -1907,14 +1714,9 @@ the entries of the result matrix. Then try it.
      :: "nat list"
    ```
 
-   There are two recursive calls. The first makes the first list shorter and keeps the second; the
-   second call does the opposite. So neither length decreases at both calls, and no single measure works,
-   but a lexicographic order does, as for Ackermann's function in Module 5. Isabelle picked the length of
-   the second list first: it decreases (`<`) at the second call and stays the same (`<=`) at the first
-   call, where the length of the first list then decreases. Comparing the first lists first would work as
-   well.
+   存在两个递归调用。第一个调用使第一个列表变短而保持第二个列表不变；第二个调用则相反。因此，仅凭任一参数的长度在两个调用中都不会同时减小。它们的总和可作为合适的单一度量；Isabelle 改为找到字典序，如 Module 5 中 Ackermann 函数所示。它首先选取第二个列表的长度：在第二个调用中它减小 (`<`)，在第一个调用中保持不变 (`<=`)，此时第一个列表的长度减小。优先比较第一个列表同样可行。
 
-2. Rejected:
+2. 被拒绝
 
    ```isabelle fails
    fun forever :: "nat ⇒ nat" where
@@ -1939,16 +1741,9 @@ the entries of the result matrix. Then try it.
    *** Could not find lexicographic termination order.
    ```
 
-   The call goes from `n` to `n + 1`, so the size grows, and the matrix entry is `F`: the claim that the
-   size does not grow, `n + 1 ≤ n`, became plain `False`. No measure can work at all: it would have to
-   decrease from `n` to `n + 1` to `n + 2` and so on, an infinite descending chain of natural numbers.
-   But `forever` is not dangerous in the way `bad` is: every constant function satisfies
-   `forever n = forever (n + 1)`, so the equation is not contradictory. It is merely not a definition: it
-   does not determine which function `forever` is, and as a program it runs forever. Like `f n = f n` in
-   Module 5, it shows that `fun` rejects every recursion whose termination it cannot prove, whether the
-   equations are contradictory or not.
+   调用从`n`到`n + 1`，因此规模增大，且矩阵条目为`F`：规模不增的断言`n + 1 ≤ n`变为显然的`False`。任何度量均无法工作：它必须从`n`递减至`n + 1`再至`n + 2`等，构成自然数的无限下降链。但`forever`不像`bad`那样危险：每个常数函数均满足`forever n = forever (n + 1)`，因此方程并不矛盾。它仅仅不是定义：它未确定函数`forever`具体为何，且作为程序它将无限运行。如同Module 5中的`f n = f n`所示，它表明`fun`拒绝所有其终止性无法证明的递归，无论方程是否矛盾。
 
-3. The measure is `n - i`. The call happens only when `i < n`, and then `n - (i + 1) < n - i`:
+3. 度量为`n - i`。调用仅在`i < n`时发生，随后为`n - (i + 1) < n - i`：
 
    ```isabelle
    function count_up :: "nat ⇒ nat ⇒ nat" where
@@ -1965,52 +1760,52 @@ the entries of the result matrix. Then try it.
      :: "nat"
    ```
 
-   `count_up i n` counts the steps from `i` up to `n`, so it equals `n - i`, here 7.
+   `count_up i n` 计算从 `i` 到 `n` 的步骤数，因此等于 `n - i`，此处为 7。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? What is the difference between the commands `term` and `value`?
-- [ ] `term` works only for terms without variables
-- [x] `term` prints a term and its type without evaluating it; `value` evaluates it
-- [ ] `value` prints only the type, `term` only the value
-- [ ] There is none; they are two names for the same command
-> `term "(λx::nat. x * x) 7"` prints `7 * 7`, after β-reduction but without arithmetic; `value` prints `49`.
+? `term`与`value`命令的区别是什么？
+- [ ] `term` 仅适用于不含变量的项
+- [x] `term` 打印一个项及其类型而不对其进行求值；`value` 对其求值
+- [ ] `value` 仅打印类型，`term` 仅打印值
+- [ ] 没有；它们是同一命令的两个名称
+> `term "(λx::nat. x * x) 7"` 打印 `7 * 7`，在 β-规约之后但不进行算术运算；`value` 打印 `49`。
 
-? What is the type of `map Suc`?
+? `map Suc` 的类型是什么？
 - [ ] `nat ⇒ nat`
 - [ ] `(nat ⇒ nat) ⇒ nat list ⇒ nat list`
 - [x] `nat list ⇒ nat list`
 - [ ] `nat list`
-> `map :: ('a ⇒ 'b) ⇒ 'a list ⇒ 'b list` has received its first argument, `Suc :: nat ⇒ nat`. The partial application waits for a list of natural numbers.
+> `map :: ('a ⇒ 'b) ⇒ 'a list ⇒ 'b list` 已接收其第一个参数 `Suc :: nat ⇒ nat`。部分应用等待一个自然数列表。
 
-? What does `value "(3::nat) - 5"` print?
+? `value "(3::nat) - 5"` 打印什么？
 - [ ] `- 2`
-- [ ] an error, because the result is negative
+- [ ] 一个错误，因为结果是负数
 - [ ] `2`
 - [x] `0`
-> Subtraction on `nat` is truncated: `m - n = 0` whenever `m ≤ n`.
+> `nat` 上的减法被截断：当 `m ≤ n` 时结果为 `m - n = 0`。
 
-? You define `safe` with `definition`, and `lemma "safe (Red, Green)" by simp` fails. Why?
-- [x] `simp` does not use the equation of a `definition` unless you add it, as in `simp add: safe_def`
-- [ ] The lemma is false
-- [ ] `definition` cannot define functions on pairs
-- [ ] `simp` cannot prove statements about datatypes
-> Definitions are not unfolded automatically, so that proofs can use proved properties of a concept instead of its definition.
+? 你使用 `definition` 定义了 `safe`，但 `lemma "safe (Red, Green)" by simp` 失败了。为什么？
+- [x] `simp` 不使用 `definition` 的等式，除非你像 `simp add: safe_def` 那样添加它
+- [ ] 该引理为假
+- [ ] `definition` 无法在二元组上定义函数
+- [ ] `simp` 无法证明关于数据类型（datatypes）的语句
+> `definition` 默认不通过 `simp` 注册其方程。当展开（unfolding）有用时，你可以提供或注册它。
 
-? Why does `fun` refuse a recursive definition whose termination it cannot prove?
-- [ ] Because non-terminating functions would make `value` slow
-- [ ] Because HOL has no type for infinite computations
-- [x] Because the equations of a non-terminating "definition" can be contradictory, as `f x = f x + 1` implies `0 = 1`
-- [ ] Because the code generator cannot translate such functions
-> `fun` proves your equations from a construction that needs a termination argument. Without one, accepting the equations could make the logic inconsistent.
+? 为什么`fun`拒绝其无法证明终止的递归定义？
+- [ ] 因为非终止函数会使 `value` 变慢
+- [ ] 因为 HOL 没有表示无限计算的数据类型
+- [x] 由于非终止“定义”的方程可能矛盾，如`f x = f x + 1`蕴含`0 = 1`
+- [ ] 由于代码生成器无法翻译此类函数
+> `fun` 从需要终止论证的构造中证明你的方程。若无终止论证，接受这些方程可能导致逻辑不一致。
 
-? `value "2 + 2"` reports "Cannot derive subsort relation numeral < term_of". What is the cause?
-- [ ] The number 2 is too small for `value`
-- [ ] Natural numbers cannot be added with `value`
-- [ ] The class `numeral` is not defined in `Main`
-- [x] The type of `2 + 2` is unknown; Isabelle knows only that it has numerals, which is not enough to print the result
-> `value` needs the class `term_of` to print a result. A type annotation such as `:: nat` fixes the type and removes the error.
+? `value "2 + 2"` 报告“无法推导子类型关系 numeral < term_of”。原因是什么？
+- [ ] 数字 2 对于 `value` 来说太小了
+- [ ] 自然数无法与 `value` 相加
+- [ ] 类`numeral`未在`Main`中定义
+- [x] `2 + 2` 的类型未知；Isabelle 仅知它包含数字，这不足以打印结果
+> `value` 需要类 `term_of` 才能打印结果。形如 `:: nat` 的类型注解可固定类型并消除错误。
 ```

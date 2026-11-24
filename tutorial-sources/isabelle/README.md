@@ -2,8 +2,9 @@
 
 The model-verification project is part of Formal Methods with Isabelle. Edit
 the guide, exercises and quick reference in
-`docs/tutorials/formal-methods/model-verification/`. MkDocs builds those
-Markdown pages with the site theme.
+`docs/tutorials/formal-methods/model-verification/`. The same three files
+under `zh/` are the Simplified Chinese edition. MkDocs builds both editions
+with the site theme.
 
 - `index.md`: introductory guide and guard explorer.
 - `exercises.md`: eight exercises with expandable solutions.
@@ -39,7 +40,8 @@ general property separately.
 2. Record the successful version and source hashes in `proof-status.json`, and
    refresh the ZIP with both theories, `ROOT`, the proof record and its README.
    Do not retain a successful proof record after changing an unchecked theory.
-3. Run `python tutorial-sources/isabelle/check.py` for source and download checks.
+3. Run `python tutorial-sources/isabelle/check.py` to check code-block parity,
+   proof excerpts in both languages and the shared download.
 4. Run `python -m mkdocs build --strict --site-dir /path/to/built/site`, then the
    checker again. Check the guard and exercise answers in the browser at desktop
    and mobile widths.
