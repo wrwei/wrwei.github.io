@@ -1,0 +1,1153 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 14：综合项目：验证编译器 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="在 Isabelle 中构建一个小型编译器，把算术表达式编译成栈机指令，先测试，再证明生成的代码对所有表达式都正确。接着验证一个优化过程，把编译器导出为 Haskell 代码，并加入减法、条件表达式和跳转。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="14" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 14</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 14 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html" class="active"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_14_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#circle"><span class="num">1</span><span class="side-t">回到起点</span></a><a href="#source"><span class="num">2</span><span class="side-t">表达式及其含义</span></a><a href="#machine"><span class="num">3</span><span class="side-t">一台栈机</span></a><a href="#compiler"><span class="num">4</span><span class="side-t">编译器</span></a><a href="#proof"><span class="num">5</span><span class="side-t">正确性证明</span></a><a href="#optimise"><span class="num">6</span><span class="side-t">一项经过验证的优化</span></a><a href="#export"><span class="num">7</span><span class="side-t">从证明到程序</span></a><a href="#extensions"><span class="num">8</span><span class="side-t">扩展编译器 ★★★</span></a><a href="#outlook"><span class="num">9</span><span class="side-t">回顾与展望</span></a><a href="#summary"><span class="num">10</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第四部分 · 验证</div>
+      <h1 class="module-title"><span class="title-n">模块 14</span>综合项目：验证编译器</h1>
+      <p class="module-lead">在 Isabelle 中构建一个小型编译器，把算术表达式编译成栈机指令，先测试，再证明生成的代码对所有表达式都正确。接着验证一个优化过程，把编译器导出为 Haskell 代码，并加入减法、条件表达式和跳转。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 240 分钟</span><span class="chip chip-needs">开始之前：模块 1–13，尤其是模块 8（数据类型和函数）、模块 10（Isar）和模块 11（推广和辅助引理）</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>用数据类型定义一个小型语言，用求值函数定义它的含义</li><li>定义一台栈机和面向它的编译器，并在例子上比较求值与执行的结果</li><li>在证明任何东西之前，先用 value 和 Quickcheck 测试编译器</li><li>用归纳法证明编译器是正确的：对栈进行推广，并补上关于连接代码的引理</li><li>证明一项优化是正确的，把两个定理结合起来，并把经过验证的编译器导出为代码</li><li>扩展语言和机器，并判断证明的哪些部分仍然适用</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="circle"></span>
+<div class="section-header"><span class="section-num">1</span><h2>回到起点</h2></div>
+<p>Module 1 从必须不失败的软件开始，其示例之一是编译器：CompCert，一个带有机器检查正确性证明的 C 编译器。编译器值得这种关注。你运行的许多软件都依赖于编译器，而翻译错误可能会改变正确源代码的行为。它也可能使端到端保证失效。关于 C 函数的证明针对的是 C 代码，但计算机运行的是编译器生成的任何内容。在 Exercise 1.6 中，编译器出现在已验证程序仍需信任的事物列表中。已验证的编译器将其从该列表中移除，或几乎如此（Section 14.7 说明了剩余部分）。其定理指定了在源语义和目标语义以及该定理的假设下，编译成功时保留的行为。</p>
+<p>这个想法几乎和编译器一样古老。1967 年，约翰·麦卡锡（John McCarthy）和詹姆斯·佩因特（James Painter）在纸上证明了一个算术表达式编译器是正确的，这是此类证明中的第一个。1972 年，罗宾·米尔纳（Robin Milner）和理查德·韦劳赫（Richard Weyhrauch）在斯坦福 LCF 中用机器检查了这样一个证明，针对的是一个把算术表达式编译成栈机代码的编译器；斯坦福 LCF 是模块 1 中那个 LCF 系统的前身。如今，CompCert 能编译 C 语言的一个很大的子集，而在证明器 HOL4 中验证的 CakeML 能编译 ML 的一种方言。它们的证明长达成千上万行，但其中的核心论证，正是你将在本模块中写出的那一个，所用的语言也正是麦卡锡和佩因特当年起步时的那个语言。</p>
+<p>每一部分都由你亲手构造：</p>
+<ol>
+<li>一种由算术表达式组成的源语言，以及它的含义（第 14.2 节）；</li>
+<li>一台用栈来计算的目标机器（第 14.3 节）；</li>
+<li>编译器，以及比较源语言与目标机器的测试（第 14.4 节）；</li>
+<li>编译器正确性的证明（第 14.5 节）；</li>
+<li>一项带有自己的证明的优化，以及导出为 Haskell 的经过验证的代码（第 14.6 节和第 14.7 节）；</li>
+<li>扩展：减法、条件表达式和跳转（第 14.8 节）。</li>
+</ol>
+<p>对编译器来说，“正确”是什么意思？图 14.1 给出了本模块要证明的答案。从一个表达式出发，有两条路可以得到结果。你可以利用源语言的含义，直接对表达式求值（evaluate）；也可以先编译它，再在机器上运行得到的代码。如果这两条路的结果总是一致，编译器就是正确的。</p>
+<figure class="fig" id="fig-14-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>从表达式到它的值的两条路</title><defs><marker id="fig-14-1__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-14-1__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-14-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="fig-14-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><text x="130" y="24" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">源语言</text><text x="588" y="24" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">目标机器</text><rect x="20" y="38" width="220" height="82" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="130" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">表达式 e</text><text x="130" y="84" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">x + (2 + y)</text><text x="130" y="106" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle">Add (Var &#x27;&#x27;x&#x27;&#x27;) (Add …)</text><rect x="436" y="38" width="304" height="82" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="588" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">代码 compile e</text><text x="588" y="84" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">LOAD &#x27;&#x27;x&#x27;&#x27;, PUSH 2,</text><text x="588" y="106" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">LOAD &#x27;&#x27;y&#x27;&#x27;, ADD, ADD</text><rect x="20" y="236" width="220" height="72" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="130" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">值</text><text x="130" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="20" font-weight="700" fill="#1A2E4A" text-anchor="middle">14</text><rect x="436" y="236" width="304" height="72" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="588" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">栈</text><text x="588" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="20" font-weight="700" fill="#1A2E4A" text-anchor="middle">14 # stk</text><line x1="246" y1="79" x2="428" y2="79" stroke="#6D28D9" stroke-width="2.4" marker-end="url(#fig-14-1__ah-6D28D9)"/><text x="337" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#6D28D9" text-anchor="middle">compile</text><line x1="130" y1="126" x2="130" y2="228" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fig-14-1__ah-2563EB)"/><text x="140" y="182" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#2563EB" text-anchor="start">eval e s</text><line x1="588" y1="126" x2="588" y2="228" stroke="#15803D" stroke-width="2.2" marker-end="url(#fig-14-1__ah-15803D)"/><text x="598" y="176" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#15803D" text-anchor="start">exec (compile e)</text><text x="598" y="194" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#15803D" text-anchor="start">s stk</text><line x1="246" y1="272" x2="428" y2="272" stroke="#475569" stroke-width="2.2" marker-end="url(#fig-14-1__ah-475569)"/><text x="337" y="263" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">压入栈 stk</text><rect x="244" y="148" width="188" height="58" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6" stroke-dasharray="5 4"/><text x="338" y="171" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#C2410C" text-anchor="middle">compile_correct：</text><text x="338" y="192" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#C2410C" text-anchor="middle">两条路得到同一个栈</text><text x="380" y="340" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">状态为 x = 5，y = 7</text></svg>
+</div><figcaption><span class="fig-num">图 14.1</span> <p>对一个表达式求值和运行它编译出的代码，结果必须一致。第 14.5 节的定理 <code>compile_correct</code> 说明它们确实一致：对每个表达式、变量的每个状态和每个栈都是如此。</p>
+</figcaption></figure>
+<p>该机器是一个<strong>stack machine</strong>：它在栈上保存中间结果，算术指令从栈顶消耗值并将结果压入栈中。这是一种现实的设计。Java 虚拟机、WebAssembly 和 Python 解释器都运行这种栈机器的指令，且它们的编译器生成此类代码。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>编译器进行翻译，且正确的翻译保持语义。要证明这一点，你需要两种语言的语义，此处它们为数学函数：源语言的求值与目标语言的执行。其他语言可能需要关系来描述非终止或非确定性。此处“保持语义”变为一个可在示例上测试并通过归纳法证明的等式。</p>
+</div>
+<span class="section-anchor" id="source"></span>
+<div class="section-header"><span class="section-num">2</span><h2>表达式及其含义</h2></div>
+<h3 id="syntax">名字、状态和表达式</h3>
+<p>程序以文本形式编写，但编译器处理的是其结构。文本 <code>x + (2 + y)</code> 是一个加法，其左操作数是变量 x，右操作数是另一个加法，由数字 2 和变量 y 组成。将文本转换为结构的程序是 <strong>parser</strong>。解析是一个独立的主题。该模块从语法树开始，不验证解析器或文本输入格式。</p>
+<div class="box box-definition"><div class="box-label">定义 14.1<span class="box-title">抽象语法</span></div>
+<p>一种语言的<strong>抽象语法</strong>（abstract syntax）把它的程序描述成树：每个结点（node）是一个运算，它的子结点是运算的操作数。括号和空格属于文本，即<strong>具体语法</strong>（concrete syntax），它们不出现在树中。在 Isabelle 中，抽象语法就是一个数据类型（datatype）。</p>
+</div>
+<p>表达式中含有变量，所以你需要变量的名字，以及给变量赋值的办法。名字是字符串。和模块 4 中一样，字符串写在两对单引号之间，例如 <code>''x''</code>，因为双引号已经用来标记项（term）的结束了。值是整数（<code>int</code>，模块 8），这样等第 14.8 节加入减法时，减法才有意义。某一时刻所有变量的值合在一起，构成一个<strong>状态</strong>（state）：一个从名字到值的函数。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="type_synonym vname = string
+type_synonym state = &quot;vname ⇒ int&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">type_synonym</span> vname = string
+<span class="isa-cmd">type_synonym</span> state = <span class="isa-inner">&quot;vname ⇒ int&quot;</span></code></pre></div>
+<p><code>type_synonym</code> 给一个已有的类型起一个新名字。<code>vname</code> 是 <code>string</code> 的另一个名字，而 <code>string</code> 本身就是 <code>char list</code>，即字符的列表；<code>state</code> 是 <code>vname ⇒ int</code> 的另一个名字。这里并没有创造出任何新东西：Isabelle 的输出常常显示完整的类型，而不是这些简短的名字。</p>
+<p>一个表达式要么是一个数，要么是一个变量，要么是两个表达式之和：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype expr = Num int | Var vname | Add expr expr">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> expr = Num int | Var vname | Add expr expr</code></pre></div>
+<p>这个数据类型是递归的，就像模块 5 中的树一样，它的值正是上面所描述的那些树：<code>Add</code> 构造一个有两个子结点的结点，<code>Num</code> 和 <code>Var</code> 构造叶结点。文本 <code>x + (2 + y)</code> 变成了树 <code>Add (Var ''x'') (Add (Num 2) (Var ''y''))</code>。本模块会一直用它作例子，所以给它起个名字：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition sample :: expr where
+  &quot;sample = Add (Var ''x'') (Add (Num 2) (Var ''y''))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> sample :: expr <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sample = Add (Var ''x'') (Add (Num 2) (Var ''y''))&quot;</span></code></pre></div>
+<h3 id="eval">求值</h3>
+<p>表达式的含义就是它的值，而它的值取决于状态。下面这个递归函数说明每一种结点的含义：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun eval :: &quot;expr ⇒ state ⇒ int&quot; where
+  &quot;eval (Num n) s = n&quot;
+| &quot;eval (Var x) s = s x&quot;
+| &quot;eval (Add a b) s = eval a s + eval b s&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> eval :: <span class="isa-inner">&quot;expr ⇒ state ⇒ int&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;eval (Num n) s = n&quot;</span>
+| <span class="isa-inner">&quot;eval (Var x) s = s x&quot;</span>
+| <span class="isa-inner">&quot;eval (Add a b) s = eval a s + eval b s&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  eval :: &quot;expr ⇒ (char list ⇒ int) ⇒ int&quot;
+
+Found termination order: &quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p>把这些等式读出来：一个数的含义就是它自己；一个变量的含义是它在状态 s 中的值；一个和的含义是它的各部分的含义之和。左边的 <code>Add</code> 是一段语法；右边的 <code>+</code> 是整数的加法。<code>eval</code> 把两者联系了起来。Isabelle 显示 <code>eval</code> 的类型时，把类型同义词展开了，<code>state</code> 显示成了 <code>char list ⇒ int</code>；它还报告 <code>eval</code> 会终止，因为每次递归调用都作用在一个更小的表达式上，也就是它的两个参数中的第一个（模块 8）。</p>
+<div class="box box-definition"><div class="box-label">定义 14.2<span class="box-title">语义</span></div>
+<p>一种语言的<strong>语义</strong>（semantics）给它的每个程序一个精确的数学含义，这是模块 1 所说的形式化方法（formal method）的第二个要素。在这里，表达式 e 在状态 s 中的含义就是整数 <code>eval e s</code>。这个定义是<strong>组合式的</strong>（compositional）：一个结点的含义由它的子结点的含义计算出来。</p>
+</div>
+<p>要试用 <code>eval</code>，你需要一个状态。Isabelle 用 <code>f(a := v)</code> 表示这样一个函数：它把 a 映射到 v，而把其他每个参数 b 映射到 <code>f b</code>；你在模块 3 中 Nitpick 给出的反例里见过这种记号。从 <code>λ_. 0</code> 出发，它是把每个名字都映射到 0 的函数（下划线是一个名字无关紧要的变量），然后对它更新两次：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition s0 :: state where
+  &quot;s0 = (λ_. 0)(''x'' := 5, ''y'' := 7)&quot;
+
+value &quot;(s0 ''x'', s0 ''y'', s0 ''z'')&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> s0 :: state <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;s0 = (λ_. 0)(''x'' := 5, ''y'' := 7)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(s0 ''x'', s0 ''y'', s0 ''z'')&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;(5, 7, 0)&quot;
+  :: &quot;int × int × int&quot;</code></pre></div>
+<p>在状态 <code>s0</code> 中，变量 x 的值是 5，y 的值是 7，其他每个变量的值都是 0。现在对这个例子求值：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;eval sample s0&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;eval sample s0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;14&quot;
+  :: &quot;int&quot;</code></pre></div>
+<div class="box box-example"><div class="box-label">例 14.1<span class="box-title">手工求值</span></div>
+<p><code>eval</code> 的等式一步一步地得出同样的结果。展开 <code>sample</code>，从外向内计算：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mrow><mi>s</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi></mrow><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>V</mi><mi>a</mi><mi>r</mi></mrow><mtext> </mtext><mi>x</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub><mo>+</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>A</mi><mi>d</mi><mi>d</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>N</mi><mi>u</mi><mi>m</mi></mrow><mtext> </mtext><mn>2</mn><mo stretchy="false">)</mo><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>V</mi><mi>a</mi><mi>r</mi></mrow><mtext> </mtext><mi>y</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>5</mn><mo>+</mo><mo stretchy="false">(</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>N</mi><mi>u</mi><mi>m</mi></mrow><mtext> </mtext><mn>2</mn><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub><mo>+</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>V</mi><mi>a</mi><mi>r</mi></mrow><mtext> </mtext><mi>y</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>5</mn><mo>+</mo><mo stretchy="false">(</mo><mn>2</mn><mo>+</mo><mn>7</mn><mo stretchy="false">)</mo><mo>=</mo><mn>14</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\mathit{eval}\ \mathit{sample}\ s_0
+&amp;= \mathit{eval}\ (\mathit{Var}\ x)\ s_0 + \mathit{eval}\ (\mathit{Add}\ (\mathit{Num}\ 2)\ (\mathit{Var}\ y))\ s_0\\
+&amp;= 5 + (\mathit{eval}\ (\mathit{Num}\ 2)\ s_0 + \mathit{eval}\ (\mathit{Var}\ y)\ s_0)\\
+&amp;= 5 + (2 + 7) = 14
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.2em;vertical-align:-1.85em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mord"><span class="mord mathit">sample</span></span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Var</span></span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Add</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Num</span></span><span class="mspace"> </span><span class="mord">2</span><span class="mclose">)</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Var</span></span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">))</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Num</span></span><span class="mspace"> </span><span class="mord">2</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Var</span></span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">7</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">14</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+</div>
+<span class="section-anchor" id="machine"></span>
+<div class="section-header"><span class="section-num">3</span><h2>一台栈机</h2></div>
+<p>目标机器对表达式一无所知。它有一个整数栈，像表达式一样从状态中读取变量，并且懂得三条指令：</p>
+<ul>
+<li><code>PUSH n</code> 把数 n 放到栈顶；</li>
+<li><code>LOAD x</code> 把变量 x 的值放到栈顶；</li>
+<li><code>ADD</code> 从栈顶取下两个数，再把它们的和放上去。</li>
+</ul>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype instr = PUSH int | LOAD vname | ADD
+
+type_synonym stack = &quot;int list&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> instr = PUSH int | LOAD vname | ADD
+
+<span class="isa-cmd">type_synonym</span> stack = <span class="isa-inner">&quot;int list&quot;</span></code></pre></div>
+<p>栈是一个列表，它的头部（head）就是栈顶：在 <code>[2, 5]</code> 中，2 位于 5 的上面。把一个值放到栈上用 <code>#</code>，从栈上取下值则用对 <code>#</code> 的模式匹配（pattern matching）。</p>
+<div class="box box-definition"><div class="box-label">定义 14.3<span class="box-title">栈机</span></div>
+<p><strong>栈式机器</strong>用<strong>栈</strong>进行运算。栈是一列值，只在一端操作，这一端称为<strong>栈顶</strong>。算术指令从栈顶取出操作数，并把结果压回栈中。<code>PUSH</code> 和 <code>LOAD</code> 等指令提供栈中的值。这台机器没有跳转，它的<strong>程序</strong>是一列从左到右依次执行的指令。</p>
+</div>
+<p>函数 <code>exec1</code> 执行一条指令：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec1 :: &quot;instr ⇒ state ⇒ stack ⇒ stack&quot; where
+  &quot;exec1 (PUSH n) s stk = n # stk&quot;
+| &quot;exec1 (LOAD x) s stk = s x # stk&quot;
+| &quot;exec1 ADD s (j # i # stk) = (i + j) # stk&quot;
+| &quot;exec1 ADD s stk = stk&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> exec1 :: <span class="isa-inner">&quot;instr ⇒ state ⇒ stack ⇒ stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec1 (PUSH n) s stk = n # stk&quot;</span>
+| <span class="isa-inner">&quot;exec1 (LOAD x) s stk = s x # stk&quot;</span>
+| <span class="isa-inner">&quot;exec1 ADD s (j # i # stk) = (i + j) # stk&quot;</span>
+| <span class="isa-inner">&quot;exec1 ADD s stk = stk&quot;</span></code></pre></div>
+<p>第三个等式执行了<code>ADD</code>的工作：j 是栈顶元素，i 是其下方的数值，且和 i + j 替换了这两个元素。i 和 j 的顺序目前看似无关，但在第 14.8 节引入减法时将变得重要。每个 HOL 函数对每个参数都表示一个值（Module 8）；第四个等式对格式错误的<code>ADD</code>指令做出了明确选择，而不是让未指定的情况缺失。当数值少于两个时，它保持栈不变。另一台机器可能会报告<strong>stack underflow</strong>，意味着操作数不足。编译后的表达式在<code>ADD</code>之前提供两个操作数；Exercise 14.7 通过一台明确报告失败的机器验证了这一点。</p>
+<p>第三个和第四个等式有重叠：一个有两个或更多个数的栈与两者都匹配。<code>fun</code> 按顺序处理这种重叠，排在前面的等式优先（模块 8）。<code>thm exec1.simps</code> 显示 <code>fun</code> 从定义中推导出的等式，也就是 <code>simp</code> 所使用的那些等式：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm exec1.simps">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> exec1.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  exec1 (PUSH ?n) ?s ?stk = ?n # ?stk
+  exec1 (LOAD ?x) ?s ?stk = ?s ?x # ?stk
+  exec1 ADD ?s (?j # ?i # ?stk) = (?i + ?j) # ?stk
+  exec1 ADD ?s [] = []
+  exec1 ADD ?s [?v] = [?v]</code></pre></div>
+<p>第四个等式变成了两个，一个针对空栈，一个针对只有一个数的栈：恰好就是第三个等式没有覆盖的那些栈。</p>
+<p>程序一条接一条地执行指令，每条指令都作用在前一条指令留下的栈上：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec :: &quot;instr list ⇒ state ⇒ stack ⇒ stack&quot; where
+  &quot;exec [] s stk = stk&quot;
+| &quot;exec (i # c) s stk = exec c s (exec1 i s stk)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> exec :: <span class="isa-inner">&quot;instr list ⇒ state ⇒ stack ⇒ stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec [] s stk = stk&quot;</span>
+| <span class="isa-inner">&quot;exec (i # c) s stk = exec c s (exec1 i s stk)&quot;</span></code></pre></div>
+<p>字母 c 代表代码（code），即一个指令列表。现在运行这台机器，先运行一条指令，再运行一整个程序：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec1 ADD s0 [7, 5]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec1 ADD s0 [7, 5]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[12]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec [LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD] s0 []&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec [LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD] s0 []&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[14]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<p>图 14.2 显示了这个程序的每条指令执行之后的栈。<code>LOAD ''y''</code> 执行之后，栈增长到三个数，而每条 <code>ADD</code> 都让它少一个数。</p>
+<figure class="fig" id="fig-14-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 262" width="760" height="262" role="img"><title>运行 x + (2 + y) 的代码</title><defs><marker id="fig-14-2__ah-94A3B8" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#94A3B8"/></marker></defs><text x="70" y="34" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">开始</text><line x1="36" y1="176" x2="104" y2="176" stroke="#475569" stroke-width="2"/><text x="70" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[]</text><rect x="150.5" y="18.5" width="87" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="194.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">LOAD &#x27;&#x27;x&#x27;&#x27;</text><line x1="98" y1="29" x2="142.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="160" y1="176" x2="228" y2="176" stroke="#475569" stroke-width="2"/><rect x="164" y="148" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="194" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><text x="194" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[5]</text><rect x="288.5" y="18.5" width="59" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="318.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">PUSH 2</text><line x1="243.5" y1="29" x2="280.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="284" y1="176" x2="352" y2="176" stroke="#475569" stroke-width="2"/><rect x="288" y="148" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="318" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><rect x="288" y="118" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="318" y="137.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">2</text><text x="318" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[2, 5]</text><rect x="398.5" y="18.5" width="87" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="442.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">LOAD &#x27;&#x27;y&#x27;&#x27;</text><line x1="353.5" y1="29" x2="390.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="408" y1="176" x2="476" y2="176" stroke="#475569" stroke-width="2"/><rect x="412" y="148" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="442" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><rect x="412" y="118" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="442" y="137.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">2</text><rect x="412" y="88" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="442" y="107.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">7</text><text x="442" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[7, 2, 5]</text><rect x="547.5" y="18.5" width="37" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="566.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">ADD</text><line x1="491.5" y1="29" x2="539.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="532" y1="176" x2="600" y2="176" stroke="#475569" stroke-width="2"/><rect x="536" y="148" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="566" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><rect x="536" y="118" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="566" y="137.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">9</text><text x="566" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[9, 5]</text><rect x="671.5" y="18.5" width="37" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="690.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">ADD</text><line x1="590.5" y1="29" x2="663.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="656" y1="176" x2="724" y2="176" stroke="#475569" stroke-width="2"/><rect x="660" y="148" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="690" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">14</text><text x="690" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[14]</text><text x="478" y="105" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#2563EB" text-anchor="start">← 栈顶</text><text x="380" y="246" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">x = 5，y = 7。栈顶就是列表的头，画在最上面。</text></svg>
+</div><figcaption><span class="fig-num">图 14.2</span> <p>程序 <code>LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD</code> 在状态 <code>s0</code> 中从空栈开始运行。每条 <code>ADD</code> 都把栈顶的两个数换成它们的和。</p>
+</figcaption></figure>
+<p>此序列仅执行压栈操作，因此预存的栈内容仍保留在新值下方：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec [LOAD ''x'', PUSH 2] s0 [100]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec [LOAD ''x'', PUSH 2] s0 [100]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[2, 5, 100]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<p>任意机器程序可以消耗预先存在的值：<code>ADD</code> 上述示例即如此。编译器定理将确立表达式的代码在压入其结果的同时保持原始栈不变。</p>
+<span class="section-anchor" id="compiler"></span>
+<div class="section-header"><span class="section-num">4</span><h2>编译器</h2></div>
+<h3 id="compiling">编译表达式</h3>
+<p>机器怎样计算 <code>Add a b</code>？它先运行一段把 a 的值留在栈上的代码，再运行一段把 b 的值留在 a 的值上面的代码，然后执行 <code>ADD</code>。数和变量各需要一条指令。这就是整个编译器：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun compile :: &quot;expr ⇒ instr list&quot; where
+  &quot;compile (Num n) = [PUSH n]&quot;
+| &quot;compile (Var x) = [LOAD x]&quot;
+| &quot;compile (Add a b) = compile a @ compile b @ [ADD]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> compile :: <span class="isa-inner">&quot;expr ⇒ instr list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;compile (Num n) = [PUSH n]&quot;</span>
+| <span class="isa-inner">&quot;compile (Var x) = [LOAD x]&quot;</span>
+| <span class="isa-inner">&quot;compile (Add a b) = compile a @ compile b @ [ADD]&quot;</span></code></pre></div>
+<p><code>@</code> 把列表连接起来（模块 1）。和 <code>eval</code> 一样，编译器对每种结点各有一个等式，而一个结点的代码由它的子结点的代码构造而成。编译这个例子：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;compile sample&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;compile sample&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD]&quot;
+  :: &quot;instr list&quot;</code></pre></div>
+<p>这正是图 14.2 中的程序。操作数排在它们的运算符前面：先是 x，然后是 2 和 y，然后是内层的 <code>ADD</code>，最后是外层的 <code>ADD</code>。这种顺序称为<strong>后缀表示法</strong>（postfix notation），也叫<strong>逆波兰表示法</strong>（reverse Polish notation）。</p>
+<div class="callout analogy"><div class="callout-label">打个比方</div>
+<p>有些袖珍计算器使用逆波兰表示法。要计算 2 + 3，你依次按下 2、Enter、3，最后按 +。计算器把数保存在一个栈上，直到 + 把它们合在一起，这和 <code>ADD</code> 的做法完全一样。编译器把你在学校里学的写法，翻译成这种计算器上的按键顺序。</p>
+</div>
+<p>现在在这个例子上比较求值和执行的结果，这次栈上已经有了 100：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(exec (compile sample) s0 [100], eval sample s0 # [100])&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec (compile sample) s0 [100], eval sample s0 # [100])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;([14, 100], [14, 100])&quot;
+  :: &quot;int list × int list&quot;</code></pre></div>
+<p>两者都在 100 的上面得到 14。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>为什么编译器叫 <code>compile</code>，而不叫更短的 <code>comp</code>？因为 <code>comp</code> 已经被占用了。它是函数复合（composition），写作 ∘：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term comp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> comp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;(∘)&quot;
+  :: &quot;('a ⇒ 'b) ⇒ ('c ⇒ 'a) ⇒ 'c ⇒ 'b&quot;</code></pre></div>
+<p>Isabelle 会接受你自己定义的名为 <code>comp</code> 的函数，该名称随后将指向你的定义。但短名称会有两种含义，因此 Isabelle 可能需要打印如 <code>T.comp (Num 1)</code> 这样的限定名称，以在理论 <code>T</code> 中消除歧义。在命名函数之前，应询问 Isabelle 该名称是否自由。<code>term</code> 打印已存在常量的类型；一个新鲜且未声明的名称被读作自由变元（第 8 节）；在不受约束的 <code>term</code> 命令中，其类型为 <code>'a</code>。该输出并非存在常量的证据。<code>find_consts</code>（第 9 节）按类型搜索，并使用条件 <code>name:</code> 按名称搜索。</p>
+</div>
+<h3 id="correct">“正确”是什么意思</h3>
+<p>在这个例子上，两条路的结果一致。“正确”的意思是它们总是一致：</p>
+<div class="box box-definition"><div class="box-label">定义 14.4<span class="box-title">编译器正确性</span></div>
+<p>编译器是<strong>正确的</strong>（correct），是指对每个表达式 e、每个状态 s 和每个栈 stk，都有</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>e</mi><mi>x</mi><mi>e</mi><mi>c</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>c</mi><mi>o</mi><mi>m</mi><mi>p</mi><mi>i</mi><mi>l</mi><mi>e</mi></mrow><mtext> </mtext><mi>e</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>s</mi><mtext> </mtext><mrow><mi>s</mi><mi>t</mi><mi>k</mi></mrow><mo>=</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mi>e</mi><mtext> </mtext><mi>s</mi><mtext> </mtext><mi mathvariant="normal">#</mi><mtext> </mtext><mrow><mi>s</mi><mi>t</mi><mi>k</mi></mrow></mrow><annotation encoding="application/x-tex">\mathit{exec}\ (\mathit{compile}\ e)\ s\ \mathit{stk} = \mathit{eval}\ e\ s\ \#\ \mathit{stk}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">exec</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">compile</span></span><span class="mspace"> </span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord mathnormal">s</span><span class="mspace"> </span><span class="mord"><span class="mord mathit">stk</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mord mathnormal">e</span><span class="mspace"> </span><span class="mord mathnormal">s</span><span class="mspace"> </span><span class="mord">#</span><span class="mspace"> </span><span class="mord"><span class="mord mathit">stk</span></span></span></span></span></span></div>
+<p>用文字来说：在任意一个栈上运行 e 的代码，都会把 e 的值放到这个栈的顶上，而不改变它下面的任何东西。</p>
+</div>
+<p>关于这个陈述，有三点值得注意。</p>
+<ul>
+<li>它是模块 12 意义上的一个<strong>规约</strong>（specification）：<code>eval</code> 说明值必须是什么，而 <code>compile</code> 加上 <code>exec</code> 是实现（implementation）。</li>
+<li>它谈论的是每一个栈，尽管用户是从空栈开始的。编译器会把代码组合起来：<code>Add a b</code> 中 b 的代码运行在一个已经存放着 a 的值的栈上。第 14.5 节会说明，证明需要这种一般的形式。</li>
+<li>它描述的是整个栈。一个更弱的断言，比如“栈顶是 e 的值”，会允许代码破坏它下面的东西，而这样的代码会破坏它周围的代码。</li>
+</ul>
+<h3 id="testing">先测试，再证明</h3>
+<p>证明要花力气，测试只需几秒钟。模块 9 建议，在尝试证明一个断言之前先测试它，所以从 Quickcheck 开始：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = eval e s # stk&quot;
+  quickcheck [size = 3]
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-cmd">quickcheck</span> [size = 3]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>Quickcheck 在其对表达式、状态和栈的有界测试值中未找到反例。<code>size = 3</code> 限制了生成器；它并不枚举从字符串到整数的所有数学函数。使用更大的默认搜索范围时，它可能会超时。错误的声明也可能需要超出边界的值，尽管 Quickcheck 在找到反例时会立即停止。</p>
+<p>Quickcheck 最擅长对付错误的断言。下面是一个忘记了栈的正确性断言：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = [eval e s]&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = [eval e s]&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e = Num (- 1)
+  s = λx. - 2
+  stk = [- 1]
+Evaluated terms:
+  exec (compile e) s stk = [- 1, - 1]
+  [eval e s] = [- 1]</code></pre></div>
+<p>读一读这个反例。表达式是数 −1（Isabelle 打印负数时会带一个空格，见模块 8），状态把每个名字都映射到 −2，这在这里无关紧要，而栈上已经有一个 −1。代码把 −1 压到栈顶，所以结果中有两个数，而断言期望的只有一个。错的是断言，而不是编译器。</p>
+<p>现在来看一个有错误的编译器。按照文本 <code>x + y</code> 的顺序，把每个运算符写在它的两个操作数之间，是很自然的第一次尝试：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun compile_bad :: &quot;expr ⇒ instr list&quot; where
+  &quot;compile_bad (Num n) = [PUSH n]&quot;
+| &quot;compile_bad (Var x) = [LOAD x]&quot;
+| &quot;compile_bad (Add a b) = compile_bad a @ [ADD] @ compile_bad b&quot;
+
+value &quot;(compile_bad sample, exec (compile_bad sample) s0 [])&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> compile_bad :: <span class="isa-inner">&quot;expr ⇒ instr list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;compile_bad (Num n) = [PUSH n]&quot;</span>
+| <span class="isa-inner">&quot;compile_bad (Var x) = [LOAD x]&quot;</span>
+| <span class="isa-inner">&quot;compile_bad (Add a b) = compile_bad a @ [ADD] @ compile_bad b&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(compile_bad sample, exec (compile_bad sample) s0 [])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;([LOAD ''x'', ADD, PUSH 2, ADD, LOAD ''y''], [7, 7])&quot;
+  :: &quot;instr list × int list&quot;</code></pre></div>
+<p>第一条 <code>ADD</code> 只找到一个数，什么也没有改变；第二条把 2 加到 5 上；而 y 的值最后落在栈上，挨着那个 7。只看一个例子，你可能会怀疑是不是自己哪里弄错了。Quickcheck 消除了这个疑虑：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile_bad e) s stk = eval e s # stk&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile_bad e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e = Add (Num 0) (Num 0)
+  s = λx. - 2
+  stk = []
+Evaluated terms:
+  exec (compile_bad e) s stk = [0, 0]
+  eval e s # stk = [0]</code></pre></div>
+<p>反例为 0 + 0，这是一个包含一次加法的表达式。具体数值无关紧要：指令顺序错误。单次加法是该编译器与正确编译器产生差异的最小表达式形状。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>证明前先测试。<code>value</code> 用于评估示例；Quickcheck 搜索有界测试用例，若找到反例则报告。二者均不确立无限制的正确性定理。真正的反例反驳了主张，而单一的未完成证明尝试并不能告诉你究竟是主张还是证明策略有误。</p>
+</div>
+<span class="section-anchor" id="proof"></span>
+<div class="section-header"><span class="section-num">5</span><h2>正确性证明</h2></div>
+<h3 id="paper">纸上的证明</h3>
+<p><strong>断言</strong>：对每个表达式 e、状态 s 和栈 stk，<code>exec (compile e) s stk = eval e s # stk</code>。</p>
+<p><strong>证明</strong>：对 e 用结构归纳法（structural induction，见模块 5），每个构造子（constructor）对应一种情形。</p>
+<ul>
+<li><strong>情形</strong> <code>Num n</code>：代码是 <code>[PUSH n]</code>，它把 n 放到栈上，而 <code>eval (Num n) s = n</code>。</li>
+<li><strong>情形</strong> <code>Var x</code>：代码是 <code>[LOAD x]</code>，它把 <code>s x</code> 放到栈上，而 <code>eval (Var x) s = s x</code>。</li>
+<li><strong>情形</strong> <code>Add a b</code>，其中断言对 a 和 b 都成立，这就是两个归纳假设（induction hypothesis）。代码是 <code>compile a @ compile b @ [ADD]</code>。分三个阶段运行它（图 14.3）：
+<ol>
+<li><code>compile a</code> 在 stk 上运行。由 a 的归纳假设，它留下 <code>eval a s # stk</code>。</li>
+<li><code>compile b</code> 在 <code>eval a s # stk</code> 上运行。把 b 的归纳假设用于<strong>这个</strong>栈，它留下 <code>eval b s # eval a s # stk</code>。</li>
+<li><code>ADD</code> 把栈顶的两个数换成它们的和，得到 <code>(eval a s + eval b s) # stk</code>，而这就是 <code>eval (Add a b) s # stk</code>。∎</li>
+</ol>
+</li>
+</ul>
+<figure class="fig" id="fig-14-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="760" height="380" role="img"><title>Add a b 情形下正确性证明的结构</title><defs><marker id="fig-14-3__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-14-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-14-3__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><text x="40" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">compile (Add a b) 运行时的栈</text><text x="392" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">每一步为什么成立</text><rect x="40" y="42" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="62" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">stk</text><line x1="165" y1="76" x2="165" y2="112" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fig-14-3__ah-2563EB)"/><rect x="178" y="84" width="83" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="219.5" y="101" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">compile a</text><line x1="300" y1="94" x2="380" y2="94" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="386" y="76" width="354" height="40" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.4"/><text x="398" y="100" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">a 的归纳假设，用于栈 stk</text><rect x="40" y="118" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="138" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">eval a s # stk</text><line x1="165" y1="152" x2="165" y2="188" stroke="#6D28D9" stroke-width="2.2" marker-end="url(#fig-14-3__ah-6D28D9)"/><rect x="178" y="160" width="83" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="219.5" y="177" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">compile b</text><line x1="300" y1="170" x2="380" y2="170" stroke="#6D28D9" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="386" y="152" width="354" height="50" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="398" y="172" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="start">b 的归纳假设，用于栈</text><text x="398" y="190" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="start">eval a s # stk，它不是 stk</text><rect x="40" y="194" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="214" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">eval b s # eval a s # stk</text><line x1="165" y1="228" x2="165" y2="264" stroke="#15803D" stroke-width="2.2" marker-end="url(#fig-14-3__ah-15803D)"/><rect x="178" y="236" width="38" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="197.0" y="253" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">ADD</text><line x1="300" y1="246" x2="380" y2="246" stroke="#15803D" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="386" y="228" width="354" height="40" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.4"/><text x="398" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">exec1 关于 ADD 的方程</text><rect x="40" y="270" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">(eval a s + eval b s) # stk</text><rect x="20" y="314" width="720" height="56" rx="10" fill="#FFF7ED" stroke="#C2410C" stroke-width="1.4"/><text x="36" y="337" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">b 的归纳假设要用在一个不是 stk 的栈上。所以命题必须</text><text x="36" y="358" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">对每个栈都成立：归纳时需要写 arbitrary: stk。</text></svg>
+</div><figcaption><span class="fig-num">图 14.3</span> <p>证明中的情形 <code>Add a b</code>。a 的归纳假设用于断言中的那个栈，b 的归纳假设则用于另一个栈。</p>
+</figcaption></figure>
+<p>这个论证中有两步用到的不只是函数的等式。</p>
+<ul>
+<li><strong>“分三个阶段运行它。”</strong>运行 <code>c1 @ c2</code> 等于先运行 c1、再在 c1 留下的栈上运行 c2，这是 <code>exec</code> 的一个性质。它是对的，但需要单独证明：它是一条<strong>辅助引理</strong>（auxiliary lemma，见模块 11）。</li>
+<li><strong>“用于这个栈。”</strong>第 2 阶段把 b 的归纳假设用于栈 <code>eval a s # stk</code>，而不是 stk。只有当断言，以及随之而来的归纳假设，谈论的是每一个栈时，这样做才是允许的。归纳必须对栈进行<strong>推广</strong>（generalise，见模块 11）。</li>
+</ul>
+<p>接下来的两节让 Isabelle 从它的证明状态（proof state）中找出这两点。</p>
+<h3 id="append">关于连接代码的引理</h3>
+<p>编译器的用户所关心的断言，从空栈开始，并期望最后得到一个数。试着用通常的归纳来证明它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s [] = [eval e s]&quot;
+  apply (induction e)
+  apply auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s [] = [eval e s]&quot;</span>
+  <span class="isa-proof">apply</span> (induction e)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2.
+       ⟦exec (compile e1) s [] = [eval e1 s];
+        exec (compile e2) s [] = [eval e2 s]⟧
+       ⟹ exec (compile e1 @ compile e2 @ [ADD]) s [] =
+          [eval e1 s + eval e2 s]</code></pre></div>
+<p><code>auto</code> 证明了情形 <code>Num</code> 和 <code>Var</code>，并在情形 <code>Add</code> 中展开了 <code>compile</code>；Isabelle 根据类型名 <code>expr</code>，把两个子表达式叫做 e1 和 e2。然后它就停下了。按照模块 11 的做法，先找出化简器（simplifier）无法重写的子项：<code>exec (compile e1 @ compile e2 @ [ADD]) s []</code>。<code>exec</code> 的等式讲的是 <code>[]</code> 和 <code>i # c</code>，而这里的参数是用 <code>@</code> 连接起来的。放弃这次尝试：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>接下来，把这个证明中特有的部分换成变量：问题就变成了，对任意的代码 c1 和 c2，<code>exec (c1 @ c2) s stk</code> 是什么。纸上的证明给出了答案：先运行 c1，再运行 c2。一个例子也与之相符：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
+        exec [ADD] s0 (exec [LOAD ''x'', PUSH 2] s0 [1]))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
+        exec [ADD] s0 (exec [LOAD ''x'', PUSH 2] s0 [1]))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;([7, 1], [7, 1])&quot;
+  :: &quot;int list × int list&quot;</code></pre></div>
+<p>测试这个猜想：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;
+  quickcheck [size = 3]
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;</span>
+  <span class="isa-cmd">quickcheck</span> [size = 3]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>通过对 c1 进行归纳来证明。<code>exec</code> 的递归调用接收一个新栈 <code>exec1 i s stk</code>，因此将栈泛化以赋予该归纳所需的假设，遵循 Module 11 的策略：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma exec_append [simp]: &quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;
+  apply (induction c1 arbitrary: stk)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> exec_append [simp]: <span class="isa-inner">&quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;</span>
+  <span class="isa-proof">apply</span> (induction c1 <span class="isa-minor">arbitrary</span>: stk)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀stk. exec ([] @ c2) s stk = exec c2 s (exec [] s stk)
+ 2. ⋀a c1 stk.
+       (⋀stk. exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)) ⟹
+       exec ((a # c1) @ c2) s stk = exec c2 s (exec (a # c1) s stk)</code></pre></div>
+<p>在子目标 2 中，归纳假设对每个栈都成立（⋀stk）。化简器把 <code>(a # c1) @ c2</code> 重写成 <code>a # (c1 @ c2)</code>，执行 <code>a</code>，然后需要把归纳假设用于栈 <code>exec1 a s stk</code>，而现在它可以这样用了：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply auto
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">done</span></code></pre></div>
+<p>属性 <code>[simp]</code> 把这条引理加入化简器的规则（模块 9），这样从现在起，<code>simp</code> 和 <code>auto</code> 就会把连接起来的代码拆开。</p>
+<h3 id="generalise">对栈进行推广</h3>
+<p>有了 <code>exec_append</code>，再试一次关于空栈的断言：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s [] = [eval e s]&quot;
+  apply (induction e)
+  apply auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s [] = [eval e s]&quot;</span>
+  <span class="isa-proof">apply</span> (induction e)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2.
+       ⟦exec (compile e1) s [] = [eval e1 s];
+        exec (compile e2) s [] = [eval e2 s]⟧
+       ⟹ exec1 ADD s (exec (compile e2) s [eval e1 s]) =
+          [eval e1 s + eval e2 s]</code></pre></div>
+<p>进展：e1 的代码已运行，由 <code>exec_append</code> 和 e1 的假设得出，并留下 <code>[eval e1 s]</code>。现在 e2 的代码在栈 <code>[eval e1 s]</code> 上运行，但 e2 的假设仅涉及空栈。这是论文证明的第二个要点。加强归纳陈述，使其假设涵盖传递给第二个子表达式的栈。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>模块 11 讲过该怎么做，分两步：</p>
+<ol>
+<li>把常量换成变量：对任意的栈 stk 断言这个结果。于是期望的结果变成了 <code>eval e s # stk</code>，而不再是 <code>[eval e s]</code>。这正是定义 14.4 中的陈述。</li>
+<li>在归纳中让这个变量成为任意的，这样归纳假设就对每个栈都成立，包括 e2 的代码运行时所在的栈 <code>eval e1 s # stk</code>。</li>
+</ol>
+<p>两步都做了，证明就能通过：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = eval e s # stk&quot;
+  by (induction e arbitrary: stk) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: stk) auto</code></pre></div>
+<p>只做第 1 步是不够的。没有 <code>arbitrary: stk</code>，stk 在整个归纳中都是固定的，e2 的归纳假设只谈论那一个栈，而 e2 的代码仍然在另一个栈上运行。第 14.5.4 节末尾的<strong>如果出了问题</strong>框展示了你会遇到的错误。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>按照递归的需要来陈述断言。<code>compile</code> 把 b 的代码放在 a 的代码之后，所以 b 的代码运行在一个已经存放着 a 的值的栈上。关于空栈的断言描述不了这种情况，关于每个栈的断言却可以。更强的断言反而更容易证明：这又是模块 11 中的发明者悖论（inventor’s paradox）。</p>
+</div>
+<h3 id="isar">用 Isar 写证明</h3>
+<p>一行的证明把论证藏了起来。Isar 证明一步一步地跟着纸上的证明走，而 Isabelle 会检查其中的每一步。<code>theorem</code> 和 <code>lemma</code> 的意思相同；它用来标出一个理论中的主要结果。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem compile_correct: &quot;exec (compile e) s stk = eval e s # stk&quot;
+proof (induction e arbitrary: stk)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> compile_correct: <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+<span class="isa-proof">proof</span> (induction e <span class="isa-minor">arbitrary</span>: stk)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (3 subgoals):
+ 1. ⋀x stk. exec (compile (Num x)) s stk = eval (Num x) s # stk
+ 2. ⋀x stk. exec (compile (Var x)) s stk = eval (Var x) s # stk
+ 3. ⋀e1 e2 stk.
+       ⟦⋀stk. exec (compile e1) s stk = eval e1 s # stk;
+        ⋀stk. exec (compile e2) s stk = eval e2 s # stk⟧
+       ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk</code></pre></div>
+<p>把子目标 3 读出来：“对所有的 e1、e2 和 stk：如果对每个栈，断言对 e1 成立，并且对每个栈，断言对 e2 成立，那么断言对 <code>Add e1 e2</code> 和 stk 成立”。归纳假设里面的 ⋀stk 就是 <code>arbitrary: stk</code> 的效果。情形 <code>Num</code> 和 <code>Var</code> 可以由定义推出；进入情形 <code>Add</code> 时，给两个子表达式起你自己的名字：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case (Num n)
+  show ?case by simp
+next
+  case (Var x)
+  show ?case by simp
+next
+  case (Add a b)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> (Num n)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Var x)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Add a b)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+this:
+    exec (compile a) s ?stk = eval a s # ?stk
+    exec (compile b) s ?stk = eval b s # ?stk
+
+goal (1 subgoal):
+ 1. ⋀e1 e2 stk.
+       ⟦⋀stk. exec (compile e1) s stk = eval e1 s # stk;
+        ⋀stk. exec (compile e2) s stk = eval e2 s # stk⟧
+       ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk</code></pre></div>
+<p>归纳假设列在 <code>this</code> 下面，其中出现了图式变量（schematic variable）<code>?stk</code>（模块 7）：它们可以用于任何栈。<code>Add.IH(1)</code> 是 a 的归纳假设，<code>Add.IH(2)</code> 是 b 的归纳假设。纸上的证明各用了它们一次：a 的用于栈 stk，b 的用于栈 <code>eval a s # stk</code>。陈述这两个事实，让 <code>rule</code> 去实例化 <code>?stk</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  have run_a: &quot;exec (compile a) s stk = eval a s # stk&quot;
+    by (rule Add.IH(1))
+  have run_b: &quot;exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk&quot;">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">have</span> run_a: <span class="isa-inner">&quot;exec (compile a) s stk = eval a s # stk&quot;</span>
+    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Add.IH(1))
+  <span class="isa-proof">have</span> run_b: <span class="isa-inner">&quot;exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    by (rule Add.IH(2))">复制</button></div><pre class="isa-body"><code>    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Add.IH(2))</code></pre></div>
+<p>现在写出模块 10 中的计算推理（calculation），按照图 14.3 的三个阶段进行：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  have &quot;exec (compile (Add a b)) s stk
+        = exec [ADD] s (exec (compile b) s (exec (compile a) s stk))&quot;
+    by simp
+  also have &quot;… = exec [ADD] s (exec (compile b) s (eval a s # stk))&quot;
+    by (simp only: run_a)
+  also have &quot;… = exec [ADD] s (eval b s # eval a s # stk)&quot;
+    by (simp only: run_b)
+  also have &quot;… = eval (Add a b) s # stk&quot;
+    by simp
+  finally show ?case .
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">have</span> <span class="isa-inner">&quot;exec (compile (Add a b)) s stk
+        = exec [ADD] s (exec (compile b) s (exec (compile a) s stk))&quot;</span>
+    <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = exec [ADD] s (exec (compile b) s (eval a s # stk))&quot;</span>
+    <span class="isa-proof">by</span> (simp only: run_a)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = exec [ADD] s (eval b s # eval a s # stk)&quot;</span>
+    <span class="isa-proof">by</span> (simp only: run_b)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = eval (Add a b) s # stk&quot;</span>
+    <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>第一步处理的是代码的形状：<code>simp</code> 展开 <code>compile</code>，并两次应用 <code>exec_append</code>，使得 a 的代码先运行，然后是 b 的代码，最后是 <code>ADD</code>。第二步和第三步只用 <code>run_a</code> 和 <code>run_b</code> 来重写（<code>simp only</code>，模块 9）。最后一步执行 <code>ADD</code> 并展开 <code>eval</code>。用户想要的那个关于空栈的定理，现在只是它的一个实例：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="corollary compile_correct_empty: &quot;exec (compile e) s [] = [eval e s]&quot;
+  by (simp add: compile_correct)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">corollary</span> compile_correct_empty: <span class="isa-inner">&quot;exec (compile e) s [] = [eval e s]&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct)</code></pre></div>
+<p><code>corollary</code> 是 <code>lemma</code> 的另一个同义词，用于直接由某个定理得出的结果，即推论。</p>
+<div class="box box-fact"><div class="box-label">事实 14.1<span class="box-title">编译器是正确的</span></div>
+<p>对每个表达式 e、状态 s 和栈 stk，<code>exec (compile e) s stk = eval e s # stk</code>。特别地，<code>exec (compile e) s [] = [eval e s]</code>。（定理 <code>compile_correct</code> 和 <code>compile_correct_empty</code>。）</p>
+</div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p>去掉 <code>arbitrary: stk</code>，步骤 <code>run_b</code> 就会失败：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+<span class="isa-proof">proof</span> (induction e)
+  <span class="isa-proof">case</span> (Num n)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Var x)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Add a b)
+  <span class="isa-proof">have</span> run_b: <span class="isa-inner">&quot;exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk&quot;</span>
+    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Add.IH(2))
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">using</span> Add.IH(1) <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk</span></code></pre></div>
+<p>没有 <code>arbitrary</code> 时，<code>Add.IH(2)</code> 说的是：对断言中的那一个栈 stk，<code>exec (compile b) s stk = eval b s # stk</code>。它与目标对不上，因为目标谈论的是栈 <code>eval a s # stk</code>，所以 <code>rule</code> 无法应用它。当带着归纳假设的 <code>rule</code> 像这样失败时，就去找一个本应是任意的变量（模块 11）。</p>
+</div></details>
+<span class="section-anchor" id="optimise"></span>
+<div class="section-header"><span class="section-num">6</span><h2>一项经过验证的优化</h2></div>
+<p>真实编译器通过转换代码来改进它：它们 <strong>优化</strong> 代码。每个转换必须保留其规范所要求的行为，这产生了另一个证明义务。经过验证的优化附带一个定理，说明它保留了哪些行为。此处表达式使用总纯整数算术，保留意味着它们在每种状态下的值相等。</p>
+<h3 id="folding">常量折叠</h3>
+<p>表达式的某一部分可能根本不依赖于状态。在 <code>(2 + 3) + (x + 0)</code> 中，和 2 + 3 在每个状态中都是 5，而加上 0 什么也不改变。编译器可以在编译时把这些工作一次做完，而不必在代码每次运行时都做一遍。</p>
+<div class="box box-definition"><div class="box-label">定义 14.5<span class="box-title">常量折叠</span></div>
+<p><strong>常量折叠</strong>在编译时求值常量子表达式。下面的传递还执行代数化简，移除右侧的加0。优化<strong>正确</strong>，或<strong>语义保持</strong>，如果优化后的程序在每个状态下的含义与原始程序相同。</p>
+</div>
+<p>这项工作一次处理一个加法，由一个函数来完成：它构造一个加法，并在可能的地方把它化简：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun fold_add :: &quot;expr ⇒ expr ⇒ expr&quot; where
+  &quot;fold_add (Num m) (Num n) = Num (m + n)&quot;
+| &quot;fold_add a b = (if b = Num 0 then a else Add a b)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> fold_add :: <span class="isa-inner">&quot;expr ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;fold_add (Num m) (Num n) = Num (m + n)&quot;</span>
+| <span class="isa-inner">&quot;fold_add a b = (if b = Num 0 then a else Add a b)&quot;</span></code></pre></div>
+<p>两个数会被立即相加。否则，右边加 0 的加法会被去掉，其他情况仍然是一个加法。这两个等式有重叠，第一个优先。优化器先折叠一个结点的子结点，再折叠这个结点本身：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun cfold :: &quot;expr ⇒ expr&quot; where
+  &quot;cfold (Num n) = Num n&quot;
+| &quot;cfold (Var x) = Var x&quot;
+| &quot;cfold (Add a b) = fold_add (cfold a) (cfold b)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cfold :: <span class="isa-inner">&quot;expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;cfold (Num n) = Num n&quot;</span>
+| <span class="isa-inner">&quot;cfold (Var x) = Var x&quot;</span>
+| <span class="isa-inner">&quot;cfold (Add a b) = fold_add (cfold a) (cfold b)&quot;</span></code></pre></div>
+<p>在 <code>(2 + 3) + (x + 0)</code> 上试一试：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition sample2 :: expr where
+  &quot;sample2 = Add (Add (Num 2) (Num 3)) (Add (Var ''x'') (Num 0))&quot;
+
+value &quot;cfold sample2&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> sample2 :: expr <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sample2 = Add (Add (Num 2) (Num 3)) (Add (Var ''x'') (Num 0))&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;cfold sample2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Add (Num 5) (Var ''x'')&quot;
+  :: &quot;expr&quot;</code></pre></div>
+<p>结果是 <code>5 + x</code>。代码从七条指令缩减到了三条：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(compile sample2, compile (cfold sample2))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(compile sample2, compile (cfold sample2))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;([PUSH 2, PUSH 3, ADD, LOAD ''x'', PUSH 0, ADD, ADD],
+  [PUSH 5, LOAD ''x'', ADD])&quot;
+  :: &quot;instr list × instr list&quot;</code></pre></div>
+<p><code>cfold</code> 只在两个数相遇的地方折叠。在 <code>2 + (3 + x)</code> 中它们没有相遇，所以什么也没有改变：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Add (Num 2) (Add (Num 3) (Var ''x''))&quot;
+  :: &quot;expr&quot;</code></pre></div>
+<p>要把它变成 <code>5 + x</code>，就需要用到结合律，需要一个更聪明的优化器，还需要一个与之相配的证明。</p>
+<h3 id="folding-correct">折叠保持含义</h3>
+<p>要证明的断言是 <code>eval (cfold e) s = eval e s</code>。它的情形 <code>Add</code> 需要一个关于 <code>fold_add</code> 的事实：无论 <code>fold_add</code> 构造出什么，它的值都等于两个参数之和。先证明这个事实，对 <code>fold_add</code> 做计算归纳（computation induction，见模块 11）：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma eval_fold_add [simp]: &quot;eval (fold_add a b) s = eval a s + eval b s&quot;
+  apply (induction a b rule: fold_add.induct)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> eval_fold_add [simp]: <span class="isa-inner">&quot;eval (fold_add a b) s = eval a s + eval b s&quot;</span>
+  <span class="isa-proof">apply</span> (induction a b <span class="isa-minor">rule</span>: fold_add.induct)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (5 subgoals):
+ 1. ⋀m n. eval (fold_add (Num m) (Num n)) s =
+          eval (Num m) s + eval (Num n) s
+ 2. ⋀v b. eval (fold_add (Var v) b) s = eval (Var v) s + eval b s
+ 3. ⋀v va b. eval (fold_add (Add v va) b) s = eval (Add v va) s + eval b s
+ 4. ⋀a v. eval (fold_add a (Var v)) s = eval a s + eval (Var v) s
+ 5. ⋀a v va. eval (fold_add a (Add v va)) s = eval a s + eval (Add v va) s</code></pre></div>
+<p>这些情形对应于 <code>fold_add</code> 的等式，即 <code>fun</code> 消除重叠之后的那些等式，就像它对 <code>exec1</code> 所做的那样。第二个等式变成了四个：第一个等式没有覆盖的 a 和 b 的每一种形状各有一个。在每种情形中，化简器都能对 <code>fold_add</code> 求值，而 <code>auto</code> 会把 <code>if</code> 拆成两种情形：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply auto
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">done</span></code></pre></div>
+<p>定理可以用结构归纳法证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem cfold_correct: &quot;eval (cfold e) s = eval e s&quot;
+  by (induction e) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> cfold_correct: <span class="isa-inner">&quot;eval (cfold e) s = eval e s&quot;</span>
+  <span class="isa-proof">by</span> (induction e) auto</code></pre></div>
+<p>这次没有任意变量。<code>eval</code> 将状态不变地传递给其递归调用，因此针对相同 s 的假设正是案例 <code>Add</code> 所需要的。比较 <code>exec</code>，其递归调用接收一个新的栈：检查变化的参数是这些证明所需概括的有用指南，而非选择归纳假设的通用规则。</p>
+<h3 id="pipeline">先优化，再编译</h3>
+<p>这两个定理正好可以拼在一起。先优化，再编译，得到的代码计算的仍然是原来那个表达式的值：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem compile_cfold_correct:
+  &quot;exec (compile (cfold e)) s stk = eval e s # stk&quot;
+  by (simp add: compile_correct cfold_correct)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> compile_cfold_correct:
+  <span class="isa-inner">&quot;exec (compile (cfold e)) s stk = eval e s # stk&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct cfold_correct)</code></pre></div>
+<p><code>compile_correct</code> 把左边变成 <code>eval (cfold e) s # stk</code>，<code>cfold_correct</code> 再把它变成右边。经过验证的编译器就是这样一步步搭建起来的。CompCert 经过很长的一系列遍（pass）来翻译 C，途经好几种中间语言，而每一遍都有自己的证明，说明它保持含义；这些定理可以组合成一个定理，涵盖由各遍组成的整条链。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>在数学整数的语义下，优化是正确的；对于其他类型的数字，它可能是错误的。在 IEEE 浮点运算（采用向最近值舍入）中，将 +0.0 加到 −0.0 上会得到 +0.0。因此，将 <code>x + 0.0</code> 替换为 <code>x</code> 可能会改变零的符号。要求保留带符号零行为的编译器不能无条件地应用该重写；放宽浮点语义的选项可以允许它。将整数证明应用于浮点代码需要对所选语义进行单独的论证。</p>
+</div>
+<span class="section-anchor" id="export"></span>
+<div class="section-header"><span class="section-num">7</span><h2>从证明到程序</h2></div>
+<p>编译器是 HOL 中的一个函数，而模块 8 讲过怎样把这样的函数变成其他语言的程序。把经过验证的编译器和优化器导出为 Haskell 代码：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="export_code compile cfold in Haskell module_name StackCompiler">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">export_code</span> compile cfold <span class="isa-minor">in</span> Haskell module_name StackCompiler</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>See theory exports</code></pre></div>
+<p>和模块 8 中一样，代码不会出现在 <strong>Output</strong>（输出）面板中。在 Isabelle/jEdit 中，<strong>theory exports</strong>（理论的导出文件）这两个词是一个链接：点击它，<strong>File Browser</strong>（文件浏览器）就会打开生成的文件，它们位于一个名字以 <code>isabelle-export:</code> 开头的虚拟文件夹中。一个理论中的每条 <code>export_code</code> 都写入它自己的文件夹，第一条写入 <code>export1</code>，第二条写入 <code>export2</code>，依此类推；这里，<code>export1</code> 中存放着 Haskell 模块 <code>StackCompiler.hs</code>。下面是它的核心部分，与 Isabelle2026 生成的一模一样。两个数据类型：</p>
+<pre class="code"><code class="language-text">data Expr = Num Int | Var [Char] | Add Expr Expr;
+
+data Instr = PUSH Int | LOAD [Char] | ADD;
+</code></pre>
+<p>以及三个函数：</p>
+<pre class="code"><code class="language-text">fold_add :: Expr -&gt; Expr -&gt; Expr;
+fold_add (Num m) (Num n) = Num (plus_int m n);
+fold_add (Var v) b =
+  (if equal_expr b (Num Zero_int) then Var v else Add (Var v) b);
+fold_add (Add v va) b =
+  (if equal_expr b (Num Zero_int) then Add v va else Add (Add v va) b);
+fold_add a (Var v) =
+  (if equal_expr (Var v) (Num Zero_int) then a else Add a (Var v));
+fold_add a (Add v va) =
+  (if equal_expr (Add v va) (Num Zero_int) then a else Add a (Add v va));
+
+cfold :: Expr -&gt; Expr;
+cfold (Num n) = Num n;
+cfold (Var x) = Var x;
+cfold (Add a b) = fold_add (cfold a) (cfold b);
+
+compile :: Expr -&gt; [Instr];
+compile (Num n) = [PUSH n];
+compile (Var x) = [LOAD x];
+compile (Add a b) = compile a ++ compile b ++ [ADD];
+</code></pre>
+<p><code>cfold</code> 和 <code>compile</code> 的等式和在 Isabelle 中一样，只是用 Haskell 的 <code>++</code> 代替了 <code>@</code>。<code>fold_add</code> 有五个等式，它们是 <code>fun</code> 从原来的两个等式推导出来的（第 14.6.2 节），而判断 <code>b = Num 0</code> 变成了对 <code>equal_expr</code> 的调用，这是代码生成器（code generator）为这个数据类型编写的相等性判断。省略的部分是模块头，以及类型 <code>Char</code> 和 <code>Int</code>，连同这些函数所需要的、作用于它们的运算，例如 <code>plus_int</code>。字符变成了一个带有八个布尔字段的数据类型，而整数由构造子 <code>Zero_int</code>、<code>Pos</code> 和 <code>Neg</code> 以及模块 8 中表示二进制数字的 <code>One</code>、<code>Bit0</code> 和 <code>Bit1</code> 构造而成。这样的表示忠实可靠，但很慢；库理论 <code>HOL-Library.Code_Target_Int</code> 能让代码改用 Haskell 自己的整数。</p>
+<p>模块头列出了这个模块导出的东西：类型 <code>Char</code>、<code>Int</code>、<code>Expr</code> 和 <code>Instr</code>，以及函数 <code>cfold</code> 和 <code>compile</code>，但没有任何构造子。模块 12 解释过 <code>export_code</code> 为什么这样做。在这里，这意味着其他 Haskell 代码无法构造一个表达式交给 <code>compile</code>。写成 <code>export_code open compile cfold …</code> 就能导出所有东西，包括构造子。</p>
+<p>该证明对此程序保证了什么？这些定理涉及 HOL 函数。代码生成器的设计使得生成程序的每一步都对应于使用作为定理的方程进行重写，但它不属于内核（Module 8）；它与将生成代码转换为机器码的 Haskell 编译器以及硬件和运行时环境一起属于可信基础，加上逻辑值的约定表示和任何手写目标适配（Module 12）。该定理涵盖了此语法树编译器和建模的栈机；它不验证解析器、汇编器或物理机器实现。CompCert 也使用 Rocq 到 OCaml 的提取，并记录了已验证和未验证组件的边界。</p>
+<span class="section-anchor" id="extensions"></span>
+<div class="section-header"><span class="section-num">8</span><h2>扩展编译器 ★★★</h2></div>
+<p>本节是挑战内容，难度相当于 ★★★ 练习。它给语言加上减法和条件表达式，给机器加上减法和跳转。已有的大部分开发都能沿用；关于连接代码的引理却不行，而替代它的东西，是一堂关于推广的课。</p>
+<p>在你自己的理论中，你会直接修改 <code>expr</code>、<code>instr</code> 和那些函数。在本页中，前面的定义必须保持原样，所以扩展后的版本用了新名字：类型和函数的名字以 2 结尾，原有的构造子也是如此（<code>Num2</code>、<code>Var2</code>、<code>Add2</code>、<code>PUSH2</code>、<code>LOAD2</code>、<code>ADD2</code>）；新的构造子则用普通的名字。</p>
+<h3 id="extended-language">减法与条件表达式</h3>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype expr2 = Num2 int | Var2 vname | Add2 expr2 expr2
+  | Sub expr2 expr2 | Cond expr2 expr2 expr2
+
+fun eval2 :: &quot;expr2 ⇒ state ⇒ int&quot; where
+  &quot;eval2 (Num2 n) s = n&quot;
+| &quot;eval2 (Var2 x) s = s x&quot;
+| &quot;eval2 (Add2 a b) s = eval2 a s + eval2 b s&quot;
+| &quot;eval2 (Sub a b) s = eval2 a s - eval2 b s&quot;
+| &quot;eval2 (Cond t a b) s = (if eval2 t s ≠ 0 then eval2 a s else eval2 b s)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> expr2 = Num2 int | Var2 vname | Add2 expr2 expr2
+  | Sub expr2 expr2 | Cond expr2 expr2 expr2
+
+<span class="isa-cmd">fun</span> eval2 :: <span class="isa-inner">&quot;expr2 ⇒ state ⇒ int&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;eval2 (Num2 n) s = n&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Var2 x) s = s x&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Add2 a b) s = eval2 a s + eval2 b s&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Sub a b) s = eval2 a s - eval2 b s&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Cond t a b) s = (if eval2 t s ≠ 0 then eval2 a s else eval2 b s)&quot;</span></code></pre></div>
+<p><code>Sub a b</code> 表示 a − b。<code>Cond t a b</code> 是一个条件表达式（conditional expression），在 C 中写作 <code>t ? a : b</code>：如果条件 t 不为 0，它的值就是 a 的值，否则就是 b 的值。和在 C 中一样，0 算作假。</p>
+<p>机器得到一条做减法的指令和两条<strong>跳转</strong>（jump）指令。<code>JMP n</code> 跳过接下来的 n 条指令。<code>JMPZ n</code> 从栈顶取下一个数，如果这个数是 0，就跳过接下来的 n 条指令；否则继续执行下一条指令。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype instr2 = PUSH2 int | LOAD2 vname | ADD2 | SUB | JMP nat | JMPZ nat
+
+fun exec2 :: &quot;instr2 list ⇒ state ⇒ stack ⇒ stack&quot; where
+  &quot;exec2 [] s stk = stk&quot;
+| &quot;exec2 (PUSH2 n # c) s stk = exec2 c s (n # stk)&quot;
+| &quot;exec2 (LOAD2 x # c) s stk = exec2 c s (s x # stk)&quot;
+| &quot;exec2 (ADD2 # c) s (j # i # stk) = exec2 c s ((i + j) # stk)&quot;
+| &quot;exec2 (SUB # c) s (j # i # stk) = exec2 c s ((i - j) # stk)&quot;
+| &quot;exec2 (JMP n # c) s stk = exec2 (drop n c) s stk&quot;
+| &quot;exec2 (JMPZ n # c) s (v # stk) =
+     (if v = 0 then exec2 (drop n c) s stk else exec2 c s stk)&quot;
+| &quot;exec2 (_ # c) s stk = exec2 c s stk&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> instr2 = PUSH2 int | LOAD2 vname | ADD2 | SUB | JMP nat | JMPZ nat
+
+<span class="isa-cmd">fun</span> exec2 :: <span class="isa-inner">&quot;instr2 list ⇒ state ⇒ stack ⇒ stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec2 [] s stk = stk&quot;</span>
+| <span class="isa-inner">&quot;exec2 (PUSH2 n # c) s stk = exec2 c s (n # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (LOAD2 x # c) s stk = exec2 c s (s x # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (ADD2 # c) s (j # i # stk) = exec2 c s ((i + j) # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (SUB # c) s (j # i # stk) = exec2 c s ((i - j) # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (JMP n # c) s stk = exec2 (drop n c) s stk&quot;</span>
+| <span class="isa-inner">&quot;exec2 (JMPZ n # c) s (v # stk) =
+     (if v = 0 then exec2 (drop n c) s stk else exec2 c s stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (_ # c) s stk = exec2 c s stk&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  exec2 :: &quot;instr2 list ⇒ (char list ⇒ int) ⇒ int list ⇒ int list&quot;
+
+Found termination order: &quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p><code>drop n c</code> 表示 c 去掉其前 n 个元素，因此向前跳转是对较短程序的递归调用。最后一个方程捕获了其他方程遗漏的情况，即短栈上的 <code>ADD2</code> 或 <code>SUB</code> 以及空栈上的 <code>JMPZ</code>，并跳过该指令。由于跳转仅向前进行，每个递归调用都作用于更短的列表，Isabelle 无需辅助即可找到终止序，即程序长度。若允许无限制的向后跳转，某些程序可能永远运行，因此此无燃料的递归解释器将不再满足 <code>fun</code>’ 的终止要求（详见第 14.8.4 节）。</p>
+<h3 id="operand-order">操作数的顺序</h3>
+<p><code>SUB</code> 计算 i − j，其中 j 是栈顶，i 是它下面的数。所以编译器必须先压入 a，再压入 b，就像对加法那样：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun compile2 :: &quot;expr2 ⇒ instr2 list&quot; where
+  &quot;compile2 (Num2 n) = [PUSH2 n]&quot;
+| &quot;compile2 (Var2 x) = [LOAD2 x]&quot;
+| &quot;compile2 (Add2 a b) = compile2 a @ compile2 b @ [ADD2]&quot;
+| &quot;compile2 (Sub a b) = compile2 a @ compile2 b @ [SUB]&quot;
+| &quot;compile2 (Cond t a b) =
+     compile2 t @ [JMPZ (length (compile2 a) + 1)] @ compile2 a @
+     [JMP (length (compile2 b))] @ compile2 b&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> compile2 :: <span class="isa-inner">&quot;expr2 ⇒ instr2 list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;compile2 (Num2 n) = [PUSH2 n]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Var2 x) = [LOAD2 x]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Add2 a b) = compile2 a @ compile2 b @ [ADD2]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Sub a b) = compile2 a @ compile2 b @ [SUB]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Cond t a b) =
+     compile2 t @ [JMPZ (length (compile2 a) + 1)] @ compile2 a @
+     [JMP (length (compile2 b))] @ compile2 b&quot;</span></code></pre></div>
+<p>对加法来说，顺序无关紧要，因为加法满足交换律；对减法来说，顺序就要紧了。如果 <code>Sub</code> 的等式先压入 b，代码算出的就是 b − a。Quickcheck 立刻就能抓住这种对调：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec2 (compile2 b @ compile2 a @ [SUB]) s stk
+       = (eval2 a s - eval2 b s) # stk&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec2 (compile2 b @ compile2 a @ [SUB]) s stk
+       = (eval2 a s - eval2 b s) # stk&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  b = Num2 0
+  a = Num2 (- 1)
+  s = λx. - 2
+  stk = []
+Evaluated terms:
+  exec2 (compile2 b @ compile2 a @ [SUB]) s stk = [1]
+  (eval2 a s - eval2 b s) # stk = [- 1]</code></pre></div>
+<p>当 a = −1、b = 0 时，a − b 的值是 −1，但对调后的代码算出的是 0 − (−1) = 1。这类错误可能在手工挑选的测试例子面前蒙混过关：只要 a 和 b 的值相同，对调后的代码给出的答案就是对的。</p>
+<h3 id="jumps">条件表达式与跳转</h3>
+<p><code>Cond t a b</code> 的代码先对条件求值，然后跳过它不需要的那段代码：</p>
+<pre class="code"><code class="language-text">t 的代码 | JMPZ k | a 的代码 | JMP m | b 的代码 |
+          k = length (a 的代码) + 1     m = length (b 的代码)
+</code></pre>
+<p>如果条件为 0，<code>JMPZ k</code> 就跳过 a 的代码以及它后面的 <code>JMP</code>，从 b 的代码继续执行。否则，a 的代码运行，然后 <code>JMP m</code> 跳过 b 的代码。无论哪种情况，执行都会在 b 的代码之后继续，而栈上多了一个新的值。下面是两次运行，所在的状态 <code>s0</code> 中 x 是 5，z 是 0：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[LOAD2 ''x'', JMPZ 2, PUSH2 1, JMP 1, PUSH2 2]&quot;
+  :: &quot;instr2 list&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(exec2 (compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))) s0 [],
+        exec2 (compile2 (Cond (Var2 ''z'') (Num2 1) (Num2 2))) s0 [])&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec2 (compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))) s0 [],
+        exec2 (compile2 (Cond (Var2 ''z'') (Num2 1) (Num2 2))) s0 [])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;([1], [2])&quot;
+  :: &quot;int list × int list&quot;</code></pre></div>
+<p>现在来看证明。关于连接代码的引理是第 14.5 节的关键。它还成立吗？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  c1 = [JMP 1]
+  c2 = [PUSH2 (- 1)]
+  s = λx. - 3
+  stk = []
+Evaluated terms:
+  exec2 (c1 @ c2) s stk = []
+  exec2 c2 s (exec2 c1 s stk) = [- 1]</code></pre></div>
+<p>不成立了。当 c1 和 c2 作为一个程序一起运行时，c1 末尾的跳转会跳过 c2 中的指令；而当 c1 单独运行时，它没有东西可跳。运行 <code>c1 @ c2</code> 不再等于“先运行 c1，再运行 c2”。这条引理之所以对原来的机器成立，是因为那台机器的每条指令都只影响栈，从不影响接下来执行哪条指令。</p>
+<p>出路是再做一次推广。不要在任意一点上拆分程序，而是描述 e 的代码放在<strong>任意</strong>后续代码 c 前面时做了什么：运行 <code>compile2 e @ c</code>，等同于先把 e 的值放到栈上，再运行 c。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem compile2_correct:
+  &quot;exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)&quot;
+  by (induction e arbitrary: c stk) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> compile2_correct:
+  <span class="isa-inner">&quot;exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: c stk) auto</code></pre></div>
+<p>现在，归纳假设谈论的是一个子表达式的代码后面跟着任意代码的情况，而在每种情形中，这正是化简器遇到的形状。在情形 <code>Cond t a b</code> 中，t 的归纳假设用于 t 后面的那段代码，这段代码以 <code>JMPZ</code> 开头。如果条件为 0，跳转恰好落在 b 的代码的开头，后面跟着 c，于是 b 的归纳假设适用；否则 a 的归纳假设适用，而 <code>JMP</code> 恰好落在 c 的开头。除了跳到条件表达式代码的末尾之外，跳转从不离开这段代码，所以定理从来不需要说明跳到别处会发生什么。</p>
+<p>第 14.5 节中的形式，就是后面什么也不跟的特例，即 c = []：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="corollary &quot;exec2 (compile2 e) s stk = eval2 e s # stk&quot;
+  using compile2_correct [of e &quot;[]&quot;] by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">corollary</span> <span class="isa-inner">&quot;exec2 (compile2 e) s stk = eval2 e s # stk&quot;</span>
+  <span class="isa-proof">using</span> compile2_correct [of e <span class="isa-inner">&quot;[]&quot;</span>] <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>当关于拆分程序的引理不成立时，就改为对上下文进行推广：陈述一段代码放在任意后续代码（continuation）前面时做了什么。这样，证明就只会涉及编译器生成的代码，而从不涉及任意的拆分。练习 14.6 就用这种形式证明了第 14.5 节的定理，没有用到 <code>exec_append</code>。</p>
+</div>
+<h3 id="directions">进一步的方向</h3>
+<ul>
+<li><strong>更多运算符。</strong> 乘法增加了一个构造子、一条指令以及对应的等式。
+正确性证明遵循相同模式，并增加一个构造子情况。</li>
+<li><strong><code>let</code>.</strong> <code>let x = a in b</code>的一种实现添加了指令，将值存储到变量中。
+该代码同时改变状态与栈，且定理必须指明其可能更改的变量：将 a 的值存入 x 自身会破坏周围表达式可能需要的 x。</li>
+<li><strong>循环。</strong> 通过向后跳转，程序可以无限运行。一种模型是归纳定义的
+配置上的执行关系（程序计数器、状态和栈），如 Modules 11 和 13 所示。另一个是带有燃料参数的总解释器，用于限制步数。耗尽燃料会报告达到了界限；它并不确立发散性。</li>
+<li><strong>其他机器。</strong>练习 14.7 让机器在栈下溢时停止，练习 14.8 则编译到一台带寄存器的机器上。</li>
+</ul>
+<span class="section-anchor" id="outlook"></span>
+<div class="section-header"><span class="section-num">9</span><h2>回顾与展望</h2></div>
+<p>本模块几乎用到了本系列的每一个部分。下面是每一块内容的来源。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>它提供了什么</th>
+<th>在本模块中用在哪里</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>value</code>、<code>lemma</code>、Quickcheck；可信基中的编译器</td>
+<td>测试，第 14.1 节</td>
+</tr>
+<tr>
+<td>2–3</td>
+<td>逻辑；引理中的自由变元是全称量化的</td>
+<td>“对每个 e、s 和 stk”</td>
+</tr>
+<tr>
+<td>4</td>
+<td>函数</td>
+<td>状态，一个从名字到值的函数</td>
+</tr>
+<tr>
+<td>5</td>
+<td>递归与结构归纳法</td>
+<td><code>eval</code>、<code>exec</code>、<code>compile</code>，以及每一个证明</td>
+</tr>
+<tr>
+<td>6–7</td>
+<td>证明规则、<code>rule</code>、图式变量</td>
+<td>带 <code>?stk</code> 的 <code>rule Add.IH(2)</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>datatype</code>、<code>fun</code>、列表、<code>export_code</code></td>
+<td>语言、机器、导出</td>
+</tr>
+<tr>
+<td>9</td>
+<td>化简规则（simp rule）、<code>simp only</code>、Quickcheck</td>
+<td><code>exec_append [simp]</code>、测试</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Isar：情形与计算推理</td>
+<td><code>compile_correct</code> 的证明</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>arbitrary:</code>、辅助引理、计算归纳</td>
+<td>栈、<code>exec_append</code>、<code>fold_add.induct</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td>规约与实现的对照</td>
+<td>以 <code>eval</code> 对照 <code>compile</code> 和 <code>exec</code></td>
+</tr>
+<tr>
+<td>13</td>
+<td>状态机（state machine）</td>
+<td>栈机本身</td>
+</tr>
+</tbody>
+</table></div>
+<p>在模块 2 中，你用真值表（truth table）来判定公式，办法是检查有限多种情况。真值表处理不了关于每一个表达式的陈述：表达式有无穷多个。证明却可以。一路走来，你学会了用逻辑写出这样的陈述，在纸上用规则证明它们，并让 Isabelle 检查每一步。这个编译器很小，但它的证明具备了 CompCert 和 seL4 背后那些证明的要素：每种语言的语义，对“正确”含义的精确陈述，沿着程序结构进行的归纳，以及通过阅读证明停下之处的目标而找到的引理。</p>
+<p>接下来可以去哪里：</p>
+<ul>
+<li>Tobias Nipkow 和 Gerwin Klein 合著的 <em><strong><a href="https://concrete-semantics.org/" target="_blank" rel="noopener">Concrete Semantics</a></strong></em>（Springer，
+2014 年）接着讲本模块之后的内容。第一部分是 Isabelle 教程。第二部分定义了带赋值和循环的小型命令式语言 IMP，并在 Isabelle 中研究其语义、编译器、类型系统、霍尔逻辑和程序分析。</li>
+<li><strong><a href="https://www.isa-afp.org" target="_blank" rel="noopener">形式化证明档案库</a></strong>（Archive of Formal Proofs）收录了数百个经过检查的 Isabelle 项目，其中有经过验证的编译器、算法和数据结构；从中可以看到专家们怎样组织大型证明。</li>
+<li><strong>seL4</strong>和<strong>CompCert</strong>（模块 1）展示了这些方法在工业规模上的应用；它们的论文说明了证明了什么、信任了什么，以及这些证明付出了多大的代价。</li>
+<li>本系列的应用项目 <strong><a href="model-verification/index.html">Isabelle 模型验证</a></strong>（英文）用一个盖子模型讲解操作、不变式和表示之间的转换。项目证明这种转换保持含义，这与 <code>compile_correct</code> 属于同一类定理。项目使用 Isabelle2025-2。</li>
+</ul>
+<p>模块 1 的第一个理论以三件事收尾：用 <code>value</code> 计算，用 <code>lemma</code> 证明，用 Quickcheck 反驳。在本模块中，你把这三件事都用在了一个真正的软件上，也就是一个编译器；而你得到的，是一个关于它将来要编译的每一个程序的定理。</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>小结</h2></div>
+<ul>
+<li>此处编译器正确性是两条语义函数之间的等式：<code>eval</code> 用于表达式，<code>exec</code> 用于栈
+机器。该陈述是等式 <code>exec (compile e) s stk = eval e s # stk</code>。</li>
+<li>抽象语法是一个数据类型；组合式的语义是它上面的一个递归函数。<strong>状态</strong>把变量名映射到值；<code>f(a := v)</code> 更新一个函数。</li>
+<li><strong>栈机</strong>从栈顶取出它的操作数。编译器按后缀顺序生成代码：先是操作数的代码，然后是运算符。</li>
+<li>测试先行。<code>value</code> 比较示例上的求值与执行；Quickcheck 搜索有界情况
+对于反例，不保证找到最小的一个或发现所有错误。当声明的变量中包含函数时，使用 <code>quickcheck [size = n]</code> 限制搜索范围。</li>
+<li>证明需要模块 11 中的两个思想：从卡住的目标中找到的辅助引理 <code>exec_append</code>，以及用 <code>arbitrary: stk</code> 实现的<strong>对栈的推广</strong>，因为第二个操作数的代码运行在一个存放着第一个操作数的值的栈上。</li>
+<li><strong>常量折叠</strong>的正确性用结构归纳法证明，其中用到一条用计算归纳证明的、关于 <code>fold_add</code> 的引理。关于各遍的定理可以组合，所以“先优化再编译”的正确性只需一行证明。</li>
+<li><code>export_code</code> 把经过验证的函数变成 Haskell 代码；代码生成器和 Haskell 编译器仍然留在可信基中。</li>
+<li>有了跳转，关于连接代码的引理就不成立了；对后面的代码进行推广，即 <code>exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)</code>，就能修复证明。</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>练习</h2></div>
+<div class="exercise" id="ex-14-1"><div class="ex-label"><span class="ex-num">练习 14.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">手工运行机器</span></div>
+<p>手工编译表达式 <code>(x + 1) + y</code>，也就是 <code>Add (Add (Var ''x'') (Num 1)) (Var ''y'')</code>。然后写出代码在状态 <code>s0</code>（x = 5，y = 7）中从空栈开始运行时，每条指令执行之后的栈。栈上最多同时有几个数？与图 14.2 中的程序比较一下，并用 <code>value</code> 检查你的答案。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>代码依次是 <code>x + 1</code> 的代码、y 的代码和 <code>ADD</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[LOAD ''x'', PUSH 1, ADD, LOAD ''y'', ADD]&quot;
+  :: &quot;instr list&quot;</code></pre></div>
+<p>五条指令执行之后的栈依次是 <code>[5]</code>、<code>[1, 5]</code>、<code>[6]</code>、<code>[7, 6]</code> 和 <code>[13]</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[13]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<p>栈上最多有两个数。图 14.2 中 <code>x + (2 + y)</code> 的代码需要三个，因为它外层加法的第二个操作数本身就是一个加法，而这个加法的操作数要放在 x 的值的上面。当嵌套在左边时，每个部分和都会在下一个操作数被压入之前算完。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-2"><div class="ex-label"><span class="ex-num">练习 14.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">哪些断言成立？</span></div>
+<p>判断下面每个断言是否对每个 e、s 和 stk 都成立。用 Quickcheck 测试每一个，并用 <code>simp</code> 和第 14.5 节的定理证明成立的那些。</p>
+<ol>
+<li><code>exec (compile e) s stk = [eval e s]</code></li>
+<li><code>length (exec (compile e) s stk) = length stk + 1</code></li>
+<li><code>exec (compile e @ compile e) s stk = eval e s # eval e s # stk</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>
+<p><strong>不成立</strong>，第 14.4.3 节已经说明了这一点：当 stk 不为空时，它的数会留在那个值的下面。</p>
+</li>
+<li>
+<p><strong>成立</strong>：代码恰好压入一个数。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;length (exec (compile e) s stk) = length stk + 1&quot;
+  by (simp add: compile_correct)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (exec (compile e) s stk) = length stk + 1&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct)</code></pre></div>
+</li>
+<li>
+<p><strong>成立</strong>：由 <code>exec_append</code>，代码的第二份副本在第一份副本留下的栈上运行。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e @ compile e) s stk = eval e s # eval e s # stk&quot;
+  by (simp add: compile_correct)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e @ compile e) s stk = eval e s # eval e s # stk&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct)</code></pre></div>
+</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-3"><div class="ex-label"><span class="ex-num">练习 14.3</span><span class="ex-stars" title="2">★★</span><span class="ex-title">优化后的代码不会更长</span></div>
+<p>证明常量折叠从不会使代码变长：<code>length (compile (cfold e)) ≤ length (compile e)</code>。先像 <code>eval_fold_add</code> 那样，用计算归纳证明一条关于 <code>fold_add</code> 的辅助引理，再对 e 做归纳来证明这个定理；愿意的话，可以用 Isar 来写。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>fold_add a b</code> 的代码从不会比“a 的代码，然后 b 的代码，再加一条 <code>ADD</code>”更长：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma length_fold_add:
+  &quot;length (compile (fold_add a b))
+   ≤ length (compile a) + length (compile b) + 1&quot;
+  by (induction a b rule: fold_add.induct) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> length_fold_add:
+  <span class="isa-inner">&quot;length (compile (fold_add a b))
+   ≤ length (compile a) + length (compile b) + 1&quot;</span>
+  <span class="isa-proof">by</span> (induction a b <span class="isa-minor">rule</span>: fold_add.induct) auto</code></pre></div>
+<p>在情形 <code>Add a b</code> 中，这条引理作用于 <code>cfold a</code> 和 <code>cfold b</code>，而归纳假设给出了它们的代码长度的上界：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem cfold_shorter:
+  &quot;length (compile (cfold e)) ≤ length (compile e)&quot;
+proof (induction e)
+  case (Add a b)
+  have &quot;length (compile (cfold (Add a b)))
+        ≤ length (compile (cfold a)) + length (compile (cfold b)) + 1&quot;
+    using length_fold_add by simp
+  also have &quot;… ≤ length (compile (Add a b))&quot;
+    using Add.IH by simp
+  finally show ?case .
+qed simp_all">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> cfold_shorter:
+  <span class="isa-inner">&quot;length (compile (cfold e)) ≤ length (compile e)&quot;</span>
+<span class="isa-proof">proof</span> (induction e)
+  <span class="isa-proof">case</span> (Add a b)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;length (compile (cfold (Add a b)))
+        ≤ length (compile (cfold a)) + length (compile (cfold b)) + 1&quot;</span>
+    <span class="isa-proof">using</span> length_fold_add <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ length (compile (Add a b))&quot;</span>
+    <span class="isa-proof">using</span> Add.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span> simp_all</code></pre></div>
+<p><code>qed simp_all</code> 通过 <code>simp</code> 证明了 <code>Num</code> 和 <code>Var</code> 两种情况，Isar 文本未提及这些情况。该结果对指令计数进行界定，而非编译时间、运行时间或整数值所使用的内存。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-4"><div class="ex-label"><span class="ex-num">练习 14.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">一项错误的优化</span></div>
+<p>一位同事建议写一个更短的 <code>fold_add</code>，它会去掉加在右边的每一个数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun fold_add_bad :: &quot;expr ⇒ expr ⇒ expr&quot; where
+  &quot;fold_add_bad (Num m) (Num n) = Num (m + n)&quot;
+| &quot;fold_add_bad a (Num n) = a&quot;
+| &quot;fold_add_bad a b = Add a b&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> fold_add_bad :: <span class="isa-inner">&quot;expr ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;fold_add_bad (Num m) (Num n) = Num (m + n)&quot;</span>
+| <span class="isa-inner">&quot;fold_add_bad a (Num n) = a&quot;</span>
+| <span class="isa-inner">&quot;fold_add_bad a b = Add a b&quot;</span></code></pre></div>
+<ol>
+<li>用 Quickcheck 说明它是错的，并解释反例。</li>
+<li>写出 <code>fold_add0</code>：它是 <code>fold_add</code> 的一个正确版本，并且还会去掉在<strong>左边</strong>加 0 的加法；证明它保持值不变。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>
+<p>Quickcheck 找到了一个会丢掉一个数的表达式：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;eval (fold_add_bad a b) s = eval a s + eval b s&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;eval (fold_add_bad a b) s = eval a s + eval b s&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  a = Var []
+  b = Num (- 1)
+  s = λx. - 2
+Evaluated terms:
+  eval (fold_add_bad a b) s = - 2
+  eval a s + eval b s = - 3</code></pre></div>
+<p>Quickcheck 给出的 a 是名字为空字符串的变量，它被打印成 <code>[]</code>，因为字符串是字符的列表。它在 s 中的值是 −2，而 <code>fold_add_bad</code> 丢掉了加在它上面的 −1。第二个等式只对 <code>Num 0</code> 才是对的：右边的任何其他数都会丢失。</p>
+</li>
+<li>
+<p>检查两边是否为 0；证明和 <code>fold_add</code> 的一样：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun fold_add0 :: &quot;expr ⇒ expr ⇒ expr&quot; where
+  &quot;fold_add0 (Num m) (Num n) = Num (m + n)&quot;
+| &quot;fold_add0 a b =
+     (if a = Num 0 then b else if b = Num 0 then a else Add a b)&quot;
+
+lemma &quot;eval (fold_add0 a b) s = eval a s + eval b s&quot;
+  by (induction a b rule: fold_add0.induct) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> fold_add0 :: <span class="isa-inner">&quot;expr ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;fold_add0 (Num m) (Num n) = Num (m + n)&quot;</span>
+| <span class="isa-inner">&quot;fold_add0 a b =
+     (if a = Num 0 then b else if b = Num 0 then a else Add a b)&quot;</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;eval (fold_add0 a b) s = eval a s + eval b s&quot;</span>
+  <span class="isa-proof">by</span> (induction a b <span class="isa-minor">rule</span>: fold_add0.induct) auto</code></pre></div>
+</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-5"><div class="ex-label"><span class="ex-num">练习 14.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">代入</span></div>
+<p>定义 <code>subst :: &quot;vname ⇒ int ⇒ expr ⇒ expr&quot;</code>，使得 <code>subst x n e</code> 把 e 中变量 x 的每一次出现都替换成数 n。用 <code>value</code> 检查它，然后证明</p>
+<p><code>eval (subst x n e) s = eval e (s(x := n))</code></p>
+<p>用文字来说：把 x = n 代入（substitute）e 后得到的值，就是 e 在 x 为 n 的状态中的值。当编译器把一个值已知的变量替换成这个值时，用的就是这个事实。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun subst :: &quot;vname ⇒ int ⇒ expr ⇒ expr&quot; where
+  &quot;subst x n (Num m) = Num m&quot;
+| &quot;subst x n (Var y) = (if y = x then Num n else Var y)&quot;
+| &quot;subst x n (Add a b) = Add (subst x n a) (subst x n b)&quot;
+
+value &quot;subst ''x'' 3 (Add (Var ''x'') (Add (Var ''y'') (Var ''x'')))&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> subst :: <span class="isa-inner">&quot;vname ⇒ int ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;subst x n (Num m) = Num m&quot;</span>
+| <span class="isa-inner">&quot;subst x n (Var y) = (if y = x then Num n else Var y)&quot;</span>
+| <span class="isa-inner">&quot;subst x n (Add a b) = Add (subst x n a) (subst x n b)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;subst ''x'' 3 (Add (Var ''x'') (Add (Var ''y'') (Var ''x'')))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;Add (Num 3) (Add (Var ''y'') (Num 3))&quot;
+  :: &quot;expr&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma eval_subst: &quot;eval (subst x n e) s = eval e (s(x := n))&quot;
+  by (induction e) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> eval_subst: <span class="isa-inner">&quot;eval (subst x n e) s = eval e (s(x := n))&quot;</span>
+  <span class="isa-proof">by</span> (induction e) auto</code></pre></div>
+<p>在情形 <code>Var y</code> 中，化简器会拆开 <code>if</code>：如果 y = x，两边都是 n；否则两边都是 <code>s y</code>。没有哪个变量需要是任意的，因为 x、n 和 s 在递归调用中都保持不变。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-6"><div class="ex-label"><span class="ex-num">练习 14.6</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">不用连接引理的正确性证明</span></div>
+<p>第 14.8 节用一种带有后续代码 c（也就是跟在后面的代码）的形式，证明了扩展后的编译器是正确的。用同样的形式为原来的编译器证明这个定理：</p>
+<p><code>exec (compile e @ c) s stk = exec c s (eval e s # stk)</code>，</p>
+<p>要求对 e 做归纳，并且<strong>不</strong>使用 <code>exec_append</code>。然后由它推出 <code>exec (compile e) s stk = eval e s # stk</code>。哪些变量必须是任意的？为什么？</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>c 和 stk 都必须是任意的：在情形 <code>Add a b</code> 中，a 的归纳假设用于后续代码 <code>compile b @ ADD # c</code>，b 的归纳假设用于栈 <code>eval a s # stk</code>。<code>exec_append</code> 是一条化简规则，所以即使你不要求，<code>auto</code> 也会使用它。用 <code>simp del:</code> 把它去掉（模块 9），证明才真正没有用到它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma compile_cont:
+  &quot;exec (compile e @ c) s stk = exec c s (eval e s # stk)&quot;
+  by (induction e arbitrary: c stk) (auto simp del: exec_append)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> compile_cont:
+  <span class="isa-inner">&quot;exec (compile e @ c) s stk = exec c s (eval e s # stk)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: c stk) (auto simp del: exec_append)</code></pre></div>
+<p>在情形 <code>Add a b</code> 中，化简器把 <code>(compile a @ compile b @ [ADD]) @ c</code> 重新结合成 <code>compile a @ (compile b @ ADD # c)</code>，然后应用两个归纳假设，以及 <code>exec</code> 关于 <code>ADD</code> 的等式。原来的定理是 c = [] 时的实例：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = eval e s # stk&quot;
+  using compile_cont [of e &quot;[]&quot;] by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-proof">using</span> compile_cont [of e <span class="isa-inner">&quot;[]&quot;</span>] <span class="isa-proof">by</span> simp</code></pre></div>
+<p>这种形式不需要关于任意拆分程序的引理，这就是它在有跳转时仍然适用的原因。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-7"><div class="ex-label"><span class="ex-num">练习 14.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">一台会出错的机器</span></div>
+<p>对报告栈下溢的栈机进行建模，使用选项类型（Module 8）：<code>exec1_opt</code> 在 <code>ADD</code> 发现少于两个数字时返回 <code>None</code>，且 <code>exec_opt</code> 在遇到第一个 <code>None</code> 时停止。定义两者，通过 <code>value</code> 检查 <code>[PUSH 1, ADD]</code> 在空栈上失败，并证明编译后的代码永远不会失败：</p>
+<p><code>exec_opt (compile e) s stk = Some (eval e s # stk)</code>。</p>
+<p>提示：先证明练习 14.6 中那种带后续代码的形式。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec1_opt :: &quot;instr ⇒ state ⇒ stack ⇒ stack option&quot; where
+  &quot;exec1_opt (PUSH n) s stk = Some (n # stk)&quot;
+| &quot;exec1_opt (LOAD x) s stk = Some (s x # stk)&quot;
+| &quot;exec1_opt ADD s (j # i # stk) = Some ((i + j) # stk)&quot;
+| &quot;exec1_opt ADD s stk = None&quot;
+
+fun exec_opt :: &quot;instr list ⇒ state ⇒ stack ⇒ stack option&quot; where
+  &quot;exec_opt [] s stk = Some stk&quot;
+| &quot;exec_opt (i # c) s stk =
+     (case exec1_opt i s stk of
+        None ⇒ None
+      | Some stk' ⇒ exec_opt c s stk')&quot;
+
+value &quot;(exec_opt [PUSH 1, ADD] s0 [], exec_opt (compile sample) s0 [])&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> exec1_opt :: <span class="isa-inner">&quot;instr ⇒ state ⇒ stack ⇒ stack option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec1_opt (PUSH n) s stk = Some (n # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec1_opt (LOAD x) s stk = Some (s x # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec1_opt ADD s (j # i # stk) = Some ((i + j) # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec1_opt ADD s stk = None&quot;</span>
+
+<span class="isa-cmd">fun</span> exec_opt :: <span class="isa-inner">&quot;instr list ⇒ state ⇒ stack ⇒ stack option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec_opt [] s stk = Some stk&quot;</span>
+| <span class="isa-inner">&quot;exec_opt (i # c) s stk =
+     (case exec1_opt i s stk of
+        None ⇒ None
+      | Some stk' ⇒ exec_opt c s stk')&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec_opt [PUSH 1, ADD] s0 [], exec_opt (compile sample) s0 [])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;(None, Some [14])&quot;
+  :: &quot;int list option × int list option&quot;</code></pre></div>
+<p>有了后续代码，证明就和练习 14.6 中一样。在情形 <code>Add a b</code> 中，化简器遇到 <code>exec1_opt ADD s (eval b s # eval a s # stk)</code>，它等于 <code>Some …</code>，所以 <code>case</code> 就消失了：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma exec_opt_cont:
+  &quot;exec_opt (compile e @ c) s stk = exec_opt c s (eval e s # stk)&quot;
+  by (induction e arbitrary: c stk) auto
+
+theorem exec_opt_compile:
+  &quot;exec_opt (compile e) s stk = Some (eval e s # stk)&quot;
+  using exec_opt_cont [of e &quot;[]&quot;] by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> exec_opt_cont:
+  <span class="isa-inner">&quot;exec_opt (compile e @ c) s stk = exec_opt c s (eval e s # stk)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: c stk) auto
+
+<span class="isa-cmd">theorem</span> exec_opt_compile:
+  <span class="isa-inner">&quot;exec_opt (compile e) s stk = Some (eval e s # stk)&quot;</span>
+  <span class="isa-proof">using</span> exec_opt_cont [of e <span class="isa-inner">&quot;[]&quot;</span>] <span class="isa-proof">by</span> simp</code></pre></div>
+<p>这个定理比 <code>compile_correct</code> 更强：它还说明，编译出的代码在任何栈上都不会发生下溢。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-8"><div class="ex-label"><span class="ex-num">练习 14.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">一台寄存器机</span></div>
+<p>寄存器机（register machine）没有栈，而是有一些编了号的寄存器，用一个函数 <code>nat ⇒ int</code> 来建模；它的指令会写明自己使用哪些寄存器：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype rinstr = LDI nat int | LDV nat vname | ADDR nat nat
+
+type_synonym regs = &quot;nat ⇒ int&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> rinstr = LDI nat int | LDV nat vname | ADDR nat nat
+
+<span class="isa-cmd">type_synonym</span> regs = <span class="isa-inner">&quot;nat ⇒ int&quot;</span></code></pre></div>
+<p><code>LDI r n</code> 把数 n 装入寄存器 r，<code>LDV r x</code> 把变量 x 的值装入寄存器 r，<code>ADDR r q</code> 把寄存器 q 的值加到寄存器 r 上。仿照 <code>exec1</code> 和 <code>exec</code> 定义 <code>rexec1</code> 和 <code>rexec</code>，再定义一个编译器 <code>rcompile :: &quot;expr ⇒ nat ⇒ rinstr list&quot;</code>，使得 <code>rcompile e r</code> 把 e 的值留在寄存器 r 中，并且只把寄存器 r、r + 1、r + 2 等用作临时存储空间。证明它是正确的：值最后放在寄存器 r 中，而编号小于 r 的寄存器保持原来的内容。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun rexec1 :: &quot;rinstr ⇒ state ⇒ regs ⇒ regs&quot; where
+  &quot;rexec1 (LDI r n) s rs = rs(r := n)&quot;
+| &quot;rexec1 (LDV r x) s rs = rs(r := s x)&quot;
+| &quot;rexec1 (ADDR r q) s rs = rs(r := rs r + rs q)&quot;
+
+fun rexec :: &quot;rinstr list ⇒ state ⇒ regs ⇒ regs&quot; where
+  &quot;rexec [] s rs = rs&quot;
+| &quot;rexec (i # c) s rs = rexec c s (rexec1 i s rs)&quot;
+
+lemma rexec_append [simp]:
+  &quot;rexec (c1 @ c2) s rs = rexec c2 s (rexec c1 s rs)&quot;
+  by (induction c1 arbitrary: rs) auto
+
+fun rcompile :: &quot;expr ⇒ nat ⇒ rinstr list&quot; where
+  &quot;rcompile (Num n) r = [LDI r n]&quot;
+| &quot;rcompile (Var x) r = [LDV r x]&quot;
+| &quot;rcompile (Add a b) r =
+     rcompile a r @ rcompile b (r + 1) @ [ADDR r (r + 1)]&quot;
+
+value &quot;rcompile sample 0&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> rexec1 :: <span class="isa-inner">&quot;rinstr ⇒ state ⇒ regs ⇒ regs&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;rexec1 (LDI r n) s rs = rs(r := n)&quot;</span>
+| <span class="isa-inner">&quot;rexec1 (LDV r x) s rs = rs(r := s x)&quot;</span>
+| <span class="isa-inner">&quot;rexec1 (ADDR r q) s rs = rs(r := rs r + rs q)&quot;</span>
+
+<span class="isa-cmd">fun</span> rexec :: <span class="isa-inner">&quot;rinstr list ⇒ state ⇒ regs ⇒ regs&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;rexec [] s rs = rs&quot;</span>
+| <span class="isa-inner">&quot;rexec (i # c) s rs = rexec c s (rexec1 i s rs)&quot;</span>
+
+<span class="isa-cmd">lemma</span> rexec_append [simp]:
+  <span class="isa-inner">&quot;rexec (c1 @ c2) s rs = rexec c2 s (rexec c1 s rs)&quot;</span>
+  <span class="isa-proof">by</span> (induction c1 <span class="isa-minor">arbitrary</span>: rs) auto
+
+<span class="isa-cmd">fun</span> rcompile :: <span class="isa-inner">&quot;expr ⇒ nat ⇒ rinstr list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;rcompile (Num n) r = [LDI r n]&quot;</span>
+| <span class="isa-inner">&quot;rcompile (Var x) r = [LDV r x]&quot;</span>
+| <span class="isa-inner">&quot;rcompile (Add a b) r =
+     rcompile a r @ rcompile b (r + 1) @ [ADDR r (r + 1)]&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;rcompile sample 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[LDV 0 ''x'', LDI 1 2, LDV 2 ''y'', ADDR 1 2, ADDR 0 1]&quot;
+  :: &quot;rinstr list&quot;</code></pre></div>
+<p>寄存器编号扮演了栈高度的角色：b 的代码在高一号的寄存器上工作，这样它就不会覆盖寄存器 r 中 a 的值。断言必须同时说出这两件事，因为情形 <code>Add</code> 需要从归纳假设中得到这两者：b 的代码运行之后，a 的值之所以还在寄存器 r 中，只是因为这段代码不去动编号小于 r + 1 的寄存器。r 和寄存器的内容在递归调用之间都会改变，所以两者都是任意的：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem rcompile_correct:
+  &quot;rexec (rcompile e r) s rs r = eval e s ∧
+   (∀q &lt; r. rexec (rcompile e r) s rs q = rs q)&quot;
+  by (induction e arbitrary: r rs) auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> rcompile_correct:
+  <span class="isa-inner">&quot;rexec (rcompile e r) s rs r = eval e s ∧
+   (∀q &lt; r. rexec (rcompile e r) s rs q = rs q)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: r rs) auto</code></pre></div>
+<p>如果只证明前一半，归纳就会卡住：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rexec (rcompile e r) s rs r = eval e s&quot;
+  apply (induction e arbitrary: r rs)
+  apply auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rexec (rcompile e r) s rs r = eval e s&quot;</span>
+  <span class="isa-proof">apply</span> (induction e <span class="isa-minor">arbitrary</span>: r rs)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2 r rs.
+       ⟦⋀r rs. rexec (rcompile e1 r) s rs r = eval e1 s;
+        ⋀r rs. rexec (rcompile e2 r) s rs r = eval e2 s⟧
+       ⟹ rexec (rcompile e2 (Suc r)) s (rexec (rcompile e1 r) s rs) r =
+          eval e1 s</code></pre></div>
+<p>剩下的目标问的是：为寄存器 r + 1（写作 <code>Suc r</code>）编译的 e2 的代码，是否不去动寄存器 r。较弱的断言的归纳假设对其他寄存器什么也没说，所以必须像模块 11 中那样加强断言。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>麦卡锡和佩因特在 1967 年的证明（第 14.1 节）针对的正是这类机器：它有一个累加器和若干寄存器，而不是一个栈。</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>定理 <code>compile_correct</code> 说的是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">编译器对每个表达式都会终止</button></li><li><button type="button" class="quiz-opt" data-i="1">对每个表达式、状态和栈，运行编译出的代码都会把表达式的值放到栈顶，并保持栈的其余部分不变</button></li><li><button type="button" class="quiz-opt" data-i="2">在空栈上运行编译出的代码，会得到一个只有一个元素的栈</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>eval</code> 和 <code>exec</code> 是同一个函数</button></li></ol><div class="quiz-expl" hidden>这个陈述是：对所有的 e、s 和 stk，<code>exec (compile e) s stk = eval e s # stk</code>。关于空栈的版本只是一个特例。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">2</span><div>为什么 <code>compile_correct</code> 的证明需要 <code>arbitrary: stk</code>？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">因为 <code>eval</code> 在递归调用中会改变状态</button></li><li><button type="button" class="quiz-opt" data-i="1">因为 <code>stk</code> 是一个列表</button></li><li><button type="button" class="quiz-opt" data-i="2">因为断言对空栈不成立</button></li><li><button type="button" class="quiz-opt" data-i="3">因为在情形 <code>Add a b</code> 中，b 的归纳假设需要用于栈 <code>eval a s # stk</code>，而不是 stk</button></li></ol><div class="quiz-expl" hidden>b 的代码在 a 的值的上面运行。没有 <code>arbitrary</code>，归纳假设就只谈论那个固定的 stk。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div><code>compile (Add (Num 1) (Var ''x''))</code> 是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>[ADD, PUSH 1, LOAD ''x'']</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>[PUSH 1, ADD, LOAD ''x'']</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>[PUSH 1, LOAD ''x'', ADD]</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>[LOAD ''x'', PUSH 1, ADD]</code></button></li></ol><div class="quiz-expl" hidden>后缀顺序：先是左操作数的代码，然后是右操作数的代码，最后是运算符。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div><code>quickcheck [size = 3]</code> 没有为一个断言找到反例。你能得出什么结论？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">这个断言对 Quickcheck 试过的、大小不超过 3 的值成立；它仍然可能是错的</button></li><li><button type="button" class="quiz-opt" data-i="1">这个断言是一个定理</button></li><li><button type="button" class="quiz-opt" data-i="2">这个断言对某个大于 3 的值不成立</button></li><li><button type="button" class="quiz-opt" data-i="3">Quickcheck 超时了</button></li></ol><div class="quiz-expl" hidden>测试是证据，而不是证明。只有证明才能覆盖每一个表达式。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>对于带跳转的机器，引理 <code>exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)</code> 不成立。为什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">因为 <code>SUB</code> 不满足交换律</button></li><li><button type="button" class="quiz-opt" data-i="1">因为当两者作为一个程序运行时，c1 中的跳转可能会跳过 c2 的指令</button></li><li><button type="button" class="quiz-opt" data-i="2">因为 <code>exec2</code> 不会终止</button></li><li><button type="button" class="quiz-opt" data-i="3">因为 <code>drop</code> 对长列表没有定义</button></li></ol><div class="quiz-expl" hidden>单独运行 c1 时，它末尾的跳转什么也跳不过。修复的办法是：针对后面跟着任意后续代码 c 的编译代码来陈述正确性。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>当运行从 <code>compile</code> 导出的 Haskell 代码时，哪些额外的软件组件被信任？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>compile_correct</code> 的证明</button></li><li><button type="button" class="quiz-opt" data-i="1">证明了那些引理的化简器</button></li><li><button type="button" class="quiz-opt" data-i="2">Quickcheck</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle 的代码生成器和 Haskell 编译器</button></li></ol><div class="quiz-expl" hidden>除了推理内核和运行时/硬件假设外，执行还依赖于代码生成器和 Haskell 编译器。它们的翻译不在内核的证明检查范围内。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="14"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_13_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 13：系统建模：状态机与不变式</span></a><a class="mnav next" href="index_ZH.html"><span class="mnav-label">全部模块 &rarr;</span><span class="mnav-title">用 Isabelle 学形式化方法</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

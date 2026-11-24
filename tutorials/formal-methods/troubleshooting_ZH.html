@@ -1,0 +1,498 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>问题排查 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="初学者最常遇到的 Isabelle 消息，按你当时在做的事情分组，每条都说明它的含义、常见原因和解决办法。在本页中搜索你的消息里的几个词即可（按 Ctrl+F，Mac 上按 Cmd+F）。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="reference" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">问题排查</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">参考</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html" class="active"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="troubleshooting_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#first"><span class="num">1</span><span class="side-t">先做这几件事</span></a><a href="#theory"><span class="num">2</span><span class="side-t">理论与文件</span></a><a href="#syntax"><span class="num">3</span><span class="side-t">语法与类型</span></a><a href="#definitions"><span class="num">4</span><span class="side-t">定义与终止性</span></a><a href="#proofs"><span class="num">5</span><span class="side-t">失败的证明</span></a><a href="#isar"><span class="num">6</span><span class="side-t">Isar 证明</span></a><a href="#tools"><span class="num">7</span><span class="side-t">自动工具</span></a><a href="#install"><span class="num">8</span><span class="side-t">安装与编辑器</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 参考</div>
+      <h1 class="module-title">问题排查</h1>
+      <p class="module-lead">初学者最常遇到的 Isabelle 消息，按你当时在做的事情分组，每条都说明它的含义、常见原因和解决办法。在本页中搜索你的消息里的几个词即可（按 Ctrl+F，Mac 上按 Cmd+F）。</p>
+    </div>
+<div class="content">
+<span class="section-anchor" id="first"></span>
+<div class="section-header"><span class="section-num">1</span><h2>先做这几件事</h2></div>
+<ol>
+<li><strong>把光标放在带红色下划线的那一行上</strong>，在 <strong>Output</strong>（输出）面板中读完整条消息。如果有好几个错误，先修正第一个：后面的错误常常是由它引起的。</li>
+<li><strong>读一读剩下的部分。</strong> 很多消息的结尾就是 Isabelle 没能证明的目标。把它和你预想的比较一下：它通常会指出缺少的事实、错误的断言或者出错的步骤。</li>
+<li><strong>勾选 Output 面板中的 Proof state</strong>（证明状态），这样移动光标时就能看到各处的目标（<a href="module_01_ZH.html#tour">第 1.6 节</a>）。</li>
+<li><strong>先测试断言。</strong> 对一个错误的陈述，无论你怎么做，证明都会失败；<code>quickcheck</code> 和 <code>nitpick</code> 几秒钟就能找出很多错误的断言（<a href="module_09_ZH.html#strategy">第 9.9 节</a>）。</li>
+<li><strong>只有红色的消息才算数。</strong> 失败的证明上方出现一行 <code>theorem …</code>，并不表示证明成功了（<a href="module_01_ZH.html#first-refute">第 1.7.5 节</a>）。</li>
+</ol>
+<p>下面的消息都摘自各个模块，是 Isabelle2026 在那里实际打印出来的。消息中的目标属于模块里的例子；你看到的会是你自己的目标。⌂ 标出一个位置：在 Isabelle/jEdit 中，它是一个链接，指向消息所涉及的那段文本。Isabelle 的消息只有英文，下文在第一次出现时给出中文翻译。如果实在卡住了，Isabelle 社区会在 isabelle-users 邮件列表、Zulip 聊天室和 Stack Overflow 上回答问题。</p>
+<span class="section-anchor" id="theory"></span>
+<div class="section-header"><span class="section-num">2</span><h2>理论与文件</h2></div>
+<h3 id="bad-theory-name">Bad theory name（理论名不正确）</h3>
+<pre class="code"><code class="language-text">Bad theory name &quot;First&quot; for file &quot;Scratch.thy&quot;⌂
+</code></pre>
+<p>意思是：对文件“Scratch.thy”来说，理论名“First”不正确。<code>theory</code> 后面的名字和文件名不一致。理论 <code>First</code> 必须放在文件 <code>First.thy</code> 中。按理论名保存文件，或者把 <code>theory</code> 后面的名字改成与文件名一致（<a href="module_01_ZH.html#first-file">第 1.7.1 节</a>）。</p>
+<h3 id="bad-context">Bad context for command（命令的上下文不正确）</h3>
+<pre class="code"><code class="language-text">Bad context for command &quot;lemma&quot;⌂
+</code></pre>
+<p>一条应该位于理论顶层的命令出现时，前一个证明还没有结束。</p>
+<ul>
+<li><strong>apply 脚本没有 <code>done</code>。</strong> 下一个 <code>lemma</code> 会被拒绝。在最后一个 <code>apply</code> 之后加上 <code>done</code>，或者用 <code>oops</code> 放弃这个证明（<a href="module_07_ZH.html#errors-forget">第 7.8.4 节</a>）。</li>
+<li><strong>带编号的情形名没有加引号。</strong> 在用计算归纳写的 Isar 证明中，<code>3.IH</code> 不会被当作一个名字，Isabelle 会报告一条令人困惑的错误，例如 <code>Bad context for command &quot;qed&quot;</code>（命令“qed”的上下文不正确）。请写成 <code>&quot;3.IH&quot;</code>（<a href="module_11_ZH.html#f-induct">第 11.5.3 节</a>）。</li>
+</ul>
+<p>如果没有结束的证明是理论中的最后一个，被拒绝的就会是 <code>end</code>，消息是 <a href="#illegal-prove">Illegal application of proof command in “prove” mode</a>。</p>
+<h3 id="outer-syntax">Outer syntax error（外层语法错误）</h3>
+<pre class="code"><code class="language-text">Outer syntax error⌂: name expected,
+but keyword file⌂ was found
+</code></pre>
+<p>意思是：需要一个名字，却遇到了关键字 file。Isabelle 在命令中期待一个名字，却遇到了它的一个关键字。有些英文单词是 Isabelle 命令语言的关键字，<code>file</code> 就是其中之一。换一个名字，例如 <code>doc</code>（<a href="module_03_ZH.html#types">第 3.8 节</a>）。</p>
+<span class="section-anchor" id="syntax"></span>
+<div class="section-header"><span class="section-num">3</span><h2>语法与类型</h2></div>
+<h3 id="inner-syntax">Inner syntax error（内层语法错误）</h3>
+<pre class="code"><code class="language-text">Inner syntax error⌂
+at &quot;∧ C&quot;
+Failed to parse prop
+</code></pre>
+<p>引号之间的文本不是一个合乎语法的陈述；<code>at &quot;…&quot;</code> 指出 Isabelle 读到哪里停了下来，“Failed to parse prop”的意思是“未能解析 prop”。常见原因是在公式内部写了 ⟹：⟹ 属于 Pure，只能出现在陈述的最外层。在公式内部要写 ⟶（<a href="module_07_ZH.html#meta-def">第 7.1.3 节</a>）。</p>
+<h3 id="type-clash">Clash of types：incompatible operand type（类型冲突：操作数类型不兼容）</h3>
+<pre class="code"><code class="language-text">Type unification failed: Clash of types &quot;bool&quot; and &quot;nat&quot;
+
+Type error in application: incompatible operand type
+
+Operator:  Suc :: nat ⇒ nat
+Operand:   True :: bool
+</code></pre>
+<p>“Type unification failed”的意思是“类型合一失败”。一个函数（<strong>Operator</strong>，运算符）被作用于一个类型不对的参数（<strong>Operand</strong>，操作数）。“Clash of types”（类型冲突）列出了无法变得相同的两个类型（<a href="module_08_ZH.html#type-errors">第 8.1.4 节</a>）。</p>
+<ul>
+<li><strong>参数的类型不对</strong>，例如 <code>Suc True</code>；或者参数的顺序不对，例如 <code>owns report alice</code>（<a href="module_03_ZH.html#types">第 3.8 节</a>）。用 <code>term</code> 查看类型。</li>
+<li><strong>缺少括号。</strong> 函数应用向左结合，所以 <code>Suc Suc 0</code> 的意思是 <code>(Suc Suc) 0</code>。应写成 <code>Suc (Suc 0)</code>（<a href="module_08_ZH.html#currying">第 8.2.2 节</a>）。</li>
+<li><strong>该用 ⊆ 的地方用了 ∈。</strong> <code>{1} ∈ {1, 2 :: nat}</code> 问的是一个集合是不是一个数集的元素。应写成 <code>{1} ⊆ {1, 2}</code> 或 <code>1 ∈ {1, 2}</code>（<a href="module_04_ZH.html#sets-isabelle">第 4.1.4 节</a>）。</li>
+<li><strong>用了教科书上的集合记法。</strong> 在 Isabelle 中 <code>|</code> 是 ∨ 的一种输入方式，所以 <code>{x | x &lt; (5::nat)}</code> 会让 <code>nat</code> 和 <code>bool</code> 冲突。应写成带点的 <code>{x. x &lt; 5}</code>（<a href="module_04_ZH.html#sets-isabelle">第 4.1.4 节</a>）。</li>
+</ul>
+<h3 id="not-function">Clash of types：operator not of function type（类型冲突：运算符不是函数类型）</h3>
+<pre class="code"><code class="language-text">Type unification failed: Clash of types &quot;_ ⇒ _&quot; and &quot;_ list&quot;
+
+Type error in application: operator not of function type
+
+Operator:  rev [1, 2] :: nat list
+Operand:   [3::??'a] :: ??'a list
+</code></pre>
+<p>给一个不是函数的东西提供了参数。<code>_ ⇒ _</code> 代表“某个函数类型”，<code>??'a</code> 代表 Isabelle 还没有确定的类型（<a href="module_08_ZH.html#type-errors">第 8.1.4 节</a>）。</p>
+<ul>
+<li><strong>参数太多</strong>，例如 <code>rev [1, 2] [3]</code>：<code>rev</code> 只接受一个列表。</li>
+<li><strong>同一个谓词在不同地方的参数个数不同</strong>，例如 <code>P x ⟶ P x y</code>。让每个谓词在各处的参数个数都相同（<a href="module_03_ZH.html#types">第 3.8 节</a>）。</li>
+</ul>
+<h3 id="no-type-arity">No type arity（没有类型元数）</h3>
+<pre class="code"><code class="language-text">Type unification failed: No type arity light :: numeral
+
+Type error in application: incompatible operand type
+
+Operator:  next_light :: light ⇒ light
+Operand:   3::??'a :: ??'a
+</code></pre>
+<p>类型 <code>light</code> 不属于类型类 <code>numeral</code>（拥有数字的类型组成的类），所以 <code>3</code> 不可能是一个交通灯。arity（元数）是 Isabelle 关于“某个类型属于某个类型类”的记录。给函数传入它自己类型的值，例如 <code>Red</code>（<a href="module_08_ZH.html#classes">第 8.6.2 节</a>）。</p>
+<h3 id="not-of-sort">Variable not of sort（变量不属于类别）</h3>
+<pre class="code"><code class="language-text">Type unification failed: Variable 'a::type not of sort ord
+
+Type error in application: incompatible operand type
+
+Operator:  (≤) :: ??'a ⇒ ??'a ⇒ bool
+Operand:   x :: 'a
+</code></pre>
+<p>一个函数在类型变元上使用了 <code>≤</code>，而这个类型变元可以代表任何类型，包括没有 <code>≤</code> 的类型。把类型变元限制到一个类型类中：线性序用 <code>'a::linorder</code>（<a href="module_12_ZH.html#isort-program">第 12.2.1 节</a>）。</p>
+<h3 id="wellsortedness">Wellsortedness error（类别不符错误）</h3>
+<pre class="code"><code class="language-text">Wellsortedness error:
+Type 'a not of sort term_of
+Cannot derive subsort relation numeral &lt; term_of
+</code></pre>
+<p>要求某个类型属于某个类型类，但 Isabelle 不知道它属于。对 <code>value &quot;2 + 2&quot;</code> 来说，Isabelle 对 <code>2 + 2</code> 的类型只知道它有数字，而 <code>value</code> 需要一个它能打印其值的类型（<a href="module_08_ZH.html#classes">第 8.6.2 节</a>）。</p>
+<ul>
+<li><strong>数字没有类型。</strong> 加上类型标注：<code>value &quot;2 + 3 :: nat&quot;</code>（<a href="module_01_ZH.html#first-compute">第 1.7.2 节</a>）。</li>
+<li><strong>对无限集合使用 <code>value</code></strong>，例如 <code>{x. x &lt; (5::nat)}</code>。这时消息里会出现 <code>not of sort enum</code>：<code>value</code> 将不得不尝试每一个自然数。从一个有限集合中取元素，例如 <code>{x ∈ {0..10}. x &lt; 5}</code>（<a href="module_04_ZH.html#sets-isabelle">第 4.1.4 节</a>）。</li>
+<li><strong>对在 <code>nat</code> 上做量化的定义使用 <code>export_code</code>。</strong> 出于同样的原因，它没有对应的程序（<a href="module_08_ZH.html#codegen">第 8.8 节</a>）。</li>
+</ul>
+<h3 id="undefined-type">Undefined type name（未定义的类型名）</h3>
+<pre class="code"><code class="language-text">Undefined type name: &quot;lights&quot;
+</code></pre>
+<p>签名中的某个类型名拼错了：这里把 <code>light</code> 写成了 <code>lights</code>。改正这个名字（<a href="module_08_ZH.html#names">第 8.4.4 节</a>）。</p>
+<h3 id="record-input">Error in record input（记录输入错误）</h3>
+<pre class="code"><code class="language-text">exception TERM raised⌂:
+  Error in record input: expecting more fields
+  ??.cars = Amber::&lt;position&gt;
+</code></pre>
+<p>意思是：记录输入错误，还需要更多字段。用 <code>=</code> 时，Isabelle 把 <code>⦇cars = Amber⦈</code> 当作一个记录值，而记录值必须列出所有字段。更新要用 <code>:=</code>：写成 <code>start⦇cars := Amber⦈</code>（<a href="module_13_ZH.html#records">第 13.4.1 节</a>）。</p>
+<h3 id="value-unevaluated">value 原样返回了你的项</h3>
+<pre class="code"><code class="language-text">&quot;lenght [1, 2]&quot;
+  :: &quot;'a&quot;
+</code></pre>
+<p>没有报错，但也没有结果。拼错的名字是一个自由变元，<code>value</code> 无法对它求值；答案中的类型变元 <code>'a</code> 就是信号。Isabelle/jEdit 用蓝色显示自由变元。改正这个名字（<a href="module_08_ZH.html#value">第 8.1.3 节</a>）。</p>
+<h3 id="reading">Isabelle 对公式的理解与你不同</h3>
+<pre class="code"><code class="language-text">proof (prove)
+goal (1 subgoal):
+ 1. (A = B ∧ C) = (A = (B ∧ C))
+</code></pre>
+<p>没有报错：陈述的意思与你想的不一样。把它写成引理，然后读一读目标：Isabelle 显示目标时只保留起作用的括号。</p>
+<ul>
+<li><code>=</code> 比 ∧ 和 ∨ 结合得更紧，而 ⟷ 和 ⟶ 一样结合得很松；Isabelle 把 ⟷ 显示为 <code>=</code>。在项之间写 <code>=</code>，在公式之间写 ⟷（<a href="module_03_ZH.html#equality">第 3.6 节</a>）。</li>
+<li>¬A ∧ B 是 (¬A) ∧ B；⟶ 和 ⟷ 的优先级相同，混用时请写上括号（<a href="module_02_ZH.html#priorities">第 2.2.2 节</a>）。</li>
+<li>量词的辖域向右延伸得尽可能远：∀x. P x ⟶ Q x 就是 ∀x. (P x ⟶ Q x)（<a href="module_03_ZH.html#scope">第 3.2.4 节</a>）。</li>
+</ul>
+<span class="section-anchor" id="definitions"></span>
+<div class="section-header"><span class="section-num">4</span><h2>定义与终止性</h2></div>
+<h3 id="termination">Could not find lexicographic termination order（找不到字典序的终止序）</h3>
+<pre class="code"><code class="language-text">consts
+  bad :: &quot;nat ⇒ nat&quot;
+
+Unfinished subgoals:
+(a, 1, &lt;):
+ 1. False
+Calls:
+  a) x ~&gt; x
+Measures:
+  1) size
+Result matrix:
+    1
+a:  &lt;=
+
+Could not find lexicographic termination order.
+</code></pre>
+<p><code>fun</code> 没能证明递归会终止，因此拒绝了这个定义；开头几行只是宣布这个常量，之后它并没有被定义。从下往上读这条消息：<strong>Calls</strong>（调用）列出递归调用（<code>~&gt;</code> 表示“调用”），<strong>Measures</strong>（度量）列出尝试过的度量，<strong>Result matrix</strong>（结果矩阵）对每个调用和每个度量说明它是严格变小（<code>&lt;</code>）、不增大（<code>&lt;=</code>），还是两者都无法证明（<code>?</code>）。<strong>Unfinished subgoals</strong>（未完成的子目标）是 Isabelle 没能证明的命题（<a href="module_08_ZH.html#termination-messages">第 8.7.2 节</a>）。</p>
+<ul>
+<li><strong>递归确实不会终止</strong>，例如 <code>bad n = bad n + 1</code>。这样的等式可以证明 <code>0 = 1</code>；请重新考虑这个定义（<a href="module_05_ZH.html#why-terminate">第 5.7.1 节</a>）。</li>
+<li><strong>缺少基础情形。</strong> <code>sum_down n = sum_down (n - 1) + n</code> 在 0 处会永远调用自己，因为在 <code>nat</code> 上 <code>0 - 1 = 0</code>。用模式 <code>0</code> 和 <code>Suc n</code> 来写（<a href="module_05_ZH.html#no-measure">第 5.7.3 节</a>）。</li>
+<li><strong>函数会终止，但不是靠某个参数的大小变小</strong>，例如交通灯上的 <code>wait</code>。改写函数，使终止性一目了然，例如借助库函数；或者用 <code>function</code> 自己证明终止性（<a href="module_08_ZH.html#termination-help">第 8.7.3 节</a>）。</li>
+</ul>
+<h3 id="missing-patterns">Missing patterns in function definition（函数定义中缺少模式）</h3>
+<pre class="code"><code class="language-text">Missing patterns in function definition:
+top_value Empty = undefined
+</code></pre>
+<p>这是一条警告：等式没有覆盖每个构造子。Isabelle 用 <code>undefined</code> 补全了这个函数，所以函数在那里的值是未指定的，<code>value</code> 对它求值时会以 <a href="#exception-match">exception Match raised</a> 停止。补上缺少的等式，或者返回一个选项值，例如 <code>None</code>（<a href="module_08_ZH.html#patterns">第 8.4.3 节</a>）。<code>primrec</code> 遇到缺少的构造子时会给出警告 <code>No equation for constructor &quot;Empty&quot;</code>（构造子“Empty”没有等式）。</p>
+<h3 id="exception-match">exception Match raised（抛出了 Match 异常）</h3>
+<pre class="code"><code class="language-text">exception Match raised⌂
+</code></pre>
+<p><code>value</code> 遇到了一个未指定的值，没有等式可以用：上面的 <code>top_value Empty</code>、<code>hd []</code>，或者 <code>n</code> 超出列表末尾的 <code>xs ! n</code>。这里的 ⌂ 指向生成的程序，而不是你的理论。处理缺少的情形，或者确保 <code>xs</code> 不为空并且 <code>n &lt; length xs</code>（<a href="module_08_ZH.html#patterns">第 8.4.3 节</a>、<a href="module_08_ZH.html#comprehension">第 8.5.2 节</a>）。</p>
+<h3 id="redundant">Equation is redundant（等式是多余的）</h3>
+<pre class="code"><code class="language-text">Equation is redundant (covered by preceding clauses):
+is_red2 Red =
+True
+</code></pre>
+<p>意思是：等式是多余的（已被前面的子句覆盖）。<code>fun</code> 使用第一个匹配的等式。一般的等式写在具体的等式前面，就会把后者遮住。把具体的等式写在前面（<a href="module_08_ZH.html#patterns">第 8.4.3 节</a>）。</p>
+<h3 id="constructor-pattern">Constructor pattern missing（缺少构造子模式）</h3>
+<pre class="code"><code class="language-text">Constructor pattern missing in left-hand side at
+  is_red3 l =
+  False
+</code></pre>
+<p>意思是：等式左边缺少构造子模式。<code>primrec</code> 要求每个构造子一个等式，每个等式的模式都是作用于变量的构造子；单独一个变量不算这样的模式。为每个构造子写一个等式，或者改用 <code>fun</code>（<a href="module_08_ZH.html#patterns">第 8.4.3 节</a>）。</p>
+<h3 id="rhs-only">Variable occurs on right hand side only（变量只出现在右边）</h3>
+<pre class="code"><code class="language-text">Variable &quot;duraton&quot; occurs on right hand side only:
+⋀l ls duraton.
+   cycle_time (l # ls) =
+   duraton l +
+   cycle_time
+    ls
+</code></pre>
+<p>右边的某个名字不是常量，所以 Isabelle 把它当作变量，而变量没有值。这通常是拼错的函数名，这里把 <code>duration</code> 写成了 <code>duraton</code>（<a href="module_08_ZH.html#names">第 8.4.4 节</a>）。</p>
+<h3 id="bad-lhs">Bad arguments on lhs（左边的参数不正确）</h3>
+<pre class="code"><code class="language-text">Bad arguments on lhs: &quot;(a, b)&quot;
+The error(s) above occurred in definition:
+&quot;safe2 (a, b) ≡
+ a = Red ∨
+ b =
+ Red&quot;
+</code></pre>
+<p><code>definition</code> 不接受模式：它的左边是作用于变量的常量。用 <code>fst</code> 和 <code>snd</code>、<code>case</code> 表达式，或者改用接受模式的 <code>fun</code>（<a href="module_08_ZH.html#definition">第 8.4.1 节</a>）。</p>
+<h3 id="inductive-mono">归纳定义的 Proof failed（证明失败）</h3>
+<pre class="code"><code class="language-text">Proof failed.
+ 1. ⋀x y xa n. x (?x10 x y xa n) ⟶ y (?x10 x y xa n) ⟹ y n ⟶ x n
+The error(s) above occurred for the goal statement⌂:
+mono (λp x. ∃n. x = Suc n ∧ ¬ p n)
+</code></pre>
+<p>被定义的谓词以否定的形式出现在它自己某条规则的前提中。规则必须是单调的，这就是目标 <code>mono (…)</code> 所说的，而否定的前提破坏了这一点。你屏幕上目标的细节可能有所不同。改写规则，不要对被定义的谓词取否定（<a href="module_11_ZH.html#versus">第 11.6.4 节</a>）。</p>
+<h3 id="no-code-equations">No code equations（没有代码等式）</h3>
+<pre class="code"><code class="language-text">No code equations for ev,
+requested by dependencies
+</code></pre>
+<p>归纳谓词不是程序，所以 <code>value</code> 和 Quickcheck 无法运行它。改用它的规则来证明关于它的事实，用 Nitpick 搜索反例；如果需要计算，就定义一个递归函数（<a href="module_11_ZH.html#versus">第 11.6.4 节</a>、<a href="module_13_ZH.html#fails">第 13.5.1 节</a>）。</p>
+<span class="section-anchor" id="proofs"></span>
+<div class="section-header"><span class="section-num">5</span><h2>失败的证明</h2></div>
+<h3 id="initial-method">Failed to apply initial proof method（未能应用初始证明方法）</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. ((A ⟶ B) ⟶ A) ⟶ A
+</code></pre>
+<p><code>by</code> 后面的方法对目标什么也做不了，消息原样显示了目标。对 <code>simp</code> 来说，这表示一条规则也用不上；对 <code>auto</code> 来说，表示它无法改变目标；<code>blast</code> 和 <code>linarith</code> 找不到证明时也会给出这条消息（<a href="module_02_ZH.html#classify">第 2.4 节</a>、<a href="module_09_ZH.html#modifiers">第 9.2.4 节</a>、<a href="module_09_ZH.html#arith">第 9.5 节</a>）。</p>
+<ul>
+<li><strong>定义没有展开。</strong> <code>definition</code> 的等式不是化简规则：写成 <code>simp add: safe_def</code>（<a href="module_08_ZH.html#definition">第 8.4.1 节</a>）。</li>
+<li><strong>方法不对路。</strong> 重写不能证明所有的重言式：逻辑问题试 <code>blast</code> 或 <code>auto</code>，搜索中需要重写时试 <code>fastforce</code>，算术问题试 <code>presburger</code> 或 <code>arith</code>（<a href="module_09_ZH.html#classical">第 9.4 节</a>、<a href="module_09_ZH.html#arith">第 9.5 节</a>）。</li>
+<li><strong>缺少一条引理。</strong> 用 <code>find_theorems</code> 找到它，再用 <code>simp add:</code> 传进去，或者让 Sledgehammer 去找（<a href="module_09_ZH.html#find">第 9.6 节</a>、<a href="module_09_ZH.html#sledgehammer">第 9.8 节</a>）。</li>
+<li><strong>数字遇到 <code>Suc</code> 模式。</strong> <code>simp</code> 不会把 <code>2</code> 与 <code>Suc n</code> 匹配；加上 <code>numeral_eq_Suc</code>（<a href="module_08_ZH.html#classes">第 8.6.2 节</a>）。</li>
+<li><strong>类型没有确定。</strong> 在 <code>x + 0 = x</code> 中，<code>x</code> 的类型只知道有 <code>+</code> 和 <code>0</code>，别的一无所知。加上标注：<code>x + 0 = (x::nat)</code>（<a href="module_08_ZH.html#classes">第 8.6.2 节</a>）。</li>
+<li><strong>断言是错的。</strong> 用 <code>quickcheck</code> 和 <code>nitpick</code> 测试它（<a href="module_09_ZH.html#refute">第 9.7 节</a>）。</li>
+</ul>
+<h3 id="finish-proof">Failed to finish proof（未能完成证明）</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. n + n = n * n
+</code></pre>
+<p>方法取得了一些进展，但没有证明目标；消息显示了剩下的部分。在 <code>done</code> 处，消息写作 <code>Failed to finish proof:</code>，并列出剩下的子目标（<a href="module_01_ZH.html#first-refute">第 1.7.5 节</a>、<a href="module_07_ZH.html#errors-done">第 7.8.3 节</a>）。</p>
+<ul>
+<li><strong>断言是错的</strong>，就像这里：<code>n + n = n * n</code> 一般并不成立。修正陈述，或者用 <code>oops</code> 放弃它。</li>
+<li><strong>没有把某个事实传给方法。</strong> 方法只看得见你传给它的事实（<a href="module_10_ZH.html#facts-visible">第 10.3.3 节</a>），另见<a href="#not-passed">下面的条目</a>。</li>
+<li><strong>等式的方向反了。</strong> 对化简器来说，<code>u = v</code> 和 <code>v = u</code> 是不同的项。按定义产生的方向来陈述引理（<a href="module_09_ZH.html#simp-rules">第 9.2.3 节</a>）。</li>
+<li><strong>假设中有 <code>case</code> 或 <code>if</code>。</strong> 用 <code>split: option.splits</code> 或 <code>split: if_splits</code> 拆分它（<a href="module_09_ZH.html#splits">第 9.3.3 节</a>）。</li>
+<li><strong>递归函数作用于一个变量</strong>，例如 <code>sum_upto n</code>：不做归纳，就没有等式可用（<a href="module_05_ZH.html#simp-not-enough">第 5.4.1 节</a>）。</li>
+<li><strong><code>done</code> 时还剩下子目标。</strong> <code>done</code> 自己什么也不证明；补上缺少的步骤。</li>
+</ul>
+<h3 id="induction-stuck">归纳留下了目标</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⋀a xs. sumacc xs 0 = sum_list xs ⟹ sumacc xs a = a + sum_list xs
+</code></pre>
+<p>基础情形或归纳步骤无法由定义和归纳假设完成。把 ⟹ 左边的归纳假设和结论比较一下：两者的差别指出了需要改动的地方（<a href="module_11_ZH.html#stuck-isabelle">第 11.1.2 节</a>）。<a href="cheatsheet_ZH.html#induction">速查表</a>中有一张补救办法的表。</p>
+<ul>
+<li><strong>对错误的变量做了归纳。</strong> 应该对函数拆开的那个参数做归纳（<a href="module_05_ZH.html#list-induction">第 5.5.1 节</a>）。</li>
+<li><strong>缺少一条引理。</strong> 目标中有一个没有等式能重写的项，就需要一条关于它的引理，先证明它并声明为 <code>[simp]</code>（<a href="module_05_ZH.html#lemmas">第 5.5.3 节</a>、<a href="module_11_ZH.html#lemmas">第 11.3 节</a>）。</li>
+<li><strong>归纳假设固定了一个值，而归纳步骤需要它变化</strong>，例如上面的 <code>0</code>。推广它：<code>induction xs arbitrary: acc</code>（<a href="module_11_ZH.html#generalise">第 11.2 节</a>）。</li>
+<li><strong>归纳假设为真，但说得太少。</strong> 证明一个更强的结论（<a href="module_05_ZH.html#strong">第 5.6 节</a>、<a href="module_11_ZH.html#strengthen">第 11.2.3 节</a>）。</li>
+<li><strong>函数有自己独特的递归模式。</strong> 用计算归纳，<code>rule: f.induct</code>（<a href="module_11_ZH.html#computation">第 11.5 节</a>）。</li>
+</ul>
+<h3 id="apply-method">Failed to apply proof method（未能应用证明方法）</h3>
+<pre class="code"><code class="language-text">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A
+</code></pre>
+<p>一个 <code>apply</code> 步骤对子目标 1 什么也做不了；消息显示的是这一步之前的子目标（<a href="module_07_ZH.html#errors-apply">第 7.8.1 节</a>）。</p>
+<ul>
+<li><strong>规则与结论不符。</strong> 对 <code>rule</code> 来说，规则的结论必须与子目标结论的主联结词相同：<code>disjI1</code> 证明不了合取。用 <code>thm</code> 查看这条规则。</li>
+<li><strong>还不是假设就想拆开它。</strong> 在 A ∧ B ⟶ B ∧ A 中，这个合取还不是假设：先用 <code>impI</code>，再用 <code>erule conjE</code>。</li>
+<li><strong>指望 <code>assumption</code> 看进公式内部。</strong> 它只能合一整个公式；先把假设拆开。</li>
+<li><strong>数字遇到 <code>Suc</code> 模式。</strong> <code>rule ev_SS</code> 不能应用于 <code>ev 4</code>。用 <code>Suc</code> 写出这个数，或者先用 <code>numeral_eq_Suc</code> 化简（<a href="module_11_ZH.html#ev">第 11.6.1 节</a>）。</li>
+</ul>
+<h3 id="unknowns">无法消除的未知量</h3>
+<pre class="code"><code class="language-text">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
+</code></pre>
+<p>未知量 <code>?x4 y</code> 是在 <code>x</code> 被固定之前产生的，所以它永远不能变成 <code>x</code>。先固定，后猜测：先应用会固定变元的 <code>allI</code> 和 <code>exE</code>，再应用会产生未知量的 <code>exI</code>、<code>allE</code> 和 <code>spec</code>（<a href="module_07_ZH.html#quantifiers-order">第 7.6.3 节</a>）。如果目标看不出未知量应该是什么，例如 <code>?n + ?n = 6</code>，就自己指定见证：<code>apply (rule_tac x = 3 in exI)</code>（<a href="module_07_ZH.html#quantifiers-inst">第 7.6.4 节</a>）。</p>
+<h3 id="undefined-fact">Undefined fact（未定义的事实）</h3>
+<pre class="code"><code class="language-text">Undefined fact: &quot;conjl&quot;⌂
+</code></pre>
+<p>没有叫这个名字的定理。常见的情况是大写的 I 变成了小写的 l，例如把 <code>conjI</code> 写成 <code>conjl</code>（<a href="module_07_ZH.html#errors-name">第 7.8.2 节</a>），或者函数名拼错了，例如 <code>duraton.simps</code>（<a href="module_08_ZH.html#names">第 8.4.4 节</a>）。定义的等式叫 <code>f_def</code>，<code>fun</code> 的等式叫 <code>f.simps</code>。可以用 <code>find_theorems name:</code> 搜索（<a href="module_09_ZH.html#find">第 9.6 节</a>）。</p>
+<h3 id="sat-countermodel">SAT solver found a countermodel（SAT 求解器找到了一个反模型）</h3>
+<pre class="code"><code class="language-text">exception THM 0 raised⌂: SAT solver found a countermodel:
+A: true, B: true, C: false
+</code></pre>
+<p><code>sat</code> 失败了，因为目标不是重言式。第一行是技术性的（抛出了 THM 0 异常）；第二行是一个反例（<a href="module_02_ZH.html#sat">第 2.8 节</a>）。</p>
+<h3 id="thm-instantiate">exception THM：infer_instantiate_types（THM 异常：类型实例化推断失败）</h3>
+<pre class="code"><code class="language-text">exception THM 0 raised⌂:
+  infer_instantiate_types: type ?'a of variable ?a
+  cannot be unified with type 'a of term n
+  (⋀x. (⋀y. y &lt; x ⟹ ?P y) ⟹ ?P x) ⟹
+  ?P ?a
+</code></pre>
+<p>规则 <code>less_induct</code> 不能用于类型未知的变量。给这个变量加上标注，例如 <code>0 &lt; (n::nat)</code>（<a href="module_11_ZH.html#complete">第 11.8 节</a>）。</p>
+<h3 id="rule-induction-pattern">规则归纳留下了毫无意义的目标</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. m ⟹ d = Closed
+</code></pre>
+<p>归纳前提中出现了模式（这里是 <code>lreach (d, m)</code>）或常量，而规则中的那个位置是变量，于是各个情形失去了意义。把性质写成整个状态的函数，例如 <code>lreach s ⟹ lift_ok s</code>（<a href="module_13_ZH.html#invariants">第 13.3 节</a>），或者借助一个等式用变量代替常量（<a href="module_11_ZH.html#constants">第 11.7.2 节</a>）。</p>
+<h3 id="rule-induction-premise">规则归纳用错了前提</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⋀aa b c.
+       ⟦r aa b; steps r b c; steps r a b ⟹ steps r a c; steps r a aa⟧
+       ⟹ steps r a c
+</code></pre>
+<p><code>induction rule: steps.induct</code> 总是对第一个前提做归纳。把你要做归纳的那个前提放在最前面（<a href="module_11_ZH.html#closure">第 11.7.1 节</a>）。</p>
+<h3 id="invariant-step">不变式证明的步骤情形失败</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⟦reach s; e = ToGreen; cars s = Red; ¬ req s; peds s = Walk⟧ ⟹ False
+</code></pre>
+<p>这个目标描述了一个满足该性质的状态，以及一个使系统离开它的事件：这是一个归纳反例。如果这个状态可达，设计就是错的；用 <code>nitpick</code> 搜索一条轨迹。如果不可达，就用一个在所有可达状态中都成立的事实加强不变式（<a href="module_13_ZH.html#strengthen">第 13.5 节</a>、<a href="module_13_ZH.html#traces">第 13.6 节</a>）。</p>
+<span class="section-anchor" id="isar"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Isar 证明</h2></div>
+<h3 id="proof-start">proof 处的 Failed to apply initial proof method</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method:
+goal (1 subgoal):
+ 1. False
+</code></pre>
+<p>不带方法的 <code>proof</code> 会应用目标的标准规则，而像 <code>False</code> 或数之间的等式这样的目标，没有规则可用。写 <code>proof -</code>，它开始证明块但不改变目标；或者指明规则：<code>proof (rule r)</code>（<a href="module_10_ZH.html#shape-start">第 10.2.6 节</a>）。</p>
+<h3 id="refine">Failed to refine any pending goal（未能解决任何待证目标）</h3>
+<pre class="code"><code class="language-text">Failed to refine any pending goal
+</code></pre>
+<p><code>show</code> 的断言已经证明了，但在它所在块的假设之下，它解决不了任何待证目标。在 <code>show</code> 的证明完成之前，Isabelle/jEdit 就会给出警告“Local statement fails to refine any pending goal”（局部陈述未能解决任何待证目标）（<a href="module_10_ZH.html#errors">第 10.8 节</a>）。</p>
+<ul>
+<li><strong>断言不是目标。</strong> 把它和证明状态中的目标比较；检查 <code>?thesis</code> 和 <code>?case</code>。把 <code>show</code> 改成 <code>have</code>，就能知道断言本身是否正确。</li>
+<li><strong>情形之间少了 <code>next</code>：</strong> 第一个情形的假设在第二个情形中仍然有效（<a href="module_10_ZH.html#cases-datatype">第 10.5.2 节</a>）。</li>
+<li><strong><code>assume</code> 的内容不是目标的前提</strong>（<a href="module_10_ZH.html#shape-blocks">第 10.2.1 节</a>）。</li>
+</ul>
+<h3 id="illegal-prove">Illegal application of proof command in “prove” mode（在“prove”模式下非法使用证明命令）</h3>
+<pre class="code"><code class="language-text">Illegal application of proof command in &quot;prove&quot; mode
+</code></pre>
+<p>某个断言（<code>have</code>、<code>show</code>、<code>lemma</code>）没有证明，所以下一个命令来得太早了。给这个断言一个证明：<code>by …</code> 或 <code>proof … qed</code>（<a href="module_10_ZH.html#errors">第 10.8 节</a>）。如果这条消息出现在 <code>end</code> 处，说明理论中最后一个证明没有完成（<a href="module_07_ZH.html#errors-forget">第 7.8.4 节</a>）。</p>
+<h3 id="undefined-case">Undefined case（未定义的情形）</h3>
+<pre class="code"><code class="language-text">Undefined case: &quot;Empty&quot;⌂
+</code></pre>
+<p>情形名来自构造子（列表是 <code>Nil</code> 和 <code>Cons</code>，自然数是 <code>0</code> 和 <code>Suc</code>）、归纳定义的规则、函数的等式（<code>1</code>、<code>2</code>、<code>3</code>），<code>less_induct</code> 则是 <code>less</code>。Isabelle/jEdit 显示的证明大纲和 <code>print_cases</code> 都会列出正确的名字（<a href="module_10_ZH.html#induction-names">第 10.6.2 节</a>）。</p>
+<h3 id="thesis-in-induction">在归纳中写了 show ?thesis</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. mysum (xs @ ys) = mysum xs + mysum ys
+</code></pre>
+<p>在归纳中，<code>?thesis</code> 是针对原来变量的整条引理，而不是当前情形的断言。应写 <code>show ?case</code>（<a href="module_10_ZH.html#induction-names">第 10.6.2 节</a>）。</p>
+<h3 id="not-passed">没有传递事实</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. hi &lt; x ⟶ ¬ x &lt; lo ⟶ lo ≤ hi
+</code></pre>
+<p>证明方法只看得见目标，以及用 <code>then</code>、<code>from</code>、<code>with</code> 或 <code>using</code> 传给它的事实。这里没有传递引理的假设 <code>lo ≤ hi</code>：应写 <code>using assms</code>（<a href="module_10_ZH.html#facts-visible">第 10.3.3 节</a>）。如果剩下的目标就是归纳假设本身，说明没有传递归纳假设：应写 <code>then show ?case</code> 或 <code>using Cons.IH</code>（<a href="module_10_ZH.html#induction-names">第 10.6.2 节</a>）。</p>
+<h3 id="ih-not-fit">归纳假设对不上</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. sumacc xs (acc + x) = acc + x + sum_list xs
+</code></pre>
+<p>这一步需要关于另一个值（这里是 <code>acc + x</code>）的归纳假设，但归纳假设只涉及断言中固定的 <code>acc</code>，所以 <code>rule Cons.IH</code> 对不上。推广这个变量：<code>induction xs arbitrary: acc</code>（<a href="module_11_ZH.html#arbitrary">第 11.2.2 节</a>）。模块 14 的编译器证明出于同样的原因需要 <code>arbitrary: stk</code>（<a href="module_14_ZH.html#isar">第 14.5.4 节</a>）。</p>
+<h3 id="calc-strict">计算链证明了更强的结论</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method:
+using this:
+  x &lt; z
+goal (1 subgoal):
+ 1. x ≤ z
+</code></pre>
+<p><code>finally</code> 得出的是链中最严格的关系，而 <code>.</code> 只接受恰好是这个事实的断言。要么断言 <code>x &lt; z</code>，要么把 <code>.</code> 换成一个能把它减弱的方法，例如 <code>by simp</code>（<a href="module_10_ZH.html#calc-ineq">第 10.4.2 节</a>）。</p>
+<h3 id="vacuous">Vacuous calculation result（空洞的计算结果）</h3>
+<pre class="code"><code class="language-text">Vacuous calculation result: (⋀x y. x ≤ y ⟹ a ≤ a) ⟹ b ≤ a
+derived as projection (1) from:
+    b ≤ a
+    c ≤ a
+</code></pre>
+<p>计算推理中的各步接不上。Isabelle 把 a ≥ b 读作 b ≤ a，所以在用 ≥ 写的链中，<code>…</code> 代表的是错误的项。从小的一端写到大的一端，只用 <code>=</code>、<code>≤</code> 和 <code>&lt;</code>（<a href="module_10_ZH.html#calc-ineq">第 10.4.2 节</a>）。</p>
+<h3 id="obtain">obtain 无法证明</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. (⋀a. admin a ⟹ thesis) ⟹ thesis
+</code></pre>
+<p>这个目标正是 <code>obtain</code> 需要证明的，而它的证明没有得到那个存在性事实。写成 <code>then obtain</code>，或者用 <code>using</code> 传入这个事实（<a href="module_10_ZH.html#facts-obtain">第 10.3.4 节</a>）。</p>
+<h3 id="case-hides-rule">情形遮住了同名的规则</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ev (Suc (Suc (k + n)))
+</code></pre>
+<p>在 <code>case ev_SS</code> 之内，名字 <code>ev_SS</code> 指的是这个情形的事实，而不是那条规则。使用规则的全名 <code>ev.ev_SS</code>（<a href="module_11_ZH.html#rule-induction">第 11.6.2 节</a>）。</p>
+<span class="section-anchor" id="tools"></span>
+<div class="section-header"><span class="section-num">7</span><h2>自动工具</h2></div>
+<h3 id="quickcheck-found">Quickcheck found a counterexample（Quickcheck 找到了一个反例）</h3>
+<pre class="code"><code class="language-text">Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  n = 1
+Evaluated terms:
+  double n = 2
+  n * n = 1
+</code></pre>
+<p>对这些值，断言不成立，所以任何证明都不可能成功。修正陈述，或者用 <code>oops</code> 放弃它。Isabelle/jEdit 会对每条新引理运行 Quickcheck，找到反例时在那一行旁边标上蓝色的 <strong>i</strong>（<a href="module_01_ZH.html#first-refute">第 1.7.5 节</a>、<a href="module_09_ZH.html#quickcheck">第 9.7.1 节</a>）。a₁、a₂ 这样的值是某个类型中的不同元素，Quickcheck 对这个类型别无所知。</p>
+<h3 id="quickcheck-none">Quickcheck found no counterexample（Quickcheck 没有找到反例）</h3>
+<pre class="code"><code class="language-text">Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
+</code></pre>
+<p>这只是证据，不是证明：Quickcheck 只尝试了较小的值（<a href="module_09_ZH.html#quickcheck">第 9.7.1 节</a>）。如果断言的反例很大，例如一条由五个事件组成的运行，就固定输入的大小（<a href="module_13_ZH.html#traces">第 13.6 节</a>）。如果断言的变元中有函数，Quickcheck 可能会以“Quickcheck ran out of time”（Quickcheck 超时）停止：用 <code>quickcheck [size = 3]</code> 限制搜索范围（<a href="module_14_ZH.html#testing">第 14.4.3 节</a>）。</p>
+<h3 id="nitpick-found">Nitpick found a counterexample（Nitpick 找到了一个反例）</h3>
+<pre class="code"><code class="language-text">Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = True
+    B = True
+    C = False
+</code></pre>
+<p>Nitpick 为自由变元找到了使断言为假的值（<a href="module_02_ZH.html#classify">第 2.4 节</a>）。在更大的回答中，<code>card 'a = 2</code> 给出它所用论域的大小，<strong>Skolem constant</strong>（斯科伦常量）下面列出它为约束变元选定的值（<a href="module_03_ZH.html#validity">第 3.4 节</a>）。标为“potentially spurious”（可能是虚假的）的反例在更大的模型中可能消失：只把它当作提示（<a href="module_09_ZH.html#nitpick">第 9.7.2 节</a>）。不加选项 <code>card</code> 时，Nitpick 会并行地尝试多种大小，它的回答每次运行都可能不同；<code>[card = 6]</code> 或 <code>[card 'a = 2]</code> 能让回答可以重现（<a href="module_13_ZH.html#traces">第 13.6 节</a>）。</p>
+<h3 id="nitpick-none">Nitpick found no counterexample（Nitpick 没有找到反例）</h3>
+<pre class="code"><code class="language-text">Nitpicking formula...
+
+Nitpick found no counterexample
+</code></pre>
+<p>Nitpick 搜索了不超过一定大小的论域，什么也没有找到。这不是证明：有些不是有效的公式，它们的反模型全都是无限的（<a href="module_03_ZH.html#validity">第 3.4 节</a>、<a href="module_03_ZH.html#decidability">第 3.9 节</a>）。</p>
+<h3 id="type-constraint">Hint: Maybe you forgot a type constraint?（提示：也许你忘了加类型约束？）</h3>
+<pre class="code"><code class="language-text">Hint: Maybe you forgot a type constraint?
+</code></pre>
+<p>这是 Nitpick 回答的最后一行，表示反例可能依赖于你没有想到的类型：在 <code>A - (B - C) = A - B - C</code> 中，<code>-</code> 除了集合之外也适用于其他类型。给一个变元加上标注，例如 <code>(C :: 'a set)</code>（<a href="module_04_ZH.html#sets-isabelle">第 4.1.4 节</a>）。</p>
+<h3 id="sledgehammer">读懂 Sledgehammer 的回答</h3>
+<pre class="code"><code class="language-text">Sledgehammering...
+
+metis found a proof...
+
+metis: Try this: by (metis mult_le_mono mult_le_mono1) (82 ms)
+</code></pre>
+<p>每个成功的证明器都会报告“… found a proof...”（找到了一个证明），并在“Try this:”（试试这个）后面给出一个证明，括号中是检查它所用的时间。“Duplicate proof”（重复的证明）表示这个证明已经有别的证明器给出过，“Done”（完成）表示所有证明器都结束了。点击一个简短、快速的建议即可插入它，然后删掉 <code>sledgehammer</code> 这一行（<a href="module_09_ZH.html#sledgehammer">第 9.8 节</a>）。</p>
+<ul>
+<li><strong>没有证明器找到证明。</strong> 目标可能是错的（试试 <code>quickcheck</code> 和 <code>nitpick</code>），可能需要归纳，或者需要一条库里没有的引理。也可以给证明器更多时间：<code>sledgehammer [timeout = 120]</code>。</li>
+<li><strong>建议的 <code>metis</code> 调用失败，或者运行很长时间。</strong> 换一个建议试试。</li>
+</ul>
+<h3 id="tracing-paused">Tracing paused（跟踪已暂停）</h3>
+<pre class="code"><code class="language-text">Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?
+</code></pre>
+<p>意思是：跟踪已暂停；要停止，还是继续显示接下来的 100、1000 或 10000 条消息？Isabelle/jEdit 对一条命令最多显示 1000 条跟踪消息。如果一个很小的目标就出现了这种情况，就要怀疑有循环的规则。用完之后，删掉 <code>using [[simp_trace]]</code>（<a href="module_09_ZH.html#tracing">第 9.3.5 节</a>）。</p>
+<h3 id="simp-loops">化简器停不下来</h3>
+<p>没有消息：证明一直在运行。化简规则集中有会循环的规则，例如一个等式和它的镜像，或者像 <code>∀x. f x = g (f x)</code> 这样的假设，它把一个项重写成包含它自身的项。去掉那条规则；用 <code>simp flip: name</code> 在这一次调用中把规则反过来用，用 <code>simp (no_asm)</code> 忽略假设（<a href="module_09_ZH.html#loops">第 9.3.4 节</a>、<a href="module_09_ZH.html#assumptions">第 9.3.2 节</a>）。</p>
+<h3 id="auto-tools">新引理旁边的蓝色 i</h3>
+<pre class="code"><code class="language-text">Auto solve_direct: the current goal can be solved directly with List.rev_rev_ident: rev (rev ?xs) = ?xs
+</code></pre>
+<p>Isabelle/jEdit 会对每个新陈述运行 Auto Quickcheck 和 Auto solve_direct。这条消息的意思是：自动 solve_direct 发现当前目标可以直接用 List.rev_rev_ident 解决，也就是说库里已经有这条引理，你可以直接使用库里的定理，而不必再证明一遍。消息“Auto Quickcheck found a counterexample:”（自动 Quickcheck 找到了一个反例）则说明这个陈述是错的（<a href="module_01_ZH.html#first-prove">第 1.7.3 节</a>、<a href="module_01_ZH.html#first-refute">第 1.7.5 节</a>）。</p>
+<span class="section-anchor" id="install"></span>
+<div class="section-header"><span class="section-num">8</span><h2>安装与编辑器</h2></div>
+<h3 id="windows-protected">Windows protected your PC（Windows 已保护你的电脑）</h3>
+<p>Isabelle 没有注册开发者的签名，所以 Windows 一开始会拒绝运行它。在蓝色的“Windows protected your PC”窗口中，先点击 <strong>More info</strong>（更多信息），再点击 <strong>Run anyway</strong>（仍要运行）（<a href="module_01_ZH.html#install">第 1.5 节</a>）。</p>
+<h3 id="macos-open-anyway">macOS：没有 Open Anyway 按钮</h3>
+<p>只有在你尝试打开过一次该应用之后，<strong>System Settings → Privacy &amp; Security</strong>（系统设置 → 隐私与安全性）中才会出现 <strong>Open Anyway</strong>（仍要打开）按钮。再打开一次 Isabelle2026.app，点击 <strong>Cancel</strong>（取消），然后再去那里找（<a href="module_01_ZH.html#install">第 1.5 节</a>）。</p>
+<h3 id="linux-desktop">Linux：Isabelle/jEdit 无法启动</h3>
+<p>Isabelle/jEdit 需要一个能运行 Java 图形界面的桌面环境。在桌面会话中用 <code>Isabelle2026/Isabelle2026</code> 启动它（<a href="module_01_ZH.html#install">第 1.5 节</a>）。</p>
+<h3 id="memory">Isabelle 非常慢，或者内存不足</h3>
+<p>关闭其他占用内存大的程序。Isabelle 主页说明，小型实验需要 4 GB 内存和 2 个处理器核心，中等规模的应用需要 8 GB 和 4 个核心（<a href="module_01_ZH.html#install">第 1.5 节</a>）。</p>
+<h3 id="windows-defender">Windows 上的证明器无法运行</h3>
+<p>Windows Defender 可能会阻止 Isabelle 的外部证明器，而 Sledgehammer 和 <code>smt</code> 要用到它们。按照 Isabelle 安装页面的建议，在 <strong>Virus &amp; threat protection</strong>（病毒和威胁防护）中排除整个 Isabelle 文件夹，然后再试一次（<a href="module_01_ZH.html#install">第 1.5 节</a>、<a href="module_09_ZH.html#sledgehammer">第 9.8 节</a>）。</p>
+<h3 id="prover-ready">什么都还没有检查</h3>
+<p>启动之后，Isabelle 先要加载 HOL。等到右侧的 <strong>Theories</strong>（理论）面板显示 <strong>Prover: ready</strong>（证明器：就绪）（<a href="module_01_ZH.html#install">第 1.5 节</a>）。如果理论导入了 <code>Main</code> 之外的库理论，例如 <code>&quot;HOL-Library.Multiset&quot;</code>，每次启动 Isabelle/jEdit 时都要加载它，需要一点时间；Theories 面板会显示进度（<a href="module_12_ZH.html#isort-program">第 12.2.1 节</a>）。</p>
+<h3 id="proof-state">看不到证明状态</h3>
+<p>点击窗口底部的标签打开 <strong>Output</strong>面板，并勾选其中的<strong>Proof state</strong>；这个设置会被记住。然后把光标放在你想查看其状态的那一行的末尾（<a href="module_01_ZH.html#tour">第 1.6 节</a>、<a href="module_05_ZH.html#by-induction">第 5.4.3 节</a>）。没有勾选 <strong>Proof state</strong>时，目标会显示在单独的<strong>State</strong>（状态）面板中。</p>
+<h3 id="symbol">符号不被接受</h3>
+<p>⟷ 要输入 <code>&lt;--&gt;</code>：较短的 <code>&lt;-&gt;</code> 也是 ↔ 的缩写，jEdit 会先提供 ↔，而 HOL 不接受 ↔。按 <kbd>Tab</kbd> 接受补全；按 <kbd>Return</kbd>（回车）不会接受补全。速查表列出了<a href="cheatsheet_ZH.html#symbols">所有符号</a>。</p>
+<h3 id="theory-exports">生成的代码在哪里？</h3>
+<pre class="code"><code class="language-text">See theory exports
+</code></pre>
+<p>意思是：见理论导出。<code>export_code</code> 把代码保存为理论导出，而不是把它打印出来。在 Isabelle/jEdit 中，消息里的 <em>theory exports</em> 是一个链接：点击它，File Browser（文件浏览器）就会打开生成的文件，它们位于一个名字以 <code>isabelle-export:</code> 开头的文件夹中（<a href="module_08_ZH.html#codegen">第 8.8 节</a>、<a href="module_12_ZH.html#export">第 12.7 节</a>）。</p>
+
+</div>
+<nav class="module-nav"><a class="mnav prev" href="index_ZH.html"><span class="mnav-label">&larr; 全部模块</span><span class="mnav-title">用 Isabelle 学形式化方法</span></a><a class="mnav next" href="cheatsheet_ZH.html"><span class="mnav-label">参考 &rarr;</span><span class="mnav-title">速查表</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

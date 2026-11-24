@@ -1,0 +1,584 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 1：什么是形式化方法 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="了解形式化方法能够证明软件的哪些性质、规约与证明如何配合，以及 Isabelle 在这些方法中的位置。最后，在 Isabelle/HOL 中编写你的第一个理论。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="1" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 1</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 1 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html" class="active"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_01_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#why"><span class="num">1</span><span class="side-t">不能出错的软件</span></a><a href="#formal"><span class="num">2</span><span class="side-t">怎样才算“形式化”</span></a><a href="#landscape"><span class="num">3</span><span class="side-t">形式化方法全景</span></a><a href="#trust"><span class="num">4</span><span class="side-t">证明助手，以及为什么可以信任它们</span></a><a href="#install"><span class="num">5</span><span class="side-t">安装 Isabelle2026</span></a><a href="#tour"><span class="num">6</span><span class="side-t">Isabelle/jEdit 导览</span></a><a href="#first"><span class="num">7</span><span class="side-t">你的第一个理论</span></a><a href="#series"><span class="num">8</span><span class="side-t">本系列的学习方式</span></a><a href="#summary"><span class="num">9</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第一部分 · 基础</div>
+      <h1 class="module-title"><span class="title-n">模块 1</span>什么是形式化方法</h1>
+      <p class="module-lead">了解形式化方法能够证明软件的哪些性质、规约与证明如何配合，以及 Isabelle 在这些方法中的位置。最后，在 Isabelle/HOL 中编写你的第一个理论。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 150 分钟</span><span class="chip chip-needs">开始之前：会用任何一种语言写一点程序。不需要逻辑或证明的基础。</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>说明什么是形式化规约和形式化证明，以及什么时候值得为它们付出努力</li><li>区分测试、模型检测、SAT 与 SMT 求解以及交互式定理证明</li><li>说明为什么可以信任证明助手检查过的定理</li><li>安装 Isabelle2026，熟悉 Isabelle/jEdit 的界面</li><li>写出第一个理论：计算值、证明引理、找到反例</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="why"></span>
+<div class="section-header"><span class="section-num">1</span><h2>不能出错的软件</h2></div>
+<p>有些软件缺陷只让人烦恼。例如，应用崩溃，重启后损失几分钟的工作。但另一些软件控制飞机、放射剂量或列车运行，也可能负责转账或保护机密。在这些场景里，缺陷可能造成伤亡或巨额损失，事后发现为时已晚。下面三个有据可查的事故说明了风险有多大。</p>
+<ul>
+<li><strong>阿丽亚娜 5 号，1996 年。</strong> 首次发射后不到一分钟，火箭偏离轨道并解体。
+惯性参考系统沿用了阿丽亚娜 4 号的软件，其中一段程序把 64 位浮点数转换为 16 位有符号整数。阿丽亚娜 5 号走的是不同轨迹，导致数值超出软件假定的范围。转换失败，使运行同一软件的主用和备用参考单元都关闭了。</li>
+<li><strong>Therac-25，1985–1987 年。</strong> 一台放射治疗机让六名患者受到严重过量的照射，其中至少三人死亡。原因之一是控制软件中的竞态条件（race condition）：操作员如果快速修改治疗参数，就可能让机器处于致命的配置，而早先的型号是用硬件联锁装置来防止这种情况的。</li>
+<li><strong>奔腾处理器 FDIV 缺陷，1994 年。</strong> 英特尔的新处理器算错了某些除法，因为除法电路的查找表缺了几个条目。
+英特尔为更换芯片和冲销存货计提了 4.75 亿美元的费用。算术电路也是形式化验证的一个应用领域。</li>
+</ul>
+<p>这些系统都经过测试，但仍漏掉了缺陷。艾兹赫尔·迪杰斯特拉在《结构化程序设计札记》中概括道：“程序测试可以证明缺陷存在，却不能证明缺陷不存在。”通过选定用例的测试，无法确立程序在其他用例上也正确。</p>
+<p>简单的算术说明了原因。接受两个 64 位整数的函数具有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>128</mn></msup></mrow><annotation encoding="application/x-tex">2^{128}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">128</span></span></span></span></span></span></span></span></span></span></span></span>⁠，约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3.4</mn><mo>×</mo><msup><mn>10</mn><mn>38</mn></msup></mrow><annotation encoding="application/x-tex">3.4 \times 10^{38}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3.4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">38</span></span></span></span></span></span></span></span></span></span></span></span> 种可能的输入。每秒测试十亿个，你需要约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>22</mn></msup></mrow><annotation encoding="application/x-tex">10^{22}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">22</span></span></span></span></span></span></span></span></span></span></span></span> 年才能尝试完所有输入，这几乎是宇宙年龄的万亿倍。穷举测试对于某些小型有限问题是可行的，但对于此问题则不切实际。对于行为依赖于存储状态、时序或与其他程序交互的程序，需要覆盖的内容远不止输入值本身。</p>
+<p>形式化方法提供了另一种证据。先用数学描述所要求的行为，再根据描述检验命题。<strong>证明</strong>可以确立性质对满足前提的所有输入都成立。模型检测器可以探索一个有限模型的所有可达状态。这些方法是测试的补充，也能用于工业规模的系统。</p>
+<ul>
+<li><strong>seL4</strong>是一个操作系统微内核。2009 年，人们证明了它的 C 代码实现了它的规约，证明由<strong>Isabelle/HOL</strong>（也就是本系列讲授的系统）进行机器检查。它是第一个拥有这种证明的通用内核。</li>
+<li><strong>CompCert</strong> 是一个在证明辅助工具 Rocq（前身为 Coq）中证明正确的 C 编译器。2011 年，
+研究人员使用随机生成的程序测试了 C 编译器，发现许多导致 GCC 和 LLVM 生成错误代码的 bug，但在 CompCert 的已验证部分中未发现任何 bug。他们在其未验证部分确实发现了 bug：证明的范围至关重要。</li>
+<li><strong>亚马逊云服务</strong>（Amazon Web Services）的工程师从 2011 年起就用 TLA+ 语言为 S3、DynamoDB 等系统编写规约，并用模型检测器检查它们。检测器找到了一些隐蔽的设计错误，其中一个需要 35 步的事件序列才能展示出来。</li>
+<li><strong>巴黎地铁 14 号线</strong>自 1998 年开通以来一直无人驾驶。它的安全关键软件是用 B 方法开发和证明的。</li>
+</ul>
+<p>形式化方法耗费时间与专业知识。当故障代价高昂或交互难以测试时，它们尤为有用：航空电子、铁路、医疗设备、处理器、操作系统内核、编译器和密码协议。其应用也出现在保证指南中：DO-333 是航空电子软件指南 DO-178C 的形式化方法附录。选择方法仍取决于特定系统以及你需要确立的性质。</p>
+<span class="section-anchor" id="formal"></span>
+<div class="section-header"><span class="section-num">2</span><h2>怎样才算“形式化”</h2></div>
+<p>日常语言常将细节留给语境。考虑学校软件的一项需求：“在打印前对成绩列表进行排序。”最高分在前还是最低分在前？假设我们同意最低分在前，且保留重复成绩。对于输入 <code>[80, 55, 80]</code>，预期输出为 <code>[55, 80, 80]</code>。</p>
+<p>现在假设仅检查输出是否有序。<code>[55, 80]</code> 会通过该检查，尽管它丢失了分数；即使空列表也会通过，因为它没有无序对。对原始列表排序的要求已经隐含了保留其内容。我们的检查也必须表达这一要求。</p>
+<p>形式化方法使用以下方法使此类要求显式化：</p>
+<ol>
+<li><strong>一种具有精确语法的</strong>形式语言，用于确定表达式的结构。</li>
+<li><strong>语义</strong>，即对这些表达式的含义和陈述何时为真的数学说明。</li>
+<li><strong>一种严格的检查方法</strong>，例如使用显式推理规则的证明，或穷举
+探索有限模型。在<strong>证明系统</strong>中，推理规则指定了可以从哪些前提推导出哪些结论。</li>
+</ol>
+<div class="box box-definition"><div class="box-label">定义 1.1<span class="box-title">形式化方法</span></div>
+<p><strong>形式化方法</strong>（formal method）是用一种具有精确数学含义的语言来描述或验证系统的方法，这样关于系统的断言就可以通过计算或证明来检查，而且往往由计算机来检查。</p>
+</div>
+<p>令 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">xs</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span></span></span></span> 命名输入列表，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">ys</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span></span></span></span> 命名输出列表。我们可以将所选要求表达为两个必须同时成立的条件：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>∧</mo><mtext>  </mtext><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathit{sorted}(ys) \;\land\; \mathit{mset}(ys) = \mathit{mset}(xs)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span></span></div>
+<p>将 <em>ys</em> 解读为升序排列，<strong>且</strong>在 <em>ys</em> 中每个分数出现的次数与在 <em>xs</em> 中相同。此处，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathit{sorted}(ys)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span>表示分数从不递减：允许出现相等分数。符号<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∧</mo></mrow><annotation encoding="application/x-tex">\land</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5556em;"></span><span class="mord">∧</span></span></span></span>表示“且”。<strong>多重集</strong>记录哪些元素出现以及每个元素出现的次数，同时忽略其顺序；<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\mathit{mset}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord"><span class="mord mathit">mset</span></span></span></span></span>将列表转换为其多重集。因此，<code>[80, 55, 80]</code>和<code>[55, 80, 80]</code>具有相同的多重集，但<code>[55, 80]</code>没有。</p>
+<p>第一个条件检查顺序；第二个条件排除丢失、添加或重复分数。这些条件描述返回结果。要验证排序函数，我们必须对每个允许的输入确立这些条件，并确立函数返回。写出公式使我们的选择显式化；它不替我们选择要求，也不阻止我们省略其中任何一个。模块 2 和 3 详细介绍逻辑符号，模块 12 根据这些条件验证排序函数。</p>
+<div class="box box-definition"><div class="box-label">定义 1.2<span class="box-title">规约</span></div>
+<p><strong>规约</strong>描述系统应具备的行为。<strong>形式化规约</strong>用数学含义精确的语言表达这些行为。实现方式仍可自行选择。例如，排序规约规定了结果应当怎样，却没有指定排序算法。</p>
+</div>
+<div class="box box-definition"><div class="box-label">定义 1.3<span class="box-title">验证与确认</span></div>
+<p><strong>验证</strong>（verification）表明一个实现满足它的规约。<strong>确认</strong>（validation）检查规约描述的是否正是真正想要的东西。巴里·玻姆（Barry Boehm）的概括是：验证问的是“我们是否在正确地构建产品？”，确认问的是“我们构建的是否是正确的产品？”。</p>
+</div>
+<figure class="fig" id="fig-01-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img"><title>确认与验证</title><defs><marker id="fig-01-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="20" width="200" height="150" rx="12" fill="#FFFBEB" stroke="#B45309" stroke-width="1.8"/><text x="120" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#B45309" text-anchor="middle">需求</text><text x="120" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">非形式化，用自然语言</text><rect x="280" y="20" width="200" height="150" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="380" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="middle">规约</text><text x="380" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">形式化，用逻辑</text><rect x="540" y="20" width="200" height="150" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="640" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#15803D" text-anchor="middle">实现</text><text x="640" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">一段程序</text><text x="120" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">“打印成绩之前</text><text x="120" y="117" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">先把成绩列表</text><text x="120" y="136" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">排好序。”</text><text x="380" y="104" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">sorted ys</text><text x="380" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">∧ mset ys = mset xs</text><text x="640" y="104" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">fun insort …</text><text x="640" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">fun isort …</text><line x1="224" y1="112" x2="274" y2="112" stroke="#475569" stroke-width="2" marker-end="url(#fig-01-1__ah-475569)"/><text x="250" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">形式化</text><line x1="484" y1="112" x2="534" y2="112" stroke="#475569" stroke-width="2" marker-end="url(#fig-01-1__ah-475569)"/><text x="510" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">实现</text><path d="M120 184 V196 H380 V184" stroke="#B45309" stroke-width="2" fill="none"/><text x="250.0" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#B45309" text-anchor="middle">确认（validation）</text><text x="250.0" y="244" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">规约说的是否正是</text><text x="250.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">我们真正想要的？</text><text x="250.0" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">评审、举例、测试</text><path d="M380 184 V196 H640 V184" stroke="#15803D" stroke-width="2" fill="none"/><text x="510.0" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">验证（verification）</text><text x="510.0" y="244" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">程序做的是否正是</text><text x="510.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">规约所说的？</text><text x="510.0" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">在明确的假设下证明</text></svg>
+</div><figcaption><span class="fig-num">图 1.1</span> <p>形式化方法位于需求与程序之间。确认把需求和规约联系起来；验证把规约和实现联系起来。</p>
+</figcaption></figure>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>测试通过说明该用例得到了预期结果。一般命题的证明则能涵盖所有满足假设的输入。命题必须准确表达所需的行为。例如，只证明结果有序仍无法发现成绩丢失，因此还需要确认规约本身是否正确。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>听到“已经验证”时，可以追问两件事：证明了什么性质？用了哪些假设？源代码的证明可能依赖于编程语言模型、编译的正确性，以及对硬件和运行环境的假设。证明检查也依赖于<strong>可信计算基</strong>（trusted computing base），即必须正确工作才能保证检查结果可靠的软件与硬件。始终分别判断证明是否有效、已证命题是否适用于实际运行的系统。</p>
+</div>
+<span class="section-anchor" id="landscape"></span>
+<div class="section-header"><span class="section-num">3</span><h2>形式化方法全景</h2></div>
+<p>形式化方法有多种。它们所能表达的性质、自动化程度和给出的结果各不相同。测试既可作为比较的参照，也能补充形式化验证。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>你提供什么</th>
+<th>检查什么，给出什么结果</th>
+<th>局限</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>测试</td>
+<td>输入与预期结果或性质</td>
+<td>运行程序；报告所尝试用例中的失败情况</td>
+<td>未测试的情况仍然存在；穷尽测试通常不切实际</td>
+<td>单元测试；基于属性的测试（QuickCheck、Hypothesis）</td>
+</tr>
+<tr>
+<td>模型检测</td>
+<td>系统的一个模型与一个性质</td>
+<td>对于有限状态检查，探索可达状态；报告性质成立或给出反例轨迹</td>
+<td>状态过多会耗尽时间或内存；有限模型可能仅覆盖选定的系统规模</td>
+<td>SPIN、NuSMV、TLA+ 的 TLC、UPPAAL</td>
+</tr>
+<tr>
+<td>SAT 求解</td>
+<td>由布尔变量和逻辑联结词构成的公式</td>
+<td>找到一个使公式为真的赋值，或证明不存在这样的赋值</td>
+<td>可判定的，但大型实例可能因求解成本过高而不可行</td>
+<td>MiniSat、CaDiCaL</td>
+</tr>
+<tr>
+<td>SMT 求解</td>
+<td>使用算术、数组或位向量等理论的形式化规约</td>
+<td>搜索使公式为真的值，或证明其不存在</td>
+<td>部分支持的片段是可判定的；其他片段则不是。求解器可能报告“unknown”或达到资源限制</td>
+<td>Z3, cvc5</td>
+</tr>
+<tr>
+<td>交互式定理证明</td>
+<td>定义、声明与证明指令</td>
+<td>检查所陈述主张的证明，该证明可能涵盖无穷多个情况</td>
+<td>表达性声明通常需要人类指导；证明的找到并不保证</td>
+<td>Isabelle, Rocq, Lean, HOL4, ACL2</td>
+</tr>
+</tbody>
+</table></div>
+<p>SAT 是<strong>可判定</strong>的，这意味着存在一种算法能对任意实例给出正确的是非答案，但运行时间可能很长。<strong>不可判定</strong>意味着不存在能正确处理所有实例的这类算法。对求解器而言，<strong>可满足</strong>表示存在某种赋值使公式为真，<strong>不可满足</strong>表示不存在这样的赋值。一种验证方法是让求解器寻找使实现违反规约的输入。若找到满足赋值，它就是反例。若不可满足，则在所编码的模型中没有这一类反例。</p>
+<p>表中可以看出两点。第一，表达能力与自动化程度之间存在权衡。SAT 求解可自动完成，也可判定，但有些实例仍可能很慢。定理证明器能表述适用于任意大小程序的编译器正确性命题，但在证明时可能需要你的指导。第二，这些方法可以配合使用。Dafny 和 Frama-C 的 WP 插件等程序验证工具可以生成证明义务，交给 SMT 求解器处理。Isabelle 自带测试工具<strong>Quickcheck</strong>、使用 SAT 求解器的反例工具<strong>Nitpick</strong>，以及能调用自动证明器和 Z3、cvc5 等 SMT 求解器的<strong>Sledgehammer</strong>。后者找到的证明与其他证明一样，由同一个小型内核检查（第 1.4 节）。</p>
+<div class="callout note"><div class="callout-label">须知</div>
+<p>不存在一种算法总能判定任意程序在任意输入上是否停机：这就是<strong>停机问题</strong>，由 Alan Turing 证明为不可判定。表达力强的验证问题可以编码此问题，因此不可能存在总能正确解决所有此类问题的验证器。这并不妨碍自动工具解决许多有用案例。人类指导可辅助特定证明，但不会消除一般限制。Module 3 重新探讨可判定性。</p>
+</div>
+<span class="section-anchor" id="trust"></span>
+<div class="section-header"><span class="section-num">4</span><h2>证明助手，以及为什么可以信任它们</h2></div>
+<p><strong>证明助手</strong>（proof assistant），又称交互式定理证明器，是一种程序：它检查用形式逻辑写成的证明，并帮助你找到证明。可以把它想象成一位同事，他会读你证明的每一行，从不疲倦，也从不放过任何漏洞；身边还有一队助手，能帮你补上常规的步骤。</p>
+<p>但证明助手本身是一个大型程序。为何信任其证明检查？一种回答是 Robin Milner 及其同事在 1970 年代为 Edinburgh LCF 系统（Logic for Computable Functions）开发的架构，该架构被 Isabelle 及许多其他证明器所使用。</p>
+<div class="box box-definition"><div class="box-label">定义 1.4<span class="box-title">LCF 方法</span></div>
+<p>在 <strong>LCF-style</strong>证明器中，定理是抽象类型 <code>thm</code> 的值。证明工具无法直接构造这些值，必须使用由<strong>kernel</strong> 提供的操作，后者实现推理规则并跟踪定理所依赖的假设。</p>
+</div>
+<figure class="fig" id="fig-01-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>Isabelle 的 LCF 架构</title><defs></defs><rect x="20" y="20" width="470" height="320" rx="16" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.6"/><text x="42" y="50" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#475569" text-anchor="start">你的理论</text><text x="42" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">定义、引理、证明</text><rect x="50" y="90" width="410" height="230" rx="14" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.6" stroke-dasharray="6 5"/><text x="72" y="118" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="start">证明工具</text><text x="72" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#6D28D9" text-anchor="start">simp、auto、blast、Sledgehammer……</text><text x="72" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">规模大，可能有错误</text><rect x="150" y="180" width="210" height="116" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="2.6"/><text x="255" y="212" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="16" font-weight="700" fill="#15803D" text-anchor="middle">内核</text><text x="255" y="234" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">逻辑的推理规则</text><text x="255" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle" font-style="italic">规模小，经过仔细检查</text><rect x="232.0" y="266" width="46" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="255.0" y="283" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ 定理</text><circle cx="528" cy="55" r="12" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="528" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="550" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">只有内核能够</text><text x="550" y="79" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">产生定理。</text><circle cx="528" cy="151" r="12" fill="#6D28D9" stroke="#6D28D9" stroke-width="1"/><text x="528" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="550" y="156" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">工具提出证明步骤，</text><text x="550" y="175" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#6D28D9" text-anchor="start">内核逐一检查。</text><circle cx="528" cy="247" r="12" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="528" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="550" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">在可靠的假设下，</text><text x="550" y="271" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">证明搜索的错误</text><text x="550" y="290" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">不会使错误的命题</text><text x="550" y="309" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">成为已证定理。</text></svg>
+</div><figcaption><span class="fig-num">图 1.2</span> <p>LCF 架构。证明工具通过内核的操作构造定理。该保证依赖于正确性规则与假设，以及正确运行的实现。</p>
+</figcaption></figure>
+<p>对于通过这些操作构建的普通证明，证明搜索工具中的错误可能导致证明失败或永远运行，但它无法绕过内核的推理规则。这将逻辑检查集中在系统的一个小得多的部分。这并不意味着字面上只有内核必须工作：逻辑的公理、ML 运行时和硬件也很重要。Milner 及其同事开发了用于编写证明工具的 ML（“元语言”）；Isabelle 使用 ML 和 Scala。</p>
+<p>Isabelle 亦允许显式公理、被接纳的证明（<code>sorry</code>）以及 <strong>oracles</strong>，这些接口接受结果而无需通过常规推理规则进行推导；它们引入了额外的信任，但 LCF 架构并不使它们的主张为真。本系列证明使用标准逻辑与库，不添加公理或使用被接纳的步骤或外部 oracle 证明方法。特别是，Sledgehammer 的外部结果在计为定理前必须重构为 Isabelle 证明。</p>
+<p>劳伦斯·保尔森于 1986 年在剑桥大学启动了<strong>Isabelle</strong>。它最初是一个通用证明助手，可以在同一个框架中定义多种逻辑。慕尼黑工业大学的托比亚斯·尼普科及其团队开发了如今最常用的<strong>Isabelle/HOL</strong>。马卡里乌斯·文策尔创建了 Isar 证明语言和 Isabelle/jEdit 证明开发环境。HOL 是<strong>高阶逻辑</strong>，是一种有类型的逻辑。在其中，函数可作为其他函数的参数，变元也可以取函数为值。它既能表述数学命题，也能定义函数式程序。本系列使用 Isabelle/HOL，下文简称 Isabelle。</p>
+<p>Isabelle/HOL 曾用于 seL4 的证明、开普勒猜想证明的一部分（与 HOL Light 一起），以及<strong>形式化证明档案库</strong>（Archive of Formal Proofs）中的数百个项目——这是一个在线的、经过检查的 Isabelle 证明库。你可能还会遇到的其他证明助手有 Rocq（原名 Coq）、Lean、HOL4 和 ACL2。它们的逻辑和风格各不相同，但本系列中的思想同样适用于它们。</p>
+<span class="section-anchor" id="install"></span>
+<div class="section-header"><span class="section-num">5</span><h2>安装 Isabelle2026</h2></div>
+<p>本系列使用2026年10月发布的Isabelle2026。应用包包含Isabelle/jEdit编辑器、Java、预构建的HOL逻辑、自动证明器和手册。跟随本系列无需单独安装Java或LaTeX。Isabelle的主页建议小型实验需要4 GB内存和2个处理器核心，中型应用需要8 GB和4个核心；本系列保持轻量。</p>
+<p>从<a href="https://isabelle.in.tum.de/" target="_blank" rel="noopener">Isabelle 官网</a>下载安装包，选择与自己系统对应的版本，再按下列步骤操作。系统要求及更多排查方法可查阅<a href="https://isabelle.in.tum.de/installation.html" target="_blank" rel="noopener">官方安装说明</a>。</p>
+<div class="tabs" data-group="1"><div class="tab-buttons" role="tablist"></div>
+<div class="tab-panel" role="tabpanel" data-tab="windows" data-label="Windows">
+<ol>
+<li>下载 <strong>Isabelle2026.exe</strong>（适用于 Windows 10 或 11）并运行它。这是一个自解压文件：选择一个文件夹来解压，例如你的用户主文件夹。</li>
+<li>Isabelle 没有注册开发者的签名，所以 Windows 一开始会拒绝运行它。如果出现一个蓝色窗口，显示“Windows 已保护你的电脑”（Windows protected your PC），先点击<strong>更多信息</strong>（More info），再点击<strong>仍要运行</strong>（Run anyway）。</li>
+<li>安装程序结束后会启动 Isabelle/jEdit，并创建一个桌面快捷方式。以后就用这个快捷方式启动。</li>
+</ol>
+</div>
+<div class="tab-panel" role="tabpanel" data-tab="mac" data-label="macOS">
+<ol>
+<li>下载适合你的 Mac 的版本：Apple 芯片（M1 及以后）选 <strong>macOS (ARM)</strong>，否则选 <strong>macOS (Intel)</strong>。如果浏览器没有自动解压，就先解压，然后把 <strong>Isabelle2026.app</strong>移到<strong>应用程序</strong>（Applications）文件夹。</li>
+<li>Isabelle 没有注册开发者的签名，所以 macOS 一开始会阻止它。打开 Isabelle2026.app，在安全对话框中点击<strong>取消</strong>（Cancel）。</li>
+<li>打开<strong>系统设置 → 隐私与安全性</strong>（System Settings → Privacy &amp; Security）。在靠近底部的地方，有一条消息说 Isabelle2026 已被阻止；点击<strong>仍要打开</strong>（Open Anyway）并确认。之后 Isabelle 就能像其他应用一样启动了。</li>
+</ol>
+</div>
+<div class="tab-panel" role="tabpanel" data-tab="linux" data-label="Linux">
+<ol>
+<li>
+<p>下载 <strong>Isabelle2026_linux.tar.gz</strong>（ARM 电脑则下载 Linux (ARM) 版本），解压到任意位置：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="tar -xzf Isabelle2026_linux.tar.gz">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">tar -xzf Isabelle2026_linux.tar.gz</span></span></code></pre></div>
+</li>
+<li>
+<p>启动 Isabelle/jEdit：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="Isabelle2026/Isabelle2026">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">Isabelle2026/Isabelle2026</span></span></code></pre></div>
+<p>你需要一个图形桌面环境。命令行工具在 <code>Isabelle2026/bin/isabelle</code>；本系列用不到它们。</p>
+</li>
+</ol>
+</div>
+</div>
+<p>在首次启动时，Isabelle/jEdit 会在你的主目录中打开一个名为 <code>Scratch.thy</code> 的 scratch theory。等待右侧的 <strong>Theories</strong>面板显示<strong>Prover: ready</strong>，此时 Isabelle 已加载 HOL 并准备好检查你输入的内容。</p>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<ul>
+<li><strong>Windows: Sledgehammer 或 <code>smt</code> 报告证明器运行失败。</strong> Windows Defender 可能阻止
+Isabelle 的外部证明器。Isabelle 的安装页面建议在 <strong>Virus &amp; threat protection</strong> 中排除整个 Isabelle 文件夹。如果遇到此问题，请遵循官方安装建议；本模块的示例无需使用任何工具。</li>
+<li><strong>macOS：没有“仍要打开”按钮。</strong> 只有在你尝试打开过一次该应用之后，这个按钮才会出现。再打开一次 Isabelle2026.app，点击“取消”，然后再到“隐私与安全性”里找。</li>
+<li><strong>Isabelle 非常慢，或者因内存不足而停止。</strong> 关闭其他占用内存大的程序。Isabelle 需要上面所说的内存。</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="tour"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Isabelle/jEdit 导览</h2></div>
+<p>你现在打开的这个窗口 Isabelle/jEdit 是一个<strong>证明器集成开发环境</strong>（prover IDE）：在你输入的同时，Isabelle 就在持续检查编辑器中的文本。这里没有“运行”按钮。图 1.3 展示了这个窗口，里面是你马上要写的理论。</p>
+<figure class="fig" id="fig-01-3"><div class="fig-photo"><img src="assets/jedit-overview.png" alt="Isabelle/jEdit 窗口：编辑器中是一个理论，下方打开了 Output 面板，右侧是 Theories 面板，左侧是 Documentation 面板。编号 1 到 5 标出了这些部分。" loading="lazy"></div><figcaption><span class="fig-num">图 1.3</span> <p>Isabelle/jEdit，Isabelle2026 在 Linux 上。相同的编辑器和面板在 Windows 和 macOS 上也可用；其外观和键盘快捷键可能不同。</p>
+</figcaption></figure>
+<ol>
+<li><strong>文本区</strong>，你在这里编写理论。命令按种类着色，左侧的边栏用图标显示消息：蓝色的 <strong>i</strong>表示信息，红色的<strong>!</strong> 表示错误。</li>
+<li><strong>Output</strong>（输出）面板显示光标所在命令的消息。它一开始是关闭的：点击窗口底部的 <strong>Output</strong> 标签即可打开。</li>
+<li><strong>Proof state</strong>（证明状态）。把这个框勾选一次。之后 Isabelle 会在 Output 面板中显示光标处还剩下什么需要证明。这个设置在以后的会话中会被记住。</li>
+<li><strong>Theories</strong>面板显示<strong>Prover: ready</strong> 以及每个已打开理论的进度。</li>
+<li><strong>Documentation</strong>（文档）面板列出 Isabelle 自带的手册。最有用的是 <strong>prog-prove</strong>，即《Programming and Proving in Isabelle/HOL》，本系列第三部分就以它为线索。</li>
+</ol>
+<p>从一开始就养成几个习惯会很有帮助。把鼠标悬停在带下划线的文字上，可以看到它的消息。按住 <kbd>Ctrl</kbd>（macOS 上是 <kbd>Cmd</kbd>）并把鼠标悬停在一个名字上，可以看到它的类型和定义；点击则跳转过去。要输入数学符号，就输入下表中的缩写：Isabelle 会把它替换成符号，要么立即替换，要么弹出一个小窗口，在其中按 <kbd>Tab</kbd> 确认。你也可以输入反斜杠加符号的名字，例如 <code>\forall</code>，或者在底部的 <strong>Symbols</strong>（符号）面板中点击符号。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>符号</th>
+<th>输入</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>⇒</td>
+<td><code>=&gt;</code></td>
+<td>函数类型</td>
+</tr>
+<tr>
+<td>∧</td>
+<td><code>/\</code> 或 <code>&amp;</code></td>
+<td>并且</td>
+</tr>
+<tr>
+<td>∨</td>
+<td><code>\/</code> 或 <code>|</code></td>
+<td>或者</td>
+</tr>
+<tr>
+<td>¬</td>
+<td><code>~</code></td>
+<td>非</td>
+</tr>
+<tr>
+<td>⟶</td>
+<td><code>--&gt;</code></td>
+<td>蕴涵</td>
+</tr>
+<tr>
+<td>⟷</td>
+<td><code>&lt;--&gt;</code></td>
+<td>当且仅当</td>
+</tr>
+<tr>
+<td>∀</td>
+<td><code>\forall</code></td>
+<td>对所有</td>
+</tr>
+<tr>
+<td>∃</td>
+<td><code>\exists</code></td>
+<td>存在</td>
+</tr>
+<tr>
+<td>≠</td>
+<td><code>~=</code></td>
+<td>不等于</td>
+</tr>
+<tr>
+<td>≤</td>
+<td><code>&lt;=</code></td>
+<td>小于或等于</td>
+</tr>
+</tbody>
+</table></div>
+<p>复制也可以：这些页面上的 Isabelle 文本使用和 Isabelle 相同的 Unicode 符号，所以你可以用代码块的<strong>复制</strong>按钮复制，再粘贴到 Isabelle/jEdit 中。</p>
+<span class="section-anchor" id="first"></span>
+<div class="section-header"><span class="section-num">7</span><h2>你的第一个理论</h2></div>
+<p>你在 Isabelle 中写的所有东西都放在一个<strong>理论</strong>（theory）里：理论是一个包含定义、陈述和证明的文件，就像编程语言中的一个模块。现在你将一步一步写出一个理论，并接触 Isabelle 的三种基本活动：计算、证明和反驳。</p>
+<h3 id="first-file">创建文件</h3>
+<p>在 Isabelle/jEdit 中选择 <strong>File → New</strong>（文件 → 新建），然后选择 <strong>File → Save As…</strong>（文件 → 另存为）。为本系列建一个文件夹，例如主文件夹中的 <code>isabelle</code>，把文件保存在那里，命名为 <strong><code>First.thy</code></strong>。然后输入：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag">未检查</span><button type="button" class="copy-btn" data-copy="theory First
+  imports Main
+begin
+
+end">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">theory</span> First
+  <span class="isa-minor">imports</span> Main
+<span class="isa-cmd">begin</span>
+
+<span class="isa-cmd">end</span></code></pre></div>
+<p><code>theory First</code> 给理论命名，这个名字必须与文件名一致：理论 <code>First</code> 要放在 <code>First.thy</code> 中。<code>imports Main</code> 引入标准库：数、列表、集合，以及关于它们的成千上万条已经证明的事实。其余所有内容都写在 <code>begin</code> 和 <code>end</code> 之间。下面的命令都写在 <code>end</code> 之前的新行上。</p>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p>如果 Isabelle 在 <code>First</code> 下面画了下划线，并且提示</p>
+<pre class="code"><code class="language-text">Bad theory name &quot;First&quot; for file &quot;Scratch.thy&quot;⌂
+</code></pre>
+<p>这条消息的意思是：对文件“Scratch.thy”来说，理论名“First”不正确。也就是说，理论名和文件名不一致。把文件另存为 <code>First.thy</code>，或者把 <code>theory</code> 后面的名字改成与文件名一致。</p>
+</div></details>
+<h3 id="first-compute">计算</h3>
+<p>输入这一行：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;2 + 3 :: nat&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;2 + 3 :: nat&quot;</span></code></pre></div>
+<p>把光标放在这一行上。Output 面板会显示结果和它的类型：</p>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;5&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p><code>value</code>评估一个项。引号内的文本属于Isabelle的<strong>内语法</strong>，即项和类型的语言；<code>value</code>和<code>lemma</code>等命令属于<strong>外语法</strong>，位于引号之外。<code>:: nat</code>是一个<strong>类型注解</strong>：它将<code>2 + 3</code>的类型固定为自然数0, 1, 2, …。Isabelle支持多种类型上的数值和加法。若缺乏足够的上下文以选择具体类型，该表达式保持<strong>多态</strong>，意味着其类型仍为通用类型，且<code>value</code>无法将其评估为具体数值。其他表达式可以从上下文中获取类型，无需注解。</p>
+<p>Isabelle 能计算的不只是数。<code>rev</code> 把一个列表反转：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;rev [1, 2, 3 :: nat]&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;rev [1, 2, 3 :: nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;[3, 2, 1]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p>如果去掉类型，Isabelle 会拒绝：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;2 + 2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Wellsortedness error:
+Type 'a not of sort term_of
+Cannot derive subsort relation numeral &lt; term_of</span></code></pre></div>
+<p>这条消息很难懂，但解决办法很简单：加上类型标注，例如 <code>:: nat</code> 或 <code>:: int</code>。你会在模块 8 学习如何读懂这类消息。</p>
+</div></details>
+<h3 id="first-prove">证明</h3>
+<p>现在来看一个关于所有列表的断言：把一个列表反转两次，会得到原来的列表。输入这个陈述：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rev (rev xs) = xs&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rev (rev xs) = xs&quot;</span></code></pre></div>
+<p>变量 <code>xs</code> 没有在任何地方定义过。Isabelle 把它看作代表<strong>任意</strong>列表，所以这条引理断言该等式对每个列表都成立。勾选了 <strong>Proof state</strong>之后，Output 面板会显示<strong>目标</strong>（goal），即仍有待证明的陈述：</p>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. rev (rev xs) = xs</code></pre></div>
+<p>现在来证明它。在下一行输入：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by simp">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>一旦检查无误，证明即被接受。<code>simp</code>是<strong>simplifier</strong>，它利用已知等式和逻辑规则简化目标。此处成功是因为库中包含<code>rev (rev xs) = xs</code>的事实。Isabelle/jEdit 甚至提示您：引理旁侧栏中的蓝色<strong>i</strong>携带消息“Auto solve_direct: 当前目标可直接通过 List.rev_rev_ident 解决”。在幕后，<code>simp</code>通过调用内核规则构建了该定理，正如第 1.4 节所述。</p>
+<h3 id="first-define">定义与证明</h3>
+<p>现在定义一个你自己的函数。<code>fun</code> 用等式来定义函数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun double :: &quot;nat ⇒ nat&quot; where
+  &quot;double n = n + n&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> double :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;double n = n + n&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  double :: &quot;nat ⇒ nat&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<p><code>double :: &quot;nat ⇒ nat&quot;</code> 声明 <code>double</code> 接受一个自然数并返回一个；键入 <code>=&gt;</code> 以获取 ⇒ 符号。<code>where</code> 之后的方程说明了 <code>double</code> 的计算内容。Isabelle 返回新常量及其类型，并报告它找到了一个终止序：对于每个使用 <code>fun</code> 定义的函数，Isabelle 证明该函数终止。此处没有递归，因此证明是平凡的；模块 5 和 8 解释了终止的重要性。无法通过终止检查的定义在此形式下不被 <code>fun</code> 接受。这是一个数学终止结果；它并不承诺实际机器对每个输入都有足够的时间或内存。现在尝试该函数：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;double 21&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;double 21&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;42&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>不过，一次测试只能展示一个值。下面是一个关于每个 <code>n</code> 的断言，以及它的证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;double n = 2 * n&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;double n = 2 * n&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>化简器使用 <code>double</code> 的定义等式（<code>fun</code> 会自动登记它）和算术定律。把光标放在引理那一行上就能看到目标，如图 1.4 所示。</p>
+<figure class="fig" id="fig-01-4"><div class="fig-photo"><img src="assets/jedit-state.png" alt="光标位于 lemma double n = 2 * n 这一行。Output 面板中的 Proof state 框已勾选，面板显示：proof (prove)，goal (1 subgoal)，1. double n = 2 * n。" loading="lazy"></div><figcaption><span class="fig-num">图 1.4</span> <p>勾选 <strong>Proof state</strong> 后，Output 面板显示光标处的目标。</p>
+</figcaption></figure>
+<h3 id="first-refute">反驳</h3>
+<p>如果一个断言是错的呢？试试这个：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;double n = n * n&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;double n = n * n&quot;</span></code></pre></div>
+<p>使用默认设置，在检查后该行旁边应出现蓝色<strong>i</strong>。将光标置于该行（图1.5）：Isabelle/jEdit 已使用<strong>Quickcheck</strong>自动对较小值尝试该声明，并找到了一个使其失败的例子。你也可以自行运行 Quickcheck，这也是本系列理论文件所做的事情：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  quickcheck">复制</button></div><pre class="isa-body"><code>  <span class="isa-cmd">quickcheck</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  n = 1
+Evaluated terms:
+  double n = 2
+  n * n = 1</code></pre></div>
+<figure class="fig" id="fig-01-5"><div class="fig-photo"><img src="assets/jedit-counterexample.png" alt="光标位于 lemma double n = n * n 这一行。Output 面板显示：Auto Quickcheck found a counterexample: n = 1。Evaluated terms: double n = 2，n * n = 1。" loading="lazy"></div><figcaption><span class="fig-num">图 1.5</span> <p>默认情况下，Isabelle/jEdit 会在新引理上自动尝试 Quickcheck。此处它报告 <code>n = 1</code>: <code>double 1</code> 为 2，但 <code>1 * 1</code> 为 1。</p>
+</figcaption></figure>
+<p>注意该论断对 <code>n = 0</code> 和 <code>n = 2</code> 成立。仅尝试这两个值的测试者会遗漏错误。此处使用的穷举 Quickcheck 测试者系统地尝试小值，这就是它找到 <code>n = 1</code> 的原因。如果在搜索范围内未找到反例，该论断仍未得证。找到一个反例足以反驳全称论断；未找到一个反例不足以证明它。</p>
+<p>该引理在自然数上为假，因此从标准假设出发不存在可靠的证明。使用 <code>oops</code> 完成它，该操作在不将声明记录为已证定理的情况下放弃证明。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>如果你还是试了 <code>by simp</code> 会怎样？证明会失败，Isabelle 会显示它没能证明的东西：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;double n = n * n&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. n + n = n * n</span></code></pre></div>
+<p>化简器展开了 <code>double</code>，但未能完成剩下的证明目标。这里的原因是 <code>n + n = n * n</code> 在 <code>n = 1</code> 时为假。单凭 <code>simp</code> 失败无法说明命题为假，真的命题也可能需要其他证明。Isabelle/jEdit 会用三种方式提示失败：边栏中的红色 <strong>!</strong>、<code>by simp</code> 下方的红色下划线，以及 Output 面板中的消息（图 1.6）。消息中的 ⌂ 指它对应的文本位置，在 Isabelle/jEdit 中可以点击跳转。用 <code>oops</code> 替换 <code>by simp</code> 后，错误就会消失。</p>
+<figure class="fig" id="fig-01-6"><div class="fig-photo"><img src="assets/jedit-error.png" alt="lemma double n = n * n 下面的 by simp 这一行背景为红色，边栏里有红色错误图标。Output 面板在红色背景上显示：Failed to finish proof，goal (1 subgoal)，1. n + n = n * n。" loading="lazy"></div><figcaption><span class="fig-num">图 1.6</span> <p>一次失败的证明。错误附在失败的命令上，并显示剩下的目标。它上面那行 <code>theorem double ?n = ?n * ?n</code> 并不表示证明成功了：Isabelle/jEdit 并行地检查证明，在证明完成之前就先记下了陈述。红色的消息才是关键。</p>
+</figcaption></figure>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>你现在已看到在 Isabelle 中贯穿本系列你将做的三件事：<strong>使用<code>value</code>进行计算</strong>，<strong>使用<code>lemma … by …</code>进行证明</strong>，以及使用<strong>Quickcheck</strong>搜索反例。一般声明的完整证明涵盖该声明中的所有情况。反例则反驳它。此处展示的<code>value</code>和 Quickcheck 结果是计算结果，而非内核检查的证明。</p>
+</div>
+<p>用 <strong>File → Save</strong>（文件 → 保存）保存这个理论（<kbd>Ctrl</kbd>+<kbd>S</kbd>，macOS 上是 <kbd>Cmd</kbd>+<kbd>S</kbd>）。</p>
+<span class="section-anchor" id="series"></span>
+<div class="section-header"><span class="section-num">8</span><h2>本系列的学习方式</h2></div>
+<p>本系列分为四个部分：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>部分</th>
+<th>模块</th>
+<th>你会学到什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一、基础</td>
+<td>1–5</td>
+<td>形式化方法；命题逻辑和谓词逻辑；集合、关系和函数；归纳与递归</td>
+</tr>
+<tr>
+<td>二、形式化证明</td>
+<td>6–7</td>
+<td>什么是证明；纸上的和 Isabelle 中的自然演绎</td>
+</tr>
+<tr>
+<td>三、Isabelle/HOL 实践</td>
+<td>8–11</td>
+<td>HOL 中的函数式编程；证明自动化；Isar 结构化证明；深入归纳</td>
+</tr>
+<tr>
+<td>四、验证</td>
+<td>12–14</td>
+<td>验证函数式程序；用状态机和不变式为系统建模；一个经过验证的编译器</td>
+</tr>
+</tbody>
+</table></div>
+<p>第一部分主要是纸上的数学，每个想法都包含一个定义、一个工作示例，以及一个<strong>在 Isabelle 中检查</strong>框，在其中计算示例、测试声明或检查证明。模块 6 在纸上进行证明；从模块 7 开始，Isabelle 占据主导。<a href="../math/index_ZH.html">数学基础</a>系列涵盖逻辑、集合和通用计算的证明，并提供更多练习；该系列从这些主题中提取形式化方法所需的内容，并进一步探讨机器检查的证明。</p>
+<p>每一页上：</p>
+<ul>
+<li><strong>定义</strong>、<strong>例</strong>和<strong>事实</strong>框都有编号，方便后面的模块引用。</li>
+<li>Isabelle 文本以 Isabelle 自身的字体显示，并带有 <strong>Copy</strong> 按钮。下方显示的每个输出块
+由 Isabelle2026 在前面各代码块提供的上下文中运行相应文本产生。若你的屏幕显示不同，请检查文本、前面的命令、Isabelle 版本和设置。反例及证明器搜索等消息可能因运行而异。标有<strong>示例运行</strong>的输出展示其中一次运行。标有<strong>故意失败</strong>的代码块特意展示错误。</li>
+<li><strong>练习</strong>分为三个层次：★ 检查理解，★★ 运用所学，★★★ 挑战自我。每道练习都有完整的解答，默认折叠；先自己做，再看解答。每个解答中的 Isabelle 内容都经过了 Isabelle 的检查。</li>
+<li>每个模块末尾有一组简短的自测题，检查主要概念。</li>
+</ul>
+<p>本系列的所有 Isabelle 文本也打包在一个下载文件 <a href="formal-methods-theories.zip">formal-methods-theories.zip</a> 中：每个模块有一个理论 <code>Module_NN.thy</code>，以及包含该模块练习解答的 <code>Module_NN_Solutions.thy</code>。解压后，在 Isabelle/jEdit 中打开任意一个理论，就能重放对应的模块。</p>
+<p>每个模块连同练习需要两到四个小时。请按顺序学习：每个模块都要用到前面的模块。如果卡住了，问题排查页面列出了 Isabelle 的常见消息及其原因；Isabelle 社区也会在 isabelle-users 邮件列表和 Zulip 聊天室中回答问题。</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">9</span><h2>小结</h2></div>
+<ul>
+<li>抽样测试通过，仍可能在未经测试的情形中出现故障。穷尽测试可以覆盖
+小有限域，但这通常不切实际。形式化验证在数学模型及其假设所覆盖的案例中检查声明的性质。</li>
+<li>形式化方法使用<strong>形式语言</strong>、<strong>语义</strong>和严格检查，例如
+<strong>证明系统</strong>或有限状态模型探索。</li>
+<li><strong>规约</strong>说明系统必须做什么。<strong>验证</strong>表明实现满足规约；<strong>确认</strong>检查规约是否正是想要的东西。</li>
+<li>测试、模型检测、SAT 与 SMT 求解以及交互式定理证明在表达力和自动化之间各有取舍；Isabelle 把定理证明器和自动化工具结合在一起。</li>
+<li>在如 Isabelle 这样的 <strong>LCF 风格</strong>证明器中，证明工具通过<strong>内核</strong> 构建定理。
+这保护了普通证明免受证明搜索错误的影响，假设规则与假设是可靠的，且可信计算基运行正确。公理、许可和预言机需要单独审查。</li>
+<li>一个 Isabelle <strong>理论</strong> <code>T</code> 存在于文件 <code>T.thy</code> 中，并声明其导入的理论；我们的
+第一个理论导入 <code>Main</code>。其主体位于 <code>begin</code> 和 <code>end</code> 之间。<code>value</code> 进行计算，<code>lemma … by simp</code> 尝试证明，<code>quickcheck</code> 搜索反例，而 <code>oops</code> 放弃证明。失败的证明尝试或无结果的反例搜索均不能确立论断。</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">10</span><h2>练习</h2></div>
+<div class="exercise" id="ex-1-1"><div class="ex-label"><span class="ex-num">练习 1.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">验证还是确认？</span></div>
+<p>对下面每项活动，说明它是验证还是确认，并说明理由。</p>
+<ol>
+<li>向客户展示一个列车时刻表系统的规约对下周的列车意味着什么，并问“这是你的意思吗？”。</li>
+<li>在 Isabelle 中证明排序函数始终返回包含相同元素的已排序列表，
+每个出现次数相同。</li>
+<li>发现“对成绩排序”本应写成“最高分排在最前面”。</li>
+<li>运行模型检测器，表明一个协议设计的任何可达状态都不违反它的安全性质。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><strong>确认</strong>：它检查规约描述的是否是客户想要的东西。</li>
+<li><strong>验证</strong>：它表明实现满足它的规约。</li>
+<li><strong>确认</strong>：它修正的是规约本身。</li>
+<li><strong>验证</strong>：表明设计满足既定性质。（将设计与
+属性。模型是否表示预期系统以及属性是否正确是验证问题。）</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-1-2"><div class="ex-label"><span class="ex-num">练习 1.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">选哪种方法？</span></div>
+<p>对于下面每项任务，第 1.3 节表格中的哪种方法最合适？</p>
+<ol>
+<li>检查一个 32 位乘法器电路在每一对输入上都与参考设计一致。</li>
+<li>检查一个包含三个处理器的缓存协议的有限状态模型，其存储容量有界，并
+消息队列，以证明两个处理器永远不会同时拥有同一地址的写权限。</li>
+<li>证明一个排序函数对任意长度的列表都正确。</li>
+<li>给一个解析器输入成千上万个随机输入，快速找出错误。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><strong>SAT 或 SMT 求解</strong>是此类<strong>等价性检查</strong> 的标准方法。询问是否
+任何一对固定大小的输入都会使电路产生分歧。不可满足的结果确立了电路模型中的一致性。大型乘法器仍然可能是困难的求解器实例。</li>
+<li><strong>模型检测。</strong> 所述界限使这成为一个有限状态问题。检查一个三处理器
+模型本身并不能为任意数量的处理器确立正确性。</li>
+<li><strong>交互式定理证明</strong> 适用于无界列表长度。归纳法是证明性质、不变式、可达性、精化、形式化规约、化简、赋值、合一、本征变元、条件、量词、否定对应关系的标准方法，且必须把每个占位符原样保留一次，不能增加、漏掉或混淆。
+证明此类主张；Module 5 和 Part III 教授此内容。某些验证工具也能自动化特定的归纳证明。</li>
+<li><strong>测试</strong>，具体来说是随机测试。若对输入检查的是
+陈述性质。你需要一种识别失败的方法，例如崩溃、拒绝有效输入或与参考解析器不一致。仅靠随机输入无法告诉你输出是否正确。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-1-3"><div class="ex-label"><span class="ex-num">练习 1.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">测试要花多长时间？</span></div>
+<p>一个函数接受三个 32 位整数。它有多少种不同的输入？如果每秒测试 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> 个，全部测完需要多长时间？取一年约为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3.15</mn><mo>×</mo><msup><mn>10</mn><mn>7</mn></msup></mrow><annotation encoding="application/x-tex">3.15 \times 10^7</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3.15</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">7</span></span></span></span></span></span></span></span></span></span></span> 秒。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>共有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>32</mn></msup><mo>⋅</mo><msup><mn>2</mn><mn>32</mn></msup><mo>⋅</mo><msup><mn>2</mn><mn>32</mn></msup><mo>=</mo><msup><mn>2</mn><mn>96</mn></msup><mo>≈</mo><mn>7.9</mn><mo>×</mo><msup><mn>10</mn><mn>28</mn></msup></mrow><annotation encoding="application/x-tex">2^{32} \cdot 2^{32} \cdot 2^{32} = 2^{96} \approx 7.9 \times 10^{28}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">32</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">32</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">32</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">96</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">7.9</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">28</span></span></span></span></span></span></span></span></span></span></span></span> 种输入。每秒测试 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> 个，需要约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7.9</mn><mo>×</mo><msup><mn>10</mn><mn>19</mn></msup></mrow><annotation encoding="application/x-tex">7.9 \times 10^{19}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">7.9</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">19</span></span></span></span></span></span></span></span></span></span></span></span> 秒，即 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7.9</mn><mo>×</mo><msup><mn>10</mn><mn>19</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>3.15</mn><mo>×</mo><msup><mn>10</mn><mn>7</mn></msup><mo stretchy="false">)</mo><mo>≈</mo><mn>2.5</mn><mo>×</mo><msup><mn>10</mn><mn>12</mn></msup></mrow><annotation encoding="application/x-tex">7.9 \times 10^{19} / (3.15 \times 10^7) \approx 2.5 \times 10^{12}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">7.9</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">19</span></span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">3.15</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">7</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2.5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">12</span></span></span></span></span></span></span></span></span></span></span></span> 年，大约 2.5 万亿年。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-1-4"><div class="ex-label"><span class="ex-num">练习 1.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">三倍</span></div>
+<p>在你的理论中加入一个函数 <code>triple :: &quot;nat ⇒ nat&quot;</code>，满足 <code>triple n = n + n + n</code>。用 <code>value</code> 计算 <code>triple 14</code>。然后用 <code>by simp</code> 证明两条引理：<code>triple n = 3 * n</code> 和 <code>triple n = double n + n</code>。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun triple :: &quot;nat ⇒ nat&quot; where
+  &quot;triple n = n + n + n&quot;
+
+value &quot;triple 14&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> triple :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;triple n = n + n + n&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;triple 14&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;42&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;triple n = 3 * n&quot;
+  by simp
+
+lemma &quot;triple n = double n + n&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;triple n = 3 * n&quot;</span>
+  <span class="isa-proof">by</span> simp
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;triple n = double n + n&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>两个证明都能成功，因为 <code>simp</code> 会展开 <code>triple</code> 和 <code>double</code> 的定义，然后完成算术运算。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-1-5"><div class="ex-label"><span class="ex-num">练习 1.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">一条错误的列表定律</span></div>
+<p>在 Isabelle 中，<code>xs @ ys</code> 把两个列表连接起来：<code>[1, 2] @ [3]</code> 是 <code>[1, 2, 3]</code>。有人断言 <code>rev (xs @ ys) = rev xs @ rev ys</code>。用 <code>quickcheck</code> 检验这个断言。读懂反例，推出正确的定律应该是什么，并用 <code>by simp</code> 证明它。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rev (xs @ ys) = rev xs @ rev ys&quot;
+  quickcheck
+  oops">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rev (xs @ ys) = rev xs @ rev ys&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>2</sub>]
+  ys = [a<sub>1</sub>]
+Evaluated terms:
+  rev (xs @ ys) = [a<sub>1</sub>, a<sub>2</sub>]
+  rev xs @ rev ys = [a<sub>2</sub>, a<sub>1</sub>]</code></pre></div>
+<p>当每个列表各有一个元素时，<code>rev (xs @ ys)</code> 把 <code>ys</code> 的元素放在前面，而 <code>rev xs @ rev ys</code> 保持原来的顺序。反转一个连接起来的列表时，各部分的顺序也要反过来：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rev (xs @ ys) = rev ys @ rev xs&quot;
+  by simp">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rev (xs @ ys) = rev ys @ rev xs&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>Quickcheck 把这两个元素叫做 a₁ 和 a₂：它们是某个未知元素类型中的两个不同的值。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-1-6"><div class="ex-label"><span class="ex-num">练习 1.6</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">还有什么需要信任？</span></div>
+<p>Isabelle 接受了你的证明：某个 C 函数满足它的规约。请列出至少四种在真实计算机上运行时仍可能导致这个函数行为异常的情况。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>下面任何一种都有可能，此外还有其他情况：</p>
+<ol>
+<li><strong>规约</strong>错误或不完整：它没有说出真正想要的东西（确认失败）。</li>
+<li>证明中使用的 <strong>C 语言模型</strong>与 C 标准或编译器的实际行为不同，例如在整数溢出或内存布局方面。</li>
+<li><strong>编译器</strong>存在缺陷，生成的机器码与 C 代码不匹配。一个编译器
+正确性证明，如 CompCert 中所示，可在其范围内降低此担忧；未验证的前端代码、汇编和链接仍可能重要。</li>
+<li><strong>硬件</strong>有故障，或者行为与其文档不同。</li>
+<li>定理的<strong>假设</strong>在实际中不成立，例如假设调用者传入的是有效指针，或者假设没有其他线程修改数据。</li>
+<li><strong>证明检查基础设施</strong>是不健全的或发生故障的：例如，内核存在错误，
+不一致的已添加公理、未经证实的预言机结果，或影响检查的运行时或硬件故障。经过严格审查的小型内核可降低此风险，但无法完全消除。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-1-7"><div class="ex-label"><span class="ex-num">练习 1.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">一个有错误的化简器</span></div>
+<p>假设 Isabelle 化简器（位于内核之外）存在一个 bug，使其在没有定理支持的情况下尝试将 <code>(0 :: nat)</code> 重写为 <code>1</code>。你试图通过 <code>simp</code> 证明假命题 <code>(0 :: nat) = 1</code>。假设内核、逻辑和运行时是可靠的，且未添加任何公理或预言机。化简器能否返回一个被接受的该命题的证明？解释为什么 LCF 架构至关重要。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>No. 在 LCF 风格的证明器中，化简器必须通过内核操作构造原始目标的定理，仅替换其工作数据中的文本是不够的，从 <code>0</code> 到 <code>1</code> 的证明生成重写需要一个证明该等式的定理，而所述假设下的自然数无法由健全规则提供。</p>
+<p>症状的具体表现取决于 bug：化简器可能失败、抛出错误、陷入循环或返回无关定理。它不能返回证明错误原始目标的内核定理。Isabelle 还检查证明方法的结果是否确立了其被要求证明的目标。这就是为什么证明搜索中的错误不一定成为已接受证明中的错误。</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">11</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>一个函数已经对照它的规约经过了形式化验证。这能保证什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">这个函数没有任何种类的错误</button></li><li><button type="button" class="quiz-opt" data-i="1">在证明所覆盖的范围内，其假设下，该模型满足所述规范</button></li><li><button type="button" class="quiz-opt" data-i="2">它能通过客户将来编写的所有测试</button></li><li><button type="button" class="quiz-opt" data-i="3">规约说的正是客户想要的</button></li></ol><div class="quiz-expl" hidden>保证的范围涵盖已证明的断言及其假设，并依赖于正确的证明检查。规范与模型是否描述预期系统属于验证。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>迪杰斯特拉说测试能做什么、不能做什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">只要测试足够多，就能表明错误不存在</button></li><li><button type="button" class="quiz-opt" data-i="1">它能表明错误存在，但永远不能表明错误不存在</button></li><li><button type="button" class="quiz-opt" data-i="2">它找不到证明会漏掉的错误</button></li><li><button type="button" class="quiz-opt" data-i="3">它是一种形式化方法</button></li></ol><div class="quiz-expl" hidden>这是关于测试选定案例的警告：通过它们并不能确立未测试案例的正确性。对于某些小型有限域，穷举测试是可能的，正如第 1.1 节所解释的那样。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>下面哪项活动属于确认？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">证明一个实现满足它的规约</button></li><li><button type="button" class="quiz-opt" data-i="1">对照安全性质对一个协议进行模型检测</button></li><li><button type="button" class="quiz-opt" data-i="2">和用户一起评审规约，看它是否说出了他们的需要</button></li><li><button type="button" class="quiz-opt" data-i="3">运行内核的推理规则</button></li></ol><div class="quiz-expl" hidden>确认问的是“我们构建的是否是正确的产品？”，所以它对照真正的需要来检查规约。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>当 Isabelle 的证明工具构造普通证明时，哪个组件强制执行推理规则？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">化简器</button></li><li><button type="button" class="quiz-opt" data-i="1">Sledgehammer 以及它调用的自动证明器</button></li><li><button type="button" class="quiz-opt" data-i="2">实现推理规则的内核</button></li><li><button type="button" class="quiz-opt" data-i="3">编辑器</button></li></ol><div class="quiz-expl" hidden>证明工具通过内核操作构造定理。信任还取决于逻辑、假设和运行时；公理、许可或神谕并非由该架构使其为真。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>为什么 Isabelle 需要 <code>value &quot;2 + 3 :: nat&quot;</code> 中的类型标注？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>value</code> 只适用于自然数</button></li><li><button type="button" class="quiz-opt" data-i="1">在此表达式中，没有其他上下文为求值固定具体的数字类型</button></li><li><button type="button" class="quiz-opt" data-i="2">标注能让求值更快</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>nat</code> 会启动化简器</button></li></ol><div class="quiz-expl" hidden>像<code>2</code>这样的数值存在于许多类型中（自然数、整数、实数等）。类型注解选择一个；在其他表达式中，上下文可能已经确定了类型。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Quickcheck 对一条引理报告“found a counterexample: n = 1”。你能得出什么结论？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">这条引理是对的，只是 <code>simp</code> 证明不了</button></li><li><button type="button" class="quiz-opt" data-i="1">这条引理在 <code>n = 1</code> 时成立</button></li><li><button type="button" class="quiz-opt" data-i="2">这条引理是错的：当 <code>n = 1</code> 时陈述不成立</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle 有错误</button></li></ol><div class="quiz-expl" hidden>反例是使陈述为假的值，所以任何证明都不可能成功。修正陈述，或者用 <code>oops</code> 放弃它。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="1"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="index_ZH.html"><span class="mnav-label">&larr; 全部模块</span><span class="mnav-title">用 Isabelle 学形式化方法</span></a><a class="mnav next" href="module_02_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 2：命题逻辑</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

@@ -1,0 +1,1007 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Senior Lecturer in Computer Science at Lancaster University. Research in Model Driven Engineering, Model Based Systems Engineering, safety assurance, and AI-augmented software engineering.">
+      
+      
+        <meta name="author" content="Ran Wei">
+      
+      
+        <link rel="canonical" href="https://wrwei.github.io/tutorials/formal-methods/model-verification/zh/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Isabelle 模型验证 - Ran Wei (Will)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#isabelle" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="Ran Wei (Will)" class="md-header__button md-logo" aria-label="Ran Wei (Will)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ran Wei (Will)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Isabelle 模型验证
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to cream mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to cream mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="cream" data-md-color-primary="deep-orange" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 21h18v-2H2M20 8h-2V5h2m0-2H4v10a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-3h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Ran Wei (Will)" class="md-nav__button md-logo" aria-label="Ran Wei (Will)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Ran Wei (Will)
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../publications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../group/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Group
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    More
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    More
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../mentors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mentors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../friends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Friends & Collaborators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#start-isabelle-and-open-a-theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        启动 Isabelle 并打开理论文件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-property-and-evaluate-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        定义性质并求值
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prove-a-statement-for-every-admitted-angle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        证明所有允许的角度都满足该性质
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-state-and-an-operation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        定义状态与操作契约
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="定义状态与操作契约">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#explore-a-concrete-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        试用守卫条件
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-a-structured-proof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阅读结构化证明
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-datatypes-and-induction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使用数据类型与归纳法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prove-that-a-translation-preserves-meaning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        证明转换保持语义
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#place-isabelle-utp-in-the-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        了解 Isabelle/UTP 的作用
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-the-complete-example-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        检查完整示例会话
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        延伸阅读
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+  <div lang="zh-CN">
+    
+                  
+
+
+
+<h1 id="isabelle">Isabelle 模型验证<a class="headerlink" href="#isabelle" title="Permanent link">&para;</a></h1>
+<p><a href="../../index_ZH.html">用 Isabelle 学形式化方法</a> · <a href="exercises/">练习</a> · <a href="reference/">速查表</a> · <a href="../../../isabelle/examples/isabelle-tutorial.zip">下载全部示例</a> · <a href="../" hreflang="en">English</a></p>
+<p>本项目用 Isabelle/HOL 验证一个简单的盖子模型。你将定义角度限制，规定何时允许打开盖子，证明操作保持不变式，并检查两种模型表示之间的转换是否保持语义。</p>
+<p>本项目用到<a href="../../module_13_ZH.html#invariants">模块 13</a>中的带守卫操作和不变式。项目中的语义保持证明采用与<a href="../../module_14_ZH.html#proof">模块 14</a>的编译器正确性定理相同的思路。</p>
+<p>掌握基本编程知识即可开始。初学时请顺序阅读各节。复习时可用目录定位主题，也可查阅<a href="reference/">速查表</a>。</p>
+<h2 id="start-isabelle-and-open-a-theory">启动 Isabelle 并打开理论文件<a class="headerlink" href="#start-isabelle-and-open-a-theory" title="Permanent link">&para;</a></h2>
+<p>本指南中的示例使用 <strong>Isabelle2025-2</strong>。<a href="https://isabelle.in.tum.de/website-Isabelle2025-2/installation.html">官方安装页面</a> 提供了适用于 macOS、Windows 和 Linux 的应用程序。请在 Isabelle/jEdit 中打开理论文件，这样编辑器才能调用证明器检查文档。</p>
+<ol>
+<li>下载并解压 <a href="../../../isabelle/examples/isabelle-tutorial.zip">示例压缩包</a>。</li>
+<li>在 Isabelle/jEdit 中打开 <code>Isabelle_Tutorial.thy</code>。</li>
+<li>打开 <strong>Output</strong>（输出）面板并勾选 <strong>Proof state</strong>（证明状态）。</li>
+<li>将光标置于定义或引理处。在继续之前，阅读该命令的输出。</li>
+</ol>
+<p>压缩包还包含练习解答 <code>Exercise_Answers.thy</code> 和用于定义会话的 <code>ROOT</code> 文件。在 Isabelle/jEdit 中打开教程理论即可开始学习。要集中检查全部文件，可以构建该会话。</p>
+<p>Isabelle 用<strong>理论</strong>（theory）组织定义和证明。文件头给出理论的名称及其导入的理论。声明写在 <code>begin</code> 与 <code>end</code> 之间：</p>
+<div class="highlight"><pre><span></span><code><span class="k">theory</span><span class="w"> </span><span class="n">Isabelle_Tutorial</span>
+<span class="w">  </span><span class="kp">imports</span><span class="w"> </span><span class="n">Main</span>
+<span class="k">begin</span>
+
+<span class="c">(* Definitions and proofs belong here. *)</span>
+
+<span class="k">end</span>
+</code></pre></div>
+<p>文件必须命名为 <code>Isabelle_Tutorial.thy</code>。<code>Main</code> 提供标准 HOL 理论。请把新示例放在最后一个 <code>end</code> 之前。下载的理论文件已包含本项目的完整示例。</p>
+<p>Isabelle 在编辑时处理文档。若出现错误，应从最早失败的命令开始排查：后续失败可能仅依赖于未被接受的早期定义。<a href="https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2/doc/prog-prove.pdf">官方介绍</a> 解释了该理论结构与证明状态。</p>
+<h2 id="define-a-property-and-evaluate-examples">定义性质并求值<a class="headerlink" href="#define-a-property-and-evaluate-examples" title="Permanent link">&para;</a></h2>
+<p>HOL 是一种类型化逻辑。函数具有输入和输出类型，其数学定义描述了结果。为 0 到 90 度之间的整数角度定义谓词：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="k">definition</span><span class="w"> </span><span class="n">angle_ok</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"int ⇒ bool"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"angle_ok a ⟷ 0 ≤ a ∧ a ≤ 90"</span>
+
+<span class="kt">value</span><span class="w"> </span><span class="s">"angle_ok 60"</span>
+<span class="kt">value</span><span class="w"> </span><span class="s">"angle_ok 120"</span>
+<span class="kt">value</span><span class="w"> </span><span class="s">"angle_ok (-10)"</span>
+</code></pre></div>
+<code>int ⇒ bool</code> 表示从整数到真值的函数。<code>angle_ok a</code> 将该函数应用于 <code>a</code>。<code>⟷</code> 后的表达式精确陈述了其成立的条件。度数是我们赋予这些整数的解释；类型 <code>int</code> 本身不强制单位。</p>
+<p>三个<code>value</code>命令计算各个案例：60 是允许的，120 超出上界，−10 超出下界。它们说明了定义。一般定理将涵盖满足其前提的每个输入。</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>将其读作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x :: int</code></td>
+<td><code>x</code> 具有整数类型</td>
+</tr>
+<tr>
+<td><code>int ⇒ bool</code></td>
+<td>从整数到布尔值的函数</td>
+</tr>
+<tr>
+<td><code>f x</code></td>
+<td>将 <code>f</code> 应用于 <code>x</code></td>
+</tr>
+<tr>
+<td><code>P ∧ Q</code>, <code>P ∨ Q</code>, <code>¬ P</code></td>
+<td>合取、析取、否定</td>
+</tr>
+<tr>
+<td><code>P ⟷ Q</code></td>
+<td><code>P</code> 当且仅当 <code>Q</code> 成立</td>
+</tr>
+<tr>
+<td><code>P ⟹ Q</code></td>
+<td>由假设 <code>P</code> 得出结论 <code>Q</code></td>
+</tr>
+<tr>
+<td><code>∀x. P x</code>, <code>∃x. P x</code></td>
+<td>对每个 <code>x</code>，<code>P x</code> 成立。存在某个 <code>x</code>，使 <code>P x</code> 成立。</td>
+</tr>
+</tbody>
+</table>
+<p><code>nat</code> 表示包括零的自然数，<code>int</code> 表示所有整数，包括负整数。<code>nat</code> 类型的减法结果不会为负，因此应根据模型选择类型。<code>real</code> 表示数学上的实数。为便于证明，本项目用整数表示角度。</p>
+<p>可下载的源代码存储了 Isabelle 符号转义，例如 <code>\&lt;le&gt;</code>。Isabelle/jEdit 将它们渲染为数学符号，例如 <code>≤</code>。</p>
+<h2 id="prove-a-statement-for-every-admitted-angle">证明所有允许的角度都满足该性质<a class="headerlink" href="#prove-a-statement-for-every-admitted-angle" title="Permanent link">&para;</a></h2>
+<p><code>lemma</code> 命令陈述一个命题并要求给出证明。下面的引理直接由定义得出：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="kn">lemma</span><span class="w"> </span><span class="n">angle_guard_sound</span><span class="o">:</span>
+<span class="w">  </span><span class="kp">assumes</span><span class="w"> </span><span class="s">"angle_ok a"</span>
+<span class="w">  </span><span class="kp">shows</span><span class="w"> </span><span class="s">"0 ≤ a ∧ a ≤ 90"</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">assms</span>
+<span class="w">  </span><span class="k">unfolding</span><span class="w"> </span><span class="n">angle_ok_def</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="n">simp</span>
+</code></pre></div>
+变量<code>a</code>是任意的。该结果涵盖假设成立的所有整数。</p>
+<ul>
+<li><code>assumes</code> 引入前提。</li>
+<li><code>shows</code> 给出了所需的结论。</li>
+<li><code>using assms</code> 使前提对证明可用。</li>
+<li><code>unfolding angle_ok_def</code> 用其定义表达式替换命名谓词。</li>
+<li><code>by simp</code> 通过化简完成。</li>
+</ul>
+<p>定义<code>angle_ok</code>会生成名为<code>angle_ok_def</code>的定理。定义引入模型，引理确立该模型的一个推论。此处推论被刻意设为直接可得，以便展示证明机制。</p>
+<p>为了证明单个具体实例，该文件还包含：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="kn">lemma</span><span class="w"> </span><span class="n">sixty_is_allowed</span><span class="o">:</span>
+<span class="w">  </span><span class="s">"angle_ok 60"</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">simp</span><span class="w"> </span><span class="n">add</span><span class="o">:</span><span class="w"> </span><span class="n">angle_ok_def</span><span class="o">)</span>
+</code></pre></div>
+将证明读作一系列有理由的步骤。证明方法 <code>simp</code> 进行重写和化简；它不理解“打开盖子”的英语意图。该含义必须由你选择的定义和陈述来表示。</p>
+<h2 id="define-state-and-an-operation-contract">定义状态与操作契约<a class="headerlink" href="#define-state-and-an-operation-contract" title="Permanent link">&para;</a></h2>
+<p><strong>记录</strong>（record）把描述对象的多个属性组织在一起，每个字段都有自己的类型。这里用三个字段表示盖子的角度、是否锁住及容器是否有支撑：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="k">record</span><span class="w"> </span><span class="n">lid_state</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="n">lid_angle</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">int</span>
+<span class="w">  </span><span class="n">lid_latched</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">bool</span>
+<span class="w">  </span><span class="n">lid_supported</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">bool</span>
+
+<span class="k">definition</span><span class="w"> </span><span class="n">lid_invariant</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"lid_state ⇒ bool"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"lid_invariant s ⟷ angle_ok (lid_angle s)"</span>
+
+<span class="k">definition</span><span class="w"> </span><span class="n">may_open</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"lid_state ⇒ int ⇒ bool"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"may_open s target ⟷</span>
+<span class="s">    lid_invariant s ∧ ¬ lid_latched s ∧</span>
+<span class="s">    lid_supported s ∧ angle_ok target"</span>
+
+<span class="k">definition</span><span class="w"> </span><span class="n">set_lid_angle</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"lid_state ⇒ int ⇒ lid_state"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"set_lid_angle s target = s⦇lid_angle := target⦈"</span>
+</code></pre></div>
+<code>lid_invariant s</code> 是我们希望状态 <code>s</code> 满足的性质。<code>may_open s target</code> 是操作的守卫条件。它要求当前状态满足不变式、盖子未锁住、容器有支撑，并且目标角度在允许的范围内。</p>
+<p><code>set_lid_angle s target</code> 返回一个更改了一个字段的记录。语法 <code>s⦇lid_angle := target⦈</code> 保留其他字段。该函数是数学状态更新；守卫单独定义。</p>
+<p>下面的不变式保持定理把守卫与状态更新联系起来：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="kn">lemma</span><span class="w"> </span><span class="n">opening_preserves_invariant</span><span class="o">:</span>
+<span class="w">  </span><span class="kp">assumes</span><span class="w"> </span><span class="s">"may_open s target"</span>
+<span class="w">  </span><span class="kp">shows</span><span class="w"> </span><span class="s">"lid_invariant (set_lid_angle s target)"</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">assms</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">auto</span><span class="w"> </span><span class="n">simp</span><span class="o">:</span><span class="w"> </span><span class="n">may_open_def</span><span class="w"> </span><span class="n">lid_invariant_def</span><span class="w"> </span><span class="n">set_lid_angle_def</span><span class="o">)</span>
+</code></pre></div>
+守卫条件成立时，更新后的状态满足角度不变式。守卫检查了目标角度，更新则把该值写入角度字段。实际执行程序需要先检查守卫，再执行更新。</p>
+<p>这条定理只涉及一次瞬时状态迁移。要证明运动全程的角度合规，还需要为实际盖子、运动轨迹和跟踪轨迹的控制器建立模型并提供证据。</p>
+<h3 id="explore-a-concrete-guard">试用守卫条件<a class="headerlink" href="#explore-a-concrete-guard" title="Permanent link">&para;</a></h3>
+<p>改变输入后尝试更新，再把具体的守卫结果与上面的一般定理对照。</p>
+<p><link rel="stylesheet" href="../assets/guard.css"></p>
+<div class="isabelle-explorer" data-isabelle-explorer lang="zh-CN">
+  <p class="isabelle-explorer-intro"><strong>角度范围为 0° 至 90°。</strong> 这个浏览器演示计算守卫条件在具体输入下的结果。可下载的理论文件中包含由 Isabelle 检查的一般定理。</p>
+  <form data-guard-form>
+    <div class="isabelle-inputs">
+      <label>当前角度（度） <input name="current" type="number" min="-180" max="180" step="1" value="0" required></label>
+      <label>目标角度（度） <input name="target" type="number" min="-180" max="180" step="1" value="60" required></label>
+    </div>
+    <div class="isabelle-flags">
+      <label><input name="latched" type="checkbox"> 盖子已锁住</label>
+      <label><input name="supported" type="checkbox" checked> 容器有支撑</label>
+    </div>
+    <div class="isabelle-actions"><button type="submit">尝试打开</button><button type="button" data-guard-reset>重置示例</button></div>
+  </form>
+  <div class="isabelle-result" aria-live="polite" aria-atomic="true">
+    <p data-guard-summary>启用 JavaScript 可运行此示例，也可以在 Isabelle 中对相同的输入求值。</p>
+    <ul data-guard-checks></ul>
+    <p data-guard-effect></p>
+  </div>
+  <p>将这段表达式复制到 Isabelle 中：</p>
+  <pre><code data-guard-expression>value "may_open demo_lid 60"</code></pre>
+</div>
+<script src="../assets/guard.js" defer></script>
+
+<p>试着将目标设为 120°、锁住盖子或撤去支撑。条件为假时，演示会拒绝更新。改变输入只是在检验具体例子，定理另有一般性的证明。</p>
+<h2 id="read-a-structured-proof">阅读结构化证明<a class="headerlink" href="#read-a-structured-proof" title="Permanent link">&para;</a></h2>
+<p><strong>Isar</strong> 是 Isabelle 中用于编写带有命名假设和中间事实的证明的语言。下一个证明使推理过程显式化：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="kn">lemma</span><span class="w"> </span><span class="n">admitted_target_is_in_range</span><span class="o">:</span>
+<span class="w">  </span><span class="kp">assumes</span><span class="w"> </span><span class="n">guard</span><span class="o">:</span><span class="w"> </span><span class="s">"may_open s target"</span>
+<span class="w">  </span><span class="kp">shows</span><span class="w"> </span><span class="s">"0 ≤ target ∧ target ≤ 90"</span>
+<span class="k">proof</span><span class="w"> </span><span class="o">-</span>
+<span class="w">  </span><span class="k">have</span><span class="w"> </span><span class="n">target_allowed</span><span class="o">:</span><span class="w"> </span><span class="s">"angle_ok target"</span>
+<span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">guard</span>
+<span class="w">    </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">auto</span><span class="w"> </span><span class="n">simp</span><span class="o">:</span><span class="w"> </span><span class="n">may_open_def</span><span class="o">)</span>
+<span class="w">  </span><span class="k">from</span><span class="w"> </span><span class="n">target_allowed</span><span class="w"> </span><span class="k">show</span><span class="w"> </span><span class="o">?</span><span class="n">thesis</span>
+<span class="w">    </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">simp</span><span class="w"> </span><span class="n">add</span><span class="o">:</span><span class="w"> </span><span class="n">angle_ok_def</span><span class="o">)</span>
+<span class="k">qed</span>
+</code></pre></div>
+<code>guard</code> 命名假设。<code>have</code> 确立中间事实。<code>from</code> 选择要使用的事实，<code>show</code> 处理当前目标，<code>?thesis</code> 代表该目标。<code>qed</code> 关闭结构化证明。这种风格有助于审查者理解结论为何成立。<a href="https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2/doc/isar-ref.pdf">Isar 参考手册</a> 详细解释了命令和证明上下文。</p>
+<p>对于较大的论证，首先用通常的数学语言写出其预期步骤，然后为每个重要步骤命名并在 Isar 中证明它。非常简短的证明可以保持为单个 <code>by</code> 命令。</p>
+<h2 id="use-datatypes-and-induction">使用数据类型与归纳法<a class="headerlink" href="#use-datatypes-and-induction" title="Permanent link">&para;</a></h2>
+<p>数据类型可以明确列出可能的取值。这里的检查结果有三种，分别表示证据支持、证据反对和证据尚不足以判断：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="k">datatype</span><span class="w"> </span><span class="n">check_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Supported</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Unsupported</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Unknown</span>
+
+<span class="k">fun</span><span class="w"> </span><span class="n">permitted</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"check_result ⇒ bool"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"permitted Supported = True"</span><span class="w"> </span><span class="o">|</span>
+<span class="w">  </span><span class="s">"permitted Unsupported = False"</span><span class="w"> </span><span class="o">|</span>
+<span class="w">  </span><span class="s">"permitted Unknown = False"</span>
+
+<span class="kn">lemma</span><span class="w"> </span><span class="n">unknown_withholds</span><span class="o">:</span>
+<span class="w">  </span><span class="s">"¬ permitted Unknown"</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="n">simp</span>
+
+<span class="kn">lemma</span><span class="w"> </span><span class="n">permission_requires_support</span><span class="o">:</span>
+<span class="w">  </span><span class="s">"permitted result ⟷ result = Supported"</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">cases</span><span class="w"> </span><span class="n">result</span><span class="o">)</span><span class="w"> </span><span class="n">simp_all</span>
+</code></pre></div>
+用 <code>fun</code> 分情形定义 <code>permitted</code>。只有 <code>Supported</code> 才允许执行。遇到 <code>Unknown</code> 时先拒绝操作，但这并不表明要求已被证伪。<code>cases result</code> 分别考虑每个构造子，<code>simp_all</code> 化简得到的所有子目标。</p>
+<p>对于递归结构，归纳法使有限证明能够覆盖任意大的实例。此处 <code>step_count</code> 计算抽象序列的元素数量：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="k">fun</span><span class="w"> </span><span class="n">step_count</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"'a list ⇒ nat"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"step_count [] = 0"</span><span class="w"> </span><span class="o">|</span>
+<span class="w">  </span><span class="s">"step_count (x # xs) = Suc (step_count xs)"</span>
+
+<span class="kn">lemma</span><span class="w"> </span><span class="n">step_count_append</span><span class="o">:</span>
+<span class="w">  </span><span class="s">"step_count (xs @ ys) = step_count xs + step_count ys"</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">induction</span><span class="w"> </span><span class="n">xs</span><span class="o">)</span><span class="w"> </span><span class="n">auto</span>
+</code></pre></div>
+<code>[]</code> 是空列表，<code>x # xs</code> 在头部添加元素，<code>Suc</code> 是后继，<code>@</code> 连接列表。归纳法将证明分解为空列表情形和基于 <code>xs</code> 的性质并建立 <code>x # xs</code> 性质的步骤。</p>
+<p>这个引理说明如何计算操作序列的长度。若要证明机器人协议保持不变式，还要定义迁移关系、各迁移的守卫与效果，并对允许的步骤作归纳。</p>
+<h2 id="prove-that-a-translation-preserves-meaning">证明转换保持语义<a class="headerlink" href="#prove-that-a-translation-preserves-meaning" title="Permanent link">&para;</a></h2>
+<p>源模型与检查器可能使用不同的表示。应直接在源模型上定义要验证的性质，再另行定义转换。在这个例子中，两种表示都有角度和角度上限：</p>
+<!-- checked: Isabelle_Tutorial.thy -->
+
+<p><div class="highlight"><pre><span></span><code><span class="k">record</span><span class="w"> </span><span class="n">source_lid</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="n">source_angle</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">int</span>
+<span class="w">  </span><span class="n">source_limit</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">int</span>
+
+<span class="k">record</span><span class="w"> </span><span class="n">checker_lid</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="n">checker_angle</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">int</span>
+<span class="w">  </span><span class="n">checker_limit</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="n">int</span>
+
+<span class="k">definition</span><span class="w"> </span><span class="n">source_ok</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"source_lid ⇒ bool"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"source_ok m ⟷</span>
+<span class="s">    0 ≤ source_angle m ∧ source_angle m ≤ source_limit m"</span>
+
+<span class="k">definition</span><span class="w"> </span><span class="n">lower</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"source_lid ⇒ checker_lid"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"lower m = ⦇checker_angle = source_angle m, checker_limit = source_limit m⦈"</span>
+
+<span class="k">definition</span><span class="w"> </span><span class="n">checker_accepts</span><span class="w"> </span><span class="o">::</span><span class="w"> </span><span class="s">"checker_lid ⇒ bool"</span><span class="w"> </span><span class="kp">where</span>
+<span class="w">  </span><span class="s">"checker_accepts c ⟷</span>
+<span class="s">    0 ≤ checker_angle c ∧ checker_angle c ≤ checker_limit c"</span>
+
+<span class="kn">theorem</span><span class="w"> </span><span class="n">lower_preserves_satisfaction</span><span class="o">:</span>
+<span class="w">  </span><span class="s">"checker_accepts (lower m) ⟷ source_ok m"</span>
+<span class="w">  </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="n">simp</span><span class="w"> </span><span class="n">add</span><span class="o">:</span><span class="w"> </span><span class="n">checker_accepts_def</span><span class="w"> </span><span class="n">lower_def</span><span class="w"> </span><span class="n">source_ok_def</span><span class="o">)</span>
+</code></pre></div>
+<code>lower</code> 将源模型的字段映射到检查器的字段。对于这个映射和这两个数值谓词，定理给出等价关系。较弱的单向定理只需要说明：转换后的输入一旦被接受，源模型就满足原性质。</p>
+<p>错误的字段映射即使在校验器行为正确的情况下也可能使连接失效。该文件定义了<code>bad_lower</code>，它交换角度和极限，并证明了一个具体的反例：源角度为 120 且极限为 90 的情况是无效的，但交换后的校验器输入却通过了。在<a href="exercises/#exercise-6-find-an-invalid-translation">练习 6</a>中探索它。</p>
+<p>对于链接的工程模型，一个合适的语义保持关系可能还要纳入对象标识、参与者角色、单位、坐标系、模型版本和证据假设。关于编码的检查器输入的定理本身并不能证明解析器或数据库适配器构造了正确的输入。说明形式关系从何处开始，它保留了哪些性质，以及哪些外部假设仍然有效。</p>
+<h2 id="place-isabelle-utp-in-the-picture">了解 Isabelle/UTP 的作用<a class="headerlink" href="#place-isabelle-utp-in-the-picture" title="Permanent link">&para;</a></h2>
+<p>Isabelle/HOL 是本指南中使用的逻辑基础。<strong>Isabelle/UTP</strong> 在 HOL 之上构建，提供用于程序和建模语言的可重用语义理论。它有助于表达观测之间的关系、契约、组合与精化。<a href="https://isabelle-utp.york.ac.uk/home">Isabelle/UTP 项目</a> 及其<a href="https://isa-afp.org/entries/UTP.html">形式化证明档案条目</a> 解释了该框架。</p>
+<p>这里关于 <code>lower</code> 的定理可以直接在 HOL 中表达。当更大的开发受益于既有的语义结构和定律时，UTP 变得有用。精化陈述要明确规约、实现、观测内容和关系。关系的方向应体现所要求的行为包含关系。若要把结论用于实物系统，还需要说明观测量与实际系统之间的联系。</p>
+<p>在添加 UTP 依赖之前，先完成 HOL 练习。它们确立了可迁移的习惯：精确的类型、显式的假设、小型可复用的引理以及对结果的清晰解释。</p>
+<h2 id="check-the-complete-example-session">检查完整示例会话<a class="headerlink" href="#check-the-complete-example-session" title="Permanent link">&para;</a></h2>
+<p>进入解压后的示例目录并运行：</p>
+<div class="highlight"><pre><span></span><code>/path/to/isabelle<span class="w"> </span>build<span class="w"> </span>-D<span class="w"> </span>.
+</code></pre></div>
+<p><code>ROOT</code> 定义了 <code>Isabelle_Web_Tutorial</code> 会话并列出所有理论。构建过程同时检查教程与所有习题解答。修改定义后需重新运行并检查受影响的证明。<a href="../../../isabelle/examples/proof-status.json">证明检查记录</a></p>
+<p>当证明失败时，首先询问该命题是否为真，然后检查类型、可用假设以及需要展开的定义，使用<a href="reference/">速查表</a>中的证明方法和常见错误，并通过<a href="exercises/">练习</a>进行练习。</p>
+<h2 id="further-reading">延伸阅读<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2/doc/prog-prove.pdf">Isabelle/HOL 中的编程与证明</a>：类型与定义、化简、归纳、逻辑与结构化证明。</li>
+<li><a href="https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2/doc/isar-ref.pdf">Isabelle/Isar 参考手册</a>。可查阅命令和证明语言。</li>
+<li><a href="https://isabelle.in.tum.de/website-Isabelle2025-2/documentation.html">Isabelle2025-2 文档</a>: 安装、IDE、代码生成与证明工具。</li>
+<li><a href="https://isabelle-utp.york.ac.uk/home">Isabelle/UTP</a>：在 HOL 基础之后的语义理论工程。</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+  </div>
+
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/wrwei" target="_blank" rel="noopener" title="GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/rwei/" target="_blank" rel="noopener" title="LinkedIn" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:r.wei5@lancaster.ac.uk" target="_blank" rel="noopener" title="Email" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://scholar.google.com/citations?user=HY8KkDAAAAAJ&hl=en" target="_blank" rel="noopener" title="Google Scholar" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m48 195.8 209.2 86.1c9.8 4 20.2 6.1 30.8 6.1s21-2.1 30.8-6.1l242.4-99.8c9-3.7 14.8-12.4 14.8-22.1s-5.8-18.4-14.8-22.1L318.8 38.1c-9.8-4-20.2-6.1-30.8-6.1s-21 2.1-30.8 6.1L14.8 137.9C5.8 141.6 0 150.3 0 160v296c0 13.3 10.7 24 24 24s24-10.7 24-24zm48 71.7V384c0 53 86 96 192 96s192-43 192-96V267.4l-142.9 58.9c-15.6 6.4-32.2 9.7-49.1 9.7s-33.5-3.3-49.1-9.7L96 267.4z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.top", "navigation.footer", "navigation.expand", "search.highlight", "search.suggest", "content.tooltips"], "search": "../../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

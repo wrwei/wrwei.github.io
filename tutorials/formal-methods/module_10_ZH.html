@@ -1,0 +1,1584 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 10：用 Isar 编写结构化证明 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="写出读者能逐行理解、Isabelle 能逐步检查的证明。用 Isar 表达每一步，传递事实，用等式和不等式链推理，并把证明拆分为不同情形与归纳步骤。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="10" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 10</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 10 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html" class="active"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_10_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#why"><span class="num">1</span><span class="side-t">为什么需要结构化证明</span></a><a href="#shape"><span class="num">2</span><span class="side-t">Isar 证明的结构</span></a><a href="#facts"><span class="num">3</span><span class="side-t">传递事实</span></a><a href="#calc"><span class="num">4</span><span class="side-t">计算推理</span></a><a href="#cases"><span class="num">5</span><span class="side-t">情形分析</span></a><a href="#induction"><span class="num">6</span><span class="side-t">用命名情形做归纳</span></a><a href="#translate"><span class="num">7</span><span class="side-t">从纸上证明和 apply 脚本到 Isar</span></a><a href="#errors"><span class="num">8</span><span class="side-t">Isar 证明失败时</span></a><a href="#summary"><span class="num">9</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第三部分 · Isabelle/HOL 实践</div>
+      <h1 class="module-title"><span class="title-n">模块 10</span>用 Isar 编写结构化证明</h1>
+      <p class="module-lead">写出读者能逐行理解、Isabelle 能逐步检查的证明。用 Isar 表达每一步，传递事实，用等式和不等式链推理，并把证明拆分为不同情形与归纳步骤。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 220 分钟</span><span class="chip chip-needs">开始之前：模块 1–9，尤其是模块 5（归纳）、模块 7（Isabelle 中的规则）和模块 9（自动化）</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>用 assume、fix、have 和 show 把证明写成 proof … qed 块</li><li>用 then、from、with、using、note、moreover 和 ultimately 在步骤之间传递事实</li><li>用 also、finally 和 … 证明等式链和不等式链</li><li>把证明拆分成若干情形，并用命名情形、?case 和归纳假设写出归纳证明</li><li>把自然演绎证明和 apply 脚本改写成 Isar，并根据 Isabelle 的消息修复 Isar 证明</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="why"></span>
+<div class="section-header"><span class="section-num">1</span><h2>为什么需要结构化证明</h2></div>
+<p>在模块 7 中，你用 <code>apply</code> 步骤构造证明，一次应用一条规则；在模块 9 中，你让自动化工具一次证明整个目标（goal）。两种做法都行得通，但也都有一个弱点，证明一旦超过几行，这个弱点就会显露出来。下面是一个模块 7 风格的证明。读一读它，然后问问自己：第四步之后，什么是成立的？</p>
+<p>这个陈述与访问控制有关：如果每个管理员都是员工，并且存在一个管理员，那么存在一个员工。<code>∀u. admin u ⟶ staff u</code> 读作“对每个用户 u，如果 u 是管理员，那么 u 是员工”。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;
+  apply (rule impI)
+  apply (rule impI)
+  apply (erule exE)
+  apply (rule exI)
+  apply (erule allE)
+  apply (erule mp)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule exE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>Isabelle 接受这个脚本。但脚本记录的是 Isabelle 应该<strong>做什么</strong>，而不是什么<strong>为真</strong>。<code>exI</code> 选的是哪个用户？<code>erule allE</code> 拆开的是哪个假设？答案都在证明状态（proof state）里，而证明状态并不在文本中：要读懂这个脚本，你得在 Isabelle 中重放它，并查看每一行之后的状态。以后维护这个证明的人也是一样。如果库中的某处改动使某一步留下的子目标（subgoal）换了顺序，后面的某一步就会失败，失败的地方离原因很远，而脚本丝毫看不出原本的意图是什么。</p>
+<p>下面是用 Isar 证明的同一个定理：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;
+proof (intro impI)
+  assume all: &quot;∀u. admin u ⟶ staff u&quot;
+  assume &quot;∃u. admin u&quot;
+  then obtain a where &quot;admin a&quot; by blast
+  with all have &quot;staff a&quot; by blast
+  then show &quot;∃u. staff u&quot; by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;</span>
+<span class="isa-proof">proof</span> (intro impI)
+  <span class="isa-proof">assume</span> all: <span class="isa-inner">&quot;∀u. admin u ⟶ staff u&quot;</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃u. admin u&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;admin a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> all <span class="isa-proof">have</span> <span class="isa-inner">&quot;staff a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃u. staff u&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p>这些关键字你都还没有学过，但多半照样能读懂这个证明，因为它说出了每一步成立的是什么。它就是纸上的证明，一行对一行：“假设每个管理员都是员工，并且存在一个管理员。把其中一个管理员叫作 a。由第一个假设，a 是员工。所以存在一个员工。”</p>
+<p><strong>Isar</strong>是 Isabelle 用来写这种<strong>结构化证明</strong>（structured proof）的语言，它的名字是 Intelligible semi-automated reasoning（可理解的半自动推理）的缩写。Isar 证明是由陈述组成的文本。每一步断言一个事实，Isabelle 检查这个断言确实能由前面的内容推出，通常只需简短地调用一下自动化工具，例如 <code>by blast</code>。这样的设计带来了三点好处。</p>
+<ul>
+<li><strong>不用运行就能读懂证明。</strong> 事实都写在文本里，而不是藏在证明状态中。</li>
+<li><strong>出错的步骤会在出错的地方被标出来。</strong> 它的陈述告诉你原本想证明的是什么，所以你知道该修复什么。</li>
+<li><strong>它和纸上的证明相对应。</strong> 模块 6 的自然演绎（natural deduction）证明和模块 5 的归纳证明，几乎可以一行对一行地改写成 Isar（第 10.7 节）。</li>
+</ul>
+<p>Isabelle 自带的教程《Programming and Proving in Isabelle/HOL》建议用 Isar 写较大的证明，本系列此后较长的证明也都用 Isar 来写。<strong>apply 脚本</strong>（apply script）仍然适合一步一步地探索一个目标，而简短的证明仍然写成 <code>by simp</code> 或 <code>by auto</code>。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>apply 脚本</th>
+<th>Isar 证明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每一行说的是</td>
+<td>下一步应用哪个方法</td>
+<td>下一步哪个事实成立</td>
+</tr>
+<tr>
+<td>要读懂它，你需要</td>
+<td>Isabelle，以便查看每个状态</td>
+<td>文本本身</td>
+</tr>
+<tr>
+<td>它的形状</td>
+<td>一串步骤</td>
+<td>嵌套的块，像程序一样</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>apply 脚本告诉 Isabelle 对目标做什么。Isar 证明告诉读者每一步什么为真，而 Isabelle 检查每一个断言。</p>
+</div>
+<span class="section-anchor" id="shape"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Isar 证明的结构</h2></div>
+<p>Isar 证明由少数几个命令构成。本节先在逻辑的小例子上介绍这些命令，好让你专心看清结构，然后再把它们用在第一个来自编程的函数上。</p>
+<h3 id="shape-blocks">证明块</h3>
+<p>你已经知道完成一条引理的两种方式：一个单独的步骤 <code>by method</code>，以及以 <code>done</code> 结尾的 apply 脚本。Isar 增加了第三种方式，即证明块：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag">未检查</span><button type="button" class="copy-btn" data-copy="lemma &quot;statement&quot;
+proof method
+  steps
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;statement&quot;</span>
+<span class="isa-proof">proof</span> method
+  steps
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>proof</code> 后面的证明方法（proof method）对目标走出第一步，就像 <code>apply</code> 那样。然后，<code>proof</code> 和 <code>qed</code> 之间的步骤证明剩下的部分，最后由 <code>qed</code> 关闭这个块。</p>
+<div class="box box-definition"><div class="box-label">定义 10.1<span class="box-title">证明块</span></div>
+<p><strong>证明块</strong>（proof block）<code>proof m … qed</code> 证明紧挨在它前面陈述的目标。<strong>初始方法</strong>（initial method）m 把这个目标变成若干<strong>待证目标</strong>（pending goal）。块中的步骤确立事实，并解决这些待证目标；所有待证目标都解决之后，<code>qed</code> 关闭这个块。块中的每个断言都需要自己的证明，这个证明同样要么是一个单独的步骤 <code>by m</code>，要么是一个证明块，所以块可以嵌套。</p>
+</div>
+<p>以 A ∧ B ⟶ B ∧ A 为例，你在模块 6 中手工证明过这个公式，在模块 7 中又用 <code>apply</code> 证明过它。先陈述它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A</code></pre></div>
+<p>用模块 7 中讲过的蕴涵规则开始这个块：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="proof (rule impI)">复制</button></div><pre class="isa-body"><code><span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<p>现在目标说的是：假设 A ∧ B，证明 B ∧ A。箭头 ⟹ 是 Isabelle 自己的蕴涵，你在模块 7 中见过它。在纸上的证明中，你接下来会写“假设 A ∧ B”。在 Isar 中也是这样：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  assume ab: &quot;A ∧ B&quot;">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+this:
+  A ∧ B
+
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<p><code>assume</code> 把这个假设加入证明，并把它命名为 <code>ab</code>。证明状态把它列在 <code>this:</code> 下面，<code>this</code> 就是最近得到的事实。目标没有变化：假设本身什么也没有证明，它只是你可以使用的东西。现在断言结论：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  show &quot;B ∧ A&quot;">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. B ∧ A</code></pre></div>
+<p><code>show</code> 陈述一个断言，用它来解决一个待证目标。和引理一样，这个断言需要证明，证明状态把它显示为一个单独的目标。把假设交给 <code>blast</code>，用 <code>blast</code> 证明它，然后关闭这个块：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    using ab by blast
+qed">复制</button></div><pre class="isa-body"><code>    <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>using ab</code> 把事实 <code>ab</code> 交给 <code>blast</code>；第 10.3.3 节会解释为什么必须这样做。<code>show</code> 的证明成功之后，Isabelle 用 <code>show</code> 得到的事实解决待证目标，于是 <code>qed</code> 发现已经没有什么要做的了。这之所以行得通，是因为 <code>ab</code> 正是目标的前提（premise）A ∧ B。<code>assume</code> 必须与目标的某个前提相符：如果假设别的东西，最后的 <code>show</code> 就会失败（第 10.8 节）。</p>
+<div class="callout note"><div class="callout-label">须知</div>
+<p>每个证明状态的第一行都给出 Isabelle 当前所处的<strong>模式</strong>（mode），它告诉你接下来可以写什么。<code>proof (prove)</code>：已经陈述了一个断言（<code>lemma</code>、<code>have</code>、<code>show</code>），接下来是它的证明。<code>proof (state)</code>：你在一个块中，可以做假设、提出断言，或者关闭这个块。<code>proof (chain)</code>：已经为下一个断言取好了事实（第 10.3 节）。</p>
+</div>
+<h3 id="shape-have">中间步骤：have</h3>
+<p>纸上的证明很少一步就跳到结论：它要经过一些中间事实才到达结论。<code>have</code> 陈述这样一个事实，并给出它自己的证明，然后把它加入证明，供后面的步骤使用。与 <code>show</code> 不同，<code>have</code> 不影响待证目标。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  have b: &quot;B&quot; using ab by blast
+  have a: &quot;A&quot; using ab by blast
+  show &quot;B ∧ A&quot; using b a by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">have</span> a: <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">using</span> b a <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p>两个 <code>have</code> 各有一个名字 <code>b</code> 和 <code>a</code>，<code>show</code> 用到了这两个事实。这个证明读起来和纸上的一样：由 A ∧ B 得到 B，也得到 A，所以 B ∧ A。</p>
+<h3 id="shape-nested">嵌套的块与 next</h3>
+<p><code>have</code> 或 <code>show</code> 的证明本身也可以是一个块。这里，结论 B ∧ A 用合取规则来证明，它留下两个目标：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  show &quot;B ∧ A&quot;
+  proof (rule conjI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span>
+  <span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. B
+ 2. A</code></pre></div>
+<p>两个目标各用一个 <code>show</code> 来证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    show &quot;B&quot; using ab by blast
+  next
+    show &quot;A&quot; using ab by blast
+  qed
+qed">复制</button></div><pre class="isa-body"><code>    <span class="isa-proof">show</span> <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">show</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>show</code> 可解决其块中任何待证目标，而不仅是第一个：Isabelle 会寻找由所示事实解决的目标。<code>next</code> 分隔不同目标的证明。它关闭块的当前部分并打开一个新块，因此对一个目标所做的假设在下一个目标中不可用。此处内部块中未假设任何内容，因此 <code>next</code> 可省略。在下面的案例分析与归纳模式（第 10.5 节和第 10.6 节）中，使用它来分隔案例上下文。图 10.1 展示了此证明的结构。</p>
+<figure class="fig" id="fig-10-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" width="760" height="350" role="img"><title>Isar 证明的块结构</title><defs><marker id="fig-10-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="44" y="49" width="330" height="252" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="364" y="65" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#2563EB" text-anchor="end">块 1</text><rect x="67.652" y="133" width="300" height="140" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="359.652" y="149" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="end">块 2</text><line x1="114.782" y1="203" x2="359.652" y2="203" stroke="#15803D" stroke-width="1.2" stroke-dasharray="5 4"/><text x="60.0" y="40" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">lemma &quot;A ∧ B ⟶ B ∧ A&quot;</text><text x="60.0" y="68" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">proof (rule impI)</text><text x="75.652" y="96" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">assume ab: &quot;A ∧ B&quot;</text><text x="75.652" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">show &quot;B ∧ A&quot;</text><text x="75.652" y="152" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">proof (rule conjI)</text><text x="91.304" y="180" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">show &quot;B&quot; using ab by blast</text><text x="75.652" y="208" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">next</text><text x="91.304" y="236" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">show &quot;A&quot; using ab by blast</text><text x="75.652" y="264" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">qed</text><text x="60.0" y="292" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">qed</text><circle cx="30" cy="92" r="4" fill="#6D28D9" stroke="#6D28D9" stroke-width="1"/><line x1="30" y1="92" x2="71.652" y2="92" stroke="#6D28D9" stroke-width="1.8"/><path d="M30 92 V176 H85.304" stroke="#6D28D9" stroke-width="1.8" fill="none" marker-end="url(#fig-10-1__ah-6D28D9)"/><path d="M30 176 V232 H85.304" stroke="#6D28D9" stroke-width="1.8" fill="none" marker-end="url(#fig-10-1__ah-6D28D9)"/><line x1="380" y1="63" x2="396" y2="63" stroke="#2563EB" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="68" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="600" fill="#2563EB" text-anchor="start">块 1 的目标：</text><text x="497.5" y="68" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">A ∧ B ⟹ B ∧ A</text><line x1="380" y1="91" x2="396" y2="91" stroke="#6D28D9" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="96" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="start">在块 1 中加入事实 ab</text><line x1="380" y1="119" x2="396" y2="119" stroke="#2563EB" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="124" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">断言 B ∧ A，它的证明是块 2</text><line x1="380" y1="147" x2="396" y2="147" stroke="#15803D" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="152" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="600" fill="#15803D" text-anchor="start">块 2 的目标：</text><text x="497.5" y="152" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">1. B</text><text x="545.5" y="152" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">2. A</text><line x1="380" y1="175" x2="396" y2="175" stroke="#15803D" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="180" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">解决块 2 的目标 1</text><line x1="380" y1="203" x2="396" y2="203" stroke="#475569" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">在块 2 中开始新的一部分</text><line x1="380" y1="231" x2="396" y2="231" stroke="#15803D" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="236" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">解决块 2 的目标 2</text><line x1="380" y1="259" x2="396" y2="259" stroke="#2563EB" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="264" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">块 2 结束，于是</text><text x="404" y="282" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">show &quot;B ∧ A&quot; 解决块 1 的目标</text><text x="26" y="336" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">事实 ab 流入嵌套的块</text></svg>
+</div><figcaption><span class="fig-num">图 10.1</span> <p>这个嵌套证明的块结构。每个 <code>proof … qed</code> 开启一个块，它有自己的待证目标，每个 <code>show</code> 解决其中一个。在外层块中假设的事实 <code>ab</code>，可以在嵌套于其中的每个块中使用。</p>
+</figcaption></figure>
+<h3 id="shape-fix">任意的值：fix</h3>
+<p>要证明一个陈述对所有 x 都成立，纸上的证明会说“设 x 是任意的”，然后对这个 x 证明这个陈述。这就是模块 6 中的规则 (∀I)。在 Isar 中，这写作 <code>fix x</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∀u. admin u ⟶ admin u ∨ staff u&quot;
+proof">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀u. admin u ⟶ admin u ∨ staff u&quot;</span>
+<span class="isa-proof">proof</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (1 subgoal):
+ 1. ⋀u. admin u ⟶ admin u ∨ staff u</code></pre></div>
+<p>不带方法的 <code>proof</code> 应用了 ∀ 的规则（第 10.2.6 节列出了它对每个联结词做什么）。现在目标以 ⋀u 开头，这是模块 7 中讲过的 Isabelle 自己的“对每个 u”。固定这样一个 u，并对它证明这个陈述：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  fix u
+  show &quot;admin u ⟶ admin u ∨ staff u&quot;
+  proof
+    assume a: &quot;admin u&quot;
+    show &quot;admin u ∨ staff u&quot; using a by blast
+  qed
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">fix</span> u
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;admin u ⟶ admin u ∨ staff u&quot;</span>
+  <span class="isa-proof">proof</span>
+    <span class="isa-proof">assume</span> a: <span class="isa-inner">&quot;admin u&quot;</span>
+    <span class="isa-proof">show</span> <span class="isa-inner">&quot;admin u ∨ staff u&quot;</span> <span class="isa-proof">using</span> a <span class="isa-proof">by</span> blast
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 10.2<span class="box-title">固定变元</span></div>
+<p><code>fix x</code> 引入一个 <strong>固定变量</strong> x，类似于 Module 7 中由 ⋀ 绑定的变量：它是任意值的名称，证明除了其类型和可用假设外对 x 一无所知。离开该块时，Isabelle 对 x 进行概括并解除局部假设：在 <code>A x</code> 下证明 <code>P x</code> 即确立 <code>⋀x. A x ⟹ P x</code>，而非无条件地确立 <code>⋀x. P x</code>。</p>
+</div>
+<h3 id="shape-assms">带假设的引理：assumes、shows 和 ?thesis</h3>
+<p>关于程序的陈述通常带有条件。下面这个函数，每个程序员都以某种形式写过：<code>clamp lo hi x</code> 把值 x 限制在从 lo 到 hi 的范围之内，音量调节或传感器读数就是这样处理的。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun clamp :: &quot;int ⇒ int ⇒ int ⇒ int&quot; where
+  &quot;clamp lo hi x = (if x &lt; lo then lo else if hi &lt; x then hi else x)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> clamp :: <span class="isa-inner">&quot;int ⇒ int ⇒ int ⇒ int&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;clamp lo hi x = (if x &lt; lo then lo else if hi &lt; x then hi else x)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  clamp :: &quot;int ⇒ int ⇒ int ⇒ int&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;clamp 0 100 150&quot;
+value &quot;clamp 0 100 (-5)&quot;
+value &quot;clamp 0 100 42&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;clamp 0 100 150&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;clamp 0 100 (-5)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;clamp 0 100 42&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>&quot;100&quot;
+  :: &quot;int&quot;
+
+&quot;0&quot;
+  :: &quot;int&quot;
+
+&quot;42&quot;
+  :: &quot;int&quot;</code></pre></div>
+<p>只要这个范围不是空的，结果就永远不会小于 lo。引理可以用 <code>assumes</code> 单独陈述条件，再用 <code>shows</code> 陈述断言：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma clamp_lower:
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;lo ≤ clamp lo hi x&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> clamp_lower:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. lo ≤ clamp lo hi x</code></pre></div>
+<p>目标中只显示断言。假设可以作为一个名为 <code>assms</code> 的事实来使用，它是这条引理所有假设的列表：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="proof -
+  show ?thesis using assms by simp
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-proof">proof</span> -
+  <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<p>这里出现了两样新东西。<code>proof -</code> 开始一个块，但不改变目标：连字符是一个什么也不做的方法。<code>?thesis</code> 读作“the thesis”（论题），它是 Isabelle 为每个断言定义的缩写：它代表 <code>shows</code> 后面（或者 <code>lemma</code>、<code>have</code>、<code>show</code> 后面）的陈述，这里就是 <code>lo ≤ clamp lo hi x</code>。有了它，你就不用照抄很长的陈述。你也可以给每个假设起名字，例如 <code>assumes order: &quot;lo ≤ hi&quot;</code>，或者用 <code>assms(i)</code> 指第 i 个假设。这条引理的结果是蕴涵 <code>lo ≤ hi ⟹ lo ≤ clamp lo hi x</code>，后面的证明用 <code>clamp_lower</code> 这个名字来使用它。</p>
+<p>一步完成的证明也可以：在陈述之后直接写 <code>using assms by simp</code>。当证明需要好几步时，块的形式才显出它的好处。</p>
+<h3 id="shape-start">块怎样开始</h3>
+<p>初始方法决定了块要证明哪些待证目标。大多数证明用的是下面三种形式之一：</p>
+<ul>
+<li><code>proof (rule r)</code> 反向应用规则 r，就像 <code>apply (rule r)</code> 那样，例如 <code>rule impI</code>。</li>
+<li>不带方法的 <code>proof</code> 应用一条<strong>标准规则</strong>（standard rule），这条规则由目标的主联结词选定；如果有事实传给它，它就应用这些事实的消去规则（elimination rule），见第 10.5.3 节。</li>
+<li><code>proof -</code> 让目标保持原样。</li>
+</ul>
+<p>用标准规则开始的块，接下来遵循自然演绎的模式：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>目标</th>
+<th><code>proof</code> 应用</th>
+<th>块中</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A ⟶ B</code></td>
+<td><code>impI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show &quot;B&quot;</code></td>
+</tr>
+<tr>
+<td><code>A ∧ B</code></td>
+<td><code>conjI</code></td>
+<td><code>show &quot;A&quot;</code> … <code>next</code> … <code>show &quot;B&quot;</code></td>
+</tr>
+<tr>
+<td><code>A ⟷ B</code></td>
+<td><code>iffI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show &quot;B&quot;</code> <code>next</code> <code>assume &quot;B&quot;</code> … <code>show &quot;A&quot;</code></td>
+</tr>
+<tr>
+<td><code>¬ A</code></td>
+<td><code>notI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show False</code></td>
+</tr>
+<tr>
+<td><code>∀x. P x</code></td>
+<td><code>allI</code></td>
+<td><code>fix x</code> … <code>show &quot;P x&quot;</code></td>
+</tr>
+<tr>
+<td><code>∃x. P x</code></td>
+<td><code>exI</code></td>
+<td><code>show &quot;P t&quot;</code>，其中 t 是你选定的见证（witness）</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>当没有标准规则适合目标时，单独的 <code>proof</code> 会失败，例如目标是 <code>False</code> 或者是数之间的等式时：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;¬ A&quot;</span>
+  <span class="isa-minor">shows</span> False
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">show</span> False <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method:
+goal (1 subgoal):
+ 1. False</span></code></pre></div>
+<p>解决办法是改用 <code>proof -</code>，它开始一个块，但不应用任何规则：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes &quot;A&quot; and &quot;¬ A&quot;
+  shows False
+proof -
+  show False using assms by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;¬ A&quot;</span>
+  <span class="isa-minor">shows</span> False
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">show</span> False <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+</div>
+<span class="section-anchor" id="facts"></span>
+<div class="section-header"><span class="section-num">3</span><h2>传递事实</h2></div>
+<p>到目前为止，证明都是用 <code>using</code> 把事实交给方法的。Isar 有好几种方式把事实从一步传给下一步。它们让证明的脉络清晰可见，就像纸上的“因此”“由此可得”这样的词语一样。</p>
+<h3 id="facts-then">用 then 链接事实</h3>
+<div class="box box-definition"><div class="box-label">定义 10.3<span class="box-title">事实、this 与链接</span></div>
+<p><strong>事实</strong>（fact）是证明中可以使用的、已经得证的陈述：一个假设、<code>have</code> 或 <code>show</code> 的结果，或者来自库或你自己理论中的一条引理。每一步之后，这一步产生的事实叫作 <strong>this</strong>。<strong>正向链接</strong>（forward chaining）把事实传给下一个断言，由证明这个断言的方法接收，就像 <code>using</code> 那样。</p>
+</div>
+<p><code>then</code> 把 <code>this</code> 链接到下一个断言。如果证明的每一步都使用前一步的结果，它读起来就像一条流水线：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ (A ⟶ B) ⟶ B ∨ C&quot;
+proof (rule impI)
+  assume &quot;A ∧ (A ⟶ B)&quot;
+  then have &quot;B&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ (A ⟶ B) ⟶ B ∨ C&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ (A ⟶ B)&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (chain)
+picking this:
+  A ∧ (A ⟶ B)
+
+proof (prove)
+using this:
+  A ∧ (A ⟶ B)
+
+goal (1 subgoal):
+ 1. B</code></pre></div>
+<p>对最后一行，Isabelle 打印了两个状态，每个命令一个。<code>then</code> 之后的模式是 <code>proof (chain)</code>，<code>picking this</code>（选取 this）显示正在传递的事实。<code>have &quot;B&quot;</code> 之后出现了新的目标，它将要使用的事实列在 <code>using this</code>（使用 this）下面。在 Isabelle/jEdit 中，你看到的是光标所在命令的状态。完成这条流水线：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    by blast
+  then show &quot;B ∨ C&quot; by blast
+qed">复制</button></div><pre class="isa-body"><code>    <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ C&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<h3 id="facts-names">名字，以及 from、with、using 和 note</h3>
+<p>一旦某一步需要更早的事实，流水线就断了。<code>from</code> 指明要传递哪些事实，所以 <code>then</code> 就等于 <code>from this</code>。引用事实可以用它的名字，也可以把它的陈述写在引号 <code>‹</code> 和 <code>›</code> 之间：<code>‹A›</code> 读作“事实 A”，指的是证明中陈述为 A 的那个事实。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  from ab have &quot;A&quot; by blast
+  from ab have &quot;B&quot; by blast
+  with ‹A› show &quot;B ∧ A&quot; by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> <span class="isa-cartouche">‹A›</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>with ‹A›</code> 是 <code>from ‹A› this</code> 的简写：它既传递指明的事实，<strong>也</strong>传递当前的事实，这里是 B。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>要在 Isabelle/jEdit 中输入 <code>‹</code> 和 <code>›</code>，就输入一个反引号（<code>`</code>），然后接受第一个补全项，它会插入 <code>‹›</code>，并把光标放在两个引号之间。</p>
+</div>
+<p><code>note</code> 把事实放进 <code>this</code>，但不证明任何东西；它还可以给这组事实起一个名字：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  from ab have a: &quot;A&quot; by blast
+  from ab have b: &quot;B&quot; by blast
+  note both = b a">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> a: <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">note</span> both = b a</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+this:
+    B
+    A
+
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  from both show &quot;B ∧ A&quot; by (rule conjI)
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">from</span> both <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjI)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>事实的顺序在此至关重要：<code>rule conjI</code> 使用第一个事实处理左合取项，使用第二个事实处理右合取项。<code>blast</code>、<code>simp</code> 和 <code>auto</code> 未将这些位置角色分配给事实。它们的搜索或重写仍可能依赖事实顺序；一般不保证重排事实会保持自动化工具的行为不变。</p>
+<div class="box box-fact"><div class="box-label">事实 10.1<span class="box-title">链接的简写</span></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>你写的</th>
+<th>它的意思</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>then</code></td>
+<td><code>from this</code></td>
+</tr>
+<tr>
+<td><code>with a</code></td>
+<td><code>from a this</code></td>
+</tr>
+<tr>
+<td><code>have &quot;P&quot; using a</code></td>
+<td><code>from a have &quot;P&quot;</code></td>
+</tr>
+<tr>
+<td><code>hence</code></td>
+<td><code>then have</code></td>
+</tr>
+<tr>
+<td><code>thus</code></td>
+<td><code>then show</code></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>你会在较早的证明中遇到 <code>hence</code> 和 <code>thus</code>，Isabelle 的教程中也有。Isabelle2026 仍然接受它们，但它的参考手册称它们是 Isar 早期历史的遗留物，并建议使用较长的形式，本系列用的也是较长的形式。</p>
+<h3 id="facts-visible">将局部事实传递给方法</h3>
+<p>在第 10.2.5 节中，<code>clamp_lower</code> 的证明写了 <code>using assms</code>。把它去掉：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. hi &lt; x ⟶ ¬ x &lt; lo ⟶ lo ≤ hi</span></code></pre></div>
+<p>化简器展开<code>clamp</code>并拆分<code>if</code>s，剩余的是需要假设的那个情况：当x在范围之上时，<code>clamp</code>返回hi，且lo ≤ hi正是<code>simp</code>所不知道的内容。该假设作为局部事实可用，但<strong>这些方法不会自动使用每个局部事实</strong>。它们接收通过<code>then</code>、<code>from</code>、<code>with</code>或<code>using</code>传递的目标和事实，并查询其配置上下文规则（对于<code>simp</code>，即化简规则，包括<code>clamp</code>的等式）。因此，使用<code>[simp]</code>注册的事实无需显式传递即可使用。子目标内已有的前提也可用。显式事实传递使这些证明的依赖关系可见。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>局部假设与已证事实可供传递给方法；仅具备可用性并不会将它们加入方法的输入或规则集合。当某步失败时，首先检查其是否接收到了所需的事实。</p>
+</div>
+<h3 id="facts-obtain">使用存在性事实：obtain</h3>
+<p>模块 6 中的规则 (∃E) 说：由 ∃x. P x，你可以引入一个新名字 a 以及 P a，只要结论中不提到 a。在 Isar 中，这就是 <code>obtain</code>。再看一看第 10.1 节中的 Isar 证明：</p>
+<ul>
+<li><code>assume all: …</code> 和 <code>assume &quot;∃u. admin u&quot;</code> 接过 <code>proof (intro impI)</code> 留下的两个前提。</li>
+<li><code>then obtain a where &quot;admin a&quot; by blast</code> 引入一个新的固定变元 <code>a</code> 和事实 <code>admin a</code>。它的证明 <code>by blast</code> 利用链接过来的事实 ∃u. admin u，说明这样的 <code>a</code> 确实存在。</li>
+<li><code>with all have &quot;staff a&quot;</code> 把 <code>all</code> 和 <code>admin a</code> 传给 <code>blast</code>。</li>
+<li><code>then show &quot;∃u. staff u&quot;</code> 使用 <code>staff a</code>：<code>a</code> 就是见证。</li>
+</ul>
+<p>如果忘了链接这个存在性事实，<code>obtain</code> 就无法得到证明：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃u. admin u) ⟶ (∃u. admin u ∨ staff u)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃u. admin u&quot;</span>
+  <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;admin a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃u. admin u ∨ staff u&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. (⋀a. admin a ⟹ thesis) ⟹ thesis</span></code></pre></div>
+<p>消息中的目标就是 <code>obtain</code> 必须证明的东西：无论你想证明的是什么（<code>thesis</code>），只要对任意的 <code>a</code>，它都能由 <code>admin a</code> 得出，它就成立。没有事实 ∃u. admin u，<code>blast</code> 证明不了这一点。要么写成 <code>then obtain</code>；要么给这个事实起个名字，然后写 <code>obtain a where &quot;admin a&quot; using ex by blast</code>，把 <code>using</code> 放在这个子句的后面。</p>
+<h3 id="facts-moreover">收集事实：moreover 和 ultimately</h3>
+<p>有时，一步需要好几个先后证明出来的事实。你不必给每个事实都起名字，而可以把它们收集起来：<code>moreover</code> 把最近的事实 <code>this</code> 加到一组事实中，<code>ultimately</code> 加入最后一个事实，然后把这一整组事实传给下一个断言。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma clamp_in_range:
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;
+proof -
+  have &quot;lo ≤ clamp lo hi x&quot; using assms by simp
+  moreover have &quot;clamp lo hi x ≤ hi&quot; using assms by simp
+  ultimately show ?thesis by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> clamp_in_range:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">moreover</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;clamp lo hi x ≤ hi&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">ultimately</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p>这个证明说的正是审阅者想看到的：结果至少是 lo，至多是 hi，所以它落在这个范围之内。</p>
+<span class="section-anchor" id="calc"></span>
+<div class="section-header"><span class="section-num">4</span><h2>计算推理</h2></div>
+<p>数学中的很多推理，以及关于程序的很多推理，都是计算推理：由等式或不等式组成的一条链，其中每一步都由前一步得出。</p>
+<h3 id="calc-eq">等式链</h3>
+<p>在纸上，你会这样把 (a + b)(a + b) 展开：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>a</mi><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>a</mi><mo>⋅</mo><mi>a</mi><mo>+</mo><mi>a</mi><mo>⋅</mo><mi>b</mi><mo>+</mo><mo stretchy="false">(</mo><mi>b</mi><mo>⋅</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>⋅</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>a</mi><mo>⋅</mo><mi>a</mi><mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo><mi>b</mi><mo>⋅</mo><mi>b</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+(a + b)(a + b) &amp;= a(a + b) + b(a + b) \\
+&amp;= a \cdot a + a \cdot b + (b \cdot a + b \cdot b) \\
+&amp;= a \cdot a + 2ab + b \cdot b
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.2em;vertical-align:-1.85em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">a</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">2</span><span class="mord mathnormal">ab</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+<p>然后得出结论：最前面的式子等于最后面的式子。Isar 写出的是同一条链：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(a + b) * (a + b) = a * a + 2 * a * b + b * (b :: int)&quot;
+proof -
+  have &quot;(a + b) * (a + b) = a * (a + b) + b * (a + b)&quot; by (rule distrib_right)
+  also have &quot;… = a * a + a * b + (b * a + b * b)&quot; by (simp add: distrib_left)
+  also have &quot;… = a * a + 2 * a * b + b * b&quot; by (simp add: algebra_simps)
+  finally show ?thesis .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(a + b) * (a + b) = a * a + 2 * a * b + b * (b :: int)&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;(a + b) * (a + b) = a * (a + b) + b * (a + b)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> distrib_right)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = a * a + a * b + (b * a + b * b)&quot;</span> <span class="isa-proof">by</span> (simp add: distrib_left)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = a * a + 2 * a * b + b * b&quot;</span> <span class="isa-proof">by</span> (simp add: algebra_simps)
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+<span class="isa-proof">qed</span></code></pre></div>
+<ul>
+<li><code>…</code> 读作“上一步的右边”。要输入它，就输入三个点 <code>...</code>：Isabelle/jEdit 会提供符号 …，而直接用三个点也可以。</li>
+<li><code>also</code> 把新的一步加入链中。Isabelle 用传递性把各步组合起来：由 a = b 和 b = c 推出 a = c。</li>
+<li><code>finally</code> 组合最后一步，并把结果“最前面的式子 = 最后面的式子”传给下一个断言。</li>
+<li><code>.</code>（单个点）在匹配声明时直接使用传入的事实，而不推导较弱的
+通过逻辑搜索得出推论。此处主张为<code>?thesis</code>，即引理陈述。</li>
+</ul>
+<p>每一步都有自己的依据：<code>distrib_right</code> 是定律 (a + b)c = ac + bc，<code>distrib_left</code> 是定律 a(b + c) = ab + ac，而 <code>algebra_simps</code> 是交换律等一组定律，<code>simp</code> 用它们来重新排列各项。</p>
+<div class="box box-definition"><div class="box-label">定义 10.4<span class="box-title">计算推理</span></div>
+<p><strong>计算推理</strong>（calculation）是由步骤 t₁ R t₂、t₂ R t₃、… 组成的一条链，每一步都有自己的证明；Isabelle 由它们通过<strong>传递性</strong>（transitivity）推出 t₁ R tₙ：由 a R b 和 b R c 得到 a R c。在 Isar 中，<code>also</code> 延长这条链，<code>finally</code> 结束它；<code>…</code> 代表上一步的右边。</p>
+</div>
+<h3 id="calc-ineq">不等式</h3>
+<p>一条链中可以混用 <code>=</code>、<code>≤</code> 和 <code>&lt;</code>。结果取链中最严格的关系：只要任何地方有一个 <code>&lt;</code>，整条链的结果就是 <code>&lt;</code>。</p>
+<div class="box box-example"><div class="box-label">例 10.1<span class="box-title">二叉堆中的下标</span></div>
+<p>二叉堆（binary heap）常常存放在数组中：下标为 i 的结点，它的左子结点的下标是 2i + 1。如果 i 是前 n 个下标之一，这个子结点是否在前 2n 个下标之内？</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma heap_child:
+  fixes i n :: nat
+  assumes &quot;i &lt; n&quot;
+  shows &quot;2 * i + 1 &lt; 2 * n&quot;
+proof -
+  have &quot;2 * i + 1 &lt; 2 * i + 2&quot; by simp
+  also have &quot;… = 2 * (i + 1)&quot; by simp
+  also have &quot;… ≤ 2 * n&quot; using assms by simp
+  finally show ?thesis .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> heap_child:
+  <span class="isa-minor">fixes</span> i n :: nat
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;i &lt; n&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;2 * i + 1 &lt; 2 * n&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;2 * i + 1 &lt; 2 * i + 2&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = 2 * (i + 1)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ 2 * n&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>fixes i n :: nat</code> 为整个陈述声明引理的变量及其类型；没有它，Isabelle 就不知道 i 和 n 是哪一种数。这条链依次是 &lt;、= 和 ≤，所以结果是 <code>2 * i + 1 &lt; 2 * n</code>。只有最后一步需要这个假设，也只有这一步得到了它。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>对于这些数值链，<code>finally</code> 产生最严格的关系，<code>.</code> 直接利用该事实。它不会自动将 <code>&lt;</code> 弱化为 <code>≤</code>。即使该主张成立，一个较弱的断言也会失败：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">fixes</span> x y z :: nat
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;x &lt; y&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;y ≤ z&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;x ≤ z&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;x &lt; y&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ z&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;x ≤ z&quot;</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method:
+using this:
+  x &lt; z
+goal (1 subgoal):
+ 1. x ≤ z</span></code></pre></div>
+<p>消息显示了这条链产生的事实（<code>using this: x &lt; z</code>）以及断言。要么断言 <code>x &lt; z</code>，要么把 <code>.</code> 换成一个能弱化这个事实的方法，这里用 <code>by simp</code>。</p>
+<p>用 <code>≥</code> 和 <code>&gt;</code> 写的链，效果和你预想的不一样。Isabelle 把 a ≥ b 读作 b ≤ a，所以 <code>…</code> 代表的是 a 而不是 b，各步就再也接不上了：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">fixes</span> a b c :: nat
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;a ≥ b&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;b ≥ c&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;a ≥ c&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;a ≥ b&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≥ c&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;a ≥ c&quot;</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Vacuous calculation result: (⋀x y. x ≤ y ⟹ a ≤ a) ⟹ b ≤ a
+derived as projection (1) from:
+    b ≤ a
+    c ≤ a</span></code></pre></div>
+<p>写链时，要用 <code>≤</code> 和 <code>&lt;</code>，从小的一端写到大的一端。</p>
+</div>
+<span class="section-anchor" id="cases"></span>
+<div class="section-header"><span class="section-num">5</span><h2>情形分析</h2></div>
+<p>许多关于程序的证明都要分情形：列表为空或不为空，<code>if</code> 的条件成立或不成立，输入在某个范围之下、之内或之上。在 Isar 中，每种情形在块中各占一部分，彼此用 <code>next</code> 分隔。</p>
+<h3 id="cases-bool">两种情形：真或假</h3>
+<p><code>clamp lo hi x</code> 应当与这样的数学描述一致：“先取 hi 和 x 中较小的那个，再取它与 lo 中较大的那个”。按 <code>clamp</code> 的第一个条件判断分情形来证明这一点：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma clamp_max_min:
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;clamp lo hi x = max lo (min hi x)&quot;
+proof (cases &quot;x &lt; lo&quot;)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> clamp_max_min:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;clamp lo hi x = max lo (min hi x)&quot;</span>
+<span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x &lt; lo&quot;</span>)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)
+ 2. ¬ x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)</code></pre></div>
+<p><code>proof (cases &quot;x &lt; lo&quot;)</code> 把目标分成两种情形：x &lt; lo 成立的情形，以及它不成立的情形。命令 <code>case True</code> 进入第一种情形：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case True">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> True</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+this:
+  x &lt; lo
+
+goal (2 subgoals):
+ 1. x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)
+ 2. ¬ x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)</code></pre></div>
+<p><code>case True</code> 假设这种情形的条件成立，证明状态把这个条件列在 <code>this:</code> 下面。状态中仍然列出两个待证目标，要证明的断言也仍然是 <code>?thesis</code>，即引理的陈述。在假设 x &lt; lo 之下证明了它，就解决了第一个目标：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  then show ?thesis using assms by simp
+next
+  case False
+  then show ?thesis using assms by simp
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> False
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<p>当你写下 <code>proof (cases …)</code> 或 <code>proof (induction …)</code> 时，Isabelle/jEdit 还会显示一条以 <strong>Proof outline with cases:</strong>（带情形的证明大纲）开头的消息，给出证明其余部分的骨架。对这条引理，这条消息是：</p>
+<pre class="code"><code class="language-text">Proof outline with cases:
+  case True
+  then show ?thesis sorry
+next
+  case False
+  then show ?thesis sorry
+qed
+</code></pre>
+<p>点击这个骨架，Isabelle/jEdit 就会把它插入你的文本。每个 <code>sorry</code> 标出一个还没有写的证明：在你工作的过程中，Isabelle/jEdit 接受用它来代替证明，但含有 <code>sorry</code> 的理论并没有得到证明。要把每一个 <code>sorry</code> 都换掉。</p>
+<h3 id="cases-datatype">数据类型的情形</h3>
+<p>对列表来说，情形就是构造列表的两种方式：空列表 <code>[]</code>，叫作 <code>Nil</code>；以及 <code>y # ys</code>，叫作 <code>Cons</code>。看一个函数：它返回列表的第一个元素，对空列表则返回一个默认值 d：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun first_or :: &quot;'a ⇒ 'a list ⇒ 'a&quot; where
+  &quot;first_or d [] = d&quot;
+| &quot;first_or d (y # ys) = y&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> first_or :: <span class="isa-inner">&quot;'a ⇒ 'a list ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;first_or d [] = d&quot;</span>
+| <span class="isa-inner">&quot;first_or d (y # ys) = y&quot;</span></code></pre></div>
+<p><code>xs @ ys</code> 的第一个元素就是 xs 的第一个元素，除非 xs 为空；这时它是 ys 的第一个元素：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma first_or_append: &quot;first_or d (xs @ ys) = first_or (first_or d ys) xs&quot;
+proof (cases xs)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> first_or_append: <span class="isa-inner">&quot;first_or d (xs @ ys) = first_or (first_or d ys) xs&quot;</span>
+<span class="isa-proof">proof</span> (cases xs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. xs = [] ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs
+ 2. ⋀a list.
+       xs = a # list ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case Nil
+  then show ?thesis by simp
+next
+  case (Cons z zs)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons z zs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+this:
+  xs = z # zs
+
+goal (1 subgoal):
+ 1. ⋀a list.
+       xs = a # list ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs</code></pre></div>
+<p><code>case (Cons z zs)</code> 给 xs 的头部和尾部起了名字：状态中显示假设 xs = z # zs，而目标仍然使用 Isabelle 自己给它们起的名字 <code>a</code> 和 <code>list</code>。要选引理中还没有用过的名字。<code>case (Cons y ys)</code> 会造出第二个 <code>ys</code>，在这种情形余下的部分中，它会遮住引理自己的 <code>ys</code>，尽管 Isabelle 把两者都显示为 <code>ys</code>。完成这种情形：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  then show ?thesis by simp
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>没有 <code>next</code>，第一种情形的假设在第二种情形中仍然有效：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;first_or d (xs @ ys) = first_or (first_or d ys) xs&quot;</span>
+<span class="isa-proof">proof</span> (cases xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">case</span> (Cons z zs)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to refine any pending goal</span></code></pre></div>
+<p>第二个 <code>show</code> 是在 xs = [] 和 xs = z # zs 这两个假设之下证明它的断言的，而没有哪个待证目标同时带有这两个假设，所以它得到的事实一个目标也解决不了。在两种情形之间加上 <code>next</code>。</p>
+</div>
+<h3 id="cases-or">由析取式分情形</h3>
+<p>模块 6 中的规则 (∨E) 由 A ∨ B 证明 C 的方法是：由 A 证明一次 C，再由 B 证明一次 C。在 Isar 中，把这个析取式传给 <code>proof</code>，并在每种情形中写上相应的 <code>assume</code>。在下面的例子中，用户如果是文件的所有者，或者是管理员，就可以读这个文件：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes who: &quot;owner u ∨ admin u&quot;
+    and owners: &quot;∀v. owner v ⟶ may_read v&quot;
+    and admins: &quot;∀v. admin v ⟶ may_read v&quot;
+  shows &quot;may_read u&quot;
+  using who
+proof
+  assume &quot;owner u&quot;
+  with owners show ?thesis by blast
+next
+  assume &quot;admin u&quot;
+  with admins show ?thesis by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> who: <span class="isa-inner">&quot;owner u ∨ admin u&quot;</span>
+    <span class="isa-minor">and</span> owners: <span class="isa-inner">&quot;∀v. owner v ⟶ may_read v&quot;</span>
+    <span class="isa-minor">and</span> admins: <span class="isa-inner">&quot;∀v. admin v ⟶ may_read v&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;may_read u&quot;</span>
+  <span class="isa-proof">using</span> who
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;owner u&quot;</span>
+  <span class="isa-proof">with</span> owners <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">next</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;admin u&quot;</span>
+  <span class="isa-proof">with</span> admins <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>proof</code> 之前的 <code>using who</code> 把这个析取式传给初始方法，所以 <code>proof</code> 应用的是 ∨ 的消去规则，而不是引入规则（introduction rule）。在两种情形中，<code>?thesis</code> 都是引理的断言 <code>may_read u</code>。</p>
+<h3 id="cases-consider">自己定义的情形：consider</h3>
+<p>有时，自然的情形划分既不来自数据类型，也不来自单个条件。<code>clamp</code> 区分三种情形：x 在范围之下、之内或之上。<code>consider</code> 陈述这样的一种划分，并给每种情形起一个名字，然后证明这些情形涵盖了所有的可能：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;
+proof -
+  consider (below) &quot;x &lt; lo&quot; | (inside) &quot;lo ≤ x&quot; &quot;x ≤ hi&quot; | (above) &quot;hi &lt; x&quot;
+    by linarith
+  then show ?thesis
+  proof cases
+    case below
+    then show ?thesis using assms by simp
+  next
+    case inside
+    then show ?thesis by simp
+  next
+    case above
+    then show ?thesis using assms by simp
+  qed
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">consider</span> (below) <span class="isa-inner">&quot;x &lt; lo&quot;</span> | (inside) <span class="isa-inner">&quot;lo ≤ x&quot;</span> <span class="isa-inner">&quot;x ≤ hi&quot;</span> | (above) <span class="isa-inner">&quot;hi &lt; x&quot;</span>
+    <span class="isa-proof">by</span> linarith
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis
+  <span class="isa-proof">proof</span> cases
+    <span class="isa-proof">case</span> below
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> inside
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> above
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>consider</code> 的证明（这里是模块 9 中的 <code>linarith</code>）说明每个 x 都落在这三种情形之一中。接着，<code>then show ?thesis proof cases</code> 按这些情形拆分证明，<code>case inside</code> 假设这种情形的两个事实。引理也可以陈述这样的划分，供以后使用，这时用 <code>obtains</code> 代替 <code>shows</code>；在证明内部，<code>consider</code> 就是它的局部形式。</p>
+<span class="section-anchor" id="induction"></span>
+<div class="section-header"><span class="section-num">6</span><h2>用命名情形做归纳</h2></div>
+<p>在模块 5 中，你用 <code>apply (induction xs)</code> 证明递归函数的性质，并从证明状态中读出基础情形（base case）和归纳步骤（induction step）。在 Isar 中，归纳的每种情形都成为块中有名字的一部分，而归纳假设（induction hypothesis）则成为一个有名字的事实。</p>
+<h3 id="induction-skeleton">归纳的骨架</h3>
+<p>下面的函数求一列金额的总和，例如一张账单上各项的总额：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun mysum :: &quot;nat list ⇒ nat&quot; where
+  &quot;mysum [] = 0&quot;
+| &quot;mysum (x # xs) = x + mysum xs&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> mysum :: <span class="isa-inner">&quot;nat list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;mysum [] = 0&quot;</span>
+| <span class="isa-inner">&quot;mysum (x # xs) = x + mysum xs&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>consts
+  mysum :: &quot;nat list ⇒ nat&quot;
+
+Found termination order: &quot;size_list size &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p>把两张账单合在一起，总额等于两张账单的总额之和。对 xs 开始归纳：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma mysum_append: &quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;
+proof (induction xs)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> mysum_append: <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. mysum ([] @ ys) = mysum [] + mysum ys
+ 2. ⋀a xs.
+       mysum (xs @ ys) = mysum xs + mysum ys ⟹
+       mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys</code></pre></div>
+<p>这就是模块 5 中的基础情形和归纳步骤。Isabelle/jEdit 显示的证明大纲按照列表的构造子给这两种情形命名：</p>
+<pre class="code"><code class="language-text">Proof outline with cases:
+  case Nil
+  then show ?case sorry
+next
+  case (Cons a xs)
+  then show ?case sorry
+qed
+</code></pre>
+<p>先证明基础情形，然后进入归纳步骤，并给头部和尾部起你自己选定的名字：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (state)
+this:
+  mysum (xs @ ys) = mysum xs + mysum ys
+
+goal (1 subgoal):
+ 1. ⋀a xs.
+       mysum (xs @ ys) = mysum xs + mysum ys ⟹
+       mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys</code></pre></div>
+<p><code>case (Cons x xs)</code> 做了三件事。它固定 x 和 xs，这是你给目标中叫作 <code>a</code> 和 <code>xs</code> 的那两个变量起的名字。它假定归纳假设成立，状态把归纳假设显示在 <code>this:</code> 下面。它还把 <code>?case</code>（读作“the case”，即“这种情形”）设为这种情形的断言：<code>mysum ((x # xs) @ ys) = mysum (x # xs) + mysum ys</code>。用 <code>then</code> 把归纳假设传给 <code>simp</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  then show ?case by simp
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 10.5<span class="box-title">命名情形</span></div>
+<p>在用 <code>cases</code> 或 <code>induction</code> 做的证明中，<strong><code>case c</code></strong>进入名为 c 的情形，<strong><code>case (c x y …)</code></strong>还会给这种情形的变量起名字。情形会假设它的那些事实，这些事实合在一起可以用名字 c 来引用。在归纳中，<code>case</code> 还会把<strong><code>?case</code></strong>设为这种情形的断言，<strong>c.IH</strong>是归纳假设，<strong>c.prems</strong> 是断言的前提（第 10.6.2 节）。在用 <code>cases</code> 做的证明中，每种情形证明的都是同一个断言 <code>?thesis</code>。</p>
+</div>
+<p>对自然数，两种情形叫作 <code>0</code> 和 <code>Suc</code>：先是 <code>case 0</code>，然后是 <code>case (Suc n)</code>，后者的归纳假设是 <code>Suc.IH</code>。对你自己定义的数据类型，情形以它的构造子命名。</p>
+<h3 id="induction-names">归纳假设、前提与 ?case</h3>
+<p>纸上证明中的归纳步骤，是一个只用一次归纳假设的计算推理。Isar 证明可以原原本本地写出这一点，其中归纳假设的名字是 <code>Cons.IH</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have &quot;mysum ((x # xs) @ ys) = x + mysum (xs @ ys)&quot; by simp
+  also have &quot;… = x + (mysum xs + mysum ys)&quot; using Cons.IH by simp
+  also have &quot;… = mysum (x # xs) + mysum ys&quot; by simp
+  finally show ?case .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mysum ((x # xs) @ ys) = x + mysum (xs @ ys)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = x + (mysum xs + mysum ys)&quot;</span> <span class="isa-proof">using</span> Cons.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum (x # xs) + mysum ys&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>当断言带有前提时，归纳会把前提与归纳假设分开。</p>
+<div class="box box-example"><div class="box-label">例 10.2<span class="box-title">各项都有上限的账单</span></div>
+<p>如果账单上的每一项都不超过 m，那么总额不超过 m 乘以项数。<code>set xs</code> 是由 xs 的元素组成的集合，所以 ∀x ∈ set xs. x ≤ m 说的是每一项都不超过 m。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma mysum_bound: &quot;(∀x ∈ set xs. x ≤ m) ⟹ mysum xs ≤ length xs * m&quot;
+proof (induction xs)
+  print_cases">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> mysum_bound: <span class="isa-inner">&quot;(∀x ∈ set xs. x ≤ m) ⟹ mysum xs ≤ length xs * m&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  print_cases</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>cases:
+  Nil:
+    let &quot;?case&quot; = &quot;mysum [] ≤ length [] * m&quot;
+    assume prems : &quot;∀x∈set []. x ≤ m&quot;
+  Cons:
+    fix a_ xs_
+    let &quot;?case&quot; = &quot;mysum (a_ # xs_) ≤ length (a_ # xs_) * m&quot;
+    assume IH : &quot;∀x∈set xs_. x ≤ m ⟹ mysum xs_ ≤ length xs_ * m&quot; and
+      prems : &quot;∀x∈set (a_ # xs_). x ≤ m&quot;</code></pre></div>
+<p><code>print_cases</code> 列出各种情形以及它们提供的一切：固定变元、<code>?case</code>、<code>IH</code> 下的归纳假设，以及 <code>prems</code> 下的断言前提。名字 <code>a_</code> 和 <code>xs_</code> 末尾带有下划线，它们是隐藏的：在 <code>case (Cons a xs)</code> 给它们起名字之前，证明无法引用它们。每种情形都得到关于它自己那个列表的前提，而归纳假设是关于较短的列表 xs 的整个蕴涵。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  have &quot;mysum (a # xs) = a + mysum xs&quot; by simp
+  also have &quot;… ≤ m + mysum xs&quot; using Cons.prems by simp
+  also have &quot;… ≤ m + length xs * m&quot; using Cons.IH Cons.prems by simp
+  also have &quot;… = length (a # xs) * m&quot; by simp
+  finally show ?case .
+qed">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons a xs)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mysum (a # xs) = a + mysum xs&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ m + mysum xs&quot;</span> <span class="isa-proof">using</span> Cons.prems <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ m + length xs * m&quot;</span> <span class="isa-proof">using</span> Cons.IH Cons.prems <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = length (a # xs) * m&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>第二步只需要前提：因为 a 在列表中，所以 a ≤ m。第三步需要归纳假设，而归纳假设又需要它自己的前提，即 xs 的每一项都不超过 m，这同样可以由 <code>Cons.prems</code> 得出。所以两者都要传过去。</p>
+</div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<ul>
+<li>
+<p><strong>把 <code>show ?case</code> 写成了 <code>show ?thesis</code>。</strong> 在归纳中，<code>?thesis</code> 是关于原来的 xs 的整条引理，而不是这种情形的断言：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. mysum (xs @ ys) = mysum xs + mysum ys</span></code></pre></div>
+<p><code>simp</code> 无法对一个未知的列表证明这条引理，所以这一步失败了。要写 <code>?case</code>。</p>
+</li>
+<li>
+<p><strong>不存在的情形名。</strong> 情形名来自构造子，这里是 <code>Nil</code> 和 <code>Cons</code>：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Empty
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Undefined case: &quot;Empty&quot;⌂</span></code></pre></div>
+<p>证明大纲和 <code>print_cases</code> 会显示正确的名字。</p>
+</li>
+<li>
+<p><strong>没有传递归纳假设。</strong> 没有 <code>then</code>（或 <code>using Cons.IH</code>），<code>simp</code> 就看不到归纳假设：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. mysum (xs @ ys) = mysum xs + mysum ys</span></code></pre></div>
+<p>剩下的目标正是归纳假设本身：这清楚地表明归纳假设没有传过去。</p>
+</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="translate"></span>
+<div class="section-header"><span class="section-num">7</span><h2>从纸上证明和 apply 脚本到 Isar</h2></div>
+<p>你现在已见过本系列中使用的核心 Isar 形式。本节将它们与模块 5、6 和 7 的证明并列，以便你进行双向翻译。</p>
+<h3 id="translate-nd">一个自然演绎证明</h3>
+<p>在模块 6 中，你用下面这棵树证明了 A ∧ B ⟶ B ∧ A：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₂</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₁</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">B ∧ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ∧ B ⟶ B ∧ A</span></div></div></div></div>
+<p>在模块 7 中，你用 <code>apply</code> 重现了它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (rule impI)
+  apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>Isar 证明一条规则一条规则地沿着这棵树走。它需要树中所用形式的 (∧E₁) 和 (∧E₂)，即由 A ∧ B 得到 A、由 A ∧ B 得到 B：这就是模块 7 中的析构规则（destruction rule）<code>conjunct1</code> 和 <code>conjunct2</code>。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjunct1 conjunct2">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjunct1 conjunct2</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  ?P ∧ ?Q ⟹ ?P
+  ?P ∧ ?Q ⟹ ?Q</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  from ab have b: &quot;B&quot; by (rule conjunct2)
+  from ab have a: &quot;A&quot; by (rule conjunct1)
+  from b a show &quot;B ∧ A&quot; by (rule conjI)
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjunct2)
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> a: <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjunct1)
+  <span class="isa-proof">from</span> b a <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjI)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>树中的每条规则都是证明中的一行（图 10.2）。树用 (⟶I) 解除的假设 [A ∧ B]¹，就是 <code>rule impI</code> 开启的块中的那个 <code>assume</code>。树从叶子往下读，Isar 文本从上往下读，两者包含的步骤完全相同。相比之下，apply 脚本从目标出发反向工作，根本没有陈述过 B 或 A。</p>
+<figure class="fig" id="fig-10-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>自然演绎证明树与对应的 Isar 证明</title><defs></defs><text x="20" y="30" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">证明树（模块 6）</text><text x="82" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><text x="218" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><line x1="38" y1="100" x2="126" y2="100" stroke="#15803D" stroke-width="2.4"/><text x="130" y="105" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#15803D" text-anchor="start">∧E₂</text><line x1="174" y1="100" x2="262" y2="100" stroke="#B45309" stroke-width="2.4"/><text x="266" y="105" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#B45309" text-anchor="start">∧E₁</text><text x="82" y="126" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B</text><text x="218" y="126" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A</text><line x1="58" y1="140" x2="242" y2="140" stroke="#6D28D9" stroke-width="2.4"/><text x="248" y="145" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#6D28D9" text-anchor="start">∧I</text><text x="150" y="166" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B ∧ A</text><line x1="68" y1="180" x2="232" y2="180" stroke="#2563EB" stroke-width="2.4"/><text x="238" y="185" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#2563EB" text-anchor="start">⟶I¹</text><text x="150" y="206" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A ∧ B ⟶ B ∧ A</text><text x="318" y="30" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">Isar 证明</text><text x="320.0" y="62" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">lemma &quot;A ∧ B ⟶ B ∧ A&quot;</text><rect x="312" y="77" width="440" height="23" rx="5" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.2"/><text x="744" y="93" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="end">⟶I</text><text x="320.0" y="93" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">proof (rule impI)</text><rect x="312" y="108" width="440" height="23" rx="5" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.2"/><text x="744" y="124" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="end">[A ∧ B]¹</text><text x="334.448" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">assume ab: &quot;A ∧ B&quot;</text><rect x="312" y="139" width="440" height="23" rx="5" fill="#F0FDF4" stroke="#15803D" stroke-width="1.2"/><text x="744" y="155" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="end">∧E₂</text><text x="334.448" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">from ab have b: &quot;B&quot; by (rule conjunct2)</text><rect x="312" y="170" width="440" height="23" rx="5" fill="#FFFBEB" stroke="#B45309" stroke-width="1.2"/><text x="744" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#B45309" text-anchor="end">∧E₁</text><text x="334.448" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">from ab have a: &quot;A&quot; by (rule conjunct1)</text><rect x="312" y="201" width="440" height="23" rx="5" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.2"/><text x="744" y="217" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="end">∧I</text><text x="334.448" y="217" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">from b a show &quot;B ∧ A&quot; by (rule conjI)</text><text x="320.0" y="248" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">qed</text><text x="380" y="288" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">证明树中的每条规则对应 Isar 证明中的一步。</text></svg>
+</div><figcaption><span class="fig-num">图 10.2</span> <p>模块 6 中的自然演绎证明树及其 Isar 证明。证明树中的每条规则（以各自的颜色标出）是 Isar 证明中的一步；被解除的假设 [A ∧ B]¹ 就是那个 <code>assume</code>。</p>
+</figcaption></figure>
+<p>写出规则的名字对学习很有帮助。实际使用时，你可以让 Isabelle 自己选择规则：<code>..</code>（两个点）是用一步标准规则完成的证明，所以写 <code>from ab have &quot;B&quot; ..</code> 也可以；<code>by blast</code> 同样能证明这样的步骤。</p>
+<h3 id="translate-rules">逐条规则对照</h3>
+<p>自然演绎的每条规则在 Isar 中都有对应的写法。表中的 A、B 和 C 是公式，<code>ab</code>、<code>imp</code>、<code>a</code>、<code>b</code>、<code>na</code>、<code>all</code>、<code>pa</code> 和 <code>ex</code> 分别是事实 A ∧ B、A ⟶ B、A、B、¬ A、∀x. P x、P a 和 ∃x. P x 的名字。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>规则（模块 6）</th>
+<th>apply 步骤（模块 7）</th>
+<th>Isar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(⟶I)</td>
+<td><code>rule impI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show &quot;B&quot;</code></td>
+</tr>
+<tr>
+<td>(⟶E)</td>
+<td><code>erule impE</code></td>
+<td><code>from imp a have &quot;B&quot; by (rule mp)</code></td>
+</tr>
+<tr>
+<td>(∧I)</td>
+<td><code>rule conjI</code></td>
+<td><code>from a b have &quot;A ∧ B&quot; by (rule conjI)</code></td>
+</tr>
+<tr>
+<td>(∧E₁), (∧E₂)</td>
+<td><code>erule conjE</code></td>
+<td><code>from ab have &quot;A&quot; by (rule conjunct1)</code></td>
+</tr>
+<tr>
+<td>(∨I₁)</td>
+<td><code>rule disjI1</code></td>
+<td><code>from a have &quot;A ∨ B&quot; by (rule disjI1)</code></td>
+</tr>
+<tr>
+<td>(∨E)</td>
+<td><code>erule disjE</code></td>
+<td><code>from ‹A ∨ B› show &quot;C&quot; proof</code> … <code>next</code> … <code>qed</code></td>
+</tr>
+<tr>
+<td>(¬I)</td>
+<td><code>rule notI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show False</code></td>
+</tr>
+<tr>
+<td>(¬E)</td>
+<td><code>erule notE</code></td>
+<td><code>from na a show False by (rule notE)</code></td>
+</tr>
+<tr>
+<td>(∀I)</td>
+<td><code>rule allI</code></td>
+<td><code>fix x</code> … <code>show &quot;P x&quot;</code></td>
+</tr>
+<tr>
+<td>(∀E)</td>
+<td><code>erule allE</code></td>
+<td><code>from all have &quot;P a&quot; by (rule spec)</code></td>
+</tr>
+<tr>
+<td>(∃I)</td>
+<td><code>rule exI</code></td>
+<td><code>from pa have &quot;∃x. P x&quot; by (rule exI)</code></td>
+</tr>
+<tr>
+<td>(∃E)</td>
+<td><code>erule exE</code></td>
+<td><code>from ex obtain a where &quot;P a&quot; by blast</code></td>
+</tr>
+<tr>
+<td>(RAA)</td>
+<td><code>rule ccontr</code></td>
+<td><code>proof (rule ccontr)</code> <code>assume &quot;¬ A&quot;</code> … <code>show False</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>spec</code> 是 (∀E) 对应的析构规则（模块 7）：由 ∀x. P x，它对任意 x 给出 P x。</p>
+<h3 id="translate-induction">一个归纳证明</h3>
+<p>模块 5 两次证明了求和公式 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>⋅</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>n</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2 \cdot \mathit{sum\_upto}(n) = n \cdot (n + 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>⁠：一次在纸上，即“求和公式”这个例子；一次在 Isabelle 中，用的是 apply 脚本。下面再列出定义和那个脚本：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun sum_upto :: &quot;nat ⇒ nat&quot; where
+  &quot;sum_upto 0 = 0&quot;
+| &quot;sum_upto (Suc n) = sum_upto n + Suc n&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> sum_upto :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sum_upto 0 = 0&quot;</span>
+| <span class="isa-inner">&quot;sum_upto (Suc n) = sum_upto n + Suc n&quot;</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;2 * sum_upto n = n * (n + 1)&quot;
+  apply (induction n)
+  apply simp
+  apply simp
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;2 * sum_upto n = n * (n + 1)&quot;</span>
+  <span class="isa-proof">apply</span> (induction n)
+  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">done</span></code></pre></div>
+<p>这个脚本既没有说出两种情形是什么，也没有说出归纳步骤怎样使用归纳假设。纸上的证明说出来了：它的归纳步骤是由四个等式组成的一条链。Isar 证明一行对一行地重复了这条链：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma sum_formula: &quot;2 * sum_upto n = n * (n + 1)&quot;
+proof (induction n)
+  case 0
+  show ?case by simp
+next
+  case (Suc n)
+  have &quot;2 * sum_upto (Suc n) = 2 * (sum_upto n + Suc n)&quot; by simp
+  also have &quot;… = 2 * sum_upto n + 2 * Suc n&quot; by simp
+  also have &quot;… = n * (n + 1) + 2 * Suc n&quot; using Suc.IH by simp
+  also have &quot;… = Suc n * (Suc n + 1)&quot; by simp
+  finally show ?case .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> sum_formula: <span class="isa-inner">&quot;2 * sum_upto n = n * (n + 1)&quot;</span>
+<span class="isa-proof">proof</span> (induction n)
+  <span class="isa-proof">case</span> 0
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Suc n)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;2 * sum_upto (Suc n) = 2 * (sum_upto n + Suc n)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = 2 * sum_upto n + 2 * Suc n&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = n * (n + 1) + 2 * Suc n&quot;</span> <span class="isa-proof">using</span> Suc.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = Suc n * (Suc n + 1)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>纸上（模块 5）</th>
+<th>Isar 中</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> 做归纳。</td>
+<td><code>proof (induction n)</code></td>
+</tr>
+<tr>
+<td>基础情形 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(0)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord">0</span><span class="mclose">)</span></span></span></span>⁠。</td>
+<td><code>case 0</code>，<code>show ?case by simp</code></td>
+</tr>
+<tr>
+<td>设 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> 是任意一个数，并假设归纳假设成立。</td>
+<td><code>next</code>，<code>case (Suc n)</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>⋅</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mo>⋅</mo><mo stretchy="false">(</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2 \cdot \mathit{sum\_upto}(n+1) = 2 \cdot (\mathit{sum\_upto}(n) + (n+1))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">))</span></span></span></span>⁠，由 sum_upto.2</td>
+<td><code>have &quot;2 * sum_upto (Suc n) = …&quot; by simp</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mn>2</mn><mo>⋅</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>+</mo><mn>2</mn><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">= 2 \cdot \mathit{sum\_upto}(n) + 2 \cdot (n+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>⁠，算术</td>
+<td><code>also have &quot;… = …&quot; by simp</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mi>n</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mn>2</mn><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">= n \cdot (n+1) + 2 \cdot (n+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>⁠，由归纳假设</td>
+<td><code>also have &quot;… = …&quot; using Suc.IH by simp</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>2</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">= (n+1) \cdot (n+2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mclose">)</span></span></span></span>⁠，算术</td>
+<td><code>also have &quot;… = …&quot; by simp</code></td>
+</tr>
+<tr>
+<td>由归纳法，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> 对每个 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> 都成立。</td>
+<td><code>finally show ?case .</code>，<code>qed</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>和模块 5 的子目标中一样，Isabelle 把 n + 1 写成 <code>Suc n</code>。每一步都单独检查，所以这个证明准确地显示出归纳假设用在了哪里。</p>
+<h3 id="translate-recipe">从 apply 脚本到 Isar：改写的步骤</h3>
+<p>要把 apply 脚本改写成 Isar，先在 Isabelle/jEdit 中运行这个脚本，并查看每一行之后的证明状态。然后写下这些状态说了什么，而不是方法做了什么：</p>
+<ol>
+<li>开头几步通常只做引入：<code>rule impI</code>、<code>rule allI</code>、<code>intro impI</code>。它们变成 <code>proof (intro …)</code> 或 <code>proof</code>，后面跟上状态中随之出现的东西：每个前提写一个 <code>assume</code>，每个由 ⋀ 约束的变量写一个 <code>fix</code>。</li>
+<li>推出一个新事实的步骤，例如 <code>drule mp</code> 或 <code>erule conjE</code>，变成一个以这个事实为陈述的 <code>have</code>。</li>
+<li>完成目标的那一步变成 <code>show</code>。</li>
+<li>用 apply 步骤中的规则或者用自动化工具证明每一步。</li>
+</ol>
+<p>下面是一个模块 7 风格的脚本，证明的是蕴涵的传递性：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;
+  apply (intro impI)
+  apply (erule mp)
+  apply (erule mp)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;</span>
+  <span class="isa-proof">apply</span> (intro impI)
+  <span class="isa-proof">apply</span> (erule mp)
+  <span class="isa-proof">apply</span> (erule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>intro impI</code> 之后，状态中有前提 A ⟶ B、B ⟶ C 和 A，以及结论 C。第一个 <code>erule mp</code> 从 C 反向推到 B，第二个从 B 反向推到 A。按照读者的思路正向写出来就是：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;
+proof (intro impI)
+  assume ab: &quot;A ⟶ B&quot; and bc: &quot;B ⟶ C&quot; and a: &quot;A&quot;
+  from ab a have b: &quot;B&quot; by (rule mp)
+  from bc b show &quot;C&quot; by (rule mp)
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;</span>
+<span class="isa-proof">proof</span> (intro impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ⟶ B&quot;</span> <span class="isa-minor">and</span> bc: <span class="isa-inner">&quot;B ⟶ C&quot;</span> <span class="isa-minor">and</span> a: <span class="isa-inner">&quot;A&quot;</span>
+  <span class="isa-proof">from</span> ab a <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mp)
+  <span class="isa-proof">from</span> bc b <span class="isa-proof">show</span> <span class="isa-inner">&quot;C&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mp)
+<span class="isa-proof">qed</span></code></pre></div>
+<span class="section-anchor" id="errors"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Isar 证明失败时</h2></div>
+<p>由于 Isar 证明的每一步都是一个陈述，Isabelle 能告诉你哪一步失败了，以及它还剩下什么没有证明。下面是你最常遇到的消息，其中大多数你在本模块中已经见过。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>消息</th>
+<th>含义</th>
+<th>怎么办</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>出现在 <code>by</code> 处的 Failed to finish proof（未能完成证明）或 Failed to apply initial proof method（未能应用初始的证明方法）</td>
+<td>方法无法用交给它的事实证明这一步。消息显示了还剩下什么。</td>
+<td>传入缺少的事实（<code>then</code>、<code>using</code>）；加一条引理（<code>simp add:</code>）；把这一步拆开；试试 <code>sledgehammer</code>（模块 9）。</td>
+</tr>
+<tr>
+<td>出现在 <code>proof</code> 处的 Failed to apply initial proof method</td>
+<td>初始方法无法开始，例如没有适合目标的标准规则。</td>
+<td>用 <code>proof -</code>，或者写明规则。</td>
+</tr>
+<tr>
+<td>Failed to refine any pending goal（未能解决任何待证目标）</td>
+<td><code>show</code> 得到的事实，在它所在块的假设之下，解决不了任何待证目标。</td>
+<td>把断言和状态中的目标比较一下；检查 <code>?case</code> 和 <code>?thesis</code>、<code>next</code>，以及那些不是目标前提的假设。</td>
+</tr>
+<tr>
+<td>Illegal application of proof command in “prove” mode（在“prove”模式下非法使用证明命令）</td>
+<td>某个断言没有证明，所以下一个命令来得太早了。</td>
+<td>给这个断言加上证明：<code>by …</code> 或 <code>proof … qed</code>。</td>
+</tr>
+<tr>
+<td>Undefined case（未定义的情形）、Undefined fact（未定义的事实）</td>
+<td>情形名或事实名写错了。</td>
+<td>参考证明大纲或 <code>print_cases</code>。</td>
+</tr>
+<tr>
+<td>Vacuous calculation result（空洞的计算结果）</td>
+<td>链中的各步接不上。</td>
+<td>用 <code>=</code>、<code>≤</code> 和 <code>&lt;</code> 写链。</td>
+</tr>
+</tbody>
+</table></div>
+<p>例如，当一个 <code>have</code> 没有证明时，就会出现第四条消息：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span>
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Illegal application of proof command in &quot;prove&quot; mode</span></code></pre></div>
+<p>在 <code>have &quot;B&quot;</code> 之后，Isabelle 处于 <code>prove</code> 模式，等待一个证明；而 <code>show</code> 不是证明。</p>
+<p>“Failed to refine any pending goal”值得仔细看一看，因为这一步本身是成功的：断言得到了证明，只是它与目标不相符。在 <code>show</code> 的证明完成之前，Isabelle/jEdit 就会用消息“Local statement fails to refine any pending goal”（局部陈述未能解决任何待证目标）对此发出警告。下面是典型的情况，即断言并不是目标：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;A ∧ B&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to refine any pending goal</span></code></pre></div>
+<p>要找出哪里出了错，就把 <code>show</code> 改成 <code>have</code>：如果这一步随后被接受了，说明断言本身没有问题，不相符的是断言和目标。查看状态中的目标，把两者比较一下。</p>
+<p>下面几个习惯能让 Isar 证明更容易写，也更容易长期保持可用：</p>
+<ul>
+<li><strong>先写骨架。</strong> 陈述引理，写出 <code>proof …</code>、<code>assume</code>、<code>fix</code> 和 <code>show</code> 这几行以及 <code>qed</code>，让证明大纲来填入各种情形。然后一次证明一步。</li>
+<li><strong>每一步只表达一个想法。</strong> 如果某个 <code>by</code> 需要一长串事实或者一个巧妙的方法，就在中间插入一个 <code>have</code>。</li>
+<li><strong>只链接需要的事实。</strong> 在用到某个事实的地方，用 <code>then</code>、<code>with</code> 或 <code>using</code> 传递它；只有当它要在较远的地方用到时，才给它起名字。</li>
+<li><strong>让自动化工具完成小步骤。</strong> <code>simp</code>、<code>blast</code>、<code>auto</code> 和 <code>linarith</code> 负责证明各个步骤；Isar 提供供人阅读的结构。</li>
+</ul>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">9</span><h2>小结</h2></div>
+<ul>
+<li><strong>Isar</strong> 把证明写成结构化的文本：每一步陈述什么为真，由 Isabelle 检查。这样的证明不用 Isabelle 也能读懂，出错的步骤会在出错的地方被标出来。</li>
+<li><strong>证明块</strong> <code>proof m … qed</code> 以一个初始方法开始：<code>proof (rule r)</code>、<code>proof</code>（应用目标的一条标准规则）或 <code>proof -</code>（什么也不做）。在块中，<code>assume</code> 取一个前提，<code>fix</code> 取一个任意的值，<code>have</code> 证明一个中间事实，<code>show</code> 解决一个待证目标。<code>next</code> 把不同目标的证明分隔开。</li>
+<li><strong>事实</strong>在步骤之间传递：<code>then</code> 传递 <code>this</code>，<code>from a</code> 传递命名事实，<code>with a</code> 传递
+两类事实。<code>using a</code> 放在待证命题后，<code>note</code> 收集事实，而 <code>moreover … ultimately</code> 先收集多条事实，再一起使用。<code>hence</code> 和 <code>thus</code> 分别是 <code>then have</code> 和 <code>then show</code> 的旧写法。证明方法接收传入的事实，也可以使用为该方法配置的上下文规则和子目标的前提。</li>
+<li><code>obtain x where …</code> 使用一个存在性事实，就像规则 (∃E) 那样。</li>
+<li><strong>计算</strong>使用<code>also</code>进行链式步骤并以<code>finally</code>结束；<code>…</code>代表前一个
+右侧，且 <code>.</code> 直接使用了所生成链的事实。对于混合 <code>=</code>、<code>≤</code> 和 <code>&lt;</code> 的数值链，结果具有该链中最严格的关系。</li>
+<li><strong>情形分析</strong>使用 <code>proof (cases …)</code>，配合 <code>case True</code>/<code>case False</code> 或数据类型的构造子；自己定义的情形用 <code>consider</code>；还可以把析取式传给 <code>proof</code>。</li>
+<li><strong>归纳</strong>使用 <code>proof (induction x)</code>，配合 <code>case Nil</code>、<code>case (Cons x xs)</code>、<code>case 0</code>、<code>case (Suc n)</code>；在一种情形中，<code>?case</code> 是它的断言，<code>c.IH</code> 是归纳假设，<code>c.prems</code> 是前提。</li>
+<li>自然演绎证明和 apply 脚本可以一步一步地改写成 Isar；Isabelle 的消息（Failed to finish proof、Failed to refine any pending goal、Undefined case……）会指出需要修复的那一步。</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">10</span><h2>练习</h2></div>
+<div class="exercise" id="ex-10-1"><div class="ex-label"><span class="ex-num">练习 10.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">读懂一个证明</span></div>
+<p>下面是一个关于登录检查的证明：一个没有被锁定、并且输入了有效密码的用户可以登录。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes valid: &quot;valid pw&quot;
+    and fresh: &quot;¬ locked u&quot;
+    and policy: &quot;∀p v. valid p ∧ ¬ locked v ⟶ login v p&quot;
+  shows &quot;login u pw ∧ valid pw&quot;
+proof -
+  from valid fresh have &quot;valid pw ∧ ¬ locked u&quot; by blast
+  with policy have &quot;login u pw&quot; by blast
+  then show ?thesis using valid by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> valid: <span class="isa-inner">&quot;valid pw&quot;</span>
+    <span class="isa-minor">and</span> fresh: <span class="isa-inner">&quot;¬ locked u&quot;</span>
+    <span class="isa-minor">and</span> policy: <span class="isa-inner">&quot;∀p v. valid p ∧ ¬ locked v ⟶ login v p&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;login u pw ∧ valid pw&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">from</span> valid fresh <span class="isa-proof">have</span> <span class="isa-inner">&quot;valid pw ∧ ¬ locked u&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> policy <span class="isa-proof">have</span> <span class="isa-inner">&quot;login u pw&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> valid <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<ol>
+<li>第一个 <code>have</code> 之后，<code>this</code> 是什么？</li>
+<li>在第二步中，<code>blast</code> 得到了哪些事实？</li>
+<li><code>?thesis</code> 代表什么？</li>
+<li>用 <code>from</code> 代替 <code>with</code>，改写第二步。</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>valid pw ∧ ¬ locked u</code>，即这一步证明的事实。</li>
+<li><code>policy</code> 和 <code>this</code>，也就是 ∀p v. valid p ∧ ¬ locked v ⟶ login v p 和 valid pw ∧ ¬ locked u：<code>with policy</code> 是 <code>from policy this</code> 的简写。</li>
+<li><code>shows</code> 后面的陈述：<code>login u pw ∧ valid pw</code>。</li>
+<li><code>from policy ‹valid pw ∧ ¬ locked u› have &quot;login u pw&quot; by blast</code>。</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-2"><div class="ex-label"><span class="ex-num">练习 10.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">展开简写</span></div>
+<p>不用 <code>hence</code>、<code>thus</code> 和 <code>with</code> 改写这个证明：只用带名字的 <code>from</code>。在 Isabelle 中检查你写的版本。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;
+proof
+  assume prem: &quot;(A ⟶ B) ∧ A&quot;
+  hence &quot;A ⟶ B&quot; by blast
+  with prem have &quot;B&quot; by blast
+  thus &quot;B ∨ C&quot; by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> prem: <span class="isa-inner">&quot;(A ⟶ B) ∧ A&quot;</span>
+  <span class="isa-proof">hence</span> <span class="isa-inner">&quot;A ⟶ B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> prem <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">thus</span> <span class="isa-inner">&quot;B ∨ C&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>hence</code> 就是 <code>then have</code>，即 <code>from this have</code>；<code>with prem</code> 就是 <code>from prem this</code>；<code>thus</code> 就是 <code>from this show</code>。再给中间事实起上名字，就得到：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;
+proof
+  assume prem: &quot;(A ⟶ B) ∧ A&quot;
+  from prem have ab: &quot;A ⟶ B&quot; by blast
+  from prem ab have b: &quot;B&quot; by blast
+  from b show &quot;B ∨ C&quot; by blast
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> prem: <span class="isa-inner">&quot;(A ⟶ B) ∧ A&quot;</span>
+  <span class="isa-proof">from</span> prem <span class="isa-proof">have</span> ab: <span class="isa-inner">&quot;A ⟶ B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> prem ab <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> b <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ C&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-3"><div class="ex-label"><span class="ex-num">练习 10.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">预测错误</span></div>
+<p>下面每个证明都会失败。说出 Isabelle 给出什么消息、为什么，以及怎样修复这个证明。</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ A&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;A ∧ B&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃x. P x ∧ Q x&quot;</span>
+  <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;P a ∧ Q a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃x. P x&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;clamp lo hi x ≤ max lo x&quot;</span>
+<span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x &lt; lo&quot;</span>)
+  <span class="isa-proof">case</span> True
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">case</span> False
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><strong>Failed to refine any pending goal</strong>。<code>A ∧ B</code> 的证明成功了，但待证目标是 A（在假设 A ∧ B 之下）。要断言的是目标本身：<code>then show &quot;A&quot; by blast</code>。</li>
+<li><strong>Failed to apply initial proof method</strong>，出现在 <code>obtain</code> 的证明处，目标是 <code>(⋀a. P a ∧ Q a ⟹ thesis) ⟹ thesis</code>。存在性事实没有传给 <code>blast</code>。要写成 <code>then obtain</code>。</li>
+<li><strong>Failed to refine any pending goal</strong>，出现在第二个 <code>show</code> 处：没有 <code>next</code>，第二种情形仍然带着第一种情形的假设 x &lt; lo，所以它的结果与任何待证目标都不相符。在 <code>case False</code> 之前插入 <code>next</code>。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ A&quot;
+proof
+  assume &quot;A ∧ B&quot;
+  then show &quot;A&quot; by blast
+qed
+
+lemma &quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x)&quot;
+proof
+  assume &quot;∃x. P x ∧ Q x&quot;
+  then obtain a where &quot;P a ∧ Q a&quot; by blast
+  then show &quot;∃x. P x&quot; by blast
+qed
+
+lemma &quot;clamp lo hi x ≤ max lo x&quot;
+proof (cases &quot;x &lt; lo&quot;)
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then show ?thesis by simp
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ A&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃x. P x ∧ Q x&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;P a ∧ Q a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃x. P x&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;clamp lo hi x ≤ max lo x&quot;</span>
+<span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x &lt; lo&quot;</span>)
+  <span class="isa-proof">case</span> True
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> False
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-4"><div class="ex-label"><span class="ex-num">练习 10.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">用 Isar 的方式处理析取</span></div>
+<p>模块 7 用 <code>erule disjE</code> 证明了 <code>A ∨ B ⟶ B ∨ A</code>。在 Isar 中证明它：像第 10.5.3 节那样，对假设的析取式分情形。只在各情形内部的步骤中使用 <code>blast</code>。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ B ⟶ B ∨ A&quot;
+proof
+  assume &quot;A ∨ B&quot;
+  then show &quot;B ∨ A&quot;
+  proof
+    assume &quot;A&quot;
+    then show &quot;B ∨ A&quot; by blast
+  next
+    assume &quot;B&quot;
+    then show &quot;B ∨ A&quot; by blast
+  qed
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ B ⟶ B ∨ A&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∨ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ A&quot;</span>
+  <span class="isa-proof">proof</span>
+    <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A&quot;</span>
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">assume</span> <span class="isa-inner">&quot;B&quot;</span>
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>外层的 <code>proof</code> 应用 <code>impI</code>。内层的 <code>proof</code> 通过 <code>then</code> 得到这个析取式，所以它应用消去规则 <code>disjE</code>，留下两个目标，每种情形一个。各情形内部的步骤是 (∨I₂) 和 (∨I₁)；用 <code>by (rule disjI2)</code> 和 <code>by (rule disjI1)</code> 也可以。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-5"><div class="ex-label"><span class="ex-num">练习 10.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">交换量词</span></div>
+<p>在 Isar 中用 <code>obtain</code> 和 <code>fix</code> 证明 <code>(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)</code>。先用话把这个公式读出来：如果有某一个 x 与每个 y 都有关系 R，那么每个 y 都有某个 x 与它有关系 R。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+proof
+  assume &quot;∃x. ∀y. R x y&quot;
+  then obtain a where a: &quot;∀y. R a y&quot; by blast
+  show &quot;∀y. ∃x. R x y&quot;
+  proof
+    fix b
+    from a have &quot;R a b&quot; by (rule spec)
+    then show &quot;∃x. R x b&quot; by (rule exI)
+  qed
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃x. ∀y. R x y&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> a: <span class="isa-inner">&quot;∀y. R a y&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;∀y. ∃x. R x y&quot;</span>
+  <span class="isa-proof">proof</span>
+    <span class="isa-proof">fix</span> b
+    <span class="isa-proof">from</span> a <span class="isa-proof">have</span> <span class="isa-inner">&quot;R a b&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> spec)
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃x. R x b&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>这个证明依次使用 (∃E)、(∀I)、(∀E) 和 (∃I)。同一个 x（这里是 a）对每个 y 都适用。逆命题不成立：每个 y 可能需要一个不同的 x。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-6"><div class="ex-label"><span class="ex-num">练习 10.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">一个计算推理</span></div>
+<p>像第 10.4.1 节那样，用一条等式链证明：对整数 a 和 b，<code>(a + b) * (a - b) = a * a - b * b</code>。每一步用一条定律。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  fixes a b :: int
+  shows &quot;(a + b) * (a - b) = a * a - b * b&quot;
+proof -
+  have &quot;(a + b) * (a - b) = a * (a - b) + b * (a - b)&quot; by (rule distrib_right)
+  also have &quot;… = (a * a - a * b) + (b * a - b * b)&quot; by (simp add: right_diff_distrib)
+  also have &quot;… = a * a - b * b&quot; by (simp add: algebra_simps)
+  finally show ?thesis .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">fixes</span> a b :: int
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;(a + b) * (a - b) = a * a - b * b&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;(a + b) * (a - b) = a * (a - b) + b * (a - b)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> distrib_right)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = (a * a - a * b) + (b * a - b * b)&quot;</span> <span class="isa-proof">by</span> (simp add: right_diff_distrib)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = a * a - b * b&quot;</span> <span class="isa-proof">by</span> (simp add: algebra_simps)
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>right_diff_distrib</code> 是定律 a(b − c) = ab − ac。最后一步用到交换律 b · a = a · b，使中间的两项相互抵消。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-7"><div class="ex-label"><span class="ex-num">练习 10.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">反转后的账单总额</span></div>
+<p>用带命名情形的归纳证明 <code>mysum (rev xs) = mysum xs</code>。在归纳步骤中，在一个计算推理里使用第 10.6.1 节的引理 <code>mysum_append</code>。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mysum (rev xs) = mysum xs&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have &quot;mysum (rev (x # xs)) = mysum (rev xs @ [x])&quot; by simp
+  also have &quot;… = mysum (rev xs) + mysum [x]&quot; by (rule mysum_append)
+  also have &quot;… = mysum xs + x&quot; using Cons.IH by simp
+  also have &quot;… = mysum (x # xs)&quot; by simp
+  finally show ?case .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (rev xs) = mysum xs&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mysum (rev (x # xs)) = mysum (rev xs @ [x])&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum (rev xs) + mysum [x]&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mysum_append)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum xs + x&quot;</span> <span class="isa-proof">using</span> Cons.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum (x # xs)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>第二步是 <code>mysum_append</code> 的一个实例，其中 xs 换成了 <code>rev xs</code>，ys 换成了 <code>[x]</code>；<code>rule</code> 会找到这个实例。没有这条引理，<code>simp</code> 会卡在 <code>mysum (rev xs @ [x])</code> 上。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-8"><div class="ex-label"><span class="ex-num">练习 10.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">镜像一棵树</span></div>
+<p>模块 5 定义了二叉树和函数 <code>mirror</code>，并在“镜像两次”这个例子中，在纸上证明了把一棵树镜像两次会得到原来的树。下面再列出这些定义：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype 'a tree2 = Tip | Node &quot;'a tree2&quot; 'a &quot;'a tree2&quot;
+
+fun mirror :: &quot;'a tree2 ⇒ 'a tree2&quot; where
+  &quot;mirror Tip = Tip&quot;
+| &quot;mirror (Node l x r) = Node (mirror r) x (mirror l)&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> 'a tree2 = Tip | Node <span class="isa-inner">&quot;'a tree2&quot;</span> 'a <span class="isa-inner">&quot;'a tree2&quot;</span>
+
+<span class="isa-cmd">fun</span> mirror :: <span class="isa-inner">&quot;'a tree2 ⇒ 'a tree2&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;mirror Tip = Tip&quot;</span>
+| <span class="isa-inner">&quot;mirror (Node l x r) = Node (mirror r) x (mirror l)&quot;</span></code></pre></div>
+<p>在 Isar 中对 t 做归纳，用命名情形证明 <code>mirror (mirror t) = t</code>。把归纳步骤写成计算推理，包含纸上证明的那三步。归纳步骤有几个归纳假设？怎样分别引用它们？</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mirror (mirror t) = t&quot;
+proof (induction t)
+  case Tip
+  show ?case by simp
+next
+  case (Node l x r)
+  have &quot;mirror (mirror (Node l x r)) = mirror (Node (mirror r) x (mirror l))&quot; by simp
+  also have &quot;… = Node (mirror (mirror l)) x (mirror (mirror r))&quot; by simp
+  also have &quot;… = Node l x r&quot; using Node.IH by simp
+  finally show ?case .
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mirror (mirror t) = t&quot;</span>
+<span class="isa-proof">proof</span> (induction t)
+  <span class="isa-proof">case</span> Tip
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Node l x r)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mirror (mirror (Node l x r)) = mirror (Node (mirror r) x (mirror l))&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = Node (mirror (mirror l)) x (mirror (mirror r))&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = Node l x r&quot;</span> <span class="isa-proof">using</span> Node.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>情形以构造子 <code>Tip</code> 和 <code>Node</code> 命名。一个结点有两棵子树，所以归纳步骤有两个归纳假设，l 和 r 各一个。<code>Node.IH</code> 是由两者组成的列表；<code>Node.IH(1)</code> 是关于 l 的那个，<code>Node.IH(2)</code> 是关于 r 的那个。前两步用的是 <code>mirror</code> 的第二个等式，第三步用到了两个归纳假设。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-9"><div class="ex-label"><span class="ex-num">练习 10.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">过滤不会让列表变长</span></div>
+<p><code>filter P xs</code> 保留 xs 中满足 P 的元素。对 xs 做归纳，证明 <code>length (filter P xs) ≤ length xs</code>。在归纳步骤中，用一个嵌套的 <code>proof (cases &quot;P x&quot;)</code> 按 <code>P x</code> 是否成立分情形，并在它不成立的情形中使用计算推理。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;length (filter P xs) ≤ length xs&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases &quot;P x&quot;)
+    case True
+    then show ?thesis using Cons.IH by simp
+  next
+    case False
+    then have &quot;length (filter P (x # xs)) = length (filter P xs)&quot; by simp
+    also have &quot;… ≤ length xs&quot; by (rule Cons.IH)
+    also have &quot;… ≤ length (x # xs)&quot; by simp
+    finally show ?thesis .
+  qed
+qed">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (filter P xs) ≤ length xs&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span>
+  <span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;P x&quot;</span>)
+    <span class="isa-proof">case</span> True
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> Cons.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> False
+    <span class="isa-proof">then</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;length (filter P (x # xs)) = length (filter P xs)&quot;</span> <span class="isa-proof">by</span> simp
+    <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ length xs&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Cons.IH)
+    <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ length (x # xs)&quot;</span> <span class="isa-proof">by</span> simp
+    <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>在嵌套的块中，<code>?thesis</code> 是这个块所证明的那个 <code>show</code> 的断言，也就是这种情形的断言。在 P x 成立的情形中，filter 保留 x，两边都增加 1；剩下的交给归纳假设。</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">11</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>在 <code>then have &quot;B&quot; by blast</code> 中，<code>then</code> 做了什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">它由待证目标证明 B</button></li><li><button type="button" class="quiz-opt" data-i="1">它把最近的事实 <code>this</code> 传给 B 的证明</button></li><li><button type="button" class="quiz-opt" data-i="2">它像 <code>next</code> 一样开始一个新的块</button></li><li><button type="button" class="quiz-opt" data-i="3">每个 <code>have</code> 之前都需要它</button></li></ol><div class="quiz-expl" hidden><code>then</code> 是 <code>from this</code> 的简写：前一步产生的事实被传给证明下一个断言的方法。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">2</span><div>哪个命令能解决它所在块中的一个待证目标？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>have</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>assume</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>note</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>show</code></button></li></ol><div class="quiz-expl" hidden><code>have</code> 只是增加一个事实。<code>show</code> 断言一个陈述，并在这个陈述的证明完成之后，用它来解决一个待证目标。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>在 <code>also have &quot;… = x + 1&quot;</code> 中，<code>…</code> 代表什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">上一步的右边</button></li><li><button type="button" class="quiz-opt" data-i="1">链中第一步的左边</button></li><li><button type="button" class="quiz-opt" data-i="2">上一个完整的等式</button></li><li><button type="button" class="quiz-opt" data-i="3">任何能使这一步成立的项</button></li></ol><div class="quiz-expl" hidden><code>…</code> 是上一个事实右边的缩写，所以链会从上次停下的地方继续下去。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>对目标 <code>False</code>，<code>proof</code> 会失败，而 <code>proof -</code> 可以。为什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>False</code> 在 Isar 中无法证明</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>proof -</code> 立即证明了目标</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>proof</code> 对目标应用一条标准规则，而没有哪条标准规则适合 <code>False</code>；<code>proof -</code> 则让目标保持原样</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>proof</code> 要求先给假设命名</button></li></ol><div class="quiz-expl" hidden>不带方法时，<code>proof</code> 应用一条由目标选定的标准引入规则。<code>proof -</code> 不应用任何规则，所以必须由块中的步骤来证明目标。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>在用 <code>induction xs</code> 做的证明中，<code>case (Cons x xs)</code> 里的 <code>Cons.IH</code> 是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">这种情形的断言 <code>?case</code></button></li><li><button type="button" class="quiz-opt" data-i="1">假设 <code>xs = x # xs</code></button></li><li><button type="button" class="quiz-opt" data-i="2">归纳假设：关于尾部 <code>xs</code> 的断言</button></li><li><button type="button" class="quiz-opt" data-i="3">引理的前提</button></li></ol><div class="quiz-expl" hidden>归纳步骤假设断言对较短的列表成立。<code>Cons.prems</code> 存放前提，<code>?case</code> 是要证明的断言。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>Isabelle 在一个 <code>show</code> 处报告“Failed to refine any pending goal”。最可能的原因是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>by</code> 后面的方法太弱</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>show</code> 的陈述连同它所在块的假设，解决不了任何待证目标，例如因为缺少一个 <code>next</code></button></li><li><button type="button" class="quiz-opt" data-i="2">某个事实的名字拼错了</button></li><li><button type="button" class="quiz-opt" data-i="3">理论没有 <code>end</code></button></li></ol><div class="quiz-expl" hidden>断言本身已经得到证明，但它与任何目标都不相符。把它和状态中的目标比较一下，并检查 <code>next</code>、<code>?case</code> 和那些假设。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="10"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_09_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 9：证明自动化</span></a><a class="mnav next" href="module_11_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 11：深入学习归纳法</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

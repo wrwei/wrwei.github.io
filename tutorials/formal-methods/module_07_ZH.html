@@ -1,0 +1,1631 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 7：在 Isabelle 中使用自然演绎 — 用 Isabelle 学形式化方法</title>
+<meta name="description" content="逐条应用规则，把模块 6 的纸上证明写成 Isabelle 证明脚本。读懂每一步的证明状态，并找出证明步骤失败的原因。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="7" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">形式化方法</a><span class="sep">/</span><span class="crumb crumb-now">模块 7</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">模块 7 / 共 14 个</button><div class="dropdown-menu"><a href="module_01_ZH.html"><span class="dd-n">1</span>什么是形式化方法<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_ZH.html"><span class="dd-n">2</span>命题逻辑<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_ZH.html"><span class="dd-n">3</span>谓词逻辑<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_ZH.html"><span class="dd-n">4</span>集合、关系与函数<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_ZH.html"><span class="dd-n">5</span>归纳与递归<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_ZH.html"><span class="dd-n">6</span>什么是证明？自然演绎<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_ZH.html" class="active"><span class="dd-n">7</span>在 Isabelle 中使用自然演绎<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_ZH.html"><span class="dd-n">8</span>HOL 中的函数式编程<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_ZH.html"><span class="dd-n">9</span>证明自动化<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_ZH.html"><span class="dd-n">10</span>用 Isar 编写结构化证明<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_ZH.html"><span class="dd-n">11</span>深入学习归纳法<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_ZH.html"><span class="dd-n">12</span>验证函数式程序<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_ZH.html"><span class="dd-n">13</span>系统建模：状态机与不变式<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_ZH.html"><span class="dd-n">14</span>综合项目：验证编译器<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a>
+<a href="glossary_ZH.html"><span class="dd-n">&#9670;</span>术语表</a></div></div>
+  <a href="module_07_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#meta"><span class="num">1</span><span class="side-t">一个系统中的两种逻辑</span></a><a href="#rules"><span class="num">2</span><span class="side-t">规则就是定理</span></a><a href="#backward"><span class="num">3</span><span class="side-t">反向证明：rule 与 assumption</span></a><a href="#assumptions"><span class="num">4</span><span class="side-t">使用假设：erule、drule 与 frule</span></a><a href="#negation"><span class="num">5</span><span class="side-t">否定与恒假</span></a><a href="#quantifiers"><span class="num">6</span><span class="side-t">量词与固定变元</span></a><a href="#classical"><span class="num">7</span><span class="side-t">经典推理与相等</span></a><a href="#errors"><span class="num">8</span><span class="side-t">当步骤失败时</span></a><a href="#blast"><span class="num">9</span><span class="side-t">让 Isabelle 进行搜索：blast 与 auto</span></a><a href="#summary"><span class="num">10</span><span class="side-t">小结</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">练习</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">参考</div><div class="side-links"><a href="cheatsheet_ZH.html">速查表</a><a href="troubleshooting_ZH.html">问题排查</a><a href="glossary_ZH.html">术语表</a><a href="formal-methods-theories.zip">理论文件（ZIP）</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">用 Isabelle 学形式化方法 &middot; 第二部分 · 形式化证明</div>
+      <h1 class="module-title"><span class="title-n">模块 7</span>在 Isabelle 中使用自然演绎</h1>
+      <p class="module-lead">逐条应用规则，把模块 6 的纸上证明写成 Isabelle 证明脚本。读懂每一步的证明状态，并找出证明步骤失败的原因。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 240 分钟</span><span class="chip chip-needs">开始之前：模块 1、2、3 和 6</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本模块中，你将</h3><ul><li>区分 Isabelle 的元逻辑（⟹、⋀、≡）和对象逻辑 HOL（⟶、∀、=），读懂用 ⟹ 写成的规则</li><li>用 <code>thm</code> 查出每条自然演绎规则在 Isabelle 中的名字和陈述</li><li>用 <code>rule</code>、<code>erule</code>、<code>drule</code>、<code>frule</code>、<code>assumption</code>、<code>intro</code> 和 <code>elim</code> 反向构造证明，并用 <code>done</code> 结束证明</li><li>解释图式变量、合一和固定变元，以及量词步骤为什么必须按正确的顺序进行</li><li>用 <code>ccontr</code> 和 <code>classical</code> 证明经典逻辑的定律，并根据错误消息修复出错的步骤</li><li>让 <code>blast</code> 自动找到这样的证明，并清楚它替你做了什么</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="meta"></span>
+<div class="section-header"><span class="section-num">1</span><h2>一个系统中的两种逻辑</h2></div>
+<p>在<a href="module_06_ZH.html">模块 6</a> 中，你在纸上构造了自然演绎（natural deduction）证明：从你想要的公式出发，选一条能得出它的规则，然后一步步向上推，直到每个分支都终止于一个假设。Isabelle 正是这样构造证明的，而且会检查每一步。在本模块中，你将在 Isabelle 中一条规则一条规则地重做模块 6 的证明，让每一棵纸上的证明树都变成一段简短的证明脚本（proof script）。</p>
+<p>在做第一个证明之前，你需要先学会读 Isabelle 书写规则和目标所用的记法。这套记法涉及第二种逻辑：一种位于 HOL 之下、更小的逻辑。</p>
+<h3 id="meta-pure">元逻辑 Pure</h3>
+<p>模块 1 说过，Isabelle 是一个可以在其中定义多种逻辑的框架。这个框架有一个属于自己的小逻辑，叫作 <strong>Isabelle/Pure</strong>，简称 Pure。它唯一的任务是说明什么是规则、什么是证明。其他所有逻辑，包括 HOL，都是在 Pure 里面定义的。</p>
+<div class="box box-definition"><div class="box-label">定义 7.1<span class="box-title">元逻辑与对象逻辑</span></div>
+<p><strong>元逻辑</strong>（meta-logic）是一种用来陈述另一种逻辑的规则和证明的逻辑，那另一种逻辑叫作<strong>对象逻辑</strong>（object logic）。在 Isabelle 中，元逻辑是 <strong>Pure</strong>，对象逻辑是 <strong>HOL</strong>。Pure 有三个自己的符号：⟹（读作“由……推出”）、⋀（读作“对任意的……”）以及 ≡。≡ 是 Pure 自己的相等，Isabelle 主要用它来陈述定义。</p>
+</div>
+<p>每个 Pure 符号都有一个对应的 HOL 符号，你在模块 2 和模块 3 中已经认识它们了：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pure</th>
+<th>读作</th>
+<th>HOL</th>
+<th>读作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A ⟹ B</code></td>
+<td>由 A 推出 B</td>
+<td><code>A ⟶ B</code></td>
+<td>A 蕴涵 B</td>
+</tr>
+<tr>
+<td><code>⋀x. P x</code></td>
+<td>对任意的 x，P x 成立</td>
+<td><code>∀x. P x</code></td>
+<td>对所有 x，P x 成立</td>
+</tr>
+<tr>
+<td><code>a ≡ b</code></td>
+<td>a 等于 b；在定义中，a 定义为 b</td>
+<td><code>a = b</code></td>
+<td>a 等于 b</td>
+</tr>
+</tbody>
+</table></div>
+<p>在 Isabelle/jEdit 中，输入 <code>==&gt;</code> 得到 ⟹，输入 <code>!!</code> 得到 ⋀，输入 <code>==</code> 得到 ≡。下文还会出现括号 ⟦ 和 ⟧，它们分别用 <code>[|</code> 和 <code>|]</code> 输入。</p>
+<p>Isabelle 为什么需要两种箭头？因为自然演绎的规则不是公式。模块 6 的规则 (∧I) 并不是说“A ∧ B 为真”，而是说“如果你已经推导出了 A，也推导出了 B，就可以写下 A ∧ B”。这是一个关于推导的陈述，模块 6 把它画成一条横线。Pure 给了 Isabelle 一种语言，用来表达这类陈述。在 Pure 中，(∧I) 写作</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo mathvariant="normal" lspace="0em" rspace="0em">⟦</mo><mi>A</mi><mo separator="true">;</mo><mtext> </mtext><mi>B</mi><mo mathvariant="normal" lspace="0em" rspace="0em">⟧</mo><mo>⟹</mo><mi>A</mi><mo>∧</mo><mi>B</mi></mrow><annotation encoding="application/x-tex">\llbracket A;\ B \rrbracket \Imp A \land B
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen"><span class="mopen">[</span><span class="mspace" style="margin-right:-0.1778em;"></span><span class="mopen">[</span></span><span class="mord mathnormal">A</span><span class="mpunct">;</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mclose"><span class="mclose">]</span><span class="mspace" style="margin-right:-0.1778em;"></span><span class="mclose">]</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span></span></span></span></span></div>
+<p>读作“由 A 和 B 推出 A ∧ B”。公式 A、B 和 A ∧ B 属于 HOL；括号、分号和 ⟹ 属于 Pure。HOL 公式的类型是 <code>bool</code>。Pure 的陈述有自己的类型 <code>prop</code>；在需要 Pure 陈述的地方，Isabelle 会把 HOL 公式转换成 Pure 陈述，而不会显示给你看。</p>
+<div class="box box-fact"><div class="box-label">事实 7.1<span class="box-title">有多个前提的规则</span></div>
+<p><code>A₁ ⟹ A₂ ⟹ … ⟹ Aₙ ⟹ C</code> 的意思是 <code>A₁ ⟹ (A₂ ⟹ … ⟹ (Aₙ ⟹ C))</code>，Isabelle 把它显示为 <code>⟦A₁; A₂; …; Aₙ⟧ ⟹ C</code>：由前提（premise）A₁ 到 Aₙ 推出结论 C。前提本身也可以是一条规则：在 <code>(A ⟹ B) ⟹ C</code> 中，前提 <code>A ⟹ B</code> 是 B 的一个推导，其中可以假设 A。</p>
+</div>
+<p>图 7.1 展示了这两层，以及一条规则怎样同时用到这两层。</p>
+<figure class="fig" id="fig-07-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340" role="img"><title>Pure 与 HOL</title><defs><marker id="fig-07-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="20" y="20" width="340" height="130" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="40" y="50" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">HOL：对象逻辑</text><text x="40" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">公式，类型为 bool</text><text x="40" y="108" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#2563EB" text-anchor="start">¬  ∧  ∨  ⟶  ⟷  ∀  ∃  =</text><text x="40" y="136" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#2563EB" text-anchor="start">True  False</text><rect x="20" y="170" width="340" height="150" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="40" y="200" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="start">Pure：元逻辑</text><text x="40" y="220" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">规则与目标，类型为 prop</text><text x="52" y="252" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#6D28D9" text-anchor="middle">⟹</text><text x="80" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="start">由……推出</text><text x="52" y="278" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#6D28D9" text-anchor="middle">⋀</text><text x="80" y="278" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="start">对任意的……</text><text x="52" y="304" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#6D28D9" text-anchor="middle">≡</text><text x="80" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="start">等于（用于定义）</text><text x="400" y="46" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">一条规则，两层合写</text><text x="400" y="112" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#6D28D9">⟦</tspan><tspan fill="#2563EB">?P</tspan><tspan fill="#6D28D9">; </tspan><tspan fill="#2563EB">?Q</tspan><tspan fill="#6D28D9">⟧ ⟹ </tspan><tspan fill="#2563EB">?P ∧ ?Q</tspan></text><text x="502.6" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">由……推出</text><line x1="502.6" y1="85" x2="502.6" y2="95" stroke="#6D28D9" stroke-width="1.5" marker-end="url(#fig-07-1__ah-6D28D9)"/><path d="M400 120 V127 H486.4 V120" stroke="#6D28D9" stroke-width="1.6" fill="none"/><text x="443.2" y="144" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">前提</text><path d="M518.8 120 V127 H594.4 V120" stroke="#2563EB" stroke-width="1.6" fill="none"/><text x="556.5999999999999" y="144" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">结论</text><text x="400" y="192" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">一个子目标，写法相同</text><text x="400" y="236" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#2563EB">A ∧ B</tspan><tspan fill="#6D28D9"> ⟹ </tspan><tspan fill="#2563EB">B ∧ A</tspan></text><path d="M400 244 V251 H454.0 V244" stroke="#2563EB" stroke-width="1.6" fill="none"/><text x="427.0" y="268" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">假设</text><path d="M486.4 244 V251 H540.4 V244" stroke="#2563EB" stroke-width="1.6" fill="none"/><text x="513.4" y="268" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">结论</text><text x="400" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Pure（紫色）提供结构：哪些是假设，推出什么。</text><text x="400" y="323" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">HOL（蓝色）提供公式。</text></svg>
+</div><figcaption><span class="fig-num">图 7.1</span> <p>Isabelle 的两层逻辑。HOL 公式的类型是 <code>bool</code>，用 ¬ ∧ ∨ ⟶ ∀ ∃ 和 = 书写。规则和目标是 Pure 的陈述，类型是 <code>prop</code>，由 HOL 公式通过 ⟹、⋀ 和 ≡ 构成。</p>
+</figcaption></figure>
+<h3 id="meta-goals">目标也用同一种箭头</h3>
+<p>Isabelle 书写目标（goal）时也用 ⟹。比较下面两条引理：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟹ A ∨ B&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟹ A ∨ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟹ A ∨ B</code></pre></div>
+<p>这个目标是一条规则：由 A 推出 A ∨ B。A 是你可以使用的<strong>假设</strong>（assumption），A ∨ B 是你必须得出的<strong>结论</strong>（conclusion）。模块 2 中的 <code>blast</code> 能证明它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by blast">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> blast</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟶ A ∨ B&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ A ∨ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟶ A ∨ B</code></pre></div>
+<p>这里整个目标是一个 HOL 公式，还没有任何假设。它说的是同一件事，<code>blast</code> 也能证明它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by blast">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>两者的区别在于你怎样处理这两种形式。在纸上，证明 A ⟶ A ∨ B 的第一步是 (⟶I)：假设 A，再证明 A ∨ B。在 Isabelle 中，这一步把目标中的 ⟶ 变成 ⟹，之后目标就和第一条引理一模一样了。你会在第 7.3 节走这一步。</p>
+<p>手册《Programming and Proving in Isabelle/HOL》给出了一条实用的建议：如果你以后想把一条引理当作规则来用，就把它陈述为 ⟦A₁; …; Aₙ⟧ ⟹ C，而不是 A₁ ∧ … ∧ Aₙ ⟶ C，因为 Isabelle 可以直接应用前一种形式。本模块中的引理保留模块 6 中的 ⟶ 形式，这样每个 Isabelle 证明都能一步一步地跟着它的纸上证明树走。</p>
+<h3 id="meta-def">用 ≡ 写成的定义</h3>
+<p>Pure 的第三个符号 ≡ 出现在定义中。模块 6 把 ¬A 解释为 A ⟶ ⊥。HOL 也是这样定义否定的，命令 <code>thm</code> 可以显示这一点（它按名字显示一个已经存储的定理；第 7.2 节会经常用到它）：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm not_def">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> not_def</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>¬ ?P ≡ ?P ⟶ False</code></pre></div>
+<p>把它读作“¬P 定义为 P ⟶ False”。Isabelle 把 ⊥ 写作 <code>False</code>。问号是什么意思，第 7.2 节会解释。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>⟹ 属于 Pure。它连接的是陈述，但永远不能出现在 HOL 公式内部：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟹ B) ∧ C&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Inner syntax error⌂
+at &quot;∧ C&quot;
+Failed to parse prop</span></code></pre></div>
+<p>Isabelle 报告“Inner syntax error”（内层语法错误）和“Failed to parse prop”（未能解析 prop）：它把 <code>(A ⟹ B)</code> 读成了一个 Pure 陈述，接下来就无法处理 <code>∧ C</code> 了，因为 ∧ 连接的是 HOL 公式。在公式内部要写 ⟶。还要注意，⟹ 比 HOL 的任何符号结合得都弱：<code>A ∧ B ⟹ C</code> 的意思是 <code>(A ∧ B) ⟹ C</code>。</p>
+</div>
+<span class="section-anchor" id="rules"></span>
+<div class="section-header"><span class="section-num">2</span><h2>规则就是定理</h2></div>
+<h3 id="rules-thm">用 thm 查看规则</h3>
+<p>在 Isabelle 中，规则并不是另一种对象，而是一个陈述中用到了 ⟹ 的定理，<code>thm</code> 可以把它显示出来：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjI">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjI</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code></pre></div>
+<p>把它和模块 6 画出的 (∧I) 比较一下：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:1.6rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">P</span></div><div class="pt-node pt-leaf"><span class="pt-f">Q</span></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">P ∧ Q</span></div></div></div></div>
+<p>横线上方的前提变成了 ⟹ 前面的前提，横线下方的结论变成了 ⟹ 后面的结论。名字 conjI 是 <strong>conjunction introduction</strong>（合取引入）的缩写。</p>
+<div class="box box-definition"><div class="box-label">定义 7.2<span class="box-title">图式变量</span></div>
+<p><strong>图式变量</strong>（schematic variable），又叫<strong>未知量</strong>（unknown），是带问号的变量，例如 <code>?P</code>。它是一个占位符：使用定理时，Isabelle 可以把它换成任何类型合适的项（term），但每一处出现都要换成同一个项。Isabelle 存储一条已经证明的引理时，会把引理中的自由变元（free variable）变成图式变量，以此记下这条引理对这些变元的所有取值都成立。</p>
+</div>
+<p>所以 conjI 对任意两个公式都适用。你可以用 <code>of</code> 自己选定这两个公式，<code>of</code> 按从左到右的顺序替换图式变量：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjI[of &quot;door_closed&quot; &quot;lift_stopped&quot;]">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjI[of <span class="isa-inner">&quot;door_closed&quot;</span> <span class="isa-inner">&quot;lift_stopped&quot;</span>]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>⟦door_closed; lift_stopped⟧ ⟹ door_closed ∧ lift_stopped</code></pre></div>
+<p>这里的 <code>door_closed</code> 和 <code>lift_stopped</code> 是类型为 <code>bool</code> 的自由变元，比如说，关于一部电梯的两个事实（门已关好，电梯已停稳）。通常你不必手工选择：Isabelle 会通过合一自己找到正确的替换（第 7.3 节）。</p>
+<h3 id="rules-table">模块 6 的规则</h3>
+<p>下面是 Isabelle 所陈述的模块 6 的规则。下面每条 <code>thm</code> 命令都显示几条规则，每行一条，顺序与命令中名字的顺序相同：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjI conjunct1 conjunct2 conjE disjI1 disjI2 disjE">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjI conjunct1 conjunct2 conjE disjI1 disjI2 disjE</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  ⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q
+  ?P ∧ ?Q ⟹ ?P
+  ?P ∧ ?Q ⟹ ?Q
+  ⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R
+  ?P ⟹ ?P ∨ ?Q
+  ?Q ⟹ ?P ∨ ?Q
+  ⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm impI mp impE notI notE FalseE">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> impI mp impE notI notE FalseE</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  (?P ⟹ ?Q) ⟹ ?P ⟶ ?Q
+  ⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q
+  ⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R
+  (?P ⟹ False) ⟹ ¬ ?P
+  ⟦¬ ?P; ?P⟧ ⟹ ?R
+  False ⟹ ?P</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm allI spec allE exI exE">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> allI spec allE exI exE</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  (⋀x. ?P x) ⟹ ∀x. ?P x
+  ∀x. ?P x ⟹ ?P ?x
+  ⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R
+  ?P ?x ⟹ ∃x. ?P x
+  ⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm ccontr classical refl subst ssubst iffI iffD1 iffD2">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> ccontr classical refl subst ssubst iffI iffD1 iffD2</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>  (¬ ?P ⟹ False) ⟹ ?P
+  (¬ ?P ⟹ ?P) ⟹ ?P
+  ?t = ?t
+  ⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t
+  ⟦?t = ?s; ?P ?s⟧ ⟹ ?P ?t
+  ⟦?P ⟹ ?Q; ?Q ⟹ ?P⟧ ⟹ ?P = ?Q
+  ⟦?Q = ?P; ?Q⟧ ⟹ ?P
+  ⟦?P = ?Q; ?Q⟧ ⟹ ?P</code></pre></div>
+<p>下表把每条规则和它对应的纸上规则并排列出：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>纸上规则（模块 6）</th>
+<th>Isabelle 中的名字</th>
+<th><code>thm</code> 显示的陈述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(∧I)</td>
+<td><code>conjI</code></td>
+<td><code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code></td>
+</tr>
+<tr>
+<td>(∧E₁)</td>
+<td><code>conjunct1</code></td>
+<td><code>?P ∧ ?Q ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(∧E₂)</td>
+<td><code>conjunct2</code></td>
+<td><code>?P ∧ ?Q ⟹ ?Q</code></td>
+</tr>
+<tr>
+<td>(∧E₁) 和 (∧E₂) 合在一起</td>
+<td><code>conjE</code></td>
+<td><code>⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(∨I₁)</td>
+<td><code>disjI1</code></td>
+<td><code>?P ⟹ ?P ∨ ?Q</code></td>
+</tr>
+<tr>
+<td>(∨I₂)</td>
+<td><code>disjI2</code></td>
+<td><code>?Q ⟹ ?P ∨ ?Q</code></td>
+</tr>
+<tr>
+<td>(∨E)</td>
+<td><code>disjE</code></td>
+<td><code>⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(⟶I)</td>
+<td><code>impI</code></td>
+<td><code>(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q</code></td>
+</tr>
+<tr>
+<td>(⟶E)</td>
+<td><code>mp</code></td>
+<td><code>⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q</code></td>
+</tr>
+<tr>
+<td>(⟶E)，消去形式</td>
+<td><code>impE</code></td>
+<td><code>⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(¬I)</td>
+<td><code>notI</code></td>
+<td><code>(?P ⟹ False) ⟹ ¬ ?P</code></td>
+</tr>
+<tr>
+<td>(¬E)，?R 取 ⊥</td>
+<td><code>notE</code></td>
+<td><code>⟦¬ ?P; ?P⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(⊥E)</td>
+<td><code>FalseE</code></td>
+<td><code>False ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(∀I)</td>
+<td><code>allI</code></td>
+<td><code>(⋀x. ?P x) ⟹ ∀x. ?P x</code></td>
+</tr>
+<tr>
+<td>(∀E)</td>
+<td><code>spec</code></td>
+<td><code>∀x. ?P x ⟹ ?P ?x</code></td>
+</tr>
+<tr>
+<td>(∀E)，消去形式</td>
+<td><code>allE</code></td>
+<td><code>⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(∃I)</td>
+<td><code>exI</code></td>
+<td><code>?P ?x ⟹ ∃x. ?P x</code></td>
+</tr>
+<tr>
+<td>(∃E)</td>
+<td><code>exE</code></td>
+<td><code>⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code></td>
+</tr>
+<tr>
+<td>(RAA)</td>
+<td><code>ccontr</code></td>
+<td><code>(¬ ?P ⟹ False) ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(RAA)，变体</td>
+<td><code>classical</code></td>
+<td><code>(¬ ?P ⟹ ?P) ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(=I)</td>
+<td><code>refl</code></td>
+<td><code>?t = ?t</code></td>
+</tr>
+<tr>
+<td>(=E)</td>
+<td><code>subst</code></td>
+<td><code>⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t</code></td>
+</tr>
+<tr>
+<td>(=E)，从右到左</td>
+<td><code>ssubst</code></td>
+<td><code>⟦?t = ?s; ?P ?s⟧ ⟹ ?P ?t</code></td>
+</tr>
+<tr>
+<td>无</td>
+<td><code>iffI</code></td>
+<td><code>⟦?P ⟹ ?Q; ?Q ⟹ ?P⟧ ⟹ ?P = ?Q</code></td>
+</tr>
+<tr>
+<td>无</td>
+<td><code>iffD1</code></td>
+<td><code>⟦?Q = ?P; ?Q⟧ ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>无</td>
+<td><code>iffD2</code></td>
+<td><code>⟦?P = ?Q; ?Q⟧ ⟹ ?P</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>有几点值得注意：</p>
+<ul>
+<li>名字遵循一种规律：<code>I</code> 表示引入（introduction），<code>E</code> 表示消去（elimination），<code>D</code> 表示析构（destruction，下文解释），<code>1</code> 和 <code>2</code> 表示一条规则的两个版本。<code>mp</code> 是 <strong>modus ponens</strong>（肯定前件式），<code>spec</code> 是 <strong>specialisation</strong>（特化），<code>refl</code> 是 <strong>reflexivity</strong>（自反性）。</li>
+<li>⊥ 就是 <code>False</code>。Isabelle 显示 ¬ 时在后面加一个空格：<code>¬ ?P</code>。</li>
+<li><code>notE</code> 的结论是任意公式 <code>?R</code>。取 <code>?R</code> 为 <code>False</code> 时，它就是 (¬E)，由 ¬P 和 P 推导出 ⊥。取 <code>?R</code> 为其他公式时，它相当于先用 (¬E) 再用 (⊥E)，而 (⊥E) 由 ⊥ 可以推导出任何公式。</li>
+<li><code>ccontr</code> 恰好就是 (RAA)：如果假设 ¬P 会导致 ⊥，那么 P 成立。第 7.7 节会解释 <code>classical</code>。</li>
+<li>对于公式，Isabelle 把 ⟷ 显示为 <code>=</code>（模块 3），所以 <code>iffI</code> 中的 <code>?P = ?Q</code> 就是 ?P ⟷ ?Q。模块 6 列出的规则中没有关于 ⟷ 的：<code>iffI</code> 由两个方向的蕴涵证明一个等价式，<code>iffD1</code> 和 <code>iffD2</code> 则按两个方向中的一个使用已有的等价式。</li>
+</ul>
+<h3 id="rules-shapes">规则的三种形状</h3>
+<p>表中的大多数规则都属于三种形状之一。形状决定了你怎样使用一条规则（第 7.3 节和第 7.4 节），所以值得学会辨认它。</p>
+<div class="box box-definition"><div class="box-label">定义 7.3<span class="box-title">引入规则、消去规则与析构规则</span></div>
+<ul>
+<li><strong>引入规则</strong>（introduction rule）的联结词出现在结论中：<code>conjI</code>、<code>disjI1</code>、<code>disjI2</code>、<code>impI</code>、<code>notI</code>、<code>allI</code>、<code>exI</code>、<code>iffI</code>。</li>
+<li><strong>消去规则</strong>（elimination rule）的联结词（或者 <code>False</code>）出现在第一个前提中，这个前提叫作<strong>主前提</strong>（major premise）；它的结论是一个任意的公式，即一个像 <code>?R</code> 这样的图式变量。它的其他前提说明在证明这个公式时可以假设什么：<code>conjE</code>、<code>disjE</code>、<code>impE</code>、<code>notE</code>、<code>FalseE</code>、<code>allE</code>、<code>exE</code>。</li>
+<li><strong>分解规则</strong>把联结词放在主前提中，并用主前提的一部分或一个实例作为
+结论：<code>conjunct1</code>, <code>conjunct2</code>, <code>mp</code>, <code>spec</code>, <code>iffD1</code>, <code>iffD2</code>.</li>
+</ul>
+</div>
+<p>对同一条纸上规则，Isabelle 常常提供两个版本：一条读起来和纸上规则一样的析构规则（<code>conjunct1</code>、<code>mp</code>、<code>spec</code>），以及一条做同样的工作、但形式更适合对假设进行推理的消去规则（<code>conjE</code>、<code>impE</code>、<code>allE</code>）。第 7.4 节会说明第二种形式好在哪里。</p>
+<p>那些解除（discharge）假设或者需要本征变元（eigenvariable）的规则值得仔细看一看，因为 Pure 不用任何文字就表达了它们的附加条件（side condition）。</p>
+<div class="box box-fact"><div class="box-label">事实 7.2<span class="box-title">Pure 怎样表达解除和本征变元</span></div>
+<ul>
+<li>在 <code>impI</code>，即 <code>(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q</code> 中，前提 <code>?P ⟹ ?Q</code> 是 ?Q 的一个推导，其中可以使用假设 ?P：这就是模块 6 中的 [A]¹。这个假设恰好在该前提内部可用，所以不需要用编号来标记解除。</li>
+<li>在 <code>disjE</code> 中，前提 <code>?P ⟹ ?R</code> 和 <code>?Q ⟹ ?R</code> 是两种情形，各有自己的假设。</li>
+<li>在 <code>allI</code>，即 <code>(⋀x. ?P x) ⟹ ∀x. ?P x</code> 中，前提说的是“对任意的 x，?P x 成立”。变元 x 局限于这个前提之内，所以它不可能出现在外面的任何假设中。这正是 (∀I) 的本征变元条件。</li>
+<li>在 <code>exE</code>，即 <code>⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code> 中，第二个前提说的是“对任意一个满足 ?P x 的 x，推导出 ?Q”。?Q 位于 ⋀x 的辖域（scope）之外，所以不能提到 x。这正是 (∃E) 的附加条件：本征变元不能出现在结论中。</li>
+</ul>
+</div>
+<span class="section-anchor" id="backward"></span>
+<div class="section-header"><span class="section-num">3</span><h2>反向证明：rule 与 assumption</h2></div>
+<h3 id="backward-plan">证明思路</h3>
+<p>以模块 6 用自然演绎推导出的第一个定理 A ∧ B ⟶ B ∧ A 为例（<a href="module_06_ZH.html#connectives">第 6.4 节</a>）。下面是它的证明树：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₂</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₁</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">B ∧ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ∧ B ⟶ B ∧ A</span></div></div></div></div>
+<p>按你当初找到它的方式，从下往上读。这个公式是一个蕴涵，所以最后一步是 (⟶I)：假设 A ∧ B，证明 B ∧ A。B ∧ A 是一个合取，所以上面一步是 (∧I)，它留下 B 和 A。两者都可以从假设中得出，分别用 (∧E₂) 和 (∧E₁)。在 Isabelle 中，你按同样的顺序走同样的步骤。每一步说出一条规则的名字；Isabelle 把这条规则应用到目标上，并告诉你还剩下什么。</p>
+<h3 id="backward-rule">应用一条规则</h3>
+<p>先陈述引理。有了名字 <code>swap_and</code>，以后就可以引用它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma swap_and: &quot;A ∧ B ⟶ B ∧ A&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> swap_and: <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A</code></pre></div>
+<p><code>proof (prove)</code> 表示 Isabelle 正在等待证明步骤。它下面列出了仍有待证明的<strong>子目标</strong>（subgoal），并带有编号。一开始只有一个子目标：整个陈述。</p>
+<div class="box box-definition"><div class="box-label">定义 7.4<span class="box-title">子目标与证明状态</span></div>
+<p><strong>子目标</strong>的形式是 <code>⋀x₁ … xₖ. ⟦H₁; …; Hₙ⟧ ⟹ C</code>：对变元 x₁ … xₖ 的任意取值（第 7.6 节），在<strong>假设</strong>H₁ … Hₙ 之下，证明<strong>结论</strong>C。变元和假设都可以没有。<strong>证明状态</strong>（proof state）是子目标的列表。列表为空时，证明就完成了。</p>
+</div>
+<p>子目标就是模块 6 反向搜索中的目标 Γ ⊢ C（<a href="module_06_ZH.html#search">第 6.7 节</a>），只不过是用 Pure 写的：假设 Γ 写在 ⟹ 前面，结论 C 写在它后面。</p>
+<div class="box box-definition"><div class="box-label">定义 7.5<span class="box-title">证明方法 rule</span></div>
+<p><code>apply (rule r)</code> 把规则 r 反向应用到子目标 1 上。它把 r 的结论与子目标的结论合一（见下文的“合一”），然后把这个子目标换成若干个新的子目标，r 的每个前提对应一个。每个新的子目标都保留原来那个子目标的假设；形如 <code>P ⟹ Q</code> 的前提还会把 P 加入这些假设。</p>
+</div>
+<p>第一步是 (⟶I)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<p><code>impI</code> 是 <code>(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q</code>。取 ?P = A ∧ B、?Q = B ∧ A，它的结论 <code>?P ⟶ ?Q</code> 就与目标相匹配，所以新的子目标就是它的前提，即 <code>A ∧ B ⟹ B ∧ A</code>。现在 A ∧ B 是一个假设。它在这个子目标中可用，在由这个子目标衍生出的每个子目标中也都可用，正像证明树中未解除的假设（open assumption）[A ∧ B]¹ 一样。</p>
+<p>接下来是 (∧I)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<p><code>conjI</code>有两个前提，因此现在有两个子目标，分别对应树的每个分支，两者都保留假设A ∧ B，<code>rule</code>和<code>assumption</code>步骤在此作用于子目标1，子目标2等待其轮次，其他方法如<code>auto</code>和<code>simp_all</code>可以作用于所有子目标（模块5）。</p>
+<p>现在反向使用 (∧E₂)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjunct2)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjunct2)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ ?P5 ∧ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<p><code>conjunct2</code> 是 <code>?P ∧ ?Q ⟹ ?Q</code>。它的结论 ?Q 与 B 相匹配，所以它的前提变成一个合取式：右半部分是 B，左半部分还不知道。Isabelle 在新的子目标中把这个左半部分保留为一个图式变量 <code>?P5</code>：它是变量 <code>?P</code> 加上数字 5，这个数字叫作它的<strong>索引</strong>（index），作用是避免与其他变量冲突（索引没有别的含义）。在纸上，你会看一眼假设，马上写下 A ∧ B。Isabelle 则把这个选择推迟，直到后面的某一步把它确定下来。</p>
+<h3 id="backward-assumption">用假设关闭子目标</h3>
+<div class="box box-definition"><div class="box-label">定义 7.6<span class="box-title">证明方法 assumption</span></div>
+<p>如果子目标 1 的结论能与它的某个假设合一，<code>apply assumption</code> 就证明了这个子目标。结论中的图式变量会按需要被实例化（instantiate），而且是在整个证明状态中处处实例化。</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ A</code></pre></div>
+<p>把 <code>?P5 ∧ B</code> 与假设 <code>A ∧ B</code> 合一，就把 ?P5 定为 A，于是这个子目标被关闭了：这就是左边分支的叶子 [A ∧ B]¹。右边的分支用 <code>conjunct1</code> 以同样的方式处理，它的前提变成一个左边是 A 的合取式：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjunct1)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjunct1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ A ∧ ?Q7</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal:
+No subgoals!</code></pre></div>
+<p>Isabelle 显示“No subgoals!”（没有子目标了！）：已经没有剩下的子目标了。<code>done</code> 结束这个证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">done</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 7.7<span class="box-title">命令 done</span></div>
+<p><code>done</code> 在没有剩下子目标时结束一个证明。它自己不证明任何东西：只要还剩下子目标，<code>done</code> 就会失败（第 7.8 节）。</p>
+</div>
+<p>现在 Isabelle 已经用这条引理的名字把它存储起来了：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm swap_and">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> swap_and</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>?A ∧ ?B ⟶ ?B ∧ ?A</code></pre></div>
+<p>自由变元 A 和 B 变成了图式变量。<code>swap_and</code> 对任意两个公式都成立，你可以像使用 <code>conjI</code> 那样把它当作规则来用。图 7.2 把证明树和证明脚本并排放在一起。</p>
+<figure class="fig" id="fig-07-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" width="760" height="430" role="img"><title>从证明树到证明脚本</title><defs></defs><text x="20" y="36" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">模块 6 中的证明树</text><text x="100" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><text x="250" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><circle cx="100" cy="124" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="100" y="128" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text><circle cx="250" cy="124" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="250" y="128" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text><line x1="60" y1="162" x2="140" y2="162" stroke="#1A2E4A" stroke-width="1.6"/><line x1="210" y1="162" x2="290" y2="162" stroke="#1A2E4A" stroke-width="1.6"/><text x="145" y="167" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">∧E₂</text><text x="295" y="167" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">∧E₁</text><circle cx="46" cy="162" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="46" y="166" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><circle cx="196" cy="162" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="196" y="166" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text><text x="100" y="184" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B</text><text x="250" y="184" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A</text><line x1="70" y1="198" x2="280" y2="198" stroke="#1A2E4A" stroke-width="1.6"/><text x="285" y="203" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">∧I</text><circle cx="56" cy="198" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="56" y="202" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="175" y="220" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B ∧ A</text><line x1="50" y1="234" x2="300" y2="234" stroke="#1A2E4A" stroke-width="1.6"/><text x="305" y="239" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">⟶I¹</text><circle cx="36" cy="234" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="36" y="238" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="175" y="256" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A ∧ B ⟶ B ∧ A</text><circle cx="34" cy="300" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="34" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle"></text><text x="50" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">rule：一步推理</text><circle cx="34" cy="324" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="34" y="328" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle"></text><text x="50" y="328" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">assumption：封闭一个叶子</text><text x="26" y="364" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">第 1、2、3、5 步从根部向上</text><text x="26" y="382" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">添加推理；第 4、6 步封闭</text><text x="26" y="400" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">叶子 [A ∧ B]¹。</text><text x="360" y="36" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">证明脚本，以及每一步之后的目标</text><text x="390" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="600" fill="#1A2E4A" text-anchor="start">lemma swap_and: &quot;A ∧ B ⟶ B ∧ A&quot;</text><text x="390" y="89" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟶ B ∧ A</tspan></text><circle cx="372" cy="110" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="114" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="390" y="115" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule impI)</text><text x="390" y="134" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ B ∧ A</tspan></text><circle cx="372" cy="155" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="159" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="390" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule conjI)</text><text x="390" y="179" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ B    2. A ∧ B ⟹ A</tspan></text><circle cx="372" cy="200" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="204" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="390" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule conjunct2)</text><text x="390" y="224" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ ?P5 ∧ B    2. A ∧ B ⟹ A</tspan></text><circle cx="372" cy="245" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="372" y="249" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text><text x="390" y="250" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply assumption</text><text x="390" y="269" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ A</tspan></text><circle cx="372" cy="290" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="294" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text><text x="390" y="295" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule conjunct1)</text><text x="390" y="314" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ A ∧ ?Q7</tspan></text><circle cx="372" cy="335" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="372" y="339" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text><text x="390" y="340" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply assumption</text><text x="390" y="359" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">No subgoals!</tspan></text><text x="390" y="385" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">done</text></svg>
+</div><figcaption><span class="fig-num">图 7.2</span> <p>A ∧ B ⟶ B ∧ A 的证明树和它的证明脚本。从根部开始，每个 <code>rule</code> 步骤给证明树添加一步推理；每个 <code>assumption</code> 步骤关闭一个叶子。每一步之后的目标列出了仍未关闭的分支。</p>
+</figcaption></figure>
+<div class="callout analogy"><div class="callout-label">打个比方</div>
+<p>证明状态是一个待办事项列表。在这些逐条规则的脚本中，<code>apply</code> 将第一项替换为所选步骤的子目标；<code>done</code> 检查列表是否为空。</p>
+</div>
+<h3 id="backward-unification">合一</h3>
+<div class="box box-definition"><div class="box-label">定义 7.8<span class="box-title">合一</span></div>
+<p><strong>合一</strong>通过为模式变量选择值使两个项相同。Isabelle 在应用规则时使用它：在<code>rule</code>中，在规则结论与子目标结论之间；在<code>assumption</code>中，在子目标结论与假设之间。如果没有值的选择能使两个项相同，则该应用无法成功。Isabelle 还尊重类型和变量作用域，并基于绑定变量重命名和 lambda 转换比较项；它在合一时不证明任意算术恒等式。高阶合一无一般判定过程，因此搜索未必找到所有可能的实例化。</p>
+</div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项 1</th>
+<th>项 2</th>
+<th>合一的结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>?P ⟶ ?Q</code></td>
+<td><code>A ∧ B ⟶ B ∧ A</code></td>
+<td>?P = A ∧ B，?Q = B ∧ A</td>
+</tr>
+<tr>
+<td><code>?P5 ∧ B</code></td>
+<td><code>A ∧ B</code></td>
+<td>?P5 = A</td>
+</tr>
+<tr>
+<td><code>?P ∧ ?Q</code></td>
+<td><code>A ∧ (B ∨ C)</code></td>
+<td>?P = A，?Q = B ∨ C</td>
+</tr>
+<tr>
+<td><code>?P ∨ ?Q</code></td>
+<td><code>B ∧ A</code></td>
+<td>不可能：∨ 不是 ∧</td>
+</tr>
+<tr>
+<td><code>A ∧ ?Q</code></td>
+<td><code>B ∧ A</code></td>
+<td>不可能：A 不是 B</td>
+</tr>
+</tbody>
+</table></div>
+<p>最后一行很重要。目标中的 A 和 B 不是图式变量：它们是自由变元，代表固定但任意的公式，合一永远不会替换它们。正因为如此，这个证明对每个 A 和 B 都成立：它从未用到关于它们的任何信息。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p>在 Isabelle 中证明，就是从根部向上构造纸上的证明树。<code>rule</code> 在一个未关闭的分支顶端添加一步推理，<code>assumption</code> 在一个未解除的假设处关闭一个分支，而图式变量是证明树中你还没有填上的部分。</p>
+</div>
+<span class="section-anchor" id="assumptions"></span>
+<div class="section-header"><span class="section-num">4</span><h2>使用假设：erule、drule 与 frule</h2></div>
+<p>在第 7.3 节中，合取式 A ∧ B 就在假设当中，你却是从 B 和 A 出发反向推理，才得到它的两部分的，途中还要让 Isabelle 去猜 ?P5。在纸上，你的思路正好相反：你有 A ∧ B，所以把它拆开。消去规则和析构规则就是为此而设的，Isabelle 有三个证明方法，专门把它们应用到假设上。</p>
+<h3 id="assumptions-erule">erule：拆开一个假设</h3>
+<div class="box box-definition"><div class="box-label">定义 7.9<span class="box-title">证明方法 erule</span></div>
+<p><code>apply (erule r)</code> 把消去规则 r 应用到子目标 1 的某个假设上。它把 r 的主前提与一个假设合一，并把 r 的结论与子目标的结论合一。然后它删去那个假设，并为 r 的其余每个前提各产生一个新的子目标。</p>
+</div>
+<p>用 <code>conjE</code>，即 <code>⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R</code>，效果是把一个假设 P ∧ Q 换成两个假设 P 和 Q。这样，交换 A 与 B 的那个证明就更短了：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (rule impI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ B
+ 2. ⟦A; B⟧ ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>erule conjE</code> 之后，A 和 B 是两个独立的假设，所以 B ∧ A 的每一半都由 <code>assumption</code> 关闭，什么也不用猜。这是使用已有合取式的常规做法。</p>
+<h3 id="assumptions-cases">分情形证明：disjE</h3>
+<p>析取消去 (∨E) 就是情形分析（case analysis）：要使用 A ∨ B，就先在假设 A 的情况下证明一次目标，再在假设 B 的情况下证明一次。下面是模块 6 中的 A ∨ B ⟶ B ∨ A：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∨ B]¹</span></div><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">B ∨ A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[B]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">B ∨ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∨E²</span></div><div class="pt-concl"><span class="pt-f">B ∨ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ∨ B ⟶ B ∨ A</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma swap_or: &quot;A ∨ B ⟶ B ∨ A&quot;
+  apply (rule impI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> swap_or: <span class="isa-inner">&quot;A ∨ B ⟶ B ∨ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∨ B ⟹ B ∨ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule disjE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule disjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ B ∨ A
+ 2. B ⟹ B ∨ A</code></pre></div>
+<p><code>disjE</code> 是 <code>⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R</code>。<code>erule</code> 把它的主前提与假设 A ∨ B 匹配，并删去了这个假设。另外两个前提变成了两种情形，各有自己的假设，也就是证明树中的 [A]² 和 [B]²。在第一种情形中，B ∨ A 由 A 通过 (∨I₂) 得出：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI2)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A
+ 2. B ⟹ B ∨ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. B ⟹ B ∨ A</code></pre></div>
+<p>第二种情形用 (∨I₁)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI1)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. B ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<h3 id="assumptions-drule">drule 与 frule：正向推理</h3>
+<div class="box box-definition"><div class="box-label">定义 7.10<span class="box-title">证明方法 drule 与 frule</span></div>
+<p><code>apply (drule r)</code> 正向应用析构规则 r。它把 r 的主前提与子目标 1 的某个假设合一，并删去那个假设。r 的其余每个前提都成为一个新的子目标，排在它们后面的是原来的子目标，只是多了 r 的结论作为新的假设。<code>apply (frule r)</code> 做的事情相同，但会保留它用过的那个假设。</p>
+</div>
+<p>肯定前件式是典型的析构规则。模块 6 用三步 (⟶I) 和两步 (⟶E) 证明了 (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[B ⟶ C]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ⟶ B]¹</span></div><div class="pt-node pt-leaf"><span class="pt-f">[A]³</span></div></div><div class="pt-bar"><span class="pt-rule">⟶E</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶E</span></div><div class="pt-concl"><span class="pt-f">C</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I³</span></div><div class="pt-concl"><span class="pt-f">A ⟶ C</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I²</span></div><div class="pt-concl"><span class="pt-f">(B ⟶ C) ⟶ (A ⟶ C)</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)</span></div></div></div></div>
+<p>在 Isabelle 中，这三个蕴涵变成了三个假设，证明树中的每个 (⟶I) 对应一步 <code>rule impI</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma imp_chain: &quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)&quot;
+  apply (rule impI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> imp_chain: <span class="isa-inner">&quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟶ B ⟹ (B ⟶ C) ⟶ A ⟶ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ⟶ B; B ⟶ C⟧ ⟹ A ⟶ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ⟶ B; B ⟶ C; A⟧ ⟹ C</code></pre></div>
+<p>假设出现的顺序与解除编号的顺序一致：[A ⟶ B]¹、[B ⟶ C]² 和 [A]³。Isabelle 去掉了 A ⟶ C 两边的括号，因为 ⟶ 向右结合（模块 2）。现在从证明树的叶子出发正向推理：由 A 和 A ⟶ B 得到 B。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (drule mp)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (drule mp)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦B ⟶ C; A⟧ ⟹ A
+ 2. ⟦B ⟶ C; A; B⟧ ⟹ C</code></pre></div>
+<p><code>mp</code> 是 <code>⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q</code>。<code>drule</code> 把它的主前提与假设中的第一个蕴涵 A ⟶ B 匹配，并删去了这个假设。<code>mp</code> 的第二个前提，这里是 A，变成了子目标 1：要使用 A ⟶ B，你必须证明 A。子目标 2 是原来的目标，只是假设中多了结论 B。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦B ⟶ C; A; B⟧ ⟹ C</code></pre></div>
+<p>再用 B ⟶ C 重复一遍：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (drule mp)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (drule mp)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ B
+ 2. ⟦A; B; C⟧ ⟹ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>erule impE</code> 和 <code>drule mp</code> 做的工作相同，因为 <code>impE</code> 是 <code>mp</code> 的消去形式；用哪一个，全凭个人喜好。</p>
+<p>如果一个假设用过之后还需要再用，<code>frule</code> 就派上用场了。下面是一个小小的演示：<code>frule conjunct1</code> 加入了 A，但保留了 A ∧ B，所以 <code>drule conjunct2</code> 还能从中取出 B。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (rule impI)
+  apply (frule conjunct1)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (frule conjunct1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ∧ B; A⟧ ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (drule conjunct2)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (drule conjunct2)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>第7.6节有一个<code>frule</code>有用的情况：一个需要两次使用的量化假设。</p>
+<h3 id="assumptions-intro">一次走多步：intro 与 elim</h3>
+<div class="box box-definition"><div class="box-label">定义 7.11<span class="box-title">证明方法 intro 与 elim</span></div>
+<p><code>apply (intro r₁ … rₙ)</code> 把给定的引入规则应用到子目标 1 上，然后再应用到由此产生的子目标上，只要其中还有规则适用，就一直这样做下去。<code>apply (elim r₁ … rₙ)</code> 对假设应用消去规则，做法相同。</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (intro impI conjI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (intro impI conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (elim conjE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (elim conjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply (elim conjE)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (elim conjE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>intro</code> 先应用了 <code>impI</code>，再应用了 <code>conjI</code>，把目标一分为二；<code>elim</code> 只拆开了子目标 1 中的合取式。在上面的 <code>imp_chain</code> 中，一步 <code>apply (intro impI)</code> 就可以代替三步 <code>rule impI</code>。</p>
+<h3 id="assumptions-which">什么时候用哪个方法</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>情况</th>
+<th>规则的种类</th>
+<th>证明方法</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结论中有一个要拆开的联结词</td>
+<td>引入规则</td>
+<td><code>rule</code></td>
+<td><code>apply (rule conjI)</code></td>
+</tr>
+<tr>
+<td>某个假设中有一个要拆开的联结词</td>
+<td>消去规则</td>
+<td><code>erule</code></td>
+<td><code>apply (erule disjE)</code></td>
+</tr>
+<tr>
+<td>由某个假设可以得到一个新事实</td>
+<td>析构规则</td>
+<td><code>drule</code>；要保留这个假设就用 <code>frule</code></td>
+<td><code>apply (drule mp)</code></td>
+</tr>
+<tr>
+<td>结论就是某个假设</td>
+<td>无</td>
+<td><code>assumption</code></td>
+<td><code>apply assumption</code></td>
+</tr>
+<tr>
+<td>同一类的许多步骤</td>
+<td>引入规则或消去规则</td>
+<td><code>intro</code>、<code>elim</code></td>
+<td><code>apply (intro impI conjI)</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>这些是惯例配对，并非由方法名强制执行的限制。<code>rule</code> 也可以逆向使用消去或破坏定理，正如 <code>rule conjunct2</code> 已做的那样。类似地，当 <code>erule</code> 的第一个前提和结论匹配时，它可以使用如 <code>mp</code> 这样的定理。这些方法在将定理与子目标及其假设进行合一（resolve）的方式上有所不同。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>先看子目标，再找规则。如果你想处理结论的主联结词（main connective），就用 <code>rule</code> 应用它的引入规则。如果你想使用某个假设，就用 <code>erule</code> 应用这个假设的联结词的消去规则。第 7.8 节会说明把两者弄混时会发生什么。</p>
+</div>
+<span class="section-anchor" id="negation"></span>
+<div class="section-header"><span class="section-num">5</span><h2>否定与恒假</h2></div>
+<p>第 7.1 节说明了，HOL 和模块 6 一样，把 ¬A 定义为 A ⟶ False。否定的规则都由这个定义得出：</p>
+<ul>
+<li><code>notI</code>，即 <code>(?P ⟹ False) ⟹ ¬ ?P</code>，就是 (¬I)：要证明 ¬A，就假设 A 并推导出 False。</li>
+<li><code>notE</code>，即 <code>⟦¬ ?P; ?P⟧ ⟹ ?R</code>，在 ?R 为 False 时就是 (¬E)，否则就是先用 (¬E) 再用 (⊥E)：由 ¬A 和 A 可以得出任何公式。</li>
+<li><code>FalseE</code>，即 <code>False ⟹ ?P</code>，就是 (⊥E)。</li>
+</ul>
+<p><code>notE</code> 要和 <code>erule</code> 一起用，它的效果值得记住：<strong>要使用假设 ¬A，就去证明 A</strong>。<code>erule notE</code> 删去 ¬A，并且不管原来的结论是什么，都把它变成 A。下面是模块 6 中的 ¬(A ∨ B) ⟶ ¬A ∧ ¬B：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">A ∨ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬I²</span></div><div class="pt-concl"><span class="pt-f">¬A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[B]³</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">A ∨ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬I³</span></div><div class="pt-concl"><span class="pt-f">¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">¬A ∧ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">¬(A ∨ B) ⟶ ¬A ∧ ¬B</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∨ B) ⟶ ¬ A ∧ ¬ B&quot;
+  apply (rule impI)
+  apply (rule conjI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∨ B) ⟶ ¬ A ∧ ¬ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ¬ (A ∨ B) ⟹ ¬ A
+ 2. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<p>要证明 ¬A，就假设 A 并推导出 False，即 (¬I²)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule notI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦¬ (A ∨ B); A⟧ ⟹ False
+ 2. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<p>只要证明了 A ∨ B，就能由 ¬(A ∨ B) 得出 False，即 (¬E)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A ∨ B
+ 2. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI1)
+  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<p>后一半也一样，只是改用 <code>disjI2</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule notI)
+  apply (erule notE)
+  apply (rule disjI2)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>当 False 本身就在假设中时，<code>erule FalseE</code> 会立即关闭这个子目标，因为 <code>FalseE</code> 没有其他前提：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;False ⟶ A&quot;
+  apply (rule impI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;False ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. False ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule FalseE)
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule FalseE)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p><code>erule</code> 使用第一个合适的假设。如果有好几个否定形式的假设，<code>erule notE</code> 会取第一个，而它未必是你想要的那个。第 7.7 节有一个证明，其中第一个恰好就是对的；第 7.6 节则说明怎样指定你想要的公式（练习 7.5 需要用到）。</p>
+</div>
+<span class="section-anchor" id="quantifiers"></span>
+<div class="section-header"><span class="section-num">6</span><h2>量词与固定变元</h2></div>
+<h3 id="quantifiers-all">∀ 与固定变元</h3>
+<p>模块 6 证明过：一个全称量化的合取式能给出两个全称量化的公式：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:1.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∀x. P x ∧ Q x]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∀E</span></div><div class="pt-concl"><span class="pt-f">P a ∧ Q a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧E₁</span></div><div class="pt-concl"><span class="pt-f">P a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∀I</span></div><div class="pt-concl"><span class="pt-f">∀x. P x</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∀x. P x ∧ Q x]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∀E</span></div><div class="pt-concl"><span class="pt-f">P a ∧ Q a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧E₂</span></div><div class="pt-concl"><span class="pt-f">Q a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∀I</span></div><div class="pt-concl"><span class="pt-f">∀x. Q x</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">(∀x. P x) ∧ (∀x. Q x)</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">(∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)</span></div></div></div></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>有些书把这个公式写成 ∀x.(P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)，让量词只作用于紧跟在它后面的括号。在 Isabelle 中，和模块 3、模块 6 一样，∀x 的辖域尽可能向右延伸，所以 <code>∀x. (P x ∧ Q x) ⟶ …</code> 会把整个蕴涵都放进量词里面。应该把括号加在量词外面：<code>(∀x. P x ∧ Q x) ⟶ …</code>。</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)&quot;
+  apply (rule impI)
+  apply (rule conjI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ∀x. P x ∧ Q x ⟹ ∀x. P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p>子目标 1 要求证明 ∀x. P x，所以下一步是 (∀I)：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule allI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. ∀x. P x ∧ Q x ⟹ P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p><code>allI</code>，即 <code>(⋀x. ?P x) ⟹ ∀x. ?P x</code>，把 HOL 的量词 ∀x 换成了 Pure 的量词 ⋀x。现在这个子目标读作：对任意的 x，假设 ∀x. P x ∧ Q x，证明 P x。假设里的 x 被它自己的 ∀ 约束，是另一个碰巧同名的变元。⋀ 后面的 x 才是那个任意的 x；纸上的证明树把它叫作 a。</p>
+<div class="box box-definition"><div class="box-label">定义 7.12<span class="box-title">固定变元</span></div>
+<p>在子目标最前面由 ⋀ 约束的变元叫作<strong>固定变元</strong>（fixed variable）；Isabelle 也把它叫作<strong>参数</strong>（parameter）。它代表一个任意的值：它只属于自己所在的子目标，合一永远不会替换它。<code>allI</code> 会产生一个固定变元，并借此保证了 (∀I) 的本征变元条件。</p>
+</div>
+<p>现在用 (∀E) 的消去形式 <code>allE</code> 来使用这个假设：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. P (?x7 x) ∧ Q (?x7 x) ⟹ P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p><code>allE</code>，即 <code>⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R</code>，把假设 ∀x. P x ∧ Q x 换成了它的一个实例（instance）P t ∧ Q t，其中的项 t 还没有选定。Isabelle 把这个项写成 <code>?x7 x</code>：一个作用于固定变元 x 的图式变量。这样写记下了一点：这个项可以由 x 构造出来，因为 x 在这个未知量产生之前就已经固定了。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. ⟦P (?x7 x); Q (?x7 x)⟧ ⟹ P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p><code>assumption</code> 把 P (?x7 x) 与 P x 合一，于是这个项就是 x 本身：为 (∀E) 选定的实例正是那个任意的 x，就像证明树在两处都用 a 一样。后一半的做法相同，只是这一次通过 <code>drule</code> 使用 (∀E) 的析构形式 <code>spec</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule allI)
+  apply (drule spec)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (drule spec)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀x. P (?x13 x) ∧ Q (?x13 x) ⟹ Q x</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>⟹ 比 ∀ 结合得弱。所以 <code>∀x. P x ⟹ P x</code> 并不是关于同一个 x 的陈述：它的意思是 (∀x. P x) ⟹ P x，结论中的 x 是一个自由变元，与约束的那个 x 毫无关系。存储下来的定理表明了这一点：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma all_inst: &quot;∀x. P x ⟹ P x&quot;
+  apply (erule allE)
+  apply assumption
+  done
+
+thm all_inst">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> all_inst: <span class="isa-inner">&quot;∀x. P x ⟹ P x&quot;</span>
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">thm</span> all_inst</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>∀x. ?P x ⟹ ?P ?x</code></pre></div>
+<p>结论中的 x 变成了 <code>?x</code>，一个单独的图式变量。在这里这并无害处，因为这条引理本身就是 (∀E)。但如果你想表达的是“对每个 x，P x 蕴涵 P x”，就要写成 <code>⋀x. P x ⟹ P x</code> 或 <code>∀x. P x ⟶ P x</code>。</p>
+</div>
+<h3 id="quantifiers-ex">∃ 与步骤的顺序</h3>
+<p><code>exI</code>，即 <code>?P ?x ⟹ ∃x. ?P x</code>，就是 (∃I)：要证明 ∃x. P x，就对某个项 t 证明 P t，t 就是见证（witness）。反向使用时，它把见证留作一个未知量，以后再由合一确定。<code>exE</code>，即 <code>⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code>，就是 (∃E)：要使用 ∃x. P x，就取一个使 P x 成立的新的 x。和 <code>erule</code> 一起用时，它把假设 ∃x. P x 变成一个固定变元 x 和一个假设 P x。</p>
+<p>模块 6 的例子交换了 ∃x. ∀y. R x y 中的两个量词。把 R x y 读作“钥匙 x 能打开门 y”：一把万能钥匙能打开每扇门，所以每扇门都有一把钥匙。</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∃x. ∀y. R x y]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∀y. R a y]²</span></div></div><div class="pt-bar"><span class="pt-rule">∀E</span></div><div class="pt-concl"><span class="pt-f">R a b</span></div></div></div><div class="pt-bar"><span class="pt-rule">∃I</span></div><div class="pt-concl"><span class="pt-f">∃x. R x b</span></div></div></div><div class="pt-bar"><span class="pt-rule">∃E²</span></div><div class="pt-concl"><span class="pt-f">∃x. R x b</span></div></div></div><div class="pt-bar"><span class="pt-rule">∀I</span></div><div class="pt-concl"><span class="pt-f">∀y. ∃x. R x y</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)</span></div></div></div></div>
+<p>从下往上读：先是 (⟶I)，然后是本征变元为 b 的 (∀I)，然后是本征变元为 a 的 (∃E)，然后是以 a 为见证的 (∃I)，最后是以 b 为实例的 (∀E)。在 Isabelle 中：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma ex_all: &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+  apply (rule impI)
+  apply (rule allI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> ex_all: <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y. ∃x. ∀y. R x y ⟹ ∃x. R x y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule exE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule exE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. ∀y. R x y ⟹ ∃x. R x y</code></pre></div>
+<p>现在有两个固定变元：y 由 <code>allI</code> 固定（即证明树中的 b），x 由 <code>exE</code> 固定（即 a）。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule exI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. ∀y. R x y ⟹ R (?x6 y x) y</code></pre></div>
+<p>见证是一个作用于两个固定变元的未知量：它可以由 y 和 x 构造出来。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x6 y x) y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>assumption</code> 取 x 作为见证、y 作为 ∀y 的实例，使 ⟹ 的两边完全相同。</p>
+<h3 id="quantifiers-order">先固定，后猜测</h3>
+<p>如果在消去另一个量词之前就引入存在量词，会怎样？在 <code>exE</code> 之前应用 <code>exI</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+  apply (rule impI)
+  apply (rule allI)
+  apply (rule exI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y. ∃x. ∀y. R x y ⟹ R (?x4 y) y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule exE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule exE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. ∀y. R x y ⟹ R (?x4 y) y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</code></pre></div>
+<p>现在见证是 <code>?x4 y</code>。它产生的时候只有 y 已经固定，所以它可以由 y 构造，却不能由 x 构造，因为 x 是 <code>exE</code> 后来才固定的。要关闭这个子目标，Isabelle 必须使 ⟹ 的两边完全相同，而这需要见证就是 x。合一不允许这样做，所以 <code>assumption</code> 失败了，Isabelle 报告“Failed to apply proof method”（未能应用证明方法）：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</span></code></pre></div>
+<p>此直接规则序列阻塞了预期的 <code>assumption</code> 步骤。为此证明，在 <code>exI</code> 之前重启使用 <code>exE</code>，使得见证可以依赖于命名主密钥：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>在纸面上，此尝试性树会在其（∃E）作用域外使用本征变元 a 作为存在见证，这违反了侧条件。Isabelle 拒绝用后续固定的 x 实例化 <code>?x4 y</code>，从而强制执行了相同的作用域限制。这并未证明不存在任何 HOL 方法能解决剩余的模式目标：HOL 的选择算子可以表达主密钥而无需引用该局部名称。要点在于此特定逐条证明所要求的依赖关系。</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<p><strong>先固定，后猜测。</strong> <code>rule allI</code>和<code>erule exE</code>固定变量；<code>rule exI</code>、<code>erule allE</code>和<code>drule spec</code>创建未知项。未知项只能由在创建它之前已固定的变量构成的项组成，这由显示子目标中的其参数记录。上下文参数和常量仍然可用。先固定变量是这些证明的一种有用策略，而非对每个可能的HOL证明的要求。这是第6.7节的建议，即先打开存在性假设，然后选择实例和见证，Isabelle的未知项展示了其工作原理。</p>
+</div>
+<p>如果一个陈述不是有效的（valid），那么什么顺序都不行。逆命题（converse）(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) 说的是：如果每扇门都有钥匙，那么存在一把万能钥匙。<a href="module_06_ZH.html#quantifiers">第 6.6 节</a>给出了一个反模型（countermodel），练习 7.9 则让你亲眼看着证明的尝试卡住。</p>
+<h3 id="quantifiers-inst">自己选定实例</h3>
+<p>只有当目标显示出见证必须是什么时，合一才能找到它。下面这个目标就没有显示出来：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∃n::nat. n + n = 6&quot;
+  apply (rule exI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∃n::nat. n + n = 6&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ?n + ?n = 6</code></pre></div>
+<p>无假设固定 <code>?n</code>，且 <code>simp</code>（模块 1）不通过搜索数值见证来求解此方程：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. ?n + ?n = 6</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>自己说出见证：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∃n::nat. n + n = 6&quot;
+  apply (rule_tac x = 3 in exI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∃n::nat. n + n = 6&quot;</span>
+  <span class="isa-proof">apply</span> (rule_tac x = 3 <span class="isa-minor">in</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. 3 + 3 = 6</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">定义 7.13<span class="box-title">证明方法 rule_tac、erule_tac、drule_tac 与 frule_tac</span></div>
+<p><code>apply (rule_tac x = t in r)</code> 先把规则 r 的图式变量 <code>?x</code> 换成项 t，再像 <code>rule</code> 那样应用 r。变量名按 <code>thm r</code> 显示的那样写，但不带问号；除非 t 是单个名字或数字，否则要给它加上引号；几个实例化之间用 <code>and</code> 隔开。<code>erule_tac</code>、<code>drule_tac</code> 和 <code>frule_tac</code> 的用法相同。另一种做法是用 <code>of</code>（第 7.2 节）实例化规则，再应用得到的结果：<code>apply (rule exI[of _ 3])</code>，其中 <code>_</code> 跳过 ?P。</p>
+</div>
+<p>合一也可能选错。下面是一个小小的不变式（invariant）论证：如果从一个安全状态出发的每一步都通向一个安全状态，并且 s 是安全的，那么从 s 出发走两步，到达的也是一个安全状态。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;
+  apply (frule spec)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;</span>
+  <span class="isa-proof">apply</span> (frule spec)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦∀x. safe x ⟶ safe (step x); safe s; safe ?x ⟶ safe (step ?x)⟧
+    ⟹ safe (step (step s))</code></pre></div>
+<p>带量词的假设要用两次，每一步用一次，所以 <code>frule spec</code> 在加入一个带未知量 <code>?x</code> 的实例的同时保留了它。<code>erule impE</code> 使用这个实例；它的前提 <code>safe ?x</code> 变成子目标 1，<code>assumption</code> 取 ?x = s 关闭了这个子目标：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)
+  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦∀x. safe x ⟶ safe (step x); safe s; safe (step s)⟧
+    ⟹ safe (step (step s))</code></pre></div>
+<p>对第二步，用同样的三个证明方法：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)
+  apply (erule impE)
+  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦safe s; safe (step s); safe (step s)⟧ ⟹ safe (step (step s))</code></pre></div>
+<p>这一次，<code>assumption</code> 有两个候选的假设可以与 <code>safe ?x</code> 合一：safe s 和 safe (step s)。它取了第一个，于是未知量又变成了 s，证明就卡住了：没有哪个假设说 safe (step (step s))。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>告诉 Isabelle 你想要哪个实例：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma safe_twice: &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;
+  apply (frule spec)
+  apply (erule impE)
+  apply assumption
+  apply (erule_tac x = &quot;step s&quot; in allE)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> safe_twice: <span class="isa-inner">&quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;</span>
+  <span class="isa-proof">apply</span> (frule spec)
+  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule_tac x = <span class="isa-inner">&quot;step s&quot;</span> <span class="isa-minor">in</span> allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦safe s; safe (step s); safe (step s) ⟶ safe (step (step s))⟧
+    ⟹ safe (step (step s))</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>这类关于系统所能到达的每个状态的论证，会在模块 13 中再次出现。</p>
+<span class="section-anchor" id="classical"></span>
+<div class="section-header"><span class="section-num">7</span><h2>经典推理与相等</h2></div>
+<h3 id="classical-raa">反证法</h3>
+<p>目前使用的显式自然演绎规则均有直觉主义对应规则；其中没有（RAA）。这并不意味着底层 HOL 理论是直觉主义的，也不意味着自动化使用的所有库事实都是构造性的。模块 6 解释了某些重言式在没有（RAA）的情况下无法推导（<a href="module_06_ZH.html#classical">Section 6.5</a>），而 A ∨ ¬A，即排中律，是标准示例。尝试在不使用它的情况下：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
+  apply (rule disjI1)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A</code></pre></div>
+<p>A 是不可证的：关于 A，什么也不知道。<code>disjI2</code> 会留下 ¬A，也好不到哪里去。放弃这次尝试：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>出路是 (RAA)，它在 Isabelle 中就是 <code>ccontr</code>。下面是第 6.5 节中的推导：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ ¬A)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ ¬A)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">A ∨ ¬A</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬I²</span></div><div class="pt-concl"><span class="pt-f">¬A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">A ∨ ¬A</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA¹</span></div><div class="pt-concl"><span class="pt-f">A ∨ ¬A</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
+  apply (rule ccontr)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ ¬ A) ⟹ False</code></pre></div>
+<p>这就是 (RAA¹)：假设目标的否定，推导出 False。下一步是证明树底部的那个 (¬E)，反向使用：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule notE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ¬ (A ∨ ¬ A) ⟹ ¬ ?P2
+ 2. ¬ (A ∨ ¬ A) ⟹ ?P2</code></pre></div>
+<p>要推导出 False，就要找一个公式 <code>?P2</code>，使 ¬?P2 和 ?P2 都成立。这一步用的是 <code>rule notE</code>，而不是 <code>erule notE</code>，因为在证明树中更靠上的地方还要再用到假设 ¬(A ∨ ¬A)，而 <code>erule</code> 会把它删去。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ ¬ A) ⟹ A ∨ ¬ A</code></pre></div>
+<p>子目标 1 与假设合一，这把 ?P2 定为 A ∨ ¬A：这就是叶子 [¬(A ∨ ¬A)]¹。剩下的步骤沿着证明树走：(∨I₂)、(¬I²)、(¬E) 和 (∨I₁)。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI2)
+  apply (rule notI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦¬ (A ∨ ¬ A); A⟧ ⟹ False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟹ A ∨ ¬ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI1)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>前三步，即 <code>rule ccontr</code>、<code>rule notE</code> 和 <code>assumption</code>，合起来完成的工作相当于一条规则 <code>classical</code>，即 <code>(¬ ?P ⟹ ?P) ⟹ ?P</code>：假设目标的否定，然后证明目标本身。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
+  apply (rule classical)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> classical)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ ¬ A) ⟹ A ∨ ¬ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI2)
+  apply (rule notI)
+  apply (erule notE)
+  apply (rule disjI1)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>库中已经有这条定律，只是两个析取项的顺序相反：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm excluded_middle">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> excluded_middle</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>¬ ?P ∨ ?P</code></pre></div>
+<h3 id="classical-demorgan">一条德摩根律</h3>
+<p>在德摩根定律的四个方向中，第 6.5 节指出需要（RAA）：¬(A ∧ B) ⟶ ¬A ∨ ¬B。思路：假设 ¬A ∨ ¬B 为假。那么 A 必须成立，否则 ¬A ∨ ¬B 将成立；同理 B 也成立。但 A ∧ B 与 ¬(A ∧ B) 矛盾。</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∧ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(¬A ∨ ¬B)]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬A]³</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA³</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(¬A ∨ ¬B)]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬B]⁴</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA⁴</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA²</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">¬(A ∧ B) ⟶ ¬A ∨ ¬B</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma de_morgan_and: &quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;
+  apply (rule impI)
+  apply (rule ccontr)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> de_morgan_and: <span class="isa-inner">&quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦¬ (A ∧ B); ¬ (¬ A ∨ ¬ B)⟧ ⟹ False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (¬ A ∨ ¬ B) ⟹ A ∧ B</code></pre></div>
+<p><code>erule notE</code> 取了第一个否定形式的假设 ¬(A ∧ B)，留下它的反面 A ∧ B 有待证明：这就是证明树底部的那个 (¬E)，它的第一个前提是 [¬(A ∧ B)]¹。A ∧ B 的每一半又各是一次反证法（proof by contradiction）：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply (rule ccontr)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦¬ (¬ A ∨ ¬ B); ¬ A⟧ ⟹ False
+ 2. ¬ (¬ A ∨ ¬ B) ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)
+  apply (rule disjI1)
+  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (¬ A ∨ ¬ B) ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule ccontr)
+  apply (erule notE)
+  apply (rule disjI2)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>德摩根律的另外三个方向都不需要经典规则；练习 7.5 要你证明其中的两个。</p>
+<h3 id="classical-eq">相等</h3>
+<p><code>refl</code>，即 <code>?t = ?t</code>，就是 (=I)；<code>subst</code>，即 <code>⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t</code>，就是 (=E)：如果 s = t，并且某个性质对 s 成立，那么它对 t 也成立。性质 <code>?P</code> 是一个函数类型的图式变量，合一会用一个函数来填充它。模块 6 由这两条规则推导出了对称性（<a href="module_06_ZH.html#equality">第 6.8 节</a>），其中取 P x 为 x = s。写成一条由 s = t 得出 t = s 的规则，推导就是：</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:1.6rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">s = t</span></div><div class="pt-node"><div class="pt-prem pt-axiom"></div><div class="pt-bar"><span class="pt-rule">=I</span></div><div class="pt-concl"><span class="pt-f">s = s</span></div></div></div><div class="pt-bar"><span class="pt-rule">=E</span></div><div class="pt-concl"><span class="pt-f">t = s</span></div></div></div></div>
+<p>这里 (=E) 用的是性质“等于 s”：它对 s 成立，所以对 t 也成立。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;s = t ⟹ t = s&quot;
+  apply (erule subst)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;s = t ⟹ t = s&quot;</span>
+  <span class="isa-proof">apply</span> (erule subst)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. s = s</code></pre></div>
+<p><code>erule</code> 把主前提 <code>?s = ?t</code> 与假设 s = t 合一，又把结论 <code>?P t</code> 与 t = s 合一。对于后者，Isabelle 必须找到一个性质 ?P，使 ?P t 就是 t = s。新的子目标显示了它选的是哪一个：性质“等于 s”，因为剩下的前提 ?P s 变成了 s = s。<code>refl</code> 能证明它：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule refl)
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> refl)
+  <span class="isa-proof">done</span></code></pre></div>
+<p>在日常的证明中，你很少手工使用 <code>subst</code>，因为化简器（simplifier）会自动用等式进行重写（rewriting，模块 9）。但在自然演绎中，这种重写的含义正是 <code>subst</code>。</p>
+<h3 id="classical-iff">等价</h3>
+<p>对于 ⟷，<code>iffI</code> 把一个目标变成两个蕴涵。注意 Isabelle 是怎样显示这个目标的：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟷ B ∧ A&quot;">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟷ B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. (A ∧ B) = (B ∧ A)</code></pre></div>
+<p>对于公式，⟷ 和 = 是一回事，Isabelle 把两者都显示为 =。<code>iffI</code> 给出两个方向：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule iffI)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> iffI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B ∧ A
+ 2. B ∧ A ⟹ A ∧ B</code></pre></div>
+<p>每个子目标都又是那条交换引理，只是没有了蕴涵：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>要使用一个已有的等价式，<code>iffD1</code> 和 <code>iffD2</code> 的作用就像两个方向上的 <code>mp</code>。</p>
+<span class="section-anchor" id="errors"></span>
+<div class="section-header"><span class="section-num">8</span><h2>当步骤失败时</h2></div>
+<p>任何步骤都可能失败，且 Isabelle 的消息简短。本节收集你将遇到的消息及其原因和修复方法。Isabelle 标记失败的步骤并显示其接收到的证明状态。其前的步骤不受影响，因此你可以用其他步骤替换失败的步骤。</p>
+<h3 id="errors-apply">应用证明方法失败</h3>
+<p>这是最常见的消息，表示该方法对子目标 1 无法执行任何操作：对于 <code>rule</code>，规则结论与子目标结论无法合一；对于 <code>erule</code>，要么无法合一，要么没有假设匹配规则的主要前提；对于 <code>drule</code> 和 <code>frule</code>，没有假设匹配主要前提；对于 <code>assumption</code>，没有假设与结论合一。Isabelle 展示了它接收到的证明状态。以下是模块 6 在 6.4 节中警告过的早期选择，随后是一个充满希望的 <code>assumption</code>：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A</span></code></pre></div>
+<p><code>disjI1</code> 左侧的子目标 A 没有任何前提，因此 <code>assumption</code> 没有可合一的对象。另外三种常见原因也会产生相同的消息，随后显示失败步骤发生前的证明状态。</p>
+<p><strong>在假设成为假设之前将其拆解。</strong>在目标 A ∧ B ⟶ B ∧ A 中，合取 A ∧ B 不是假设，而是蕴含式的一部分，因此 <code>erule conjE</code> 找不到可操作的内容：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A</span></code></pre></div>
+<p>首先应用 <code>impI</code>：它将 A ∧ B 移入假设。</p>
+<p><strong>期望假设能深入公式内部。</strong> 在 <code>impI</code> 和 <code>conjI</code> 之后，子目标 1 为 A ∧ B ⟹ B。B 是假设的一部分，但并非假设本身，因此 <code>assumption</code> 失败：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B
+ 2. A ∧ B ⟹ A</span></code></pre></div>
+<p><code>assumption</code> 仅对完整公式进行合一。首先使用 <code>erule conjE</code> 分解假设。</p>
+<p><strong>使用适用于错误联结词的规则。</strong> <code>disjI1</code> 结论为析取，但子目标 A ∧ B ⟹ B ∧ A 的结论为合取：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</span></code></pre></div>
+<p>如有疑问，使用 <code>thm</code> 查阅该规则：对于 <code>rule</code>，其结论必须与子目标的结论合一。固定连接词必须匹配，但像 <code>?P</code> 这样的模式结论可以匹配不同的形状。该规则在实例化前不必显示目标的连接词。</p>
+<h3 id="errors-name">未定义的定理</h3>
+<p>拼写错误的规则名会给出不同的消息。许多规则名以大写 I 结尾，其外观与小写 l 非常相似：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjl)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Undefined fact: &quot;conjl&quot;⌂</span></code></pre></div>
+<h3 id="errors-done">证明失败</h3>
+<p><code>done</code> 在子目标未消解时失败，并列出它们。采用与上文相同的早期选择，并在其后直接写入 <code>done</code>：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof:
+goal (1 subgoal):
+ 1. A</span></code></pre></div>
+<p><code>done</code> 本身无法证明任何内容，甚至无法证明结论是其假设之一的子目标。添加缺失的步骤，或者如果剩余子目标不可证明，如本例所示，则返回并选择不同的策略。（一行证明 <code>by m</code>，如 <code>by blast</code> 所示，行为略有不同：在方法 m 之后，它通过假设关闭剩余子目标，并且仅当其他内容剩余时才报告 Failed to finish proof。）</p>
+<h3 id="errors-forget">遗忘完成</h3>
+<p>没有<code>done</code>，当下一条命令到达时证明仍然开放，且下一条引理被拒绝：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> assumption
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;B ⟶ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Bad context for command &quot;lemma&quot;⌂</span></code></pre></div>
+<p>引理不能始于证明内部。在最后一个<code>apply</code>后添加<code>done</code>。若未完成的证明是理论中的最后一个，则拒绝<code>end</code>，并提示“在“prove”模式下非法使用证明命令”。</p>
+<h3 id="errors-rule">一次绕道，而非错误：使用 rule 而非 erule</h3>
+<p>某些错误根本不会报错，只会产生一个奇怪的证明状态。通常的情况是：将带有 <code>rule</code> 的消除规则应用于 <code>erule</code> 时</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ B ⟶ B ∨ A&quot;
+  apply (rule impI)
+  apply (rule disjE)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ B ⟶ B ∨ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (3 subgoals):
+ 1. A ∨ B ⟹ ?P2 ∨ ?Q2
+ 2. ⟦A ∨ B; ?P2⟧ ⟹ B ∨ A
+ 3. ⟦A ∨ B; ?Q2⟧ ⟹ B ∨ A</code></pre></div>
+<p><code>rule</code> 仅将 <code>disjE</code> 的结论 ?R 与 B ∨ A 进行合一。主要前提成为子目标 1，因此 Isabelle 要求证明某个它尚不知晓的析取式，且两个案例涉及未知公式。<code>apply assumption</code> 通过将未知析取式与 A ∨ B 进行合一来修复此问题，结果将是 <code>erule</code> 版本，其中假设 A ∨ B 在两个案例中均予保留。从一开始就使用 <code>erule</code>。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<ul>
+<li><strong>应用证明方法失败</strong>：该规则不适用于子目标 1，或其假设不匹配主要结论
+前提。检查主连接词；在分解假设前使用 <code>impI</code>；使用 <code>thm</code> 读取规则。</li>
+<li><strong>未定义的定理</strong>：拼写错误的规则名称，例如将<code>conjl</code>误写为<code>conjI</code>。</li>
+<li><strong>证明未完成</strong>：<code>done</code>处仍有子目标；它们已列出。</li>
+<li><strong>命令“lemma”的上下文错误</strong>：前一个证明没有<code>done</code>。</li>
+<li><strong>内部语法错误…解析 prop</strong> 失败：语句本身存在错误，例如在
+公式（第 7.1 节）。</li>
+<li><strong>一个无法关闭的子目标，包含如<code>?x4 y</code></strong>这样的未知量：量词规则应用过早。
+在创建未知变量之前先固定变量（第7.6节）。</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="blast"></span>
+<div class="section-header"><span class="section-num">9</span><h2>让 Isabelle 进行搜索：blast 与 auto</h2></div>
+<p>模块 6 通过让 <code>blast</code> 证明其推导（<a href="module_06_ZH.html#isabelle">Section 6.9</a>）结束。你现在已手动完成了 <code>blast</code> 自动执行的操作。<code>blast</code> 属于 Isabelle 的 <strong>classical reasoner</strong>，这是一组基于自然演绎规则证明方法的家族。它应用引入和消除规则，如本模块中的规则：安全规则（第 6.7 节）自由应用，其他规则作为选择。当选择无果时，它可以回溯并尝试其他选择，在其搜索范围内。它可能找到完整证明、失败或达到资源限制。以下示例采用单次调用：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;
+  by blast
+
+lemma &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+  by blast
+
+lemma &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;
+  by blast">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p><code>blast</code> 找到了在 7.6 节中仅靠合一无法正确处理的实例步骤 s：当一个选择失败时，它会尝试另一个选择。无论 <code>blast</code> 找到什么，定理均由 Isabelle 的内核根据逻辑规则构建。如 Module 1 所述，该保证针对相对于理论公理和可信基础设施的普通重构证明；承认和预言方法引入了不同的证据。</p>
+<p>当命题无效时，<code>blast</code> 失败，正如第 6.9 节对主密钥所示：</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">故意出错的例子</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)</span></code></pre></div>
+<p>借助<code>by</code>，Isabelle 调用该方法作为初始证明方法，因此消息仅表明<code>blast</code>未找到证明，它并未说明该命题为假或对于<code>blast</code>而言过于困难；<code>nitpick</code>（Modules 2 和 3）可以寻找反例。<code>auto</code> 的行为不同：它尽其所能并展示剩余部分。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;
+  apply auto">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ∀y. ∃x. R x y ⟹ ∃x. ∀y. R x y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p><code>auto</code> 将蕴含式转化为假设并在此停止。<code>auto</code> 结合经典推理与化简器，并保留其无法证明的子目标；Module 9 深入介绍它。<code>blast</code> 不调用化简器且对等式知之甚少，但 <em>Programming and Proving in Isabelle/HOL</em> 称其为“复杂逻辑目标的首选方法”。</p>
+<p>那么应该使用哪一个？对于常规逻辑，使用 <code>blast</code> 或 <code>auto</code>。但自动化在目标过大或不完全为真时经常失败，此时手动步骤是查明原因的方法：手动应用若干规则，查看子目标，并对各部分调用 <code>blast</code>，或发现其中一部分无法被证明。这就是为什么该模块首先全部手动操作的原因。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>当<code>blast</code>失败时的良好例程：使用<code>intro</code>（<code>impI</code>, <code>allI</code>, <code>conjI</code>, …）应用明显的引入规则，并用<code>elim</code>（<code>conjE</code>, <code>exE</code>, …）分解明显的假设。然后在每个子目标上尝试<code>blast</code>。看似错误的子目标是整个命题可能为假的提示；请在引理上尝试<code>nitpick</code>。</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>小结</h2></div>
+<ul>
+<li>Isabelle 具有两个逻辑层级：元逻辑 <strong>Pure</strong>，包含 ⟹、⋀ 和 ≡，用于规则和目标的
+被书写的是对象逻辑<strong>HOL</strong>，其中包含¬ ∧ ∨ ⟶ ∀ ∃ 和 =，公式在其中被书写。</li>
+<li>规则是一个定理：<code>thm conjI</code> 展示了 <code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code>。<strong>模式变量</strong> 如 <code>?P</code> 可以
+由适当类型的项和允许的变量依赖关系实例化：通过<strong>合一</strong>自动完成，或通过<code>of</code>和<code>rule_tac</code>手动完成。</li>
+<li>模块 6 的每条规则在 Isabelle 中均有对应名称：<code>conjI</code>, <code>conjunct1</code>, <code>conjunct2</code>, <code>conjE</code>, <code>disjI1</code>,
+<code>disjI2</code>, <code>disjE</code>, <code>impI</code>, <code>mp</code>, <code>impE</code>, <code>notI</code>, <code>notE</code>, <code>FalseE</code>, <code>allI</code>, <code>spec</code>, <code>allE</code>, <code>exI</code>, <code>exE</code>, <code>ccontr</code>, <code>classical</code>, <code>refl</code> and <code>subst</code>.</li>
+<li>证明脚本从根节点构建论文树：<code>rule</code> 将规则的结论与
+目标；<code>erule</code>、<code>drule</code> 和 <code>frule</code> 以不同方式对假设应用规则进行形式化规约；<code>assumption</code> 关闭分支；<code>intro</code> 和 <code>elim</code> 重复；<code>done</code> 检查是否无剩余。</li>
+<li><code>allI</code> 和 <code>exE</code> 创建 <strong>固定变量</strong> (⋀x)，它们强制执行本征变元条件；<code>exI</code>，
+<code>allE</code> 和 <code>spec</code> 创建未知项。先固定前者，稍后猜测后者。</li>
+<li>经典证明使用<code>ccontr</code>，即（RAA），或<code>classical</code>。</li>
+<li>常见的消息有 Failed to apply proof method、Undefined fact、Failed to finish proof 和 Bad
+上下文用于命令。</li>
+<li><code>blast</code> 使用相同的规则进行搜索，且要么成功要么失败；<code>auto</code> 展示其无法处理的内容
+证明。</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>练习</h2></div>
+<div class="exercise" id="ex-7-1"><div class="ex-label"><span class="ex-num">练习 7.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">读取一条规则</span></div>
+<p><code>thm impE</code> 打印 <code>⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R</code>。</p>
+<ol>
+<li>哪个前提是大前提？</li>
+<li>哪个前提拥有自己的假设，它是什么？</li>
+<li>将规则绘制为纸面规则，采用 Module 6 的风格。</li>
+<li>通常用哪种方法应用 <code>impE</code>？它怎样处理子目标 ⟦A ⟶ B; A⟧ ⟹ C？</li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>
+<p><code>?P ⟶ ?Q</code>: 它包含该规则所消除的连接词。</p>
+</li>
+<li>
+<p>第三条，<code>?Q ⟹ ?R</code>：在证明 ?R 时，你可以假设 ?Q。</p>
+</li>
+<li>
+<p>作为论文规则，已释放的假设标记为：</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle scriptlevel="0" displaystyle="true"><mfrac><mrow><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>P</mi><mo>⟶</mo><mi>Q</mi></mrow></mstyle></mtd></mtr></mtable><mspace width="2em"/><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>P</mi></mstyle></mtd></mtr></mtable><mspace width="2em"/><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo stretchy="false">[</mo><mi>Q</mi><msup><mo stretchy="false">]</mo><mn>1</mn></msup></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">⋮</mi><mpadded height="0em" voffset="0em"><mspace mathbackground="black" width="0em" height="1.5em"></mspace></mpadded></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>R</mi></mstyle></mtd></mtr></mtable></mrow><mi>R</mi></mfrac></mstyle><mtext>  </mtext><mo stretchy="false">(</mo><msup><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">E</mi></mrow><mn>1</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\dfrac{\begin{matrix}\\ \\ P \imp Q\end{matrix} \qquad \begin{matrix}\\ \\ P\end{matrix} \qquad \begin{matrix}[Q]^1\\ \vdots\\ R\end{matrix}}{R}\;(\mathrm{impE}^1)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:5.336em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.65em;"><span style="top:-3.694em;"><span class="pstrut" style="height:4.38em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span></span></span><span style="top:-4.61em;"><span class="pstrut" style="height:4.38em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-6.65em;"><span class="pstrut" style="height:4.38em;"></span><span class="mord"><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">Q</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.38em;"><span style="top:-5.2275em;"><span class="pstrut" style="height:3.6875em;"></span><span class="mord"><span class="mopen">[</span><span class="mord mathnormal">Q</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span><span style="top:-3.3675em;"><span class="pstrut" style="height:3.6875em;"></span><span class="mord"><span class="mord"><span class="mord">⋮</span><span class="mord rule" style="border-right-width:0em;border-top-width:1.5em;bottom:0em;"></span></span></span></span><span style="top:-2.1675em;"><span class="pstrut" style="height:3.6875em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.88em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord mathrm">impE</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8873em;"><span style="top:-3.1362em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></div>
+</li>
+<li>
+<p>根据 <code>erule</code>，它移除假设 A ⟶ B 并留下两个子目标：证明 A，然后证明 C
+以 B 作为额外假设。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦A ⟶ B; A⟧ ⟹ C&quot;
+  apply (erule impE)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦A ⟶ B; A⟧ ⟹ C&quot;</span>
+  <span class="isa-proof">apply</span> (erule impE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A
+ 2. ⟦A; B⟧ ⟹ C</code></pre></div>
+<p>第一个子目标由 <code>assumption</code> 关闭；第二个子目标无法证明，因为 C 与 A 和 B 无关，因此放弃尝试：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-2"><div class="ex-label"><span class="ex-num">练习 7.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">从树到脚本</span></div>
+<p>编写一个 apply 脚本，按此树逐步执行，说明哪个命令关闭哪个叶节点，然后在 Isabelle 中验证该脚本。</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]¹</span></div><div class="pt-node pt-leaf"><span class="pt-f">[B]²</span></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I²</span></div><div class="pt-concl"><span class="pt-f">B ⟶ A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ⟶ B ⟶ A ∧ B</span></div></div></div></div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>针对 (⟶I¹) 和 (⟶I²) 的两个 <code>impI</code> 步骤，针对 (∧I) 的一个 <code>conjI</code> 步骤，以及每个叶节点的一个 <code>assumption</code> 步骤：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟶ B ⟶ A ∧ B&quot;
+  apply (rule impI)
+  apply (rule impI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ A ∧ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>第一个<code>assumption</code>关闭叶节点[A]¹（子目标1为A），第二个关闭[B]²。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-3"><div class="ex-label"><span class="ex-num">练习 7.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">采用哪种方法？</span></div>
+<p>对每个子目标，命名你采取的第一步（方法与规则），并说明其后的剩余部分。随后在 Isabelle 中完成每个证明。</p>
+<ol>
+<li><code>⟦A; B⟧ ⟹ B ∧ A</code></li>
+<li><code>A ∧ B ⟹ B</code></li>
+<li><code>¬ A ⟹ A ⟶ B</code></li>
+<li><code>∀x. P x ⟹ P c</code></li>
+<li><code>P c ⟹ ∃x. P x</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>rule conjI</code> 留下 B 和 A 两个子目标，分别用 <code>assumption</code> 完成。</li>
+<li><code>erule conjE</code> 留下 ⟦A; B⟧ ⟹ B，用 <code>assumption</code> 完成。</li>
+<li><code>rule impI</code> 留下 ⟦¬ A; A⟧ ⟹ B。再用 <code>erule notE</code> 把目标化为 A，最后用 <code>assumption</code> 完成。</li>
+<li><code>erule allE</code> 用实例 P t 替换假设，其中 t 是未知项，且 <code>assumption</code>
+将 sets 赋值为 c。（<code>drule spec</code> 同样适用。）</li>
+<li><code>rule exI</code> 留下待证的 P t，其中见证 t 未知。<code>assumption</code> 将 t 实例化为 c。</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦A; B⟧ ⟹ B ∧ A&quot;
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done
+
+lemma &quot;A ∧ B ⟹ B&quot;
+  apply (erule conjE)
+  apply assumption
+  done
+
+lemma &quot;¬ A ⟹ A ⟶ B&quot;
+  apply (rule impI)
+  apply (erule notE)
+  apply assumption
+  done
+
+lemma &quot;∀x. P x ⟹ P c&quot;
+  apply (erule allE)
+  apply assumption
+  done
+
+lemma &quot;P c ⟹ ∃x. P x&quot;
+  apply (rule exI)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦A; B⟧ ⟹ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟹ B&quot;</span>
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ⟹ A ⟶ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀x. P x ⟹ P c&quot;</span>
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;P c ⟹ ∃x. P x&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-4"><div class="ex-label"><span class="ex-num">练习 7.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">柯里化</span></div>
+<p>练习 6.4 在纸上推导了这两个公式。请使用 <code>rule</code>、<code>erule</code>、<code>drule</code> 和 <code>assumption</code> 在 Isabelle 中证明它们：</p>
+<ol>
+<li><code>(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)</code></li>
+<li><code>(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)</code></li>
+</ol>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>在第一个证明中，将合取式拆开，并两次使用嵌套蕴含，其中<code>drule mp</code>：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)&quot;
+  apply (rule impI)
+  apply (rule impI)
+  apply (erule conjE)
+  apply (drule mp)
+  apply assumption
+  apply (drule mp)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (drule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (drule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>在第二种情况中，<code>erule impE</code>要求你证明 A ∧ B，<code>conjI</code> 将其分解：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)&quot;
+  apply (rule impI)
+  apply (rule impI)
+  apply (rule impI)
+  apply (erule impE)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule impE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ A ∧ B
+ 2. ⟦A; B; C⟧ ⟹ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply assumption
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-5"><div class="ex-label"><span class="ex-num">练习 7.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">两个不含 RAA 的德摩根定律</span></div>
+<p>Exercise 6.5 和 Section 6.5 在纸上推导了 <code>¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)</code> 和 <code>¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)</code>。在 Isabelle 中证明两者，不使用 <code>ccontr</code> 或 <code>classical</code>。在第二个证明中，你将遇到 Section 7.5 中的陷阱：<code>erule notE</code> 取第一个被否定的假设。用 <code>erule_tac P = B in notE</code> 命名你希望的那个（<code>notE</code> 的变量名为 P）。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)&quot;
+  apply (rule impI)
+  apply (rule notI)
+  apply (erule conjE)
+  apply (erule disjE)
+  apply (erule notE)
+  apply assumption
+  apply (erule notE)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (erule disjE)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>在第二条定律中，情况分解留下两个子目标，其中假设中同时包含 ¬A 和 ¬B：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)&quot;
+  apply (rule impI)
+  apply (erule conjE)
+  apply (rule notI)
+  apply (erule disjE)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule disjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦¬ A; ¬ B; A⟧ ⟹ False
+ 2. ⟦¬ A; ¬ B; B⟧ ⟹ False</code></pre></div>
+<p>在第一种情况下，¬A 是正确的且优先出现。在第二种情况下，<code>erule notE</code> 会再次选取 ¬A 而留下 A 需证明，这是不可能的；因此选择 ¬B：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)
+  apply assumption
+  apply (erule_tac P = B in notE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule_tac P = B <span class="isa-minor">in</span> notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦¬ A; B⟧ ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-6"><div class="ex-label"><span class="ex-num">练习 7.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">写访问</span></div>
+<p>在访问控制策略中，每位管理员均可写入。证明任何不可写入者均非管理员：</p>
+<p><code>(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)</code></p>
+<p>首先规划量词步骤的顺序：哪个规则固定变量，哪个生成未知项？</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>allI</code>在结论中固定u，<code>allE</code>创建假设的未知实例。先固定：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)&quot;
+  apply (rule impI)
+  apply (rule allI)
+  apply (rule impI)
+  apply (rule notI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀u. ⟦∀u. admin u ⟶ can_write u; ¬ can_write u; admin u⟧ ⟹ False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)
+  apply (erule impE)
+  apply assumption">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀u. ⟦¬ can_write u; admin u; can_write u⟧ ⟹ False</code></pre></div>
+<p><code>assumption</code> 使用固定项 u 实例化了未知量，这是可能的，因为 u 是最先固定的。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-7"><div class="ex-label"><span class="ex-num">练习 7.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">存在量词拆分</span></div>
+<p>证明<code>(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)</code>，这是练习6.6在纸上推导出的结果。然后用一两句话，基于固定变量和未知项，解释为什么逆命题<code>(∃x. P x) ∧ (∃x. Q x) ⟶ (∃x. P x ∧ Q x)</code>无法被证明。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)&quot;
+  apply (rule impI)
+  apply (erule exE)
+  apply (erule conjE)
+  apply (rule conjI)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule exE)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. ⟦P x; Q x⟧ ⟹ ∃x. P x
+ 2. ⋀x. ⟦P x; Q x⟧ ⟹ ∃x. Q x</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule exI)
+  apply assumption
+  apply (rule exI)
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>逆命题不成立：P 可为“是偶数”，Q 为“是奇数”，论域为自然数。二者均有见证，但无数字同时满足二者。在证明尝试中，两个 <code>exE</code> 步骤固定了两个不同的变量，一个满足 P，一个满足 Q，而 <code>exI</code> 的单一未知见证无法同时成为二者：合一从不使两个不同的固定变量相等。不同的名称并不断言不同的值；相反，我们没有等式允许我们将这些任意见证视为相同。这是 Isabelle 中练习 6.6 的本征变元条件失效情形。</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-8"><div class="ex-label"><span class="ex-num">练习 7.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Peirce 定律</span></div>
+<p>练习 6.8 利用反证法 (RAA) 在纸上推导了皮尔士定律 ((A ⟶ B) ⟶ A) ⟶ A。请按照 <code>ccontr</code> 逐步跟随推导树，将其转化为 apply 脚本，并指出哪一步执行了 (⊥E) 的工作。随后，使用 <code>classical</code> 缩短该脚本。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>在练习 6.8 的树底部是 (⟶I¹)、(RAA²) 和 (¬E)，前提为 [¬A]² 和 A。与第 7.7 节类似，<code>rule ccontr</code>、<code>rule notE</code> 和 <code>assumption</code> 取最后两步并留下 A 以证明：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ A) ⟶ A&quot;
+  apply (rule impI)
+  apply (rule ccontr)
+  apply (rule notE)
+  apply assumption">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦(A ⟶ B) ⟶ A; ¬ A⟧ ⟹ A</code></pre></div>
+<p>A 由 (A ⟶ B) ⟶ A 经 (⟶E) 得到，这需要 A ⟶ B：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ¬ A ⟹ A ⟶ B
+ 2. ⟦¬ A; A⟧ ⟹ A</code></pre></div>
+<p>要证明 A ⟶ B，假设 A（⟶I³）。目标变为 B，而 <code>erule notE</code> 利用 ¬A 将其转化为 A。</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)
+  apply (erule notE)">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A
+ 2. ⟦¬ A; A⟧ ⟹ A</code></pre></div>
+<p>此单个<code>erule notE</code>同时完成了树中(¬E)和(⊥E)的工作，因为<code>notE</code>可得出结论任意公式，此处为B。剩余的两个子目标均为假设：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>借助<code>classical</code>，<code>impI</code>之后的三个步骤合并为一个：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ A) ⟶ A&quot;
+  apply (rule impI)
+  apply (rule classical)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> classical)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦(A ⟶ B) ⟶ A; ¬ A⟧ ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)
+  apply (rule impI)
+  apply (erule notE)
+  apply assumption
+  apply assumption
+  done">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-9"><div class="ex-label"><span class="ex-num">练习 7.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">一个必须失败的证明</span></div>
+<p>第 6.7 节展示了针对 (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) 的后向搜索永远无法闭合。在 Isabelle 中观察其过程：应用你能找到的最佳顺序的量词规则，并展示你陷入困境的状态。然后，使用本征变元和未知项解释为何任何顺序都无法奏效。</p>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>结论中 ∃x 的直接引入使用 <code>exI</code>，并在任何内容被固定之前创建未知见证者：</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;
+  apply (rule impI)
+  apply (rule exI)
+  apply (rule allI)
+  apply (erule allE)
+  apply (erule exE)">复制</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule exE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">输出</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y6 y) ⟹ R ?x2 y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">复制</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>为关闭子目标，R x (?y6 y) 与 R ?x2 y 必须完全相同。实例 ?y6 y 可化为 y，因为 <code>allI</code> 在 <code>allE</code> 创建 ?y6 之前固定了 y。但见证 ?x2 必须化为 x，而 <code>exE</code> 在 <code>exI</code> 创建 ?x2 之后才固定 x，这是不允许的。先分解假设仅转移问题：<code>erule allE</code> 和 <code>erule exE</code> 在创建见证前固定 x，使见证可化为 x，但 ∀y 的实例在 <code>allI</code> 固定 y 前创建，故无法化为 y。总有一个未知量创建过早。结论中的 y 只能在见证创建后固定，因其 ∀y 位于 ∃x 内部；假设中的 x 只能在实例创建后固定，因其 ∃x 位于 ∀y 内部。</p>
+<p>这是 Isabelle 中第 6.7 节永无止境的搜索：每扇新门都需要一把新钥匙。该公式无效（第 6.6 节给出了反例），因此任何顺序都无效；导致 Isabelle 拒绝这些合一的条件正是保持其证明健全性的条件。</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>自测题</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>在子目标<code>⟦A ⟶ B; A⟧ ⟹ B</code>中，⟹表示什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">公式 (A ⟶ B) ∧ A ⟶ B 已被证明</button></li><li><button type="button" class="quiz-opt" data-i="1">必须证明 B，且 A ⟶ B 和 A 可用作假设</button></li><li><button type="button" class="quiz-opt" data-i="2">A ⟶ B 和 A 是该子目标的结论</button></li><li><button type="button" class="quiz-opt" data-i="3">与 ⟶ 的含义相同，只是 Isabelle 显示时用了不同的箭头</button></li></ol><div class="quiz-expl" hidden>⟹ 是 Pure 的“从 … 推断”。其左侧为子目标的假设，右侧为仍需证明的结论。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>thm exI</code> 打印 <code>?P ?x ⟹ ∃x. ?P x</code>。<code>?x</code> 中的问号是什么意思？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">该 x 是可选的</button></li><li><button type="button" class="quiz-opt" data-i="1">该 x 是当前子目标的本征变元</button></li><li><button type="button" class="quiz-opt" data-i="2">该 ?x 是本征变元：它可由具有正确类型和允许作用域的项实例化</button></li><li><button type="button" class="quiz-opt" data-i="3">x 尚未定义</button></li></ol><div class="quiz-expl" hidden>本征变元是受类型和范围约束的占位符。Isabelle 通过合一填充它们，或者你使用 <code>of</code> 或 <code>rule_tac</code> 选择它们；后续局部变量不能通过早期未知变量逃逸。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>子目标是 <code>A ∨ B ⟹ B ∨ A</code>。哪一步对假设执行了 (∨E)，使得每个情况各留下一个子目标？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>apply (rule disjI1)</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>apply (rule disjE)</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>apply (drule disjI2)</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>apply (erule disjE)</code></button></li></ol><div class="quiz-expl" hidden><code>erule</code> 将大前提 A ∨ B 与假设进行合一，并留下两个分支。<code>rule disjE</code> 留下三个带有未知公式的子目标。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>在<code>apply (rule allI)</code>之后，子目标读作<code>⋀x. ∀x. P x ∧ Q x ⟹ P x</code>。在⋀之后的x是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">固定变量：它代表任意值，且合一操作从不替换它</button></li><li><button type="button" class="quiz-opt" data-i="1">一个统一（unification）稍后选择的本征变元</button></li><li><button type="button" class="quiz-opt" data-i="2">与假设中由 ∀ 绑定的 x 相同的变量</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle 库中的一个常量</button></li></ol><div class="quiz-expl" hidden><code>allI</code> 将 HOL 量词规约为 Pure 的 ⋀。该固定变量即 Module 6 所称的本征变元。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>证明在<code>⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</code>处卡住，且<code>apply assumption</code>失败。为什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">关系 R 必须具有自反性</button></li><li><button type="button" class="quiz-opt" data-i="1">在 x 被固定之前创建了未知量 ?x4，因此它不能成为 x</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>assumption</code> 无法处理两个固定变量</button></li><li><button type="button" class="quiz-opt" data-i="3">所证明的陈述为假</button></li></ol><div class="quiz-expl" hidden>该命题有效（即 <code>ex_all</code>），但 <code>exI</code> 出现在 <code>exE</code> 之前。先修正，后猜测。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>by blast</code> 报告“初始证明方法应用失败”。你了解什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">该命题为假</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>blast</code> 需要在其后跟随 <code>done</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>blast</code> 未找到证明；该命题可能为假，或对 <code>blast</code> 而言过于困难</button></li><li><button type="button" class="quiz-opt" data-i="3">内核拒绝了一个证明，该证明声称 <code>blast</code> 找到了</button></li></ol><div class="quiz-expl" hidden><code>blast</code> 要么找到完整证明，要么失败。失败对真值不作任何断言；使用 <code>nitpick</code> 来寻找反例，或手动应用某些规则。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="7"><div class="done-q">学完这个模块了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label="已完成 {d} / {n} 个模块"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_06_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 6：什么是证明？自然演绎</span></a><a class="mnav next" href="module_08_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 8：HOL 中的函数式编程</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>
