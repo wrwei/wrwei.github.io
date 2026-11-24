@@ -12,6 +12,16 @@ A complete 32-module series covering mathematical reasoning, discrete mathematic
 
 ---
 
+## Calculus
+
+A 20-module course from functions, limits and derivatives to integrals, series and vector calculus.
+Work through examples, exercises with solutions, self-check quizzes and interactive diagrams. A
+formula sheet, glossary, guide to common mistakes and downloadable Python examples accompany the modules.
+
+[:octicons-arrow-right-24: Go to Calculus Tutorials](calculus/index.html)
+
+---
+
 ## Computer Science Fundamentals
 
 A complete 14-module beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with 29 runnable Python labs, 112 exercises with worked solutions, self-check quizzes, and a persistent local catalogue capstone.
