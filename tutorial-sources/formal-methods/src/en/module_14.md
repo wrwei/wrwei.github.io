@@ -1270,8 +1270,8 @@ Where to go from here:
   structure large proofs.
 - **seL4** and **CompCert** (Module 1) show these methods at industrial scale; their papers explain what
   was proved, what is trusted, and what the proofs cost.
-- On this site, **[Isabelle for model verification](../isabelle/)** applies Isabelle to an engineering
-  model: a small model of a lid, an operation on it, an invariant, and a theorem that a translation
+- **[Isabelle for model verification](model-verification/index.html)** is an applied project with a
+  small model of a lid, an operation on it, an invariant, and a theorem that a translation
   between two representations preserves meaning, the same kind of theorem as `compile_correct`. It uses
   Isabelle2025-2.
 

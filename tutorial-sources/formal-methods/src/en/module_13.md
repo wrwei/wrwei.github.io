@@ -979,8 +979,8 @@ and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's
 
 ### Where to go next {#further}
 
-- **Isabelle for model verification.** The site's single-page guide
-  [Isabelle for model verification](../isabelle/) applies these ideas to a small model of a lid: a
+- **[Isabelle for model verification](model-verification/index.html).** The applied project
+  uses these ideas in a small model of a lid: a
   record of state, a guard that admits an operation, a lemma that the operation preserves the state
   invariant, and a proof that a translation between two representations preserves meaning. Its guard
   and update form an event in the sense of Section 13.4, and its lemma is the induction step of an invariant

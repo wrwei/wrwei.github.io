@@ -29,6 +29,13 @@ exercise solutions, is checked by Isabelle. Start with Module 1, which also inst
 
 <!-- modules -->
 
+## Applied project {#model-verification}
+
+[Isabelle for model verification](model-verification/index.html) builds on
+[Module 13](module_13_EN.html#invariants) and [Module 14](module_14_EN.html#proof). Use a small lid model
+to write a guard, prove an invariant and check that a translation preserves meaning. The project
+includes an interactive guard explorer, eight worked exercises and an Isabelle2025-2 theory download.
+
 ## Reference and downloads {#reference}
 
 The **cheat sheet** collects symbols, commands, proof methods and rules; **troubleshooting** explains
@@ -43,4 +50,4 @@ Proving in Isabelle/HOL* by Tobias Nipkow is the official tutorial; the book *Co
 Tobias Nipkow and Gerwin Klein continues it with the semantics of programming languages. The
 [Archive of Formal Proofs](https://www.isa-afp.org) holds hundreds of checked Isabelle developments. On
 this site, [Mathematical Foundations](../math/index.html) gives more practice in the mathematics of
-Part I, and [Isabelle for model verification](../isabelle/) applies Isabelle to an object model.
+Part I.

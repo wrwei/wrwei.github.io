@@ -5,15 +5,15 @@ formal proof, and then teaches Isabelle/HOL in depth, ending with verified progr
 compiler. English and Simplified Chinese, published at `docs/tutorials/formal-methods/`. This file is
 the contract for writers, translators and reviewers; the tools in `tools/` enforce what can be checked.
 
-The site already has two related pages, and this series works with both:
+The series links to further mathematical practice and includes an applied project.
 
 - **Mathematical Foundations** (`docs/tutorials/math/`) teaches logic, sets, proof methods and induction
   for computing in general. Part I here covers what formal methods need from those subjects (logic as a
   specification language, semantics, decidability, induction for recursive definitions) and links to
   Mathematical Foundations for more practice.
-- **Isabelle for model verification** (`docs/tutorials/isabelle/`), a single-page guide checked with
-  Isabelle2025-2, applies Isabelle to a small object model. Module 13 points to it as an applied
-  follow-on.
+- **Isabelle for model verification** (`docs/tutorials/formal-methods/model-verification/`) applies
+  the ideas in Modules 13 and 14 to a small object model. Its examples and exercise answers form
+  a separate session checked with Isabelle2025-2.
 
 ## 1. Readers and what "detailed" means here
 

@@ -1,8 +1,10 @@
 # Isabelle for model verification
 
-[Guide](index.md) · [Exercises](exercises.md) · [Quick reference](reference.md) · [Download all examples](examples/isabelle-tutorial.zip)
+[Formal Methods with Isabelle](../index.html) · [Exercises](exercises.md) · [Quick reference](reference.md) · [Download all examples](../../isabelle/examples/isabelle-tutorial.zip)
 
 Learn how to turn a model, a constraint and an operation into a machine-checked argument. This guide starts with Isabelle/HOL and develops a small lid model: define an angle limit, admit an opening operation, prove an invariant, and check a translation between two representations.
+
+This applied project uses the guarded operations and invariants from [Module 13](../module_13_EN.html#invariants). Its translation-preservation proof uses the same idea as the compiler correctness theorem in [Module 14](../module_14_EN.html#proof).
 
 You need basic programming experience and a willingness to read logical formulas. No previous theorem-proving experience is assumed. Work through the sections in order the first time; use the contents and [quick reference](reference.md) when returning to a topic.
 
@@ -10,7 +12,7 @@ You need basic programming experience and a willingness to read logical formulas
 
 Use **Isabelle2025-2** for the examples in this guide. The [official installation page](https://isabelle.in.tum.de/website-Isabelle2025-2/installation.html) provides applications for macOS, Windows and Linux. Start the Isabelle/jEdit application rather than a plain text editor: the application connects the text to the prover.
 
-1. Download and unpack the [example ZIP](examples/isabelle-tutorial.zip).
+1. Download and unpack the [example ZIP](../../isabelle/examples/isabelle-tutorial.zip).
 2. Open `Isabelle_Tutorial.thy` in Isabelle/jEdit.
 3. Open the **Output** panel and enable **Proof state**.
 4. Place the cursor at a definition or lemma. Read the output for that command before moving on.
@@ -287,7 +289,7 @@ From the unpacked examples directory, run:
 /path/to/isabelle build -D .
 ```
 
-`ROOT` defines the `Isabelle_Web_Tutorial` session and lists both theories. The build checks the tutorial and all exercise answers together. After changing a definition, rerun it and inspect any affected proofs. [Proof-check record](examples/proof-status.json)
+`ROOT` defines the `Isabelle_Web_Tutorial` session and lists both theories. The build checks the tutorial and all exercise answers together. After changing a definition, rerun it and inspect any affected proofs. [Proof-check record](../../isabelle/examples/proof-status.json)
 
 When a proof fails, first ask whether the statement is true. Then check the types, the available assumptions and the definitions that need unfolding. Use the [quick reference](reference.md) for proof methods and common errors, and the [exercises](exercises.md) to practise.
 

@@ -9,8 +9,9 @@ import re
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
-DOCS = ROOT / 'docs/tutorials/isabelle'
-EXAMPLES = DOCS / 'examples'
+PROJECT = Path('tutorials/formal-methods/model-verification')
+DOCS = ROOT / 'docs' / PROJECT
+EXAMPLES = ROOT / 'docs/tutorials/isabelle/examples'
 SYMBOLS = {'Rightarrow': '⇒', 'Longrightarrow': '⟹', 'longleftrightarrow': '⟷',
            'le': '≤', 'and': '∧', 'not': '¬', 'lparr': '⦇', 'rparr': '⦈',
            'noteq': '≠', 'open': '‹', 'close': '›'}
@@ -66,9 +67,8 @@ def main():
                 result.feed(path.read_text())
                 cache[path] = result
             return cache[path]
-        pages = [site / 'tutorials/isabelle/index.html',
-                 site / 'tutorials/isabelle/exercises/index.html',
-                 site / 'tutorials/isabelle/reference/index.html']
+        pages = [site / PROJECT / name for name in
+                 ('index.html', 'exercises/index.html', 'reference/index.html')]
         for page in pages:
             assert page.is_file(), page
             for url in parsed(page).links:

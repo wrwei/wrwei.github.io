@@ -87,15 +87,9 @@ A hands-on 10-module series on model-driven engineering: metamodels, models, que
 
 A 14-module series that starts from logic and discrete mathematics and ends with machine-checked proof: propositional and predicate logic, sets, relations and induction, natural deduction, then Isabelle/HOL in depth (functional programming, proof automation, structured Isar proofs, induction), and finally verified programs, state machines with invariants and a verified compiler. All 889 Isabelle examples were checked with Isabelle2026, and every output shown, error messages included, is Isabelle's own. 117 exercises with full solutions, five interactive demonstrations, real Isabelle/jEdit screenshots, a cheat sheet, a troubleshooting guide, a glossary, and all theories as a download.
 
+The [Isabelle model-verification project](formal-methods/model-verification/index.md) applies these ideas to a small engineering model. It includes a guard explorer, eight worked exercises, a quick reference, and a separate theory download checked with Isabelle2025-2.
+
 [:octicons-arrow-right-24: Go to Formal Methods Tutorials](formal-methods/index.html)
-
----
-
-## Isabelle for model verification
-
-A hands-on introduction to Isabelle/HOL using a small object model: definitions, logical notation, guards, state invariants, structured proofs, datatypes, induction and translation preservation. Includes an interactive guard explorer, downloadable theory files, eight exercises with complete answers, a quick reference, and an introduction to where Isabelle/UTP fits.
-
-[:octicons-arrow-right-24: Go to the Isabelle Tutorial](isabelle/index.md)
 
 ---
 

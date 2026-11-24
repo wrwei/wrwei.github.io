@@ -1023,7 +1023,7 @@ corollary "exec2 (compile2 e) s stk = eval2 e s # stk"
 - 托比亚斯·尼普科（Tobias Nipkow）和格尔温·克莱因（Gerwin Klein）合著的 **《Concrete Semantics》**（Springer，2014 年；网站为 concrete-semantics.org）从本模块结束的地方接着讲下去。它的第一部分是一个 Isabelle 教程；第二部分定义了一个带有赋值和循环的小型命令式语言 IMP，并讲解它的语义、它的编译器、类型系统、霍尔逻辑（Hoare logic）和程序分析，全部都在 Isabelle 中完成。
 - **[形式化证明档案库](https://www.isa-afp.org)**（Archive of Formal Proofs）收录了数百个经过检查的 Isabelle 项目，其中有经过验证的编译器、算法和数据结构；从中可以看到专家们怎样组织大型证明。
 - **seL4** 和 **CompCert**（模块 1）展示了这些方法在工业规模上的应用；它们的论文说明了证明了什么、信任了什么，以及这些证明付出了多大的代价。
-- 本站的 **[Isabelle 模型验证](../isabelle/)**（英文）把 Isabelle 应用于一个工程模型：一个关于盖子的小模型、作用于它的一个操作、一个不变式（invariant），以及一个说明两种表示之间的转换保持含义的定理，这和 `compile_correct` 是同一类定理。它使用的是 Isabelle2025-2。
+- 本系列的应用项目 **[Isabelle 模型验证](model-verification/index.html)**（英文）用一个盖子模型讲解操作、不变式和表示之间的转换。项目证明这种转换保持含义，这与 `compile_correct` 属于同一类定理。项目使用 Isabelle2025-2。
 
 模块 1 的第一个理论以三件事收尾：用 `value` 计算，用 `lemma` 证明，用 Quickcheck 反驳。在本模块中，你把这三件事都用在了一个真正的软件上，也就是一个编译器；而你得到的，是一个关于它将来要编译的每一个程序的定理。
 

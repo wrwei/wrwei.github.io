@@ -1,18 +1,24 @@
 # Isabelle tutorial sources
 
-The tutorial is authored directly in `docs/tutorials/isabelle/`. MkDocs builds
-those Markdown pages with the existing site theme; there is no separate page
-generator. Edit the guide, exercises and reference there.
+The model-verification project is part of Formal Methods with Isabelle. Edit
+the guide, exercises and quick reference in
+`docs/tutorials/formal-methods/model-verification/`. MkDocs builds those
+Markdown pages with the site theme.
 
 - `index.md`: introductory guide and guard explorer.
 - `exercises.md`: eight exercises with expandable solutions.
 - `reference.md`: notation, proof methods and troubleshooting.
+- `assets/guard.js` and `guard.css`: scoped browser illustration.
+
+The checked files and ZIP live at their original download URLs under
+`docs/tutorials/isabelle/`. The three old article URLs forward to the
+project pages and carry over section fragments.
+
 - `examples/Isabelle_Tutorial.thy`: canonical teaching theory.
 - `examples/Exercise_Answers.thy`: complete exercise answers.
 - `examples/ROOT`: the independent `Isabelle_Web_Tutorial` session.
 - `examples/proof-status.json`: proof-check provenance and source hashes.
 - `examples/isabelle-tutorial.zip`: downloadable source bundle.
-- `assets/guard.js` and `guard.css`: scoped browser illustration.
 
 The `<!-- checked: Theory.thy -->` markers identify excerpts that must occur in
 the named theory after Isabelle symbol escapes are rendered. Keep the canonical

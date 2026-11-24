@@ -1,7 +1,9 @@
 # Formal Methods with Isabelle: how the series is made and maintained
 
-The sources of the series published at `docs/tutorials/formal-methods/`. Everything on the published
-pages is generated from this folder; never edit the published HTML by hand.
+The series at `docs/tutorials/formal-methods/` is generated from this folder.
+Edit the model-verification project's Markdown directly under
+`docs/tutorials/formal-methods/model-verification/`. See
+[`../isabelle/README.md`](../isabelle/README.md) for the project's separate Isabelle session and checks.
 
 ## Layout
 
