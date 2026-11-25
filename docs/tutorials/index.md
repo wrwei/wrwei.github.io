@@ -51,19 +51,19 @@ A complete 14-module beginner-friendly series covering computation, programming,
 
 ---
 
-## Object Oriented Design
+## Object-Oriented Design
 
-A comprehensive tutorial series covering the fundamentals of Object Oriented Design, with examples in Python.
+Nine modules on object-oriented design in English and Simplified Chinese, with Python examples and UML diagrams.
 
-[:octicons-arrow-right-24: Go to OOD Tutorials](ood/index.html)
+[:octicons-arrow-right-24: Object-Oriented Design in English](ood/index.html) · [面向对象设计（中文）](ood/index_ZH.html)
 
 ---
 
 ## SysML v2
 
-A tutorial series covering the fundamentals of SysML v2, the next-generation systems modelling language.
+Nine modules in English and Simplified Chinese covering SysML v2 notation, structure and behaviour, requirements, cases, analysis, configuration, and verification.
 
-[:octicons-arrow-right-24: Go to SysML v2 Tutorials](sysml/index.html)
+[:octicons-arrow-right-24: SysML v2 in English](sysml/index.html) · [SysML v2 教程（中文）](sysml/index_ZH.html)
 
 ---
 
@@ -80,17 +80,17 @@ A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD
 
 ## Model-Based Systems Engineering
 
-A 12-module tutorial series on MBSE methodology, the three pillars (language, method, tool), industry frameworks (OOSEM, MagicGrid, IBM Harmony), and domain applications — tool-agnostic and beginner-friendly.
+A 12-module tutorial series in English and Simplified Chinese on MBSE methodology, modelling languages and tools, industry frameworks including OOSEM, MagicGrid and IBM Harmony, and their applications.
 
-[:octicons-arrow-right-24: Go to MBSE Tutorials](mbse/index.html)
+[:octicons-arrow-right-24: Model-Based Systems Engineering in English](mbse/index.html) · [基于模型的系统工程（中文）](mbse/index_ZH.html)
 
 ---
 
 ## Model-Driven Engineering with Eclipse Epsilon
 
-A hands-on 10-module series on model-driven engineering: metamodels, models, querying, validation, code generation and model-to-model transformation with Eclipse Epsilon. You can run every example from your browser in the Epsilon Playground, with nothing to install. English and Chinese editions. Module 1 is available now; the other modules are in preparation.
+A hands-on series on metamodels, models, querying, validation, code generation and model-to-model transformation with Eclipse Epsilon. Run the examples in the browser with the Epsilon Playground. All 10 modules are available in English and Simplified Chinese.
 
-[:octicons-arrow-right-24: Go to MDE Tutorials](mde/index.html)
+[:octicons-arrow-right-24: Model-Driven Engineering with Eclipse Epsilon in English](mde/index.html) · [使用 Eclipse Epsilon 学习模型驱动工程（中文）](mde/index_ZH.html)
 
 ---
 
@@ -116,9 +116,9 @@ A beginner's series in eleven short lessons, 15 to 45 minutes each: keep the his
 
 ## AI Agents
 
-A 10-module tutorial series on AI agents — what they are, how they work, and how to build them using large language models, tool use, memory, and multi-agent architectures.
+A 15-module tutorial series in English and Simplified Chinese on building AI agents. It covers model APIs, tool use, memory, retrieval, MCP, multi-agent orchestration, safety, evaluation and deployment.
 
-[:octicons-arrow-right-24: Go to AI Agent Tutorials](agent/index.html)
+[:octicons-arrow-right-24: AI Agents in English](agent/index.html) · [构建 AI 智能体（中文）](agent/index_ZH.html)
 
 ---
 
